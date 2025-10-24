@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicRills - AI Powered Educational Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #2563EB;
+            --secondary: #059669;
+            --accent: #F59E0B;
+            --dark: #1F2937;
+            --darker: #111827;
+            --light: #F9FAFB;
+            --gradient: linear-gradient(135deg, #2563EB 0%, #059669 100%);
+            --gradient-accent: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+            --shadow: 0 20px 40px rgba(0,0,0,0.1);
+            --card-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            --glow: 0 0 20px rgba(37, 99, 235, 0.3);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        body {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-1 { width: 300px; height: 300px; top: 10%; left: 5%; background: #2563EB; animation-delay: 0s; }
+        .shape-2 { width: 200px; height: 200px; top: 60%; right: 10%; background: #059669; animation-delay: 2s; }
+        .shape-3 { width: 150px; height: 150px; bottom: 20%; left: 20%; background: #F59E0B; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            border-radius: 24px;
+            margin-bottom: 50px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,1000 1000,0 1000,1000"/></svg>');
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(0px) translateY(0px); }
+            100% { transform: translateX(-100px) translateY(-100px); }
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 25px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            100% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #FFFFFF 0%, #E5E7EB 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            opacity: 0.95;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+            color: #E5E7EB;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.15);
+            padding: 20px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .stat-item:hover::before {
+            left: 100%;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glow);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+            background: linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: #E5E7EB;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-section:hover {
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 20px 60px 20px 30px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            font-size: 18px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        #searchInput::placeholder {
+            color: #9CA3AF;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus + .search-icon {
+            color: var(--accent);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .category-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 0;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .category-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% { transform: rotate(45deg) translateX(-100%); }
+            50% { transform: rotate(45deg) translateX(100%); }
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .category-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .category-count {
+            background: rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+
+        .tools-container {
+            padding: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .tools-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .tool-card {
+            background: rgba(255,255,255,0.05);
+            padding: 18px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        .tool-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--primary);
+            transform: translateX(8px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .tool-card a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tool-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover .tool-icon {
+            background: var(--gradient-accent);
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .tool-info {
+            flex: 1;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #F9FAFB;
+            font-size: 1rem;
+        }
+
+        .tool-category {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 500;
+            background: rgba(37, 99, 235, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            text-align: center;
+            padding: 50px 20px;
+            border-radius: 24px;
+            margin-top: 60px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient);
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-logo {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: var(--gradient);
+            padding: 15px;
+            border-radius: 50%;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer-text {
+            opacity: 0.8;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .ai-badge {
+            background: var(--gradient);
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 15px;
+            box-shadow: var(--glow);
+            transition: all 0.3s ease;
+        }
+
+        .ai-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.5);
+        }
+
+        /* Scrollbar Styling */
+        .tools-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .tools-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+
+        .tools-container::-webkit-scrollbar-thumb {
+            background: var(--gradient);
+            border-radius: 4px;
+        }
+
+        .tools-container::-webkit-scrollbar-thumb:hover {
+            background: var(--gradient-accent);
+        }
+
+        /* Particle Animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(37, 99, 235, 0.3);
+            border-radius: 50%;
+            animation: float-particle 8s ease-in-out infinite;
+        }
+
+        @keyframes float-particle {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            50% { transform: translate(100px, -100px) rotate(180deg); }
+            90% { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stat-item {
+                padding: 15px 20px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .logo {
+                font-size: 3rem;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header {
+                padding: 40px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .search-section {
+                padding: 30px 20px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: loading 2s ease-in-out;
+            z-index: 1000;
+        }
+
+        @keyframes loading {
+            0% { transform: scaleX(0); }
+            50% { transform: scaleX(1); }
+            100% { transform: scaleX(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-bar"></div>
+    
+    <div class="animated-bg">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h1>MagicRills AI</h1>
+            <p class="subtitle">Next-Generation Educational Intelligence Platform - Powered by Advanced AI Algorithms</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">110+</span>
+                    <span class="stat-label">AI Tools</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">8</span>
+                    <span class="stat-label">Categories</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Available</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">AI</span>
+                    <span class="stat-label">Powered</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Explore 110+ AI tools... Start typing to discover intelligent solutions">
+                <div class="search-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </section>
+
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- Categories will be loaded here by JavaScript -->
+        </div>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <p class="footer-text">
+                    Revolutionizing education through cutting-edge artificial intelligence. 
+                    Our platform empowers educators with intelligent tools that adapt, learn, and evolve.
+                </p>
+                <div class="ai-badge">
+                    <i class="fas fa-robot"></i> &nbsp; AI-DRIVEN EDUCATIONAL INNOVATION
+                </div>
+                <p style="margin-top: 25px; opacity: 0.7; font-size: 0.9rem;">
+                    MagicRills AI Platform © 2024 | Building the Future of Education
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random properties
+                const size = Math.random() * 6 + 2;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const delay = Math.random() * 8;
+                const duration = Math.random() * 10 + 10;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // All your tools data with corrected URLs
+        const toolsData = [
+            {
+                category: "Teacher Tools",
+                icon: "👨‍🏫",
+                count: 22,
+                color: "#2563EB",
+                tools: [
+                    { name: "Mathematics Models Idea Generator", url: "Teacher/mathematics-models-idea-generator.html", category: "Math Intelligence" },
+                    { name: "Science Models Idea Generator", url: "Teacher/science-models-idea-generator.html", category: "Science AI" },
+                    { name: "Science Paper Generator", url: "Teacher/science-paper-generator.html", category: "Content Creation" },
+                    { name: "Mathematics Paper Generator", url: "Teacher/mathematics-paper-generator.html", category: "Math AI" },
+                    { name: "Mind Map Generator", url: "Teacher/mind-map-generator.html", category: "Visual Thinking" },
+                    { name: "Research Proposal Generator", url: "Teacher/research-proposal-generator.html", category: "Research AI" },
+                    { name: "Professional Case Study Generator", url: "Teacher/professional-case-study-generator.html", category: "Case Analysis" },
+                    { name: "Q Bloom Builder", url: "Teacher/q-bloom-builder.html", category: "Assessment AI" },
+                    { name: "Group Formation Tool", url: "Teacher/group-formation-tool.html", category: "Classroom AI" },
+                    { name: "Differentiated Instruction Idea", url: "Teacher/differentiated-instruction-idea.html", category: "Strategy AI" },
+                    { name: "Chapter To Outline Generator", url: "Teacher/chapter-to-outline-generator.html", category: "Planning AI" },
+                    { name: "Learning Disabilities Dashboard", url: "Teacher/learning-disabilities-dashboard.html", category: "Special Ed AI" },
+                    { name: "STEAM PBL Project Generator", url: "Teacher/steam-pbl-project-generator.html", category: "STEAM Innovation" },
+                    { name: "English Paper Generator", url: "Teacher/english-paper-generator.html", category: "Language AI" },
+                    { name: "Urdu Paper Generator", url: "Teacher/urdu-paper-generator.html", category: "Language AI" },
+                    { name: "Urdu Language PDF Word Converter", url: "Teacher/urdu-language-pdf-word-converter.html", category: "Language Tech" },
+                    { name: "Plagiarism Paraphrasing Tool", url: "Teacher/plagiarism-paraphrasing-tool.html", category: "Writing AI" },
+                    { name: "Teacher Resource Finder", url: "Teacher/teacher-resource-finder.html", category: "Resource AI" },
+                    { name: "Advanced MCQ Maker Tool", url: "Teacher/advanced-mcq-maker-tool.html", category: "Assessment AI" },
+                    { name: "Advanced Lesson Plan Tool", url: "Teacher/advanced-lesson-plan-tool.html", category: "Planning AI" },
+                    { name: "Advanced Notebook Checking Tool", url: "Teacher/advanced-notebook-checking-tool.html", category: "Grading AI" }
+                ]
+            },
+            {
+                category: "ECCE Tools", 
+                icon: "👶",
+                count: 12,
+                color: "#059669",
+                tools: [
+                    { name: "Developmental Milestone Checker", url: "ECCE/developmental-milestone-checker.html", category: "Child Development" },
+                    { name: "Circle Time Story Generator", url: "ECCE/circle-time-story-generator.html", category: "Creative AI" },
+                    { name: "Circle Time Song Generator", url: "ECCE/circle-time-song-generator.html", category: "Music AI" },
+                    { name: "Fine Motor Skills Activity Planner", url: "ECCE/fine-motor-skills-activity-planner.html", category: "Skills Development" },
+                    { name: "Sensory Play Idea Generator", url: "ECCE/sensory-play-idea-generator.html", category: "Sensory AI" },
+                    { name: "Social Emotional Development", url: "ECCE/social-emotional-development-ecce.html", category: "Emotional AI" },
+                    { name: "Health Hygiene ECCE Teacher Idea", url: "ECCE/health-hygiene-ecce-teacher-idea.html", category: "Health Education" },
+                    { name: "Creative Art ECCE Teacher Idea", url: "ECCE/creative-art-ecce-teacher-idea.html", category: "Art AI" },
+                    { name: "The World Around Us Teacher Idea", url: "ECCE/the-world-around-us-teacher-idea.html", category: "Science AI" },
+                    { name: "Auto Time Table Generator For ECCE", url: "ECCE/auto-time-table-generator-for-ecce.html", category: "Scheduling AI" },
+                    { name: "ECCE Observation Tool", url: "ECCE/ecce-observation-tool.html", category: "Assessment AI" },
+                    { name: "Worksheet Maker For ECCE Teachers", url: "ECCE/worksheet-maker-for-ecce-teachers.html", category: "Resource AI" }
+                ]
+            },
+            {
+                category: "Student Tools",
+                icon: "🎓",
+                count: 10,
+                color: "#F59E0B",
+                tools: [
+                    { name: "Study Planner Pomodoro Technique", url: "Student/study-planner-pomodoro-technique.html", category: "Productivity AI" },
+                    { name: "Classroom Weekly Roster Generator", url: "Student/classroom-weekly-roster-generator.html", category: "Organization AI" },
+                    { name: "Story Poetry Generator", url: "Student/story-poetry-generator-for-creative.html", category: "Creative AI" },
+                    { name: "Speech To Notes Converter", url: "Student/speech-to-notes-converter.html", category: "Voice AI" },
+                    { name: "Auto Resume Maker", url: "Student/auto-resume-maker.html", category: "Career AI" },
+                    { name: "Auto Translation Tool", url: "Student/auto-translation-tool.html", category: "Language AI" },
+                    { name: "Audio Text Converter", url: "Student/audio-text-converter.html", category: "Audio AI" },
+                    { name: "Text Audio Converter", url: "Student/text-audio-converter.html", category: "Text-to-Speech" },
+                    { name: "Auto Speech Generator Tool", url: "Student/auto-speech-generator-tool-for-student.html", category: "Presentation AI" },
+                    { name: "Advanced Grammar Checking Tool", url: "Student/advanced-grammar-checking-tool.html", category: "Writing AI" }
+                ]
+            },
+            {
+                category: "Administrator Tools",
+                icon: "🏫",
+                count: 22,
+                color: "#7C3AED",
+                tools: [
+                    { name: "Marking Scheme Dashboard", url: "Administrator/marking-scheme-dashboard.html", category: "Analytics AI" },
+                    { name: "School Event Report Generator", url: "Administrator/school-event-report-generator.html", category: "Reporting AI" },
+                    { name: "Certificate Generator", url: "Administrator/certificate-generator.html", category: "Document AI" },
+                    { name: "Morning Assembly Roster Generator", url: "Administrator/morning-assembly-roster-generator.html", category: "Scheduling AI" },
+                    { name: "Staff Duty Roster Generator", url: "Administrator/staff-duty-roster-generator.html", category: "HR AI" },
+                    { name: "Civil Servant Leave Rules 1986 Dashboard", url: "Administrator/civil-servant-leave-rules-1986-dashboard.html", category: "Policy AI" },
+                    { name: "Reading Dashboard For Registers", url: "Administrator/reading-dashboard-for-registers.html", category: "Monitoring AI" },
+                    { name: "Table Of Specifications", url: "Administrator/table-of-specifications.html", category: "Assessment AI" },
+                    { name: "Multigrades Time Table Generator", url: "Administrator/multigrades-time-table-generator.html", category: "Scheduling AI" },
+                    { name: "Time Table Generator VI-VIII", url: "Administrator/time-table-generator-vi-viii.html", category: "Timetable AI" },
+                    { name: "Teacher Classroom Observation Tool", url: "Administrator/teacher-classroom-observation-tool.html", category: "Evaluation AI" },
+                    { name: "Performance Evaluation Report", url: "Administrator/performance-evaluation-report-per.html", category: "HR Analytics" },
+                    { name: "School Development Plan Generator", url: "Administrator/school-development-plan-generator.html", category: "Strategic AI" },
+                    { name: "School Improvement Plan Generator", url: "Administrator/school-improvement-plan-generator.html", category: "Planning AI" },
+                    { name: "School Staff Meeting Agenda Generator", url: "Administrator/school-staff-meeting-agenda-generator.html", category: "Meeting AI" },
+                    { name: "School Circular Generator", url: "Administrator/school-circular-generator.html", category: "Communication AI" },
+                    { name: "Multi Rules Generator", url: "Administrator/multi-rules-generator.html", category: "Policy AI" },
+                    { name: "Auto Head Teacher Planner Maker", url: "Administrator/auto-head-teacher-planner-maker.html", category: "Planning AI" },
+                    { name: "School Attendance Sheet Generator", url: "Administrator/school-attendance-sheet-generator.html", category: "Attendance AI" },
+                    { name: "Auto ID Card Generator Tool", url: "Administrator/auto-id-card-generator-tool.html", category: "Admin AI" },
+                    { name: "Auto Job Ad Maker Tool", url: "Administrator/auto-job-ad-maker-tool.html", category: "HR AI" },
+                    { name: "Advanced Auto Time Table Generator Tool", url: "Administrator/advanced-auto-time-table-generator-tool.html", category: "Scheduling AI" }
+                ]
+            },
+            {
+                category: "SEO Tools",
+                icon: "🔧",
+                count: 13,
+                color: "#00CEC9",
+                tools: [
+                    { name: "MagicRills Image Resizer Tool", url: "SEO/magicrills-image-resizer-tool.html", category: "Image AI" },
+                    { name: "Image To Text Converter", url: "SEO/image-to-text-converter.html", category: "OCR AI" },
+                    { name: "Advanced Traffic Booster Toolkit", url: "SEO/advanced-traffic-booster-toolkit.html", category: "Marketing AI" },
+                    { name: "Image Caption Tool", url: "SEO/image-caption-tool.html", category: "Content AI" },
+                    { name: "Advanced Image Merger", url: "SEO/advanced-image-merger.html", category: "Image Processing" },
+                    { name: "Favicon Generator", url: "SEO/favicon-generator.html", category: "Web AI" },
+                    { name: "Text Logo Generator", url: "SEO/text-logo-generator.html", category: "Branding AI" },
+                    { name: "Image Filter Tool", url: "SEO/image-filter-tool.html", category: "Filter AI" },
+                    { name: "Blog Post To Ad Converter", url: "SEO/blog-post-to-ad-converter.html", category: "Content AI" },
+                    { name: "Urdu Key Word Generator", url: "SEO/urdu-key-word-generator-for-urdu.html", category: "SEO AI" },
+                    { name: "Image Converter", url: "SEO/image-converter.html", category: "Conversion AI" },
+                    { name: "Advanced Website Ping Tool", url: "SEO/advanced-website-ping-tool.html", category: "Technical AI" },
+                    { name: "Advanced Auto Traffic Generator", url: "SEO/advanced-auto-traffic-generator.html", category: "Traffic AI" }
+                ]
+            },
+            {
+                category: "Kids Games",
+                icon: "🎮",
+                count: 17,
+                color: "#FD79A8",
+                tools: [
+                    { name: "MagicRills Urdu Alphabet Stories", url: "Kids-Games/magicrills-urdu-alphabet-stories.html", category: "Language AI" },
+                    { name: "MagicRills Akhlaqi Stories", url: "Kids-Games/magicrills-akhlaqi-stories.html", category: "Moral AI" },
+                    { name: "MagicRills Urdu Tracing App", url: "Kids-Games/magicrills-urdu-tracing-app.html", category: "Writing AI" },
+                    { name: "MagicRills Urdu Jor Tor", url: "Kids-Games/magicrills-urdu-jor-tor.html", category: "Language AI" },
+                    { name: "MagicRills Sentence Builder", url: "Kids-Games/magicrills-sentence-builder.html", category: "Grammar AI" },
+                    { name: "MagicRills Synonyms Antonyms Match", url: "Kids-Games/magicrills-synonyms-antonyms-match.html", category: "Vocabulary AI" },
+                    { name: "MagicRills Spelling Bee", url: "Kids-Games/magicrills-spelling-bee.html", category: "Spelling AI" },
+                    { name: "MagicRills Word Search Puzzle", url: "Kids-Games/magicrills-word-search-puzzle.html", category: "Puzzle AI" },
+                    { name: "MagicRills Basic Arithmetic Quiz", url: "Kids-Games/magicrills-basic-arithmetic-quiz.html", category: "Math AI" },
+                    { name: "MagicRills Fraction Matching", url: "Kids-Games/magicrills-fraction-matching.html", category: "Math AI" },
+                    { name: "MagicRills Math Bingo", url: "Kids-Games/magicrills-math-bingo.html", category: "Game AI" },
+                    { name: "MagicRills Counting Game", url: "Kids-Games/magicrills-counting-game.html", category: "Math AI" },
+                    { name: "Magic Numbers Comparison Game", url: "Kids-Games/magic-numbers-comparison-game.html", category: "Math AI" },
+                    { name: "GK Fun Quiz", url: "Kids-Games/gk-fun-quiz.html", category: "Knowledge AI" },
+                    { name: "Urdu Alpha Fun", url: "Kids-Games/urdu-alpha-fun.html", category: "Language AI" },
+                    { name: "Number Fun Game", url: "Kids-Games/number-fun-game.html", category: "Math AI" },
+                    { name: "Alpha Fun", url: "Kids-Games/alpha-fun.html", category: "Language AI" }
+                ]
+            },
+            {
+                category: "Quiz Games",
+                icon: "❓",
+                count: 8,
+                color: "#A29BFE",
+                tools: [
+                    { name: "Islamic Studies Quiz Challenge", url: "Quiz-Games/islamic-studies-quiz-challenge.html", category: "Religion AI" },
+                    { name: "Computer Quiz Challenge", url: "Quiz-Games/computer-quiz-challenge.html", category: "Tech AI" },
+                    { name: "Advanced Science Quiz Challenge", url: "Quiz-Games/advanced-science-quiz-challenge.html", category: "Science AI" },
+                    { name: "Science Quiz Challenge", url: "Quiz-Games/science-quiz-challenge.html", category: "Science AI" },
+                    { name: "History Geography GK Quiz Challenge", url: "Quiz-Games/history-geography-gk-quiz-challenge.html", category: "Knowledge AI" },
+                    { name: "English Language Quiz Challenge", url: "Quiz-Games/english-language-quiz-challenge.html", category: "Language AI" },
+                    { name: "Urdu Quiz Challenge", url: "Quiz-Games/urdu-quiz-challenge.html", category: "Language AI" },
+                    { name: "Math Quiz Challenge", url: "Quiz-Games/math-quiz-challenge.html", category: "Math AI" }
+                ]
+            },
+            {
+                category: "Mixed Tools",
+                icon: "📊",
+                count: 7,
+                color: "#FDCB6E",
+                tools: [
+                    { name: "School Event Calculator", url: "Mixed-Tools/school-event-calculator.html", category: "Calculator AI" },
+                    { name: "MagicRills Income Tax Calculator", url: "Mixed-Tools/magicrills-income-tax-calculator.html", category: "Finance AI" },
+                    { name: "PDF To Excel/CSV Converter", url: "Mixed-Tools/pdf-to-excelcsv-converter.html", category: "Conversion AI" },
+                    { name: "Car Loan Calculator", url: "Mixed-Tools/car-loan-calculator.html", category: "Finance AI" },
+                    { name: "Car Age Calculator Pakistan", url: "Mixed-Tools/car-age-calculator-pakistan.html", category: "Vehicle AI" },
+                    { name: "Advanced Percentage Calculator", url: "Mixed-Tools/advanced-percentage-calculator.html", category: "Math AI" },
+                    { name: "Auto Age Calculator Tool", url: "Mixed-Tools/auto-age-calculator-tool.html", category: "Utility AI" }
+                ]
+            }
+        ];
+
+        // Function to render categories and tools
+        function renderCategories(filter = '') {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            categoriesGrid.innerHTML = '';
+
+            let hasResults = false;
+
+            toolsData.forEach(category => {
+                const filteredTools = category.tools.filter(tool => 
+                    tool.name.toLowerCase().includes(filter.toLowerCase()) ||
+                    tool.category.toLowerCase().includes(filter.toLowerCase())
+                );
+
+                if (filteredTools.length > 0 || filter === '') {
+                    hasResults = true;
+                    
+                    const categoryElement = document.createElement('div');
+                    categoryElement.className = 'category-card';
+                    
+                    categoryElement.innerHTML = `
+                        <div class="category-header" style="background: linear-gradient(135deg, ${category.color} 0%, ${category.color}99 100%)">
+                            <div class="category-icon">${category.icon}</div>
+                            <h3 class="category-title">${category.category}</h3>
+                            <span class="category-count">${filteredTools.length} AI Tools</span>
+                        </div>
+                        <div class="tools-container">
+                            <div class="tools-grid">
+                                ${(filter === '' ? category.tools : filteredTools).map(tool => `
+                                    <div class="tool-card">
+                                        <a href="${tool.url}" target="_blank">
+                                            <div class="tool-icon">
+                                                <i class="fas fa-robot"></i>
+                                            </div>
+                                            <div class="tool-info">
+                                                <div class="tool-name">${tool.name}</div>
+                                                <div class="tool-category">${tool.category}</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                    categoriesGrid.appendChild(categoryElement);
+                }
+            });
+
+            if (!hasResults) {
+                categoriesGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px;">
+                        <div style="font-size: 5rem; color: #374151; margin-bottom: 20px;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 style="color: #9CA3AF; margin-bottom: 15px; font-size: 1.5rem;">No AI tools found</h3>
+                        <p style="color: #6B7280;">Try searching with different keywords or browse categories</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            renderCategories(e.target.value);
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            renderCategories();
+            
+            // Add typing effect to search placeholder
+            const searchInput = document.getElementById('searchInput');
+            const phrases = [
+                "Explore 110+ AI tools...",
+                "Search for educational solutions...", 
+                "Discover intelligent tools...",
+                "Find AI-powered resources..."
+            ];
+            let currentPhrase = 0;
+            let currentLetter = 0;
+            let isDeleting = false;
+            
+            function typeEffect() {
+                const currentText = phrases[currentPhrase];
+                
+                if (isDeleting) {
+                    searchInput.placeholder = currentText.substring(0, currentLetter - 1);
+                    currentLetter--;
+                } else {
+                    searchInput.placeholder = currentText.substring(0, currentLetter + 1);
+                    currentLetter++;
+                }
+                
+                if (!isDeleting && currentLetter === currentText.length) {
+                    isDeleting = true;
+                    setTimeout(typeEffect, 2000);
+                } else if (isDeleting && currentLetter === 0) {
+                    isDeleting = false;
+                    currentPhrase = (currentPhrase + 1) % phrases.length;
+                    setTimeout(typeEffect, 500);
+                } else {
+                    setTimeout(typeEffect, isDeleting ? 50 : 100);
+                }
+            }
+            
+            // Start typing effect
+            setTimeout(typeEffect, 1000);
+        });
+    </script>
+</body>
+</html>
