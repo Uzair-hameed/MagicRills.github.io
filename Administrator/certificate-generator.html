@@ -1,0 +1,868 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/6703/6703900.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/6703/6703900.png" style="display: none;" width="320" /></a></div>
+
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Certificate Generator</title>
+    <!-- html2canvas for capturing the certificate -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&amp;family=Cinzel:wght@400;700;900&amp;family=MedievalSharp&amp;family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&amp;family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&amp;family=UnifrakturMaguntia&amp;display=swap" rel="stylesheet"></link>
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --accent: #ff6b6b;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 10px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .preview {
+            flex: 2;
+            min-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .color-picker input {
+            flex: 1;
+            padding: 3px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-export {
+            background: var(--accent);
+        }
+        
+        .btn-reset {
+            background: var(--dark);
+        }
+        
+        #certificate {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cert-border {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 5px solid var(--primary);
+            border-radius: 5px;
+            pointer-events: none;
+        }
+        
+        .cert-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            pointer-events: none;
+        }
+        
+        .cert-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        
+        .cert-logo {
+            max-width: 150px;
+            max-height: 150px;
+            margin: 0 auto;
+        }
+        
+        .cert-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--primary);
+        }
+        
+        .cert-subtitle {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: var(--secondary);
+        }
+        
+        .cert-body {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 30px 0;
+        }
+        
+        .cert-signature {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 50px;
+        }
+        
+        .signature-box {
+            text-align: center;
+        }
+        
+        .signature-img {
+            max-width: 150px;
+            max-height: 80px;
+            margin-bottom: 10px;
+        }
+        
+        .signature-line {
+            width: 200px;
+            border-top: 2px solid var(--dark);
+            margin: 5px auto;
+        }
+        
+        .export-options {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .template-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .template {
+            height: 60px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .template:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+        
+        .template-1 { background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%); }
+        .template-2 { background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); }
+        .template-3 { background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%); }
+        .template-4 { background: linear-gradient(135deg, #f46b45 0%, #eea849 100%); }
+        .template-5 { background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%); }
+        .template-6 { background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%); }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: var(--dark);
+            color: white;
+        }
+        
+        /* Font Classes */
+        .font-old-english {
+            font-family: 'UnifrakturMaguntia', cursive;
+        }
+        
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        
+        .font-almendra {
+            font-family: 'Almendra', serif;
+        }
+        
+        .font-medieval {
+            font-family: 'MedievalSharp', cursive;
+        }
+        
+        .font-playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .font-old-standard {
+            font-family: 'Old Standard TT', serif;
+        }
+        
+        .font-modern {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .font-elegant {
+            font-family: 'Georgia', serif;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .controls {
+                margin-right: 0;
+            }
+            
+            #certificate {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 210 / 297;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Certificate Generator</h1>
+            <p class="subtitle">Create beautiful certificates with custom fonts and designs</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Templates</h3>
+                    <div class="template-selector">
+                        <div class="template template-1" data-template="1"></div>
+                        <div class="template template-2" data-template="2"></div>
+                        <div class="template template-3" data-template="3"></div>
+                        <div class="template template-4" data-template="4"></div>
+                        <div class="template template-5" data-template="5"></div>
+                        <div class="template template-6" data-template="6"></div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Certificate Details</h3>
+                    <div class="form-group">
+                        <label for="title">Certificate Title</label>
+                        <input id="title" type="text" value="Certificate of Achievement" />
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle">Subtitle</label>
+                        <input id="subtitle" type="text" value="This certificate is proudly presented to" />
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient">Recipient Name</label>
+                        <input id="recipient" type="text" value="John Doe" />
+                    </div>
+                    <div class="form-group">
+                        <label for="bodyText">Body Text</label>
+                        <textarea id="bodyText">For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input id="date" type="text" value="October 15, 2023" />
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Font Customization</h3>
+                    <div class="form-group">
+                        <label for="titleFont">Title Font</label>
+                        <select id="titleFont">
+                            <option value="font-old-english">Old English</option>
+                            <option value="font-cinzel">Cinzel</option>
+                            <option value="font-almendra">Almendra</option>
+                            <option value="font-medieval">Medieval</option>
+                            <option value="font-playfair">Playfair Display</option>
+                            <option value="font-old-standard">Old Standard</option>
+                            <option value="font-modern">Modern</option>
+                            <option value="font-elegant">Elegant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bodyFont">Body Font</label>
+                        <select id="bodyFont">
+                            <option value="font-old-english">Old English</option>
+                            <option value="font-cinzel">Cinzel</option>
+                            <option value="font-almendra">Almendra</option>
+                            <option value="font-medieval">Medieval</option>
+                            <option value="font-playfair">Playfair Display</option>
+                            <option value="font-old-standard">Old Standard</option>
+                            <option selected="" value="font-modern">Modern</option>
+                            <option value="font-elegant">Elegant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="signatureFont">Signature Font</label>
+                        <select id="signatureFont">
+                            <option value="font-old-english">Old English</option>
+                            <option value="font-cinzel">Cinzel</option>
+                            <option value="font-almendra">Almendra</option>
+                            <option value="font-medieval">Medieval</option>
+                            <option value="font-playfair">Playfair Display</option>
+                            <option value="font-old-standard">Old Standard</option>
+                            <option value="font-modern">Modern</option>
+                            <option selected="" value="font-elegant">Elegant</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Customization</h3>
+                    <div class="form-group">
+                        <label for="titleColor">Title Color</label>
+                        <div class="color-picker">
+                            <input id="titleColor" type="color" value="#4e54c8" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="borderColor">Border Color</label>
+                        <div class="color-picker">
+                            <input id="borderColor" type="color" value="#4e54c8" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bgPattern">Background Pattern</label>
+                        <select id="bgPattern">
+                            <option value="none">None</option>
+                            <option value="dots">Dots</option>
+                            <option value="lines">Lines</option>
+                            <option value="squares">Squares</option>
+                            <option value="zigzag">Zigzag</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Logo &amp; Signatures</h3>
+                    <div class="form-group">
+                        <label for="logoUpload">Upload Logo</label>
+                        <input accept="image/*" id="logoUpload" type="file" />
+                    </div>
+                    <div class="form-group">
+                        <label for="signature1">Signature 1 (Name)</label>
+                        <input id="signature1" type="text" value="Jane Smith" />
+                    </div>
+                    <div class="form-group">
+                        <label for="signature1Title">Signature 1 (Title)</label>
+                        <input id="signature1Title" type="text" value="CEO, Company Inc." />
+                    </div>
+                    <div class="form-group">
+                        <label for="signature1Upload">Upload Signature 1</label>
+                        <input accept="image/*" id="signature1Upload" type="file" />
+                    </div>
+                    <div class="form-group">
+                        <label for="signature2">Signature 2 (Name)</label>
+                        <input id="signature2" type="text" value="Robert Johnson" />
+                    </div>
+                    <div class="form-group">
+                        <label for="signature2Title">Signature 2 (Title)</label>
+                        <input id="signature2Title" type="text" value="Director of Education" />
+                    </div>
+                    <div class="form-group">
+                        <label for="signature2Upload">Upload Signature 2</label>
+                        <input accept="image/*" id="signature2Upload" type="file" />
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-reset" id="resetBtn">
+                        <i>↺</i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <div class="preview">
+                <div id="certificate">
+                    <div class="cert-border"></div>
+                    <div class="cert-bg"></div>
+                    <div class="cert-content">
+                        <div>
+                            <img alt="Logo" class="cert-logo" id="certLogo" src="" />
+                            <h1 class="cert-title" id="certTitle">Certificate of Achievement</h1>
+                            <h2 class="cert-subtitle" id="certSubtitle">This certificate is proudly presented to</h2>
+                        </div>
+                        
+                        <div class="cert-body">
+                            <p id="certRecipient">John Doe</p>
+                            <p id="certBodyText">For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.</p>
+                            <p id="certDate">October 15, 2023</p>
+                        </div>
+                        
+                        <div class="cert-signature">
+                            <div class="signature-box">
+                                <img alt="Signature 1" class="signature-img" id="signature1Img" src="" />
+                                <div class="signature-line"></div>
+                                <p id="signature1Name">Jane Smith</p>
+                                <p id="signature1Title">CEO, Company Inc.</p>
+                            </div>
+                            
+                            <div class="signature-box">
+                                <img alt="Signature 2" class="signature-img" id="signature2Img" src="" />
+                                <div class="signature-line"></div>
+                                <p id="signature2Name">Robert Johnson</p>
+                                <p id="signature2Title">Director of Education</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="export-options">
+                    <button class="btn" id="previewBtn">
+                        <i>👁️</i> Preview
+                    </button>
+                    <button class="btn btn-export" id="pdfBtn">
+                        <i>📄</i> Export as PDF
+                    </button>
+                    <button class="btn btn-export" id="docBtn">
+                        <i>📝</i> Export as Word
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Advanced Certificate Generator | All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <script>
+        // Wait for the DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all DOM elements
+            const titleInput = document.getElementById('title');
+            const subtitleInput = document.getElementById('subtitle');
+            const recipientInput = document.getElementById('recipient');
+            const bodyTextInput = document.getElementById('bodyText');
+            const dateInput = document.getElementById('date');
+            const titleColorInput = document.getElementById('titleColor');
+            const borderColorInput = document.getElementById('borderColor');
+            const bgPatternInput = document.getElementById('bgPattern');
+            const logoUpload = document.getElementById('logoUpload');
+            const signature1Input = document.getElementById('signature1');
+            const signature1TitleInput = document.getElementById('signature1Title');
+            const signature1Upload = document.getElementById('signature1Upload');
+            const signature2Input = document.getElementById('signature2');
+            const signature2TitleInput = document.getElementById('signature2Title');
+            const signature2Upload = document.getElementById('signature2Upload');
+            const resetBtn = document.getElementById('resetBtn');
+            const previewBtn = document.getElementById('previewBtn');
+            const pdfBtn = document.getElementById('pdfBtn');
+            const docBtn = document.getElementById('docBtn');
+            const templates = document.querySelectorAll('.template');
+            const titleFontSelect = document.getElementById('titleFont');
+            const bodyFontSelect = document.getElementById('bodyFont');
+            const signatureFontSelect = document.getElementById('signatureFont');
+            
+            // Certificate elements
+            const certTitle = document.getElementById('certTitle');
+            const certSubtitle = document.getElementById('certSubtitle');
+            const certRecipient = document.getElementById('certRecipient');
+            const certBodyText = document.getElementById('certBodyText');
+            const certDate = document.getElementById('certDate');
+            const certLogo = document.getElementById('certLogo');
+            const signature1Img = document.getElementById('signature1Img');
+            const signature2Img = document.getElementById('signature2Img');
+            const signature1Name = document.getElementById('signature1Name');
+            const signature1Title = document.getElementById('signature1Title');
+            const signature2Name = document.getElementById('signature2Name');
+            const signature2Title = document.getElementById('signature2Title');
+            const certBorder = document.querySelector('.cert-border');
+            const certBg = document.querySelector('.cert-bg');
+            
+            // Set up event listeners
+            titleInput.addEventListener('input', updateCertificate);
+            subtitleInput.addEventListener('input', updateCertificate);
+            recipientInput.addEventListener('input', updateCertificate);
+            bodyTextInput.addEventListener('input', updateCertificate);
+            dateInput.addEventListener('input', updateCertificate);
+            titleColorInput.addEventListener('input', updateCertificate);
+            borderColorInput.addEventListener('input', updateCertificate);
+            bgPatternInput.addEventListener('change', updateCertificate);
+            titleFontSelect.addEventListener('change', updateCertificate);
+            bodyFontSelect.addEventListener('change', updateCertificate);
+            signatureFontSelect.addEventListener('change', updateCertificate);
+            
+            logoUpload.addEventListener('change', handleLogoUpload);
+            signature1Upload.addEventListener('change', handleSignature1Upload);
+            signature2Upload.addEventListener('change', handleSignature2Upload);
+            signature1Input.addEventListener('input', updateCertificate);
+            signature1TitleInput.addEventListener('input', updateCertificate);
+            signature2Input.addEventListener('input', updateCertificate);
+            signature2TitleInput.addEventListener('input', updateCertificate);
+            
+            resetBtn.addEventListener('click', resetForm);
+            previewBtn.addEventListener('click', previewCertificate);
+            pdfBtn.addEventListener('click', exportToPDF);
+            docBtn.addEventListener('click', exportToWord);
+            
+            // Add event listeners to templates
+            templates.forEach(template => {
+                template.addEventListener('click', function() {
+                    applyTemplate(this.dataset.template);
+                });
+            });
+            
+            // Initialize the certificate with default values
+            updateCertificate();
+            
+            // Function to update the certificate preview
+            function updateCertificate() {
+                certTitle.textContent = titleInput.value;
+                certSubtitle.textContent = subtitleInput.value;
+                certRecipient.textContent = recipientInput.value;
+                certBodyText.textContent = bodyTextInput.value;
+                certDate.textContent = dateInput.value;
+                
+                certTitle.style.color = titleColorInput.value;
+                certBorder.style.borderColor = borderColorInput.value;
+                
+                signature1Name.textContent = signature1Input.value;
+                signature1Title.textContent = signature1TitleInput.value;
+                signature2Name.textContent = signature2Input.value;
+                signature2Title.textContent = signature2TitleInput.value;
+                
+                // Update fonts
+                updateFonts();
+                
+                // Update background pattern
+                updateBackgroundPattern();
+            }
+            
+            // Function to update fonts
+            function updateFonts() {
+                // Remove all font classes
+                certTitle.className = 'cert-title';
+                certSubtitle.className = 'cert-subtitle';
+                certBodyText.parentNode.className = 'cert-body';
+                signature1Name.parentNode.querySelectorAll('p').forEach(p => {
+                    p.className = '';
+                });
+                signature2Name.parentNode.querySelectorAll('p').forEach(p => {
+                    p.className = '';
+                });
+                
+                // Add selected font classes
+                certTitle.classList.add(titleFontSelect.value);
+                certSubtitle.classList.add(titleFontSelect.value);
+                certBodyText.parentNode.classList.add(bodyFontSelect.value);
+                signature1Name.classList.add(signatureFontSelect.value);
+                signature1Title.classList.add(signatureFontSelect.value);
+                signature2Name.classList.add(signatureFontSelect.value);
+                signature2Title.classList.add(signatureFontSelect.value);
+            }
+            
+            // Function to handle logo upload
+            function handleLogoUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        certLogo.src = e.target.result;
+                        certLogo.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            // Function to handle signature 1 upload
+            function handleSignature1Upload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        signature1Img.src = e.target.result;
+                        signature1Img.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            // Function to handle signature 2 upload
+            function handleSignature2Upload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        signature2Img.src = e.target.result;
+                        signature2Img.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            // Function to update background pattern
+            function updateBackgroundPattern() {
+                const pattern = bgPatternInput.value;
+                certBg.style.backgroundImage = 'none';
+                
+                switch(pattern) {
+                    case 'dots':
+                        certBg.style.backgroundImage = 'radial-gradient(circle, #000000 1px, transparent 1px)';
+                        certBg.style.backgroundSize = '20px 20px';
+                        break;
+                    case 'lines':
+                        certBg.style.backgroundImage = 'repeating-linear-gradient(0deg, transparent, transparent 19px, #000000 20px)';
+                        break;
+                    case 'squares':
+                        certBg.style.backgroundImage = 'linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px)';
+                        certBg.style.backgroundSize = '20px 20px';
+                        break;
+                    case 'zigzag':
+                        certBg.style.backgroundImage = 'linear-gradient(135deg, #000000 25%, transparent 25%), linear-gradient(225deg, #000000 25%, transparent 25%), linear-gradient(315deg, #000000 25%, transparent 25%), linear-gradient(45deg, #000000 25%, transparent 25%)';
+                        certBg.style.backgroundSize = '20px 20px';
+                        break;
+                }
+            }
+            
+            // Function to apply a template
+            function applyTemplate(templateId) {
+                switch(templateId) {
+                    case '1':
+                        titleColorInput.value = '#4e54c8';
+                        borderColorInput.value = '#4e54c8';
+                        titleFontSelect.value = 'font-old-english';
+                        bodyFontSelect.value = 'font-old-standard';
+                        signatureFontSelect.value = 'font-cinzel';
+                        break;
+                    case '2':
+                        titleColorInput.value = '#ff6b6b';
+                        borderColorInput.value = '#ff6b6b';
+                        titleFontSelect.value = 'font-playfair';
+                        bodyFontSelect.value = 'font-elegant';
+                        signatureFontSelect.value = 'font-playfair';
+                        break;
+                    case '3':
+                        titleColorInput.value = '#36d1dc';
+                        borderColorInput.value = '#36d1dc';
+                        titleFontSelect.value = 'font-cinzel';
+                        bodyFontSelect.value = 'font-modern';
+                        signatureFontSelect.value = 'font-cinzel';
+                        break;
+                    case '4':
+                        titleColorInput.value = '#f46b45';
+                        borderColorInput.value = '#f46b45';
+                        titleFontSelect.value = 'font-almendra';
+                        bodyFontSelect.value = 'font-old-standard';
+                        signatureFontSelect.value = 'font-almendra';
+                        break;
+                    case '5':
+                        titleColorInput.value = '#8e2de2';
+                        borderColorInput.value = '#8e2de2';
+                        titleFontSelect.value = 'font-medieval';
+                        bodyFontSelect.value = 'font-medieval';
+                        signatureFontSelect.value = 'font-medieval';
+                        break;
+                    case '6':
+                        titleColorInput.value = '#3a7bd5';
+                        borderColorInput.value = '#3a7bd5';
+                        titleFontSelect.value = 'font-old-standard';
+                        bodyFontSelect.value = 'font-elegant';
+                        signatureFontSelect.value = 'font-old-standard';
+                        break;
+                }
+                updateCertificate();
+            }
+            
+            // Function to reset the form
+            function resetForm() {
+                titleInput.value = 'Certificate of Achievement';
+                subtitleInput.value = 'This certificate is proudly presented to';
+                recipientInput.value = 'John Doe';
+                bodyTextInput.value = 'For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.';
+                dateInput.value = 'October 15, 2023';
+                titleColorInput.value = '#4e54c8';
+                borderColorInput.value = '#4e54c8';
+                bgPatternInput.value = 'none';
+                signature1Input.value = 'Jane Smith';
+                signature1TitleInput.value = 'CEO, Company Inc.';
+                signature2Input.value = 'Robert Johnson';
+                signature2TitleInput.value = 'Director of Education';
+                titleFontSelect.value = 'font-old-english';
+                bodyFontSelect.value = 'font-modern';
+                signatureFontSelect.value = 'font-elegant';
+                
+                certLogo.src = '';
+                certLogo.style.display = 'none';
+                signature1Img.src = '';
+                signature1Img.style.display = 'none';
+                signature2Img.src = '';
+                signature2Img.style.display = 'none';
+                
+                logoUpload.value = '';
+                signature1Upload.value = '';
+                signature2Upload.value = '';
+                
+                updateCertificate();
+            }
+            
+            // Function to preview certificate
+            function previewCertificate() {
+                alert('Preview functionality would open a full-screen preview in a complete implementation.');
+                // In a full implementation, this would open a modal with a larger preview
+            }
+            
+            // Function to export to PDF
+            function exportToPDF() {
+                // Use html2canvas to capture the certificate
+                html2canvas(document.getElementById('certificate')).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // Use jsPDF to create a PDF
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('l', 'mm', 'a4');
+                    
+                    const width = doc.internal.pageSize.getWidth();
+                    const height = doc.internal.pageSize.getHeight();
+                    
+                    doc.addImage(imgData, 'PNG', 0, 0, width, height);
+                    doc.save('certificate.pdf');
+                });
+            }
+            
+            // Function to export to Word
+            function exportToWord() {
+                alert('Word export would be implemented using docx.js in a complete implementation. This feature requires additional setup.');
+                // In a full implementation, this would generate a Word document
+            }
+        });
+    </script>
+</body>
+</html>

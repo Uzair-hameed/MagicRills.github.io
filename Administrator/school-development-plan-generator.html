@@ -1,0 +1,2755 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/7758/7758119.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/7758/7758119.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>School Development Plan Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --section-color-1: #f8f9fa;
+            --section-color-2: #e9f5ff;
+            --section-color-3: #fff4e6;
+            --section-color-4: #f0f8f0;
+            --section-color-5: #f9f0ff;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        
+        .section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .section-school-info {
+            background-color: var(--section-color-1);
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .section-plan-duration {
+            background-color: var(--section-color-2);
+            border-left: 5px solid #6cb2eb;
+        }
+        
+        .section-needs-assessment {
+            background-color: var(--section-color-3);
+            border-left: 5px solid #ffb347;
+        }
+        
+        .section-goal-setting {
+            background-color: var(--section-color-4);
+            border-left: 5px solid #2ecc71;
+        }
+        
+        .section-action-plan {
+            background-color: var(--section-color-5);
+            border-left: 5px solid #9b59b6;
+        }
+        
+        .section-monitoring {
+            background-color: var(--section-color-1);
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .section-budget {
+            background-color: var(--section-color-2);
+            border-left: 5px solid #3498db;
+        }
+        
+        .section-finalize {
+            background-color: var(--section-color-3);
+            border-left: 5px solid #f39c12;
+        }
+        
+        .section-export {
+            background-color: var(--section-color-4);
+            border-left: 5px solid #27ae60;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button, .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover, .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .logo-preview {
+            max-width: 150px;
+            max-height: 150px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .swot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .swot-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .swot-box h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .strengths {
+            border-top: 5px solid var(--success-color);
+        }
+        
+        .weaknesses {
+            border-top: 5px solid var(--accent-color);
+        }
+        
+        .opportunities {
+            border-top: 5px solid var(--primary-color);
+        }
+        
+        .threats {
+            border-top: 5px solid var(--warning-color);
+        }
+        
+        .priority-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .priority-item {
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: move;
+        }
+        
+        .goal-item {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .goal-item h4 {
+            margin-top: 0;
+        }
+        
+        .goal-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .smart-indicators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .smart-indicator {
+            background-color: var(--light-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .smart-indicator.valid {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .smart-indicator.invalid {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .action-plan-table {
+            overflow-x: auto;
+        }
+        
+        .milestone-chart {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-bar {
+            height: 30px;
+            background-color: #ddd;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .chart-progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .chart-label {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .signature-box {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .signature-field {
+            width: 45%;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            text-align: center;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-color);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .swot-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .signature-box {
+                flex-direction: column;
+            }
+            
+            .signature-field {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+        }
+        
+        /* Drag and drop styling */
+        .priority-item.dragging {
+            opacity: 0.5;
+        }
+        
+        .priority-item.over {
+            border: 2px dashed #000;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Toast notifications */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+        }
+        
+        .toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        
+        /* Print styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-content, #print-content * {
+                visibility: visible;
+            }
+            #print-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>School Development Plan Generator</h1>
+            <p>Create a comprehensive development plan for your educational institution</p>
+        </header>
+        
+        <div class="section section-school-info">
+            <h2>School Information</h2>
+            <div class="form-group">
+                <label for="school-name">School Name</label>
+                <input id="school-name" placeholder="Enter school name" type="text" />
+            </div>
+            
+            <div class="form-group">
+                <label for="school-logo">School Logo</label>
+                <input accept="image/*" id="school-logo" type="file" />
+                <img alt="Logo preview" class="logo-preview" id="logo-preview" />
+            </div>
+            
+            <div class="form-group">
+                <label for="emis-code">EMIS Code / School ID</label>
+                <input id="emis-code" placeholder="Enter EMIS code or school ID" type="text" />
+            </div>
+            
+            <div class="form-group">
+                <label for="head-teacher">Head Teacher Name</label>
+                <input id="head-teacher" placeholder="Enter head teacher's name" type="text" />
+            </div>
+            
+            <div class="form-group">
+                <label for="contact-email">Contact Email</label>
+                <input id="contact-email" placeholder="Enter contact email" type="email" />
+            </div>
+            
+            <div class="form-group">
+                <label for="contact-phone">Contact Phone</label>
+                <input id="contact-phone" placeholder="Enter contact phone number" type="tel" />
+            </div>
+            
+            <div class="form-group">
+                <label for="school-type">School Type</label>
+                <select id="school-type">
+                    <option value="">Select school type</option>
+                    <option value="Primary">Primary School</option>
+                    <option value="Secondary">Secondary School</option>
+                    <option value="ECCE">Early Childhood Care and Education (ECCE)</option>
+                    <option value="High School">High School</option>
+                    <option value="Higher Secondary">Higher Secondary School</option>
+                    <option value="Vocational">Vocational School</option>
+                    <option value="Special Education">Special Education School</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="region">Region/District/Province</label>
+                <input id="region" placeholder="Enter region, district or province" type="text" />
+            </div>
+        </div>
+        
+        <div class="section section-plan-duration">
+            <h2>Plan Duration &amp; Focus</h2>
+            <div class="form-group">
+                <label for="plan-year-from">Plan Year (From)</label>
+                <input id="plan-year-from" type="date" />
+            </div>
+            
+            <div class="form-group">
+                <label for="plan-year-to">Plan Year (To)</label>
+                <input id="plan-year-to" type="date" />
+            </div>
+            
+            <div class="form-group">
+                <label for="plan-term">Plan Term</label>
+                <select id="plan-term">
+                    <option value="Annual">Annual</option>
+                    <option value="6-Monthly">6-Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="focus-areas">Focus Areas (Select multiple)</label>
+                <select id="focus-areas" multiple="" size="5">
+                    <option value="Infrastructure">Infrastructure</option>
+                    <option value="Academics">Academics</option>
+                    <option value="Health &amp; Hygiene">Health &amp; Hygiene</option>
+                    <option value="Community Involvement">Community Involvement</option>
+                    <option value="Teacher Training">Teacher Training</option>
+                    <option value="Student Welfare">Student Welfare</option>
+                    <option value="Technology Integration">Technology Integration</option>
+                    <option value="Extracurricular Activities">Extracurricular Activities</option>
+                    <option value="Administration">Administration</option>
+                    <option value="Safety &amp; Security">Safety &amp; Security</option>
+                </select>
+                <small>Hold Ctrl/Cmd to select multiple options</small>
+            </div>
+        </div>
+        
+        <div class="section section-needs-assessment">
+            <h2>Needs Assessment</h2>
+            <h3>SWOT Analysis</h3>
+            <div class="swot-grid">
+                <div class="swot-box strengths">
+                    <h3>Strengths</h3>
+                    <textarea id="strengths" placeholder="List your school's strengths"></textarea>
+                </div>
+                <div class="swot-box weaknesses">
+                    <h3>Weaknesses</h3>
+                    <textarea id="weaknesses" placeholder="List your school's weaknesses"></textarea>
+                </div>
+                <div class="swot-box opportunities">
+                    <h3>Opportunities</h3>
+                    <textarea id="opportunities" placeholder="List potential opportunities"></textarea>
+                </div>
+                <div class="swot-box threats">
+                    <h3>Threats</h3>
+                    <textarea id="threats" placeholder="List potential threats"></textarea>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px;">Priority Identification</h3>
+            <div class="form-group">
+                <label>Drag to reorder priorities (most important first)</label>
+                <ul class="priority-list" id="priority-list">
+                    <li class="priority-item" draggable="true">Improve student learning outcomes</li>
+                    <li class="priority-item" draggable="true">Enhance teacher professional development</li>
+                    <li class="priority-item" draggable="true">Upgrade school infrastructure</li>
+                    <li class="priority-item" draggable="true">Strengthen community partnerships</li>
+                    <li class="priority-item" draggable="true">Improve health and sanitation facilities</li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                <label for="new-priority">Add New Priority</label>
+                <div style="display: flex; gap: 10px;">
+                    <input id="new-priority" placeholder="Enter new priority" type="text" />
+                    <button class="btn" id="add-priority">Add</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section section-goal-setting">
+            <h2>Goal Setting</h2>
+            <div id="goals-container">
+                <!-- Goals will be added here -->
+            </div>
+            
+            <div class="form-group">
+                <button class="btn" id="add-goal">Add New Goal</button>
+            </div>
+        </div>
+        
+        <div class="section section-action-plan">
+            <h2>Action Plan</h2>
+            <div class="action-plan-table">
+                <table id="action-plan">
+                    <thead>
+                        <tr>
+                            <th>Objective</th>
+                            <th>Activities</th>
+                            <th>Responsible Person</th>
+                            <th>Timeline</th>
+                            <th>Resources Required</th>
+                            <th>Monitoring Tool</th>
+                            <th>Expected Outcome</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input class="objective" placeholder="Enter objective" type="text" /></td>
+                            <td><textarea class="activities" placeholder="List activities"></textarea></td>
+                            <td><input class="responsible" placeholder="Responsible person" type="text" /></td>
+                            <td><input class="timeline" placeholder="Timeline" type="text" /></td>
+                            <td><textarea class="resources" placeholder="Resources needed"></textarea></td>
+                            <td><input class="monitoring" placeholder="Monitoring tool" type="text" /></td>
+                            <td><textarea class="outcome" placeholder="Expected outcome"></textarea></td>
+                            <td><button class="btn-danger remove-row">Remove</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn" id="add-action-row">Add Row</button>
+            </div>
+        </div>
+        
+        <div class="section section-monitoring">
+            <h2>Monitoring &amp; Evaluation</h2>
+            <div class="form-group">
+                <label for="indicators">Key Performance Indicators</label>
+                <textarea id="indicators" placeholder="List the indicators you will use to track progress"></textarea>
+            </div>
+            
+            <h3>Milestone Chart</h3>
+            <div class="milestone-chart">
+                <div class="form-group">
+                    <label for="milestone-name">Milestone Name</label>
+                    <input id="milestone-name" placeholder="Enter milestone name" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="milestone-progress">Progress (%)</label>
+                    <input id="milestone-progress" max="100" min="0" type="range" value="0" />
+                    <span id="progress-value">0%</span>
+                </div>
+                <button class="btn" id="add-milestone">Add Milestone</button>
+                
+                <div id="chart-container" style="margin-top: 20px;">
+                    <!-- Chart bars will be added here -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="evaluation-notes">Evaluation Notes</label>
+                <textarea id="evaluation-notes" placeholder="Add notes for self-review and evaluation"></textarea>
+            </div>
+        </div>
+        
+        <div class="section section-budget">
+            <h2>Budget Allocation</h2>
+            <table id="budget-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Estimated Cost</th>
+                        <th>Source of Funds</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select class="budget-category">
+                                <option value="Teaching Materials">Teaching Materials</option>
+                                <option value="Infrastructure">Infrastructure</option>
+                                <option value="Training">Training</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </td>
+                        <td><input class="estimated-cost" placeholder="0.00" type="number" /></td>
+                        <td><input class="fund-source" placeholder="Source of funds" type="text" /></td>
+                        <td><textarea class="budget-notes" placeholder="Notes"></textarea></td>
+                        <td><button class="btn-danger remove-budget-row">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn" id="add-budget-row">Add Budget Item</button>
+        </div>
+        
+        <div class="section section-finalize">
+            <h2>Finalize Plan</h2>
+            <div class="form-group">
+                <label for="approval-name">Approved By (Name)</label>
+                <input id="approval-name" placeholder="Enter name of approving authority" type="text" />
+            </div>
+            
+            <div class="form-group">
+                <label for="approval-title">Title/Position</label>
+                <input id="approval-title" placeholder="Enter title/position" type="text" />
+            </div>
+            
+            <div class="signature-box">
+                <div class="signature-field">
+                    <p>Head Teacher Signature</p>
+                </div>
+                <div class="signature-field">
+                    <p>Approving Authority Signature</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="plan-date">Plan Date</label>
+                <input id="plan-date" type="date" />
+            </div>
+        </div>
+        
+        <div class="section section-export">
+            <h2>Export Plan</h2>
+            <div class="btn-group">
+                <button class="btn" id="preview-plan">Preview Plan</button>
+                <button class="btn" id="save-draft">Save Draft</button>
+                <button class="btn" id="export-pdf">Export to PDF</button>
+                <button class="btn" id="export-doc">Export to Word</button>
+                <button class="btn" id="print-plan">Print Plan</button>
+            </div>
+            <div class="spinner" id="export-spinner"></div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <!-- Preview Modal -->
+    <div id="preview-modal" style="background-color: rgba(0,0,0,0.8); display: none; height: 100%; left: 0; overflow: auto; position: fixed; top: 0; width: 100%; z-index: 1000;">
+        <div style="background-color: white; border-radius: 5px; margin: 50px auto; max-width: 800px; padding: 20px;">
+            <div style="align-items: center; display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h2>Plan Preview</h2>
+                <button id="close-preview" style="background: none; border: none; cursor: pointer; font-size: 24px;">×</button>
+            </div>
+            <div id="preview-content" style="max-height: 70vh; overflow-y: auto;"></div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn" id="export-from-preview">Export to PDF</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden div for printing -->
+    <div id="print-content" style="display: none;"></div>
+    
+    <script>
+        // Global variables
+        let goals = [];
+        let milestones = [];
+        let actionPlanRows = [];
+        let budgetRows = [];
+        
+        // DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize event listeners
+            initEventListeners();
+            
+            // Load draft if exists
+            loadDraft();
+        });
+        
+        function initEventListeners() {
+            // School logo preview
+            document.getElementById('school-logo').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const preview = document.getElementById('logo-preview');
+                        preview.src = event.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Priority drag and drop
+            setupPriorityDragDrop();
+            
+            // Add priority
+            document.getElementById('add-priority').addEventListener('click', addPriority);
+            document.getElementById('new-priority').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addPriority();
+            });
+            
+            // Add goal
+            document.getElementById('add-goal').addEventListener('click', addGoal);
+            
+            // Action plan table
+            document.getElementById('add-action-row').addEventListener('click', addActionRow);
+            
+            // Budget table
+            document.getElementById('add-budget-row').addEventListener('click', addBudgetRow);
+            
+            // Milestone chart
+            document.getElementById('milestone-progress').addEventListener('input', function() {
+                document.getElementById('progress-value').textContent = this.value + '%';
+            });
+            document.getElementById('add-milestone').addEventListener('click', addMilestone);
+            
+            // Preview and export buttons
+            document.getElementById('preview-plan').addEventListener('click', previewPlan);
+            document.getElementById('close-preview').addEventListener('click', function() {
+                document.getElementById('preview-modal').style.display = 'none';
+            });
+            document.getElementById('export-from-preview').addEventListener('click', exportToPDF);
+            document.getElementById('save-draft').addEventListener('click', saveDraft);
+            document.getElementById('export-pdf').addEventListener('click', exportToPDF);
+            document.getElementById('export-doc').addEventListener('click', exportToWord);
+            document.getElementById('print-plan').addEventListener('click', printPlan);
+        }
+        
+        function setupPriorityDragDrop() {
+            const list = document.getElementById('priority-list');
+            let draggedItem = null;
+            
+            // Drag start
+            list.addEventListener('dragstart', function(e) {
+                draggedItem = e.target;
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', e.target.innerHTML);
+            });
+            
+            // Drag end
+            list.addEventListener('dragend', function(e) {
+                e.target.classList.remove('dragging');
+            });
+            
+            // Drag over
+            list.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const targetItem = e.target.closest('.priority-item');
+                if (targetItem && targetItem !== draggedItem) {
+                    const rect = targetItem.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
+                    
+                    if (e.clientY < midpoint) {
+                        list.insertBefore(draggedItem, targetItem);
+                    } else {
+                        list.insertBefore(draggedItem, targetItem.nextSibling);
+                    }
+                }
+            });
+            
+            // Drag enter
+            list.addEventListener('dragenter', function(e) {
+                e.preventDefault();
+                const targetItem = e.target.closest('.priority-item');
+                if (targetItem) {
+                    targetItem.classList.add('over');
+                }
+            });
+            
+            // Drag leave
+            list.addEventListener('dragleave', function(e) {
+                const targetItem = e.target.closest('.priority-item');
+                if (targetItem) {
+                    targetItem.classList.remove('over');
+                }
+            });
+            
+            // Drop
+            list.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const targetItem = e.target.closest('.priority-item');
+                if (targetItem) {
+                    targetItem.classList.remove('over');
+                }
+            });
+        }
+        
+        function addPriority() {
+            const input = document.getElementById('new-priority');
+            const text = input.value.trim();
+            if (text) {
+                const list = document.getElementById('priority-list');
+                const item = document.createElement('li');
+                item.className = 'priority-item';
+                item.textContent = text;
+                item.draggable = true;
+                list.appendChild(item);
+                input.value = '';
+                
+                // Add drag events to new item
+                item.addEventListener('dragstart', function(e) {
+                    draggedItem = e.target;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', e.target.innerHTML);
+                });
+                
+                showToast('Priority added successfully');
+            }
+        }
+        
+        function addGoal() {
+            const container = document.getElementById('goals-container');
+            const goalId = 'goal-' + Date.now();
+            
+            const goalDiv = document.createElement('div');
+            goalDiv.className = 'goal-item';
+            goalDiv.id = goalId;
+            
+            goalDiv.innerHTML = `
+                <div class="goal-actions">
+                    <button class="btn-danger remove-goal" data-id="${goalId}">Remove</button>
+                </div>
+                <h4>Goal #${document.querySelectorAll('.goal-item').length + 1}</h4>
+                <div class="form-group">
+                    <label>Goal Description</label>
+                    <textarea class="goal-description" placeholder="Describe your goal"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Linked Focus Area</label>
+                    <select class="goal-focus-area">
+                        <option value="">Select focus area</option>
+                        ${Array.from(document.getElementById('focus-areas').options).map(opt => 
+                            `<option value="${opt.value}">${opt.text}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>SMART Criteria</label>
+                    <div class="smart-indicators">
+                        <span class="smart-indicator" data-criteria="specific">Specific</span>
+                        <span class="smart-indicator" data-criteria="measurable">Measurable</span>
+                        <span class="smart-indicator" data-criteria="achievable">Achievable</span>
+                        <span class="smart-indicator" data-criteria="relevant">Relevant</span>
+                        <span class="smart-indicator" data-criteria="time-bound">Time-bound</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>How will this goal be measured?</label>
+                    <textarea class="goal-measurement" placeholder="Describe how you will measure success"></textarea>
+                </div>
+            `;
+            
+            container.appendChild(goalDiv);
+            
+            // Add event listeners to new goal
+            const descriptionTextarea = goalDiv.querySelector('.goal-description');
+            descriptionTextarea.addEventListener('input', function() {
+                checkSMARTCriteria(goalDiv);
+            });
+            
+            goalDiv.querySelector('.remove-goal').addEventListener('click', function() {
+                if (confirm('Are you sure you want to remove this goal?')) {
+                    goalDiv.remove();
+                    showToast('Goal removed');
+                }
+            });
+            
+            showToast('New goal added');
+        }
+        
+        function checkSMARTCriteria(goalDiv) {
+            const text = goalDiv.querySelector('.goal-description').value.toLowerCase();
+            const indicators = goalDiv.querySelectorAll('.smart-indicator');
+            
+            indicators.forEach(indicator => {
+                const criteria = indicator.dataset.criteria;
+                let isValid = false;
+                
+                switch(criteria) {
+                    case 'specific':
+                        isValid = text.includes('specific') || 
+                                 (text.includes('clear') && text.includes('defined'));
+                        break;
+                    case 'measurable':
+                        isValid = text.includes('measurable') || 
+                                 text.includes('quantifiable') ||
+                                 (text.includes('track') && text.includes('progress'));
+                        break;
+                    case 'achievable':
+                        isValid = text.includes('achievable') || 
+                                 text.includes('attainable') ||
+                                 text.includes('realistic'));
+                        break;
+                    case 'relevant':
+                        isValid = text.includes('relevant') || 
+                                 text.includes('aligned') ||
+                                 text.includes('important'));
+                        break;
+                    case 'time-bound':
+                        isValid = text.includes('time-bound') || 
+                                 text.includes('timeframe') ||
+                                 text.includes('deadline') ||
+                                 text.includes('by') && (text.match(/\d{4}/) || text.match(/month|quarter|year/));
+                        break;
+                }
+                
+                indicator.classList.toggle('valid', isValid);
+                indicator.classList.toggle('invalid', !isValid);
+            });
+        }
+        
+        function addActionRow() {
+            const tbody = document.querySelector('#action-plan tbody');
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td><input type="text" class="objective" placeholder="Enter objective"></td>
+                <td><textarea class="activities" placeholder="List activities"></textarea></td>
+                <td><input type="text" class="responsible" placeholder="Responsible person"></td>
+                <td><input type="text" class="timeline" placeholder="Timeline"></td>
+                <td><textarea class="resources" placeholder="Resources needed"></textarea></td>
+                <td><input type="text" class="monitoring" placeholder="Monitoring tool"></td>
+                <td><textarea class="outcome" placeholder="Expected outcome"></textarea></td>
+                <td><button class="btn-danger remove-row">Remove</button></td>
+            `;
+            
+            tbody.appendChild(row);
+            
+            // Add event listener to remove button
+            row.querySelector('.remove-row').addEventListener('click', function() {
+                if (confirm('Are you sure you want to remove this row?')) {
+                    row.remove();
+                    showToast('Row removed from action plan');
+                }
+            });
+        }
+        
+        function addBudgetRow() {
+            const tbody = document.querySelector('#budget-table tbody');
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>
+                    <select class="budget-category">
+                        <option value="Teaching Materials">Teaching Materials</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                        <option value="Training">Training</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </td>
+                <td><input type="number" class="estimated-cost" placeholder="0.00"></td>
+                <td><input type="text" class="fund-source" placeholder="Source of funds"></td>
+                <td><textarea class="budget-notes" placeholder="Notes"></textarea></td>
+                <td><button class="btn-danger remove-budget-row">Remove</button></td>
+            `;
+            
+            tbody.appendChild(row);
+            
+            // Add event listener to remove button
+            row.querySelector('.remove-budget-row').addEventListener('click', function() {
+                if (confirm('Are you sure you want to remove this budget item?')) {
+                    row.remove();
+                    showToast('Budget item removed');
+                }
+            });
+        }
+        
+        function addMilestone() {
+            const name = document.getElementById('milestone-name').value.trim();
+            const progress = document.getElementById('milestone-progress').value;
+            
+            if (name) {
+                milestones.push({ name, progress });
+                updateMilestoneChart();
+                document.getElementById('milestone-name').value = '';
+                document.getElementById('milestone-progress').value = 0;
+                document.getElementById('progress-value').textContent = '0%';
+                showToast('Milestone added');
+            } else {
+                showToast('Please enter a milestone name', 'error');
+            }
+        }
+        
+        function updateMilestoneChart() {
+            const container = document.getElementById('chart-container');
+            container.innerHTML = '';
+            
+            milestones.forEach(milestone => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                
+                const progress = document.createElement('div');
+                progress.className = 'chart-progress';
+                progress.style.width = milestone.progress + '%';
+                
+                const label = document.createElement('div');
+                label.className = 'chart-label';
+                label.textContent = `${milestone.name} (${milestone.progress}%)`;
+                
+                bar.appendChild(progress);
+                bar.appendChild(label);
+                container.appendChild(bar);
+            });
+        }
+        
+        function previewPlan() {
+            const previewContent = document.getElementById('preview-content');
+            previewContent.innerHTML = generatePlanHTML();
+            
+            document.getElementById('preview-modal').style.display = 'block';
+        }
+        
+        function generatePlanHTML() {
+            // School Information
+            let html = `
+                <h1 style="text-align: center;">${document.getElementById('school-name').value || 'School Development Plan'}</h1>
+                <div style="text-align: center; margin-bottom: 30px;">
+                    ${document.getElementById('logo-preview').src ? 
+                        `<img src="${document.getElementById('logo-preview').src}" style="max-height: 100px; margin-bottom: 10px;">` : ''}
+                    <p><strong>EMIS Code:</strong> ${document.getElementById('emis-code').value || 'N/A'}</p>
+                    <p><strong>Head Teacher:</strong> ${document.getElementById('head-teacher').value || 'N/A'}</p>
+                    <p><strong>Plan Period:</strong> ${document.getElementById('plan-year-from').value || ''} to ${document.getElementById('plan-year-to').value || ''}</p>
+                </div>
+                
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">1. School Information</h2>
+                <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 30%; padding: 8px; border: 1px solid #ddd;"><strong>School Name:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${document.getElementById('school-name').value || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>School Type:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${document.getElementById('school-type').value || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Region/District/Province:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${document.getElementById('region').value || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Contact Email:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${document.getElementById('contact-email').value || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Contact Phone:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${document.getElementById('contact-phone').value || 'N/A'}</td>
+                    </tr>
+                </table>
+                
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">2. Plan Duration & Focus Areas</h2>
+                <p><strong>Plan Term:</strong> ${document.getElementById('plan-term').value || 'N/A'}</p>
+                <p><strong>Focus Areas:</strong></p>
+                <ul style="margin-top: 5px;">
+            `;
+            
+            // Focus Areas
+            const focusAreas = Array.from(document.getElementById('focus-areas').selectedOptions).map(opt => opt.value);
+            if (focusAreas.length > 0) {
+                focusAreas.forEach(area => {
+                    html += `<li style="margin-bottom: 5px;">${area}</li>`;
+                });
+            } else {
+                html += `<li style="margin-bottom: 5px;">No focus areas selected</li>`;
+            }
+            
+            html += `</ul>`;
+            
+            // SWOT Analysis
+            html += `
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">3. Needs Assessment</h2>
+                <h3>SWOT Analysis</h3>
+                <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 50%; padding: 10px; border: 1px solid #ddd; vertical-align: top;">
+                            <h4 style="color: #27ae60; margin-top: 0;">Strengths</h4>
+                            <p>${document.getElementById('strengths').value || 'N/A'}</p>
+                        </td>
+                        <td style="width: 50%; padding: 10px; border: 1px solid #ddd; vertical-align: top;">
+                            <h4 style="color: #e74c3c; margin-top: 0;">Weaknesses</h4>
+                            <p>${document.getElementById('weaknesses').value || 'N/A'}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; padding: 10px; border: 1px solid #ddd; vertical-align: top;">
+                            <h4 style="color: #3498db; margin-top: 0;">Opportunities</h4>
+                            <p>${document.getElementById('opportunities').value || 'N/A'}</p>
+                        </td>
+                        <td style="width: 50%; padding: 10px; border: 1px solid #ddd; vertical-align: top;">
+                            <h4 style="color: #f39c12; margin-top: 0;">Threats</h4>
+                            <p>${document.getElementById('threats').value || 'N/A'}</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <h3>Priority Areas</h3>
+                <ol style="margin-top: 5px;">
+            `;
+            
+            // Priorities
+            const priorities = Array.from(document.getElementById('priority-list').children).map(li => li.textContent);
+            if (priorities.length > 0) {
+                priorities.forEach(priority => {
+                    html += `<li style="margin-bottom: 5px;">${priority}</li>`;
+                });
+            } else {
+                html += `<li style="margin-bottom: 5px;">No priorities defined</li>`;
+            }
+            
+            html += `</ol>`;
+            
+            // Goals
+            html += `
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">4. Goal Setting</h2>
+            `;
+            
+            const goalItems = document.querySelectorAll('.goal-item');
+            if (goalItems.length > 0) {
+                goalItems.forEach((goal, index) => {
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                            <h3 style="margin-top: 0;">Goal ${index + 1}</h3>
+                            <p><strong>Description:</strong> ${goal.querySelector('.goal-description').value || 'N/A'}</p>
+                            <p><strong>Focus Area:</strong> ${goal.querySelector('.goal-focus-area').value || 'N/A'}</p>
+                            <p><strong>Measurement:</strong> ${goal.querySelector('.goal-measurement').value || 'N/A'}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `<p>No goals defined yet.</p>`;
+            }
+            
+            // Action Plan
+            html += `
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">5. Action Plan</h2>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #3498db; color: white;">
+                            <th style="padding: 10px; border: 1px solid #ddd;">Objective</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Activities</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Responsible Person</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Timeline</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Resources Required</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Monitoring Tool</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Expected Outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            const actionRows = document.querySelectorAll('#action-plan tbody tr');
+            if (actionRows.length > 0) {
+                actionRows.forEach(row => {
+                    html += `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.objective').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.activities').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.responsible').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.timeline').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.resources').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.monitoring').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.outcome').value || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="7" style="padding: 10px; border: 1px solid #ddd; text-align: center;">No action items defined yet.</td>
+                    </tr>
+                `;
+            }
+            
+            html += `</tbody></table>`;
+            
+            // Monitoring & Evaluation
+            html += `
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">6. Monitoring & Evaluation</h2>
+                <h3>Key Performance Indicators</h3>
+                <p>${document.getElementById('indicators').value || 'No indicators defined yet.'}</p>
+                
+                <h3>Milestones</h3>
+            `;
+            
+            if (milestones.length > 0) {
+                milestones.forEach(milestone => {
+                    html += `
+                        <div style="margin-bottom: 15px;">
+                            <p style="margin-bottom: 5px;"><strong>${milestone.name}</strong> - ${milestone.progress}% complete</p>
+                            <div style="height: 20px; background-color: #ddd; border-radius: 4px;">
+                                <div style="height: 100%; width: ${milestone.progress}%; background-color: #3498db; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `<p>No milestones defined yet.</p>`;
+            }
+            
+            html += `
+                <h3>Evaluation Notes</h3>
+                <p>${document.getElementById('evaluation-notes').value || 'No evaluation notes yet.'}</p>
+            `;
+            
+            // Budget
+            html += `
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">7. Budget Allocation</h2>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #3498db; color: white;">
+                            <th style="padding: 10px; border: 1px solid #ddd;">Category</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Estimated Cost</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Source of Funds</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            const budgetItems = document.querySelectorAll('#budget-table tbody tr');
+            if (budgetItems.length > 0) {
+                let totalCost = 0;
+                
+                budgetItems.forEach(row => {
+                    const cost = parseFloat(row.querySelector('.estimated-cost').value) || 0;
+                    totalCost += cost;
+                    
+                    html += `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.budget-category').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${cost.toFixed(2)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.fund-source').value || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.querySelector('.budget-notes').value || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                    <tr style="font-weight: bold;">
+                        <td style="padding: 8px; border: 1px solid #ddd;">Total</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${totalCost.toFixed(2)}</td>
+                        <td colspan="2" style="padding: 8px; border: 1px solid #ddd;"></td>
+                    </tr>
+                `;
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="4" style="padding: 10px; border: 1px solid #ddd; text-align: center;">No budget items defined yet.</td>
+                    </tr>
+                `;
+            }
+            
+            html += `</tbody></table>`;
+            
+            // Approval
+            html += `
+                <h2 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">8. Approval</h2>
+                <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                    <div style="width: 45%; border-top: 1px solid #333; padding-top: 10px; text-align: center;">
+                        <p><strong>Head Teacher Signature</strong></p>
+                    </div>
+                    <div style="width: 45%; border-top: 1px solid #333; padding-top: 10px; text-align: center;">
+                        <p><strong>Approving Authority Signature</strong></p>
+                        <p>${document.getElementById('approval-name').value || 'N/A'}</p>
+                        <p>${document.getElementById('approval-title').value || 'N/A'}</p>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 30px;"><strong>Plan Date:</strong> ${document.getElementById('plan-date').value || 'N/A'}</p>
+            `;
+            
+            return html;
+        }
+        
+        function saveDraft() {
+            const planData = {
+                schoolInfo: {
+                    name: document.getElementById('school-name').value,
+                    logo: document.getElementById('logo-preview').src,
+                    emisCode: document.getElementById('emis-code').value,
+                    headTeacher: document.getElementById('head-teacher').value,
+                    email: document.getElementById('contact-email').value,
+                    phone: document.getElementById('contact-phone').value,
+                    type: document.getElementById('school-type').value,
+                    region: document.getElementById('region').value
+                },
+                planDuration: {
+                    from: document.getElementById('plan-year-from').value,
+                    to: document.getElementById('plan-year-to').value,
+                    term: document.getElementById('plan-term').value,
+                    focusAreas: Array.from(document.getElementById('focus-areas').selectedOptions).map(opt => opt.value)
+                },
+                needsAssessment: {
+                    strengths: document.getElementById('strengths').value,
+                    weaknesses: document.getElementById('weaknesses').value,
+                    opportunities: document.getElementById('opportunities').value,
+                    threats: document.getElementById('threats').value,
+                    priorities: Array.from(document.getElementById('priority-list').children).map(li => li.textContent)
+                },
+                goals: Array.from(document.querySelectorAll('.goal-item')).map(goal => ({
+                    description: goal.querySelector('.goal-description').value,
+                    focusArea: goal.querySelector('.goal-focus-area').value,
+                    measurement: goal.querySelector('.goal-measurement').value
+                })),
+                actionPlan: Array.from(document.querySelectorAll('#action-plan tbody tr')).map(row => ({
+                    objective: row.querySelector('.objective').value,
+                    activities: row.querySelector('.activities').value,
+                    responsible: row.querySelector('.responsible').value,
+                    timeline: row.querySelector('.timeline').value,
+                    resources: row.querySelector('.resources').value,
+                    monitoring: row.querySelector('.monitoring').value,
+                    outcome: row.querySelector('.outcome').value
+                })),
+                monitoring: {
+                    indicators: document.getElementById('indicators').value,
+                    milestones: milestones,
+                    notes: document.getElementById('evaluation-notes').value
+                },
+                budget: Array.from(document.querySelectorAll('#budget-table tbody tr')).map(row => ({
+                    category: row.querySelector('.budget-category').value,
+                    cost: row.querySelector('.estimated-cost').value,
+                    source: row.querySelector('.fund-source').value,
+                    notes: row.querySelector('.budget-notes').value
+                })),
+                approval: {
+                    name: document.getElementById('approval-name').value,
+                    title: document.getElementById('approval-title').value,
+                    date: document.getElementById('plan-date').value
+                }
+            };
+            
+            localStorage.setItem('schoolDevelopmentPlanDraft', JSON.stringify(planData));
+            showToast('Draft saved successfully');
+        }
+        
+        function loadDraft() {
+            const draft = localStorage.getItem('schoolDevelopmentPlanDraft');
+            if (draft) {
+                if (confirm('A saved draft was found. Would you like to load it?')) {
+                    const planData = JSON.parse(draft);
+                    
+                    // School Information
+                    document.getElementById('school-name').value = planData.schoolInfo.name || '';
+                    if (planData.schoolInfo.logo) {
+                        document.getElementById('logo-preview').src = planData.schoolInfo.logo;
+                        document.getElementById('logo-preview').style.display = 'block';
+                    }
+                    document.getElementById('emis-code').value = planData.schoolInfo.emisCode || '';
+                    document.getElementById('head-teacher').value = planData.schoolInfo.headTeacher || '';
+                    document.getElementById('contact-email').value = planData.schoolInfo.email || '';
+                    document.getElementById('contact-phone').value = planData.schoolInfo.phone || '';
+                    document.getElementById('school-type').value = planData.schoolInfo.type || '';
+                    document.getElementById('region').value = planData.schoolInfo.region || '';
+                    
+                    // Plan Duration
+                    document.getElementById('plan-year-from').value = planData.planDuration.from || '';
+                    document.getElementById('plan-year-to').value = planData.planDuration.to || '';
+                    document.getElementById('plan-term').value = planData.planDuration.term || '';
+                    
+                    // Focus Areas
+                    const focusSelect = document.getElementById('focus-areas');
+                    Array.from(focusSelect.options).forEach(option => {
+                        option.selected = planData.planDuration.focusAreas.includes(option.value);
+                    });
+                    
+                    // Needs Assessment
+                    document.getElementById('strengths').value = planData.needsAssessment.strengths || '';
+                    document.getElementById('weaknesses').value = planData.needsAssessment.weaknesses || '';
+                    document.getElementById('opportunities').value = planData.needsAssessment.opportunities || '';
+                    document.getElementById('threats').value = planData.needsAssessment.threats || '';
+                    
+                    // Priorities
+                    const priorityList = document.getElementById('priority-list');
+                    priorityList.innerHTML = '';
+                    planData.needsAssessment.priorities.forEach(priority => {
+                        const item = document.createElement('li');
+                        item.className = 'priority-item';
+                        item.textContent = priority;
+                        item.draggable = true;
+                        priorityList.appendChild(item);
+                    });
+                    
+                    // Goals
+                    const goalsContainer = document.getElementById('goals-container');
+                    goalsContainer.innerHTML = '';
+                    planData.goals.forEach((goal, index) => {
+                        const goalId = 'goal-' + Date.now() + index;
+                        const goalDiv = document.createElement('div');
+                        goalDiv.className = 'goal-item';
+                        goalDiv.id = goalId;
+                        
+                        goalDiv.innerHTML = `
+                            <div class="goal-actions">
+                                <button class="btn-danger remove-goal" data-id="${goalId}">Remove</button>
+                            </div>
+                            <h4>Goal #${index + 1}</h4>
+                            <div class="form-group">
+                                <label>Goal Description</label>
+                                <textarea class="goal-description" placeholder="Describe your goal">${goal.description || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Linked Focus Area</label>
+                                <select class="goal-focus-area">
+                                    <option value="">Select focus area</option>
+                                    ${Array.from(document.getElementById('focus-areas').options).map(opt => 
+                                        `<option value="${opt.value}" ${opt.value === goal.focusArea ? 'selected' : ''}>${opt.text}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>How will this goal be measured?</label>
+                                <textarea class="goal-measurement" placeholder="Describe how you will measure success">${goal.measurement || ''}</textarea>
+                            </div>
+                        `;
+                        
+                        goalsContainer.appendChild(goalDiv);
+                        
+                        // Add event listeners to new goal
+                        const descriptionTextarea = goalDiv.querySelector('.goal-description');
+                        descriptionTextarea.addEventListener('input', function() {
+                            checkSMARTCriteria(goalDiv);
+                        });
+                        
+                        goalDiv.querySelector('.remove-goal').addEventListener('click', function() {
+                            if (confirm('Are you sure you want to remove this goal?')) {
+                                goalDiv.remove();
+                                showToast('Goal removed');
+                            }
+                        });
+                    });
+                    
+                    // Action Plan
+                    const actionTbody = document.querySelector('#action-plan tbody');
+                    actionTbody.innerHTML = '';
+                    planData.actionPlan.forEach(action => {
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td><input type="text" class="objective" placeholder="Enter objective" value="${action.objective || ''}"></td>
+                            <td><textarea class="activities" placeholder="List activities">${action.activities || ''}</textarea></td>
+                            <td><input type="text" class="responsible" placeholder="Responsible person" value="${action.responsible || ''}"></td>
+                            <td><input type="text" class="timeline" placeholder="Timeline" value="${action.timeline || ''}"></td>
+                            <td><textarea class="resources" placeholder="Resources needed">${action.resources || ''}</textarea></td>
+                            <td><input type="text" class="monitoring" placeholder="Monitoring tool" value="${action.monitoring || ''}"></td>
+                            <td><textarea class="outcome" placeholder="Expected outcome">${action.outcome || ''}</textarea></td>
+                            <td><button class="btn-danger remove-row">Remove</button></td>
+                        `;
+                        
+                        actionTbody.appendChild(row);
+                        
+                        // Add event listener to remove button
+                        row.querySelector('.remove-row').addEventListener('click', function() {
+                            if (confirm('Are you sure you want to remove this row?')) {
+                                row.remove();
+                                showToast('Row removed from action plan');
+                            }
+                        });
+                    });
+                    
+                    // Monitoring & Evaluation
+                    document.getElementById('indicators').value = planData.monitoring.indicators || '';
+                    milestones = planData.monitoring.milestones || [];
+                    updateMilestoneChart();
+                    document.getElementById('evaluation-notes').value = planData.monitoring.notes || '';
+                    
+                    // Budget
+                    const budgetTbody = document.querySelector('#budget-table tbody');
+                    budgetTbody.innerHTML = '';
+                    planData.budget.forEach(budget => {
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td>
+                                <select class="budget-category">
+                                    <option value="Teaching Materials" ${budget.category === 'Teaching Materials' ? 'selected' : ''}>Teaching Materials</option>
+                                    <option value="Infrastructure" ${budget.category === 'Infrastructure' ? 'selected' : ''}>Infrastructure</option>
+                                    <option value="Training" ${budget.category === 'Training' ? 'selected' : ''}>Training</option>
+                                    <option value="Others" ${budget.category === 'Others' ? 'selected' : ''}>Others</option>
+                                </select>
+                            </td>
+                            <td><input type="number" class="estimated-cost" placeholder="0.00" value="${budget.cost || ''}"></td>
+                            <td><input type="text" class="fund-source" placeholder="Source of funds" value="${budget.source || ''}"></td>
+                            <td><textarea class="budget-notes" placeholder="Notes">${budget.notes || ''}</textarea></td>
+                            <td><button class="btn-danger remove-budget-row">Remove</button></td>
+                        `;
+                        
+                        budgetTbody.appendChild(row);
+                        
+                        // Add event listener to remove button
+                        row.querySelector('.remove-budget-row').addEventListener('click', function() {
+                            if (confirm('Are you sure you want to remove this budget item?')) {
+                                row.remove();
+                                showToast('Budget item removed');
+                            }
+                        });
+                    });
+                    
+                    // Approval
+                    document.getElementById('approval-name').value = planData.approval.name || '';
+                    document.getElementById('approval-title').value = planData.approval.title || '';
+                    document.getElementById('plan-date').value = planData.approval.date || '';
+                    
+                    showToast('Draft loaded successfully');
+                }
+            }
+        }
+        
+        function exportToPDF() {
+            const spinner = document.getElementById('export-spinner');
+            spinner.style.display = 'block';
+            
+            // Create a new PDF instance
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('School Development Plan', 105, 15, { align: 'center' });
+            
+            // School Information
+            doc.setFontSize(14);
+            doc.text('1. School Information', 14, 30);
+            doc.setFontSize(12);
+            
+            let yPosition = 40;
+            doc.text(`School Name: ${document.getElementById('school-name').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`EMIS Code: ${document.getElementById('emis-code').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`Head Teacher: ${document.getElementById('head-teacher').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`School Type: ${document.getElementById('school-type').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`Region/District/Province: ${document.getElementById('region').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`Plan Period: ${document.getElementById('plan-year-from').value || ''} to ${document.getElementById('plan-year-to').value || ''}`, 14, yPosition);
+            yPosition += 10;
+            
+            // Plan Duration & Focus Areas
+            doc.setFontSize(14);
+            doc.text('2. Plan Duration & Focus Areas', 14, yPosition);
+            yPosition += 10;
+            doc.setFontSize(12);
+            doc.text(`Plan Term: ${document.getElementById('plan-term').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            
+            const focusAreas = Array.from(document.getElementById('focus-areas').selectedOptions).map(opt => opt.value);
+            doc.text('Focus Areas:', 14, yPosition);
+            yPosition += 7;
+            
+            if (focusAreas.length > 0) {
+                focusAreas.forEach(area => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(`• ${area}`, 20, yPosition);
+                    yPosition += 7;
+                });
+            } else {
+                doc.text('No focus areas selected', 20, yPosition);
+                yPosition += 7;
+            }
+            yPosition += 10;
+            
+            // Needs Assessment - SWOT
+            doc.setFontSize(14);
+            doc.text('3. Needs Assessment', 14, yPosition);
+            doc.setFontSize(12);
+            yPosition += 10;
+            
+            doc.setFontSize(12);
+            doc.text('SWOT Analysis', 14, yPosition);
+            yPosition += 7;
+            
+            // Strengths
+            doc.text('Strengths:', 14, yPosition);
+            yPosition += 7;
+            const strengths = document.getElementById('strengths').value || 'N/A';
+            doc.text(strengths, 20, yPosition, { maxWidth: 180 });
+            yPosition += (strengths.split('\n').length * 7) + 7;
+            
+            // Weaknesses
+            doc.text('Weaknesses:', 14, yPosition);
+            yPosition += 7;
+            const weaknesses = document.getElementById('weaknesses').value || 'N/A';
+            doc.text(weaknesses, 20, yPosition, { maxWidth: 180 });
+            yPosition += (weaknesses.split('\n').length * 7) + 7;
+            
+            // Opportunities
+            doc.text('Opportunities:', 14, yPosition);
+            yPosition += 7;
+            const opportunities = document.getElementById('opportunities').value || 'N/A';
+            doc.text(opportunities, 20, yPosition, { maxWidth: 180 });
+            yPosition += (opportunities.split('\n').length * 7) + 7;
+            
+            // Threats
+            doc.text('Threats:', 14, yPosition);
+            yPosition += 7;
+            const threats = document.getElementById('threats').value || 'N/A';
+            doc.text(threats, 20, yPosition, { maxWidth: 180 });
+            yPosition += (threats.split('\n').length * 7 + 10);
+            
+            // Priority Areas
+            doc.setFontSize(12);
+            doc.text('Priority Areas:', 14, yPosition);
+            yPosition += 7;
+            
+            const priorities = Array.from(document.getElementById('priority-list').children).map(li => li.textContent);
+            if (priorities.length > 0) {
+                priorities.forEach((priority, index) => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(`${index + 1}. ${priority}`, 20, yPosition);
+                    yPosition += 7;
+                });
+            } else {
+                doc.text('No priorities defined', 20, yPosition);
+                yPosition += 7;
+            }
+            yPosition += 10;
+            
+            // Goal Setting
+            doc.setFontSize(14);
+            doc.text('4. Goal Setting', 14, yPosition);
+            doc.setFontSize(12);
+            yPosition += 10;
+            
+            const goalItems = document.querySelectorAll('.goal-item');
+            if (goalItems.length > 0) {
+                goalItems.forEach((goal, index) => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    doc.text(`Goal ${index + 1}:`, 14, yPosition);
+                    yPosition += 7;
+                    
+                    const description = goal.querySelector('.goal-description').value || 'N/A';
+                    doc.text(`Description: ${description}`, 20, yPosition, { maxWidth: 180 });
+                    yPosition += (description.split('\n').length * 7) + 7;
+                    
+                    doc.text(`Focus Area: ${goal.querySelector('.goal-focus-area').value || 'N/A'}`, 20, yPosition);
+                    yPosition += 7;
+                    
+                    const measurement = goal.querySelector('.goal-measurement').value || 'N/A';
+                    doc.text(`Measurement: ${measurement}`, 20, yPosition, { maxWidth: 180 });
+                    yPosition += (measurement.split('\n').length * 7) + 10;
+                });
+            } else {
+                doc.text('No goals defined yet.', 14, yPosition);
+                yPosition += 10;
+            }
+            
+            // Action Plan
+            doc.setFontSize(14);
+            doc.text('5. Action Plan', 14, yPosition);
+            doc.setFontSize(12);
+            yPosition += 10;
+            
+            const actionRows = document.querySelectorAll('#action-plan tbody tr');
+            if (actionRows.length > 0) {
+                const headers = [
+                    { header: 'Objective', dataKey: 'objective' },
+                    { header: 'Activities', dataKey: 'activities' },
+                    { header: 'Responsible', dataKey: 'responsible' },
+                    { header: 'Timeline', dataKey: 'timeline' },
+                    { header: 'Resources', dataKey: 'resources' },
+                    { header: 'Monitoring', dataKey: 'monitoring' },
+                    { header: 'Outcome', dataKey: 'outcome' }
+                ];
+                
+                const actionPlanData = Array.from(actionRows).map(row => ({
+                    objective: row.querySelector('.objective').value || 'N/A',
+                    activities: row.querySelector('.activities').value || 'N/A',
+                    responsible: row.querySelector('.responsible').value || 'N/A',
+                    timeline: row.querySelector('.timeline').value || 'N/A',
+                    resources: row.querySelector('.resources').value || 'N/A',
+                    monitoring: row.querySelector('.monitoring').value || 'N/A',
+                    outcome: row.querySelector('.outcome').value || 'N/A'
+                }));
+                
+                doc.autoTable({
+                    head: [headers.map(h => h.header)],
+                    body: actionPlanData.map(row => headers.map(h => row[h.dataKey])),
+                    startY: yPosition,
+                    margin: { left: 14 },
+                    styles: { fontSize: 10, cellPadding: 3 },
+                    columnStyles: {
+                        0: { cellWidth: 25 },
+                        1: { cellWidth: 30 },
+                        2: { cellWidth: 20 },
+                        3: { cellWidth: 15 },
+                        4: { cellWidth: 25 },
+                        5: { cellWidth: 20 },
+                        6: { cellWidth: 25 }
+                    }
+                });
+                
+                yPosition = doc.lastAutoTable.finalY + 10;
+            } else {
+                doc.text('No action items defined yet.', 14, yPosition);
+                yPosition += 10;
+            }
+            
+            // Monitoring & Evaluation
+            doc.setFontSize(14);
+            doc.text('6. Monitoring & Evaluation', 14, yPosition);
+            doc.setFontSize(12);
+            yPosition += 10;
+            
+            // Key Performance Indicators
+            doc.text('Key Performance Indicators:', 14, yPosition);
+            yPosition += 7;
+            const indicators = document.getElementById('indicators').value || 'No indicators defined yet.';
+            doc.text(indicators, 20, yPosition, { maxWidth: 180 });
+            yPosition += (indicators.split('\n').length * 7) + 10;
+            
+            // Milestones
+            doc.text('Milestones:', 14, yPosition);
+            yPosition += 7;
+            
+            if (milestones.length > 0) {
+                milestones.forEach(milestone => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    doc.text(`${milestone.name} - ${milestone.progress}% complete`, 20, yPosition);
+                    yPosition += 7;
+                    
+                    // Simple progress bar representation
+                    doc.rect(20, yPosition, 160, 5, 'S');
+                    doc.setFillColor(52, 152, 219);
+                    doc.rect(20, yPosition, 160 * (milestone.progress / 100), 5, 'F');
+                    yPosition += 10;
+                });
+            } else {
+                doc.text('No milestones defined yet.', 20, yPosition);
+                yPosition += 10;
+            }
+            
+            // Evaluation Notes
+            doc.text('Evaluation Notes:', 14, yPosition);
+            yPosition += 7;
+            const notes = document.getElementById('evaluation-notes').value || 'No evaluation notes yet.';
+            doc.text(notes, 20, yPosition, { maxWidth: 180 });
+            yPosition += (notes.split('\n').length * 7) + 10;
+            
+            // Budget Allocation
+            doc.setFontSize(14);
+            doc.text('7. Budget Allocation', 14, yPosition);
+            doc.setFontSize(12);
+            yPosition += 10;
+            
+            const budgetItems = document.querySelectorAll('#budget-table tbody tr');
+            if (budgetItems.length > 0) {
+                const headers = [
+                    { header: 'Category', dataKey: 'category' },
+                    { header: 'Estimated Cost', dataKey: 'cost' },
+                    { header: 'Source of Funds', dataKey: 'source' },
+                    { header: 'Notes', dataKey: 'notes' }
+                ];
+                
+                let totalCost = 0;
+                const budgetData = Array.from(budgetItems).map(row => {
+                    const cost = parseFloat(row.querySelector('.estimated-cost').value) || 0;
+                    totalCost += cost;
+                    
+                    return {
+                        category: row.querySelector('.budget-category').value || 'N/A',
+                        cost: cost.toFixed(2),
+                        source: row.querySelector('.fund-source').value || 'N/A',
+                        notes: row.querySelector('.budget-notes').value || 'N/A'
+                    };
+                });
+                
+                // Add total row
+                budgetData.push({
+                    category: 'Total',
+                    cost: totalCost.toFixed(2),
+                    source: '',
+                    notes: ''
+                });
+                
+                doc.autoTable({
+                    head: [headers.map(h => h.header)],
+                    body: budgetData.map(row => headers.map(h => row[h.dataKey])),
+                    startY: yPosition,
+                    margin: { left: 14 },
+                    styles: { fontSize: 10, cellPadding: 3 },
+                    columnStyles: {
+                        0: { cellWidth: 40 },
+                        1: { cellWidth: 30 },
+                        2: { cellWidth: 40 },
+                        3: { cellWidth: 60 }
+                    },
+                    bodyStyles: { 
+                        halign: 'right',
+                        textColor: [0, 0, 0]
+                    },
+                    headStyles: {
+                        halign: 'center',
+                        textColor: [255, 255, 255],
+                        fillColor: [52, 152, 219]
+                    },
+                    didDrawCell: function(data) {
+                        // Bold the total row
+                        if (data.row.index === budgetData.length - 1) {
+                            doc.setFontStyle('bold');
+                        }
+                    }
+                });
+                
+                yPosition = doc.lastAutoTable.finalY + 10;
+            } else {
+                doc.text('No budget items defined yet.', 14, yPosition);
+                yPosition += 10;
+            }
+            
+            // Approval
+            doc.setFontSize(14);
+            doc.text('8. Approval', 14, yPosition);
+            doc.setFontSize(12);
+            yPosition += 10;
+            
+            doc.text(`Approved By: ${document.getElementById('approval-name').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`Title/Position: ${document.getElementById('approval-title').value || 'N/A'}`, 14, yPosition);
+            yPosition += 7;
+            doc.text(`Plan Date: ${document.getElementById('plan-date').value || 'N/A'}`, 14, yPosition);
+            yPosition += 15;
+            
+            // Signature lines
+            doc.line(14, yPosition, 90, yPosition);
+            doc.text('Head Teacher Signature', 14, yPosition + 7);
+            
+            doc.line(120, yPosition, 196, yPosition);
+            doc.text('Approving Authority Signature', 120, yPosition + 7);
+            
+            // Save the PDF
+            doc.save('School_Development_Plan.pdf');
+            spinner.style.display = 'none';
+            showToast('PDF exported successfully');
+        }
+        
+        function exportToWord() {
+            const spinner = document.getElementById('export-spinner');
+            spinner.style.display = 'block';
+            
+            try {
+                const { Document, Paragraph, TextRun, HeadingLevel, Packer, Table, TableRow, TableCell, WidthType, AlignmentType } = window.docx;
+                
+                // Create document content
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "School Development Plan",
+                                        bold: true,
+                                        size: 28
+                                    })
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                spacing: { after: 200 }
+                            }),
+                            
+                            // School Information
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "1. School Information",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { after: 100 }
+                            }),
+                            
+                            // School Info Table
+                            new Table({
+                                rows: [
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph("School Name:")],
+                                                width: { size: 30, type: WidthType.PERCENTAGE }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph(document.getElementById('school-name').value || "N/A")]
+                                            })
+                                        ]
+                                    }),
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph("EMIS Code:")]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph(document.getElementById('emis-code').value || "N/A")]
+                                            })
+                                        ]
+                                    }),
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph("Head Teacher:")]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph(document.getElementById('head-teacher').value || "N/A")]
+                                            })
+                                        ]
+                                    }),
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph("School Type:")]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph(document.getElementById('school-type').value || "N/A")]
+                                            })
+                                        ]
+                                    }),
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph("Region/District/Province:")]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph(document.getElementById('region').value || "N/A")]
+                                            })
+                                        ]
+                                    }),
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph("Plan Period:")]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph(`${document.getElementById('plan-year-from').value || ''} to ${document.getElementById('plan-year-to').value || ''}`)]
+                                            })
+                                        ]
+                                    })
+                                ],
+                                width: { size: 100, type: WidthType.PERCENTAGE }
+                            }),
+                            
+                            // Plan Duration & Focus Areas
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "2. Plan Duration & Focus Areas",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `Plan Term: ${document.getElementById('plan-term').value || 'N/A'}`,
+                                        bold: true
+                                    })
+                                ]
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Focus Areas:",
+                                        bold: true
+                                    })
+                                ],
+                                spacing: { before: 100 }
+                            }),
+                            
+                            // Focus Areas List
+                            ...(Array.from(document.getElementById('focus-areas').selectedOptions).map(opt => 
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `• ${opt.value}`,
+                                            break: 1
+                                        })
+                                    ],
+                                    indent: { left: 400 }
+                                })
+                            ),
+                            
+                            // Needs Assessment
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "3. Needs Assessment",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            // SWOT Analysis
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "SWOT Analysis",
+                                        bold: true,
+                                        size: 18
+                                    })
+                                ]
+                            }),
+                            
+                            // SWOT Table
+                            new Table({
+                                rows: [
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        children: [
+                                                            new TextRun({
+                                                                text: "Strengths",
+                                                                bold: true,
+                                                                color: "27ae60"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    new Paragraph(document.getElementById('strengths').value || "N/A")
+                                                ],
+                                                width: { size: 50, type: WidthType.PERCENTAGE }
+                                            }),
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        children: [
+                                                            new TextRun({
+                                                                text: "Weaknesses",
+                                                                bold: true,
+                                                                color: "e74c3c"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    new Paragraph(document.getElementById('weaknesses').value || "N/A")
+                                                ],
+                                                width: { size: 50, type: WidthType.PERCENTAGE }
+                                            })
+                                        ]
+                                    }),
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        children: [
+                                                            new TextRun({
+                                                                text: "Opportunities",
+                                                                bold: true,
+                                                                color: "3498db"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    new Paragraph(document.getElementById('opportunities').value || "N/A")
+                                                ]
+                                            }),
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        children: [
+                                                            new TextRun({
+                                                                text: "Threats",
+                                                                bold: true,
+                                                                color: "f39c12"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    new Paragraph(document.getElementById('threats').value || "N/A")
+                                                ]
+                                            })
+                                        ]
+                                    })
+                                ],
+                                width: { size: 100, type: WidthType.PERCENTAGE }
+                            }),
+                            
+                            // Priority Areas
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Priority Areas",
+                                        bold: true,
+                                        size: 18
+                                    })
+                                ],
+                                spacing: { before: 200 }
+                            }),
+                            
+                            // Priority List
+                            ...(Array.from(document.getElementById('priority-list').children).map((li, index) => 
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `${index + 1}. ${li.textContent}`,
+                                            break: 1
+                                        })
+                                    ],
+                                    indent: { left: 400 }
+                                })
+                            ),
+                            
+                            // Goal Setting
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "4. Goal Setting",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            // Goals
+                            ...(Array.from(document.querySelectorAll('.goal-item')).map((goal, index) => [
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `Goal ${index + 1}:`,
+                                            bold: true
+                                        })
+                                    ]
+                                }),
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `Description: ${goal.querySelector('.goal-description').value || 'N/A'}`,
+                                            break: 1
+                                        })
+                                    ],
+                                    indent: { left: 400 }
+                                }),
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `Focus Area: ${goal.querySelector('.goal-focus-area').value || 'N/A'}`,
+                                            break: 1
+                                        })
+                                    ],
+                                    indent: { left: 400 }
+                                }),
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `Measurement: ${goal.querySelector('.goal-measurement').value || 'N/A'}`,
+                                            break: 1
+                                        })
+                                    ],
+                                    indent: { left: 400 }
+                                }),
+                                new Paragraph({
+                                    spacing: { after: 100 }
+                                })
+                            ]).flat()),
+                            
+                            // Action Plan
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "5. Action Plan",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            // Action Plan Table
+                            new Table({
+                                rows: [
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Objective")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 20, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Activities")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 25, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Responsible")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 15, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Timeline")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 10, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Resources")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 15, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Monitoring")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 15, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Outcome")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 20, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            })
+                                        ]
+                                    }),
+                                    ...(Array.from(document.querySelectorAll('#action-plan tbody tr')).map(row => 
+                                        new TableRow({
+                                            children: [
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.objective').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.activities').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.responsible').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.timeline').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.resources').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.monitoring').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.outcome').value || "N/A")]
+                                                })
+                                            ]
+                                        })
+                                    )
+                                ],
+                                width: { size: 100, type: WidthType.PERCENTAGE }
+                            }),
+                            
+                            // Monitoring & Evaluation
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "6. Monitoring & Evaluation",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            // Key Performance Indicators
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Key Performance Indicators:",
+                                        bold: true
+                                    })
+                                ]
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: document.getElementById('indicators').value || "No indicators defined yet.",
+                                        break: 1
+                                    })
+                                ],
+                                indent: { left: 400 }
+                            }),
+                            
+                            // Milestones
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Milestones:",
+                                        bold: true
+                                    })
+                                ],
+                                spacing: { before: 200 }
+                            }),
+                            
+                            ...(milestones.map(milestone => [
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `${milestone.name} - ${milestone.progress}% complete`,
+                                            break: 1
+                                        })
+                                    ],
+                                    indent: { left: 400 }
+                                }),
+                                new Paragraph({
+                                    spacing: { after: 50 }
+                                })
+                            ]).flat()),
+                            
+                            // Evaluation Notes
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Evaluation Notes:",
+                                        bold: true
+                                    })
+                                ],
+                                spacing: { before: 200 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: document.getElementById('evaluation-notes').value || "No evaluation notes yet.",
+                                        break: 1
+                                    })
+                                ],
+                                indent: { left: 400 }
+                            }),
+                            
+                            // Budget Allocation
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "7. Budget Allocation",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            // Budget Table
+                            new Table({
+                                rows: [
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Category")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 30, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Estimated Cost")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 20, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Source of Funds")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 25, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Notes")],
+                                                    alignment: AlignmentType.CENTER
+                                                })],
+                                                width: { size: 25, type: WidthType.PERCENTAGE },
+                                                shading: { fill: "3498db" }
+                                            })
+                                        ]
+                                    }),
+                                    ...(Array.from(document.querySelectorAll('#budget-table tbody tr')).map(row => 
+                                        new TableRow({
+                                            children: [
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.budget-category').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph({
+                                                        children: [new TextRun(row.querySelector('.estimated-cost').value || "0.00")],
+                                                        alignment: AlignmentType.RIGHT
+                                                    })]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.fund-source').value || "N/A")]
+                                                }),
+                                                new TableCell({
+                                                    children: [new Paragraph(row.querySelector('.budget-notes').value || "N/A")]
+                                                })
+                                            ]
+                                        })
+                                    ),
+                                    // Total row
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun("Total")],
+                                                    bold: true
+                                                })]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph({
+                                                    children: [new TextRun(
+                                                        Array.from(document.querySelectorAll('#budget-table tbody tr'))
+                                                        .reduce((sum, row) => sum + (parseFloat(row.querySelector('.estimated-cost').value) || 0), 0)
+                                                        .toFixed(2)
+                                                    )],
+                                                    alignment: AlignmentType.RIGHT,
+                                                    bold: true
+                                                })]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph("")]
+                                            }),
+                                            new TableCell({
+                                                children: [new Paragraph("")]
+                                            })
+                                        ]
+                                    })
+                                ],
+                                width: { size: 100, type: WidthType.PERCENTAGE }
+                            }),
+                            
+                            // Approval
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "8. Approval",
+                                        bold: true,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `Approved By: ${document.getElementById('approval-name').value || 'N/A'}`,
+                                        break: 1
+                                    })
+                                ]
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `Title/Position: ${document.getElementById('approval-title').value || 'N/A'}`,
+                                        break: 1
+                                    })
+                                ]
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `Plan Date: ${document.getElementById('plan-date').value || 'N/A'}`,
+                                        break: 1
+                                    })
+                                ]
+                            }),
+                            
+                            // Signature lines
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Head Teacher Signature:",
+                                        break: 1
+                                    })
+                                ],
+                                spacing: { before: 200 }
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "________________________",
+                                        break: 1
+                                    })
+                                ]
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Approving Authority Signature:",
+                                        break: 1
+                                    })
+                                ],
+                                spacing: { before: 200 }
+                            }),
+                            
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "________________________",
+                                        break: 1
+                                    })
+                                ]
+                            })
+                        ]
+                    }]
+                });
+                
+                // Generate the Word file
+                Packer.toBlob(doc).then(blob => {
+                    saveAs(blob, "School_Development_Plan.docx");
+                    spinner.style.display = 'none';
+                    showToast('Word document exported successfully');
+                });
+            } catch (err) {
+                console.error('Error generating Word document:', err);
+                spinner.style.display = 'none';
+                showToast('Error generating Word document', 'error');
+            }
+        }
+        
+        function printPlan() {
+            const printContent = document.getElementById('print-content');
+            printContent.innerHTML = generatePlanHTML();
+            
+            // Add print-specific styles
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @page {
+                    size: A4;
+                    margin: 15mm;
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                }
+                h1, h2, h3, h4 {
+                    color: #2c3e50;
+                }
+                h2 {
+                    border-bottom: 2px solid #3498db;
+                    padding-bottom: 5px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 15px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                }
+                th {
+                    background-color: #3498db;
+                    color: white;
+                }
+                .page-break {
+                    page-break-after: always;
+                }
+            `;
+            printContent.appendChild(style);
+            
+            // Trigger print
+            window.print();
+            
+            // Clean up
+            setTimeout(() => {
+                printContent.innerHTML = '';
+            }, 1000);
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show';
+            
+            if (type === 'error') {
+                toast.style.backgroundColor = '#e74c3c';
+            } else {
+                toast.style.backgroundColor = '#27ae60';
+            }
+            
+            setTimeout(function() {
+                toast.className = toast.className.replace('show', '');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

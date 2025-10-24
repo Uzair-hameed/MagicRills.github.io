@@ -1,0 +1,1177 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/5994/5994406.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/5994/5994406.png" style="display: none;" width="200" /></a></div>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional School Circular Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <style>
+        :root {
+            --primary: #1a4f8e;
+            --secondary: #3a6ea5;
+            --accent: #ff6b00;
+            --light: #f0f7ff;
+            --dark: #2c3e50;
+            --success: #28a745;
+            --warning: #fd7e14;
+            --info: #17a2b8;
+            --light-gray: #e9ecef;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #e0f0ff 0%, #c9e6ff 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        
+        .tagline {
+            color: var(--secondary);
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-section, .preview-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stats-card h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .stats-card p {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .quick-templates {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .quick-templates h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .template-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .template-btn {
+            background: var(--light);
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .template-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+            outline: none;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .btn-info {
+            background: var(--info);
+        }
+        
+        .btn-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .image-upload-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-box {
+            flex: 1;
+            border: 2px dashed #ddd;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--light);
+        }
+        
+        .upload-box:hover {
+            border-color: var(--accent);
+            background: rgba(255, 107, 0, 0.05);
+        }
+        
+        .upload-box i {
+            font-size: 30px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        
+        .upload-box p {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .upload-box input {
+            display: none;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 100px;
+            margin-top: 10px;
+            display: none;
+            border-radius: 4px;
+        }
+        
+        .toolbar {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            border: 1px solid var(--light-gray);
+        }
+        
+        .toolbar button {
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toolbar button:hover {
+            background: #e9ecef;
+        }
+        
+        .editor {
+            min-height: 200px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            outline: none;
+        }
+        
+        .preview-container {
+            background: white;
+            padding: 40px;
+            border: 1px solid #eee;
+            margin-top: 20px;
+            position: relative;
+            min-height: 500px;
+            box-shadow: var(--box-shadow);
+            font-family: 'Times New Roman', serif;
+        }
+        
+        .circular-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .circular-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+        
+        .school-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+        
+        .school-contact {
+            font-size: 16px;
+            color: var(--dark);
+            margin-bottom: 15px;
+        }
+        
+        .circular-logo {
+            max-height: 100px;
+            margin-bottom: 15px;
+            max-width: 100%;
+        }
+        
+        .circular-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #6c757d;
+        }
+        
+        .circular-body {
+            margin-bottom: 30px;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+        
+        .circular-point {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .circular-point i {
+            margin-right: 10px;
+            color: var(--accent);
+            margin-top: 5px;
+        }
+        
+        .circular-footer {
+            text-align: right;
+            margin-top: 50px;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            width: 250px;
+            margin-left: auto;
+            margin-top: 40px;
+        }
+        
+        .signature-name {
+            font-weight: 700;
+            margin-top: 5px;
+            font-size: 18px;
+        }
+        
+        .signature-img {
+            max-height: 80px;
+            margin-top: 20px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .preview-container, .preview-container * {
+                visibility: visible;
+            }
+            .preview-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                border: none;
+            }
+            .btn-group {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bullhorn"></i> Professional Circular Generator</h1>
+            <p class="tagline">Create professional school circulars in minutes</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="sidebar">
+                <div class="stats-card">
+                    <h3>Circulars Generated</h3>
+                    <p id="circularCount">0</p>
+                </div>
+                
+                <div class="quick-templates">
+                    <h3>Quick Templates</h3>
+                    <div class="template-buttons">
+                        <div class="template-btn" data-template="ptm">PTM Notice</div>
+                        <div class="template-btn" data-template="holiday">Holiday Notice</div>
+                        <div class="template-btn" data-template="exam">Exam Schedule</div>
+                        <div class="template-btn" data-template="event">School Event</div>
+                        <div class="template-btn" data-template="fee">Fee Reminder</div>
+                        <div class="template-btn" data-template="custom">Custom</div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="schoolContact">School Contact</label>
+                        <input class="form-control" id="schoolContact" placeholder="e.g., Ph# 0546-599338" type="text" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="circularNumber">Circular Number</label>
+                        <input class="form-control" id="circularNumber" readonly type="text" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Dates</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label for="issueDate">Issue Date</label>
+                                <input class="form-control" id="issueDate" type="date" />
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="eventDate">Event Date</label>
+                                <input class="form-control" id="eventDate" type="date" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signatory">Signatory</label>
+                        <select class="form-control" id="signatory">
+                            <option value="Principal">Principal</option>
+                            <option value="Vice Principal">Vice Principal</option>
+                            <option value="Headmaster">Headmaster</option>
+                            <option value="Admin Officer">Admin Officer</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                        <div id="customSignatoryContainer" style="display: none; margin-top: 10px;">
+                            <input class="form-control" id="customSignatory" placeholder="Enter signatory name" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="schoolName">School Name</label>
+                    <input class="form-control" id="schoolName" placeholder="Enter school name" type="text" required />
+                </div>
+                
+                <div class="image-upload-container">
+                    <div class="upload-box" onclick="document.getElementById('logoUpload').click()">
+                        <i class="fas fa-school"></i>
+                        <p>Upload School Logo</p>
+                        <input accept="image/*" id="logoUpload" type="file" />
+                        <img id="logoPreview" class="preview-image" />
+                    </div>
+                    
+                    <div class="upload-box" onclick="document.getElementById('signatureUpload').click()">
+                        <i class="fas fa-signature"></i>
+                        <p>Upload Signature</p>
+                        <input accept="image/*" id="signatureUpload" type="file" />
+                        <img id="signaturePreview" class="preview-image" />
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="circularTitle">Circular Title</label>
+                    <input class="form-control" id="circularTitle" placeholder="e.g., PTM Circular" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Circular Content</label>
+                    <div class="toolbar">
+                        <button data-command="bold" title="Bold" type="button"><i class="fas fa-bold"></i></button>
+                        <button data-command="italic" title="Italic" type="button"><i class="fas fa-italic"></i></button>
+                        <button data-command="underline" title="Underline" type="button"><i class="fas fa-underline"></i></button>
+                        <button data-command="insertUnorderedList" title="Bullet List" type="button"><i class="fas fa-list-ul"></i></button>
+                        <button data-command="insertOrderedList" title="Numbered List" type="button"><i class="fas fa-list-ol"></i></button>
+                        <button data-command="justifyLeft" title="Align Left" type="button"><i class="fas fa-align-left"></i></button>
+                        <button data-command="justifyCenter" title="Center" type="button"><i class="fas fa-align-center"></i></button>
+                        <button data-command="justifyRight" title="Align Right" type="button"><i class="fas fa-align-right"></i></button>
+                    </div>
+                    <div class="editor" contenteditable="true" id="editor"></div>
+                </div>
+                
+                <div class="form-group">
+                    <button class="btn btn-primary" id="generateBtn"><i class="fas fa-sync-alt"></i> Generate Circular</button>
+                    <button class="btn btn-secondary" id="saveDraftBtn"><i class="fas fa-save"></i> Save Draft</button>
+                    <button class="btn btn-info" id="loadDraftBtn"><i class="fas fa-folder-open"></i> Load Draft</button>
+                </div>
+                
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <p>Generating circular...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2><i class="fas fa-eye"></i> Preview</h2>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="printBtn"><i class="fas fa-print"></i> Print Circular</button>
+                <button class="btn btn-success" id="docBtn"><i class="fas fa-file-word"></i> Download DOC</button>
+                <button class="btn btn-warning" id="pdfBtn"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <button class="btn btn-info" id="copyBtn"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <div class="circular-header">
+                    <img class="circular-logo" id="previewLogo" style="display: none;" />
+                    <div class="school-name" id="previewSchoolName">THE EDUCATORS ALI MUSA CAMPUS GOJRA</div>
+                    <div class="school-contact" id="previewSchoolContact">Ph# 0546-599338</div>
+                    <h2 class="circular-title" id="previewTitle">CIRCULAR</h2>
+                    <div class="circular-number" id="previewNumber"></div>
+                </div>
+                <div class="circular-meta">
+                    <div id="previewIssueDate">Date: 16-09-2020</div>
+                </div>
+                <div class="circular-body" id="previewBody">
+                    <div class="circular-point">
+                        <i class="fas fa-star"></i>
+                        <div>It is to be informed that PTM (Parent's Teacher Meeting) for <strong>Playgroup (P.G)</strong> to class <strong>Tenth (10th)</strong> will be held on Saturday, 19th September 2020.</div>
+                    </div>
+                    <div class="circular-point">
+                        <i class="fas fa-star"></i>
+                        <div>Parents are requested to come and collect their child's report and result.</div>
+                    </div>
+                    <div class="circular-point">
+                        <i class="fas fa-star"></i>
+                        <div>The meeting must be attended by both the parent.</div>
+                    </div>
+                    <div class="circular-point">
+                        <i class="fas fa-star"></i>
+                        <div>Parents are requested to follow SOP's during school hours.</div>
+                    </div>
+                    <div class="circular-point">
+                        <i class="fas fa-star"></i>
+                        <div>Timings for PTM 8:30 a.m. to 12:30 p.m. (Punctuality will be highly appreciated)</div>
+                    </div>
+                    <p style="margin-top: 20px;">For any query please contact school office.</p>
+                </div>
+                <div class="circular-footer">
+                    <p>Regards</p>
+                    <img class="signature-img" id="previewSignature" style="display: none;" />
+                    <div class="signature-line"></div>
+                    <div class="signature-name" id="previewSignatory">School Head</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const editor = document.getElementById('editor');
+            const toolbarButtons = document.querySelectorAll('.toolbar button');
+            const signatorySelect = document.getElementById('signatory');
+            const customSignatoryContainer = document.getElementById('customSignatoryContainer');
+            const customSignatory = document.getElementById('customSignatory');
+            const logoUpload = document.getElementById('logoUpload');
+            const signatureUpload = document.getElementById('signatureUpload');
+            const generateBtn = document.getElementById('generateBtn');
+            const printBtn = document.getElementById('printBtn');
+            const pdfBtn = document.getElementById('pdfBtn');
+            const docBtn = document.getElementById('docBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            const loadDraftBtn = document.getElementById('loadDraftBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const toast = document.getElementById('toast');
+            const previewContainer = document.getElementById('previewContainer');
+            const schoolNameInput = document.getElementById('schoolName');
+            const schoolContactInput = document.getElementById('schoolContact');
+            const logoPreview = document.getElementById('logoPreview');
+            const signaturePreview = document.getElementById('signaturePreview');
+            const circularCount = document.getElementById('circularCount');
+            const templateButtons = document.querySelectorAll('.template-btn');
+            
+            // State variables
+            let logoDataUrl = '';
+            let signatureDataUrl = '';
+            let circularsGenerated = 0;
+            
+            // Templates
+            const templates = {
+                ptm: `<div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>It is to be informed that PTM (Parent's Teacher Meeting) for <strong>Playgroup (P.G)</strong> to class <strong>Tenth (10th)</strong> will be held on [Date].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Parents are requested to come and collect their child's report and result.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>The meeting must be attended by both the parent.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Parents are requested to follow SOP's during school hours.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Timings for PTM [Time] (Punctuality will be highly appreciated)</div>
+                </div>
+                <p style="margin-top: 20px;">For any query please contact school office.</p>`,
+                
+                holiday: `<div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>This is to inform you that the school will remain closed from <strong>[Start Date]</strong> to <strong>[End Date]</strong> on account of [Occasion].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>All academic activities will resume normally from [Resume Date].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Students are advised to complete their holiday homework during this period.</div>
+                </div>
+                <p style="margin-top: 20px;">Wishing you a joyful holiday!</p>`,
+                
+                exam: `<div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>This is to inform you that the <strong>[Exam Name]</strong> will commence from [Start Date].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>The detailed date sheet is attached with this circular for your reference.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>All students are required to bring their admit cards to the examination hall.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Regular classes will remain suspended during examination days.</div>
+                </div>
+                <p style="margin-top: 20px;">We wish all students the very best for their exams!</p>`,
+                
+                event: `<div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>We are delighted to inform you that our school is organizing <strong>[Event Name]</strong> on [Date] at [Time].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>The event will include [Activities].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>All students are encouraged to participate actively in the event.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Parents are cordially invited to attend the event.</div>
+                </div>
+                <p style="margin-top: 20px;">For further details, please contact the school office.</p>`,
+                
+                fee: `<div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>This is to remind you that the fee for the month of [Month] is due on [Due Date].</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Please ensure timely payment to avoid late fee charges.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Fee can be paid through cash, bank transfer, or online payment methods.</div>
+                </div>
+                <div class="circular-point">
+                    <i class="fas fa-star"></i>
+                    <div>Please bring the fee receipt for verification after payment.</div>
+                </div>
+                <p style="margin-top: 20px;">For any fee-related queries, please contact the accounts office.</p>`
+            };
+            
+            // Initialize
+            init();
+            
+            function init() {
+                // Set initial values
+                document.getElementById('circularNumber').value = generateCircularNumber();
+                document.getElementById('issueDate').valueAsDate = new Date();
+                
+                // Load stats from localStorage
+                loadStats();
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+                // Initial preview update
+                updatePreview();
+            }
+            
+            function loadStats() {
+                const stats = JSON.parse(localStorage.getItem('circularStats')) || { count: 0 };
+                circularsGenerated = stats.count;
+                circularCount.textContent = circularsGenerated;
+            }
+            
+            function saveStats() {
+                const stats = {
+                    count: circularsGenerated
+                };
+                localStorage.setItem('circularStats', JSON.stringify(stats));
+                circularCount.textContent = circularsGenerated;
+            }
+            
+            function formatDate(date) {
+                if (!date) return '';
+                const d = new Date(date);
+                const day = d.getDate().toString().padStart(2, '0');
+                const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+            
+            function generateCircularNumber() {
+                const now = new Date();
+                const month = now.toLocaleString('default', { month: 'short' }).toUpperCase();
+                const year = now.getFullYear();
+                const randomNum = Math.floor(Math.random() * 900) + 100;
+                return `CIR/${month}/${year}/${randomNum}`;
+            }
+            
+            function updatePreview() {
+                const schoolName = schoolNameInput.value || 'THE EDUCATORS ALI MUSA CAMPUS GOJRA';
+                const schoolContact = schoolContactInput.value || 'Ph# 0546-599338';
+                const title = document.getElementById('circularTitle').value || 'CIRCULAR';
+                const issueDate = formatDate(document.getElementById('issueDate').value) || '16-09-2020';
+                
+                const signatory = signatorySelect.value === 'Custom' ? 
+                    customSignatory.value : 
+                    signatorySelect.value;
+                
+                // Update preview elements
+                document.getElementById('previewSchoolName').textContent = schoolName;
+                document.getElementById('previewSchoolContact').textContent = schoolContact;
+                document.getElementById('previewTitle').textContent = title;
+                document.getElementById('previewNumber').textContent = document.getElementById('circularNumber').value;
+                
+                document.getElementById('previewIssueDate').textContent = `Date: ${issueDate}`;
+                
+                document.getElementById('previewSignatory').textContent = signatory || 'School Head';
+                
+                // Update logo display
+                const previewLogo = document.getElementById('previewLogo');
+                if (logoDataUrl) {
+                    previewLogo.src = logoDataUrl;
+                    previewLogo.style.display = 'block';
+                } else {
+                    previewLogo.style.display = 'none';
+                }
+                
+                // Update signature display
+                const previewSignature = document.getElementById('previewSignature');
+                if (signatureDataUrl) {
+                    previewSignature.src = signatureDataUrl;
+                    previewSignature.style.display = 'block';
+                } else {
+                    previewSignature.style.display = 'none';
+                }
+            }
+            
+            function showToast(message, isError = false) {
+                toast.textContent = message;
+                toast.style.backgroundColor = isError ? '#dc3545' : '#28a745';
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
+            
+            function saveDraft() {
+                if (!schoolNameInput.value) {
+                    showToast('Please enter school name', true);
+                    return;
+                }
+                
+                const draft = {
+                    schoolName: schoolNameInput.value,
+                    schoolContact: schoolContactInput.value,
+                    title: document.getElementById('circularTitle').value,
+                    circularNumber: document.getElementById('circularNumber').value,
+                    issueDate: document.getElementById('issueDate').value,
+                    eventDate: document.getElementById('eventDate').value,
+                    content: editor.innerHTML,
+                    signatory: signatorySelect.value,
+                    customSignatory: customSignatory.value,
+                    logo: logoDataUrl,
+                    signature: signatureDataUrl
+                };
+                
+                localStorage.setItem('circularDraft', JSON.stringify(draft));
+                showToast('Draft saved successfully!');
+            }
+            
+            function loadDraft() {
+                const draft = localStorage.getItem('circularDraft');
+                if (!draft) {
+                    showToast('No draft found', true);
+                    return;
+                }
+                
+                try {
+                    const parsedDraft = JSON.parse(draft);
+                    
+                    // Restore form values
+                    schoolNameInput.value = parsedDraft.schoolName || '';
+                    schoolContactInput.value = parsedDraft.schoolContact || '';
+                    document.getElementById('circularTitle').value = parsedDraft.title || '';
+                    document.getElementById('circularNumber').value = parsedDraft.circularNumber || generateCircularNumber();
+                    document.getElementById('issueDate').value = parsedDraft.issueDate || '';
+                    document.getElementById('eventDate').value = parsedDraft.eventDate || '';
+                    
+                    editor.innerHTML = parsedDraft.content || '';
+                    signatorySelect.value = parsedDraft.signatory || 'Principal';
+                    customSignatory.value = parsedDraft.customSignatory || '';
+                    
+                    if (parsedDraft.signatory === 'Custom') {
+                        customSignatoryContainer.style.display = 'block';
+                    }
+                    
+                    // Restore media
+                    logoDataUrl = parsedDraft.logo || '';
+                    signatureDataUrl = parsedDraft.signature || '';
+                    
+                    // Update preview images
+                    if (logoDataUrl) {
+                        logoPreview.src = logoDataUrl;
+                        logoPreview.style.display = 'block';
+                    }
+                    if (signatureDataUrl) {
+                        signaturePreview.src = signatureDataUrl;
+                        signaturePreview.style.display = 'block';
+                    }
+                    
+                    // Update preview
+                    updatePreview();
+                    
+                    showToast('Draft loaded successfully!');
+                } catch (e) {
+                    showToast('Error loading draft', true);
+                }
+            }
+            
+            function downloadDOC() {
+                if (!schoolNameInput.value) {
+                    showToast('Please enter school name', true);
+                    return;
+                }
+                
+                loadingSpinner.style.display = 'block';
+                
+                // Create a simple HTML document for the circular
+                const circularContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>${document.getElementById('circularTitle').value || 'Circular'}</title>
+                        <style>
+                            body { font-family: 'Times New Roman', serif; line-height: 1.6; }
+                            .circular-header { text-align: center; margin-bottom: 30px; }
+                            .school-name { font-size: 20px; font-weight: bold; }
+                            .circular-title { font-size: 24px; font-weight: bold; text-transform: uppercase; margin: 10px 0; }
+                            .circular-body { margin: 20px 0; }
+                            .circular-footer { margin-top: 50px; text-align: right; }
+                            .signature-line { border-top: 1px solid #000; width: 250px; margin-left: auto; margin-top: 40px; }
+                            .signature-name { font-weight: bold; margin-top: 5px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="circular-header">
+                            <div class="school-name">${document.getElementById('previewSchoolName').textContent}</div>
+                            <div class="school-contact">${document.getElementById('previewSchoolContact').textContent}</div>
+                            <h2 class="circular-title">${document.getElementById('previewTitle').textContent}</h2>
+                            <div class="circular-number">${document.getElementById('previewNumber').textContent}</div>
+                        </div>
+                        <div class="circular-meta">
+                            <div>${document.getElementById('previewIssueDate').textContent}</div>
+                        </div>
+                        <div class="circular-body">
+                            ${document.getElementById('previewBody').innerHTML}
+                        </div>
+                        <div class="circular-footer">
+                            <p>Regards</p>
+                            <div class="signature-line"></div>
+                            <div class="signature-name">${document.getElementById('previewSignatory').textContent}</div>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                
+                // Create a Blob with the HTML content
+                const blob = new Blob([circularContent], { type: 'application/msword' });
+                
+                // Create a download link and trigger it
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${document.getElementById('circularTitle').value || 'circular'}.doc`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                loadingSpinner.style.display = 'none';
+                showToast('Word document downloaded!');
+            }
+            
+            function downloadPDF() {
+                if (!schoolNameInput.value) {
+                    showToast('Please enter school name', true);
+                    return;
+                }
+                
+                loadingSpinner.style.display = 'block';
+                
+                // Use html2canvas and jsPDF to generate PDF
+                html2canvas(previewContainer).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save(`${document.getElementById('circularTitle').value || 'circular'}.pdf`);
+                    
+                    loadingSpinner.style.display = 'none';
+                    showToast('PDF downloaded successfully!');
+                });
+            }
+            
+            function copyToClipboard() {
+                const range = document.createRange();
+                range.selectNode(previewContainer);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+                
+                showToast('Circular copied to clipboard!');
+            }
+            
+            function setupEventListeners() {
+                // Toolbar buttons
+                toolbarButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const command = button.getAttribute('data-command');
+                        document.execCommand(command, false, null);
+                        editor.focus();
+                    });
+                });
+                
+                // Signatory select
+                signatorySelect.addEventListener('change', () => {
+                    if (signatorySelect.value === 'Custom') {
+                        customSignatoryContainer.style.display = 'block';
+                    } else {
+                        customSignatoryContainer.style.display = 'none';
+                    }
+                    updatePreview();
+                });
+                
+                customSignatory.addEventListener('input', updatePreview);
+                
+                // Form inputs
+                const formInputs = [
+                    schoolNameInput,
+                    schoolContactInput,
+                    document.getElementById('circularTitle'),
+                    document.getElementById('issueDate'),
+                    document.getElementById('eventDate')
+                ];
+                
+                formInputs.forEach(input => {
+                    input.addEventListener('input', updatePreview);
+                });
+                
+                // Editor content
+                editor.addEventListener('input', () => {
+                    document.getElementById('previewBody').innerHTML = editor.innerHTML;
+                });
+                
+                // Image uploads
+                logoUpload.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            logoDataUrl = event.target.result;
+                            logoPreview.src = logoDataUrl;
+                            logoPreview.style.display = 'block';
+                            updatePreview();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                signatureUpload.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            signatureDataUrl = event.target.result;
+                            signaturePreview.src = signatureDataUrl;
+                            signaturePreview.style.display = 'block';
+                            updatePreview();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                // Buttons
+                generateBtn.addEventListener('click', () => {
+                    if (!schoolNameInput.value) {
+                        showToast('Please enter school name', true);
+                        return;
+                    }
+                    
+                    document.getElementById('circularNumber').value = generateCircularNumber();
+                    updatePreview();
+                    
+                    // Increment circular count
+                    circularsGenerated++;
+                    saveStats();
+                    
+                    showToast('Circular generated successfully!');
+                });
+                
+                printBtn.addEventListener('click', () => {
+                    window.print();
+                });
+                
+                pdfBtn.addEventListener('click', downloadPDF);
+                
+                docBtn.addEventListener('click', downloadDOC);
+                
+                copyBtn.addEventListener('click', copyToClipboard);
+                
+                saveDraftBtn.addEventListener('click', saveDraft);
+                
+                loadDraftBtn.addEventListener('click', loadDraft);
+                
+                // Template buttons
+                templateButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const template = button.getAttribute('data-template');
+                        if (template === 'custom') {
+                            editor.innerHTML = '';
+                        } else {
+                            editor.innerHTML = templates[template];
+                        }
+                        document.getElementById('previewBody').innerHTML = editor.innerHTML;
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
