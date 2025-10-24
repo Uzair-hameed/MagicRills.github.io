@@ -1,0 +1,858 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/4141/4141308.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/4141/4141308.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Event Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .currency-selector {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .currency-selector label {
+            margin-right: 10px;
+            font-weight: 600;
+        }
+
+        .currency-selector select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            background: white;
+            color: #333;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .input-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e1e8ff;
+        }
+
+        .input-section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .currency-input-group {
+            position: relative;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .currency-input {
+            padding-left: 35px !important;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results-section {
+            background: #fff5f5;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #fed7d7;
+        }
+
+        .results-section h2 {
+            color: #c53030;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 1.3em;
+            color: #2d3748;
+            font-weight: bold;
+        }
+
+        .export-section {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: transform 0.2s;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .roi-metrics {
+            background: #f0fff4;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #9ae6b4;
+            margin-top: 20px;
+        }
+
+        .roi-metrics h3 {
+            color: #22543d;
+            margin-bottom: 15px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .exchange-rate-info {
+            background: #e6f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #2c5282;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+        }
+
+        .category-section {
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #ffe082;
+        }
+
+        .category-title {
+            color: #e65100;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>School Event Calculator</h1>
+            <p>Calculate costs, ROI, and impact metrics in your local currency</p>
+            
+            <div class="currency-selector">
+                <label for="currencySelect">💰 Currency:</label>
+                <select id="currencySelect" onchange="updateCurrencyDisplay()">
+                    <option value="USD">🇺🇸 US Dollar (USD)</option>
+                    <option value="PKR">🇵🇰 Pakistani Rupee (PKR)</option>
+                    <option value="EUR">🇪🇺 Euro (EUR)</option>
+                    <option value="GBP">🇬🇧 British Pound (GBP)</option>
+                    <option value="INR">🇮🇳 Indian Rupee (INR)</option>
+                    <option value="CAD">🇨🇦 Canadian Dollar (CAD)</option>
+                    <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
+                    <option value="AED">🇦🇪 UAE Dirham (AED)</option>
+                    <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
+                    <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
+                    <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
+                    <option value="KRW">🇰🇷 South Korean Won (KRW)</option>
+                    <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
+                    <option value="MYR">🇲🇾 Malaysian Ringgit (MYR)</option>
+                    <option value="THB">🇹🇭 Thai Baht (THB)</option>
+                    <option value="PHP">🇵🇭 Philippine Peso (PHP)</option>
+                    <option value="IDR">🇮🇩 Indonesian Rupiah (IDR)</option>
+                    <option value="BRL">🇧🇷 Brazilian Real (BRL)</option>
+                    <option value="MXN">🇲🇽 Mexican Peso (MXN)</option>
+                    <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>📋 Event Details</h2>
+                
+                <div class="form-group">
+                    <label for="eventName">Event Name</label>
+                    <input type="text" id="eventName" placeholder="Enter event name">
+                </div>
+
+                <div class="category-section">
+                    <div class="category-title">👥 Student Information</div>
+                    <div class="form-group">
+                        <label for="studentCount">Number of Students</label>
+                        <input type="number" id="studentCount" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="studentHours">Average Hours per Student</label>
+                        <input type="number" id="studentHours" placeholder="0" min="0" step="0.5">
+                    </div>
+                </div>
+
+                <div class="category-section">
+                    <div class="category-title">👨‍🏫 Staff Information</div>
+                    <div class="form-group">
+                        <label for="staffCount">Number of Staff</label>
+                        <input type="number" id="staffCount" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="staffHours">Average Hours per Staff</label>
+                        <input type="number" id="staffHours" placeholder="0" min="0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="staffRate">Staff Hourly Rate</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="staffRateSymbol">$</span>
+                            <input type="number" id="staffRate" class="currency-input" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-section">
+                    <div class="category-title">💰 Resources & Materials</div>
+                    <div class="form-group">
+                        <label for="materialsCost">Materials Cost</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="materialsCostSymbol">$</span>
+                            <input type="number" id="materialsCost" class="currency-input" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="venueCost">Venue/Space Cost</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="venueCostSymbol">$</span>
+                            <input type="number" id="venueCost" class="currency-input" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="technologyCost">Technology/Equipment Cost</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="technologyCostSymbol">$</span>
+                            <input type="number" id="technologyCost" class="currency-input" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="foodCost">Food/Refreshments Cost</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="foodCostSymbol">$</span>
+                            <input type="number" id="foodCost" class="currency-input" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-section">
+                    <div class="category-title">📈 Expected Benefits</div>
+                    <div class="form-group">
+                        <label for="learningValue">Educational Value</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="learningValueSymbol">$</span>
+                            <input type="number" id="learningValue" class="currency-input" placeholder="Estimated educational impact" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="engagementValue">Student Engagement Value</label>
+                        <div class="currency-input-group">
+                            <span class="currency-symbol" id="engagementValueSymbol">$</span>
+                            <input type="number" id="engagementValue" class="currency-input" placeholder="Estimated engagement impact" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateImpact()">🧮 Calculate Impact</button>
+            </div>
+
+            <div class="results-section">
+                <h2>📊 Impact Results</h2>
+                
+                <div id="results" style="display: none;">
+                    <div class="exchange-rate-info" id="exchangeRateInfo"></div>
+                    
+                    <div class="result-item">
+                        <div class="result-label">Total Event Cost</div>
+                        <div class="result-value" id="totalCost">$0</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Staff Cost Breakdown</div>
+                        <div class="result-value" id="staffCost">$0</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Resource Cost Breakdown</div>
+                        <div class="result-value" id="resourceCost">$0</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Total Student Hours</div>
+                        <div class="result-value" id="totalStudentHours">0 hours</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Total Staff Hours</div>
+                        <div class="result-value" id="totalStaffHours">0 hours</div>
+                    </div>
+
+                    <div class="roi-metrics">
+                        <h3>🎯 ROI Metrics</h3>
+                        <div class="metric-item">
+                            <span>Total Investment:</span>
+                            <strong id="totalInvestment">$0</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Total Value Generated:</span>
+                            <strong id="totalValue">$0</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Net Impact:</span>
+                            <strong id="netImpact">$0</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>ROI Percentage:</span>
+                            <strong id="roiPercentage">0%</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Cost per Student:</span>
+                            <strong id="costPerStudent">$0</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Cost per Hour:</span>
+                            <strong id="costPerHour">$0</strong>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Efficiency Rating</div>
+                        <div class="result-value" id="efficiencyRating">Excellent</div>
+                    </div>
+                </div>
+
+                <div id="placeholder" style="text-align: center; padding: 50px; color: #718096;">
+                    <h3>🎯 Ready to Calculate?</h3>
+                    <p>Fill in the event details and click "Calculate Impact" to see your results!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <button class="export-btn" onclick="exportToWord()">📄 Export to Word</button>
+            <button class="export-btn" onclick="exportToPDF()">📑 Export to PDF</button>
+            <button class="export-btn" onclick="printResults()">🖨️ Print Results</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        // Currency data with symbols and exchange rates (as of September 2025)
+        // Base currency is USD, rates are relative to USD
+        const currencyData = {
+            USD: { symbol: '$', name: 'US Dollar', rate: 1.0 },
+            PKR: { symbol: '₨', name: 'Pakistani Rupee', rate: 278.50 },
+            EUR: { symbol: '€', name: 'Euro', rate: 0.85 },
+            GBP: { symbol: '£', name: 'British Pound', rate: 0.73 },
+            INR: { symbol: '₹', name: 'Indian Rupee', rate: 74.50 },
+            CAD: { symbol: 'C$', name: 'Canadian Dollar', rate: 1.25 },
+            AUD: { symbol: 'A$', name: 'Australian Dollar', rate: 1.35 },
+            AED: { symbol: 'د.إ', name: 'UAE Dirham', rate: 3.67 },
+            SAR: { symbol: '﷼', name: 'Saudi Riyal', rate: 3.75 },
+            CNY: { symbol: '¥', name: 'Chinese Yuan', rate: 6.45 },
+            JPY: { symbol: '¥', name: 'Japanese Yen', rate: 110.50 },
+            KRW: { symbol: '₩', name: 'South Korean Won', rate: 1180.00 },
+            SGD: { symbol: 'S$', name: 'Singapore Dollar', rate: 1.35 },
+            MYR: { symbol: 'RM', name: 'Malaysian Ringgit', rate: 4.15 },
+            THB: { symbol: '฿', name: 'Thai Baht', rate: 33.50 },
+            PHP: { symbol: '₱', name: 'Philippine Peso', rate: 50.50 },
+            IDR: { symbol: 'Rp', name: 'Indonesian Rupiah', rate: 14250.00 },
+            BRL: { symbol: 'R$', name: 'Brazilian Real', rate: 5.20 },
+            MXN: { symbol: '$', name: 'Mexican Peso', rate: 20.50 },
+            ZAR: { symbol: 'R', name: 'South African Rand', rate: 14.80 }
+        };
+
+        let currentCurrency = 'USD';
+
+        function updateCurrencyDisplay() {
+            currentCurrency = document.getElementById('currencySelect').value;
+            const currencyInfo = currencyData[currentCurrency];
+            
+            // Update all currency symbols
+            document.getElementById('staffRateSymbol').textContent = currencyInfo.symbol;
+            document.getElementById('materialsCostSymbol').textContent = currencyInfo.symbol;
+            document.getElementById('venueCostSymbol').textContent = currencyInfo.symbol;
+            document.getElementById('technologyCostSymbol').textContent = currencyInfo.symbol;
+            document.getElementById('foodCostSymbol').textContent = currencyInfo.symbol;
+            document.getElementById('learningValueSymbol').textContent = currencyInfo.symbol;
+            document.getElementById('engagementValueSymbol').textContent = currencyInfo.symbol;
+            
+            // Update exchange rate info if results are visible
+            if (window.calculationResults) {
+                const exchangeRateInfo = document.getElementById('exchangeRateInfo');
+                if (currentCurrency !== 'USD') {
+                    exchangeRateInfo.innerHTML = `💱 Exchange Rate: 1 USD = ${currencyInfo.rate} ${currencyInfo.symbol} (${currencyInfo.name})`;
+                    exchangeRateInfo.style.display = 'block';
+                } else {
+                    exchangeRateInfo.style.display = 'none';
+                }
+                // Recalculate with new currency
+                calculateImpact();
+            }
+        }
+
+        function convertCurrency(amount, fromCurrency, toCurrency) {
+            if (fromCurrency === toCurrency) return amount;
+            
+            // Convert to USD first, then to target currency
+            const usdAmount = amount / currencyData[fromCurrency].rate;
+            return usdAmount * currencyData[toCurrency].rate;
+        }
+
+        function formatCurrency(amount, currency) {
+            const currencyInfo = currencyData[currency];
+            
+            // Special formatting for certain currencies
+            if (currency === 'IDR' || currency === 'KRW') {
+                return `${currencyInfo.symbol}${amount.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            } else if (currency === 'JPY') {
+                return `${currencyInfo.symbol}${amount.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            } else {
+                return `${currencyInfo.symbol}${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+        }
+
+        function calculateImpact() {
+            // Get input values (stored in USD for consistency)
+            const eventName = document.getElementById('eventName').value || 'Unnamed Event';
+            const studentCount = parseFloat(document.getElementById('studentCount').value) || 0;
+            const studentHours = parseFloat(document.getElementById('studentHours').value) || 0;
+            const staffCount = parseFloat(document.getElementById('staffCount').value) || 0;
+            const staffHours = parseFloat(document.getElementById('staffHours').value) || 0;
+            
+            // Convert from current currency to USD for calculations
+            const staffRateUSD = parseFloat(document.getElementById('staffRate').value) || 0;
+            const staffRate = convertCurrency(staffRateUSD, currentCurrency, 'USD');
+            
+            const materialsCostUSD = parseFloat(document.getElementById('materialsCost').value) || 0;
+            const materialsCost = convertCurrency(materialsCostUSD, currentCurrency, 'USD');
+            
+            const venueCostUSD = parseFloat(document.getElementById('venueCost').value) || 0;
+            const venueCost = convertCurrency(venueCostUSD, currentCurrency, 'USD');
+            
+            const technologyCostUSD = parseFloat(document.getElementById('technologyCost').value) || 0;
+            const technologyCost = convertCurrency(technologyCostUSD, currentCurrency, 'USD');
+            
+            const foodCostUSD = parseFloat(document.getElementById('foodCost').value) || 0;
+            const foodCost = convertCurrency(foodCostUSD, currentCurrency, 'USD');
+            
+            const learningValueUSD = parseFloat(document.getElementById('learningValue').value) || 0;
+            const learningValue = convertCurrency(learningValueUSD, currentCurrency, 'USD');
+            
+            const engagementValueUSD = parseFloat(document.getElementById('engagementValue').value) || 0;
+            const engagementValue = convertCurrency(engagementValueUSD, currentCurrency, 'USD');
+
+            // Calculate costs in USD
+            const staffCost = staffCount * staffHours * staffRate;
+            const resourceCost = materialsCost + venueCost + technologyCost + foodCost;
+            const totalCost = staffCost + resourceCost;
+            const totalStudentHours = studentCount * studentHours;
+            const totalStaffHours = staffCount * staffHours;
+
+            // Calculate value and ROI
+            const totalValue = learningValue + engagementValue;
+            const netImpact = totalValue - totalCost;
+            const roiPercentage = totalCost > 0 ? ((netImpact / totalCost) * 100) : 0;
+            const costPerStudent = studentCount > 0 ? (totalCost / studentCount) : 0;
+            const totalHours = totalStudentHours + totalStaffHours;
+            const costPerHour = totalHours > 0 ? (totalCost / totalHours) : 0;
+
+            // Determine efficiency rating
+            let efficiencyRating = 'Poor';
+            if (roiPercentage >= 100) efficiencyRating = 'Excellent';
+            else if (roiPercentage >= 50) efficiencyRating = 'Good';
+            else if (roiPercentage >= 0) efficiencyRating = 'Fair';
+
+            // Convert results to current currency for display
+            const displayTotalCost = convertCurrency(totalCost, 'USD', currentCurrency);
+            const displayStaffCost = convertCurrency(staffCost, 'USD', currentCurrency);
+            const displayResourceCost = convertCurrency(resourceCost, 'USD', currentCurrency);
+            const displayTotalValue = convertCurrency(totalValue, 'USD', currentCurrency);
+            const displayNetImpact = convertCurrency(netImpact, 'USD', currentCurrency);
+            const displayCostPerStudent = convertCurrency(costPerStudent, 'USD', currentCurrency);
+            const displayCostPerHour = convertCurrency(costPerHour, 'USD', currentCurrency);
+            const displayTotalInvestment = convertCurrency(totalCost, 'USD', currentCurrency);
+
+            // Update results display
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('placeholder').style.display = 'none';
+
+            // Show exchange rate info
+            const exchangeRateInfo = document.getElementById('exchangeRateInfo');
+            if (currentCurrency !== 'USD') {
+                const currencyInfo = currencyData[currentCurrency];
+                exchangeRateInfo.innerHTML = `💱 Exchange Rate: 1 USD = ${currencyInfo.rate} ${currencyInfo.symbol} (${currencyInfo.name})`;
+                exchangeRateInfo.style.display = 'block';
+            } else {
+                exchangeRateInfo.style.display = 'none';
+            }
+
+            document.getElementById('totalCost').textContent = formatCurrency(displayTotalCost, currentCurrency);
+            document.getElementById('staffCost').textContent = formatCurrency(displayStaffCost, currentCurrency);
+            document.getElementById('resourceCost').textContent = formatCurrency(displayResourceCost, currentCurrency);
+            document.getElementById('totalStudentHours').textContent = `${totalStudentHours.toLocaleString()} hours`;
+            document.getElementById('totalStaffHours').textContent = `${totalStaffHours.toLocaleString()} hours`;
+            document.getElementById('totalInvestment').textContent = formatCurrency(displayTotalInvestment, currentCurrency);
+            document.getElementById('totalValue').textContent = formatCurrency(displayTotalValue, currentCurrency);
+            document.getElementById('netImpact').textContent = formatCurrency(displayNetImpact, currentCurrency);
+            document.getElementById('roiPercentage').textContent = `${roiPercentage.toFixed(1)}%`;
+            document.getElementById('costPerStudent').textContent = formatCurrency(displayCostPerStudent, currentCurrency);
+            document.getElementById('costPerHour').textContent = formatCurrency(displayCostPerHour, currentCurrency);
+            document.getElementById('efficiencyRating').textContent = efficiencyRating;
+
+            // Store results for export (in both currencies)
+            window.calculationResults = {
+                eventName,
+                studentCount,
+                studentHours,
+                staffCount,
+                staffHours,
+                staffRate,
+                materialsCost,
+                venueCost,
+                technologyCost,
+                foodCost,
+                learningValue,
+                engagementValue,
+                totalCost,
+                staffCost,
+                resourceCost,
+                totalStudentHours,
+                totalStaffHours,
+                totalValue,
+                netImpact,
+                roiPercentage,
+                costPerStudent,
+                costPerHour,
+                efficiencyRating,
+                calculationDate: new Date().toLocaleDateString(),
+                currency: currentCurrency,
+                displayCurrency: {
+                    totalCost: displayTotalCost,
+                    staffCost: displayStaffCost,
+                    resourceCost: displayResourceCost,
+                    totalValue: displayTotalValue,
+                    netImpact: displayNetImpact,
+                    costPerStudent: displayCostPerStudent,
+                    costPerHour: displayCostPerHour,
+                    totalInvestment: displayTotalInvestment
+                }
+            };
+        }
+
+        function exportToWord() {
+            if (!window.calculationResults) {
+                alert('Please calculate the impact first!');
+                return;
+            }
+
+            const results = window.calculationResults;
+            const currencyInfo = currencyData[results.currency];
+            
+            let htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Event Impact Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { background-color: #667eea; color: white; padding: 20px; text-align: center; }
+                        .section { margin: 20px 0; }
+                        .metric { margin: 10px 0; padding: 10px; background-color: #f5f5f5; }
+                        .highlight { background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; }
+                        .currency-info { background-color: #e6f3ff; padding: 10px; border-radius: 5px; margin: 10px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>School Event Impact Report</h1>
+                        <p>Event: ${results.eventName}</p>
+                        <p>Report Generated: ${results.calculationDate}</p>
+                        <p>Currency: ${currencyInfo.name} (${results.currency})</p>
+                    </div>
+                    
+                    ${results.currency !== 'USD' ? `
+                    <div class="currency-info">
+                        <strong>Exchange Rate:</strong> 1 USD = ${currencyInfo.rate} ${currencyInfo.symbol}
+                        <br><em>Note: All calculations are performed in USD and converted to ${currencyInfo.name} for display</em>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="section">
+                        <h2>Event Summary</h2>
+                        <div class="metric">Students Involved: ${results.studentCount.toLocaleString()}</div>
+                        <div class="metric">Staff Involved: ${results.staffCount.toLocaleString()}</div>
+                        <div class="metric">Total Student Hours: ${results.totalStudentHours.toLocaleString()}</div>
+                        <div class="metric">Total Staff Hours: ${results.totalStaffHours.toLocaleString()}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h2>Cost Analysis (${currencyInfo.name})</h2>
+                        <div class="metric">Total Event Cost: ${formatCurrency(results.displayCurrency.totalCost, results.currency)}</div>
+                        <div class="metric">Staff Cost: ${formatCurrency(results.displayCurrency.staffCost, results.currency)}</div>
+                        <div class="metric">Resource Cost: ${formatCurrency(results.displayCurrency.resourceCost, results.currency)}</div>
+                        <div class="metric">Cost per Student: ${formatCurrency(results.displayCurrency.costPerStudent, results.currency)}</div>
+                        <div class="metric">Cost per Hour: ${formatCurrency(results.displayCurrency.costPerHour, results.currency)}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h2>ROI Analysis (${currencyInfo.name})</h2>
+                        <div class="metric">Total Value Generated: ${formatCurrency(results.displayCurrency.totalValue, results.currency)}</div>
+                        <div class="metric">Net Impact: ${formatCurrency(results.displayCurrency.netImpact, results.currency)}</div>
+                        <div class="highlight">
+                            <strong>ROI Percentage: ${results.roiPercentage.toFixed(1)}%</strong><br>
+                            <strong>Efficiency Rating: ${results.efficiencyRating}</strong>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff', htmlContent], {
+                type: 'application/msword'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Event_Impact_Report_${results.eventName.replace(/\s+/g, '_')}_${results.currency}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportToPDF() {
+            if (!window.calculationResults) {
+                alert('Please calculate the impact first!');
+                return;
+            }
+
+            const element = document.getElementById('results');
+            const results = window.calculationResults;
+            const opt = {
+                margin: 10,
+                filename: `Event_Impact_Report_${results.eventName.replace(/\s+/g, '_')}_${results.currency}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function printResults() {
+            if (!window.calculationResults) {
+                alert('Please calculate the impact first!');
+                return;
+            }
+
+            const results = window.calculationResults;
+            const printContent = document.getElementById('results').innerHTML;
+            const currencyInfo = currencyData[results.currency];
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Event Impact Report - ${results.eventName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        .result-item { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+                        .result-label { font-weight: bold; color: #333; }
+                        .result-value { font-size: 1.2em; color: #667eea; }
+                        .roi-metrics { background: #f0f8ff; padding: 20px; border-radius: 10px; margin: 20px 0; }
+                        .metric-item { display: flex; justify-content: space-between; padding: 8px; background: white; margin: 5px 0; border-radius: 3px; }
+                        h1 { color: #667eea; text-align: center; }
+                        h2 { color: #4a5568; }
+                        .currency-info { background: #e6f3ff; padding: 10px; border-radius: 5px; margin: 10px 0; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🎓 School Event Impact Report</h1>
+                    <h2 style="text-align: center;">${results.eventName}</h2>
+                    <p style="text-align: center;">Generated on ${results.calculationDate}</p>
+                    <p style="text-align: center;"><strong>Currency: ${currencyInfo.name} (${results.currency})</strong></p>
+                    
+                    ${results.currency !== 'USD' ? `
+                    <div class="currency-info">
+                        Exchange Rate: 1 USD = ${currencyInfo.rate} ${currencyInfo.symbol}
+                    </div>
+                    ` : ''}
+                    
+                    ${printContent}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Add some sample data for testing
+        function loadSampleData() {
+            document.getElementById('eventName').value = 'Science Fair 2024';
+            document.getElementById('studentCount').value = '150';
+            document.getElementById('studentHours').value = '4';
+            document.getElementById('staffCount').value = '12';
+            document.getElementById('staffHours').value = '8';
+            document.getElementById('staffRate').value = currentCurrency === 'PKR' ? '3500' : '35';
+            document.getElementById('materialsCost').value = currentCurrency === 'PKR' ? '50000' : '500';
+            document.getElementById('venueCost').value = currentCurrency === 'PKR' ? '20000' : '200';
+            document.getElementById('technologyCost').value = currentCurrency === 'PKR' ? '30000' : '300';
+            document.getElementById('foodCost').value = currentCurrency === 'PKR' ? '40000' : '400';
+            document.getElementById('learningValue').value = currentCurrency === 'PKR' ? '500000' : '5000';
+            document.getElementById('engagementValue').value = currentCurrency === 'PKR' ? '200000' : '2000';
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                calculateImpact();
+            }
+        });
+
+        // Initialize currency display on page load
+        window.onload = function() {
+            updateCurrencyDisplay();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/6983/6983341.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/6983/6983341.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Time Story Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @font-face {
+            font-family: 'Jameel Noori Nastaleeq';
+            src: url('https://cdn.rawgit.com/AnwarQureshi/UrduFonts/9c66c25f/Jameel%20Noori%20Nastaleeq/JameelNooriNastaleeq.ttf') format('truetype');
+        }
+        
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent1: #fd79a8;
+            --accent2: #ffeaa7;
+            --accent3: #55efc4;
+            --dark: #2d3436;
+            --light: #f7f7f7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--primary), var(--accent1));
+            color: white;
+            text-align: center;
+            padding: 25px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        
+        select, button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--secondary);
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+        
+        .language-toggle {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .language-toggle button {
+            flex: 1;
+            border: none;
+            padding: 12px;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .language-toggle button.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .story-output {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            margin-top: 20px;
+            border: 2px dashed var(--secondary);
+            line-height: 1.6;
+        }
+        
+        .story-output.urdu {
+            font-family: 'Jameel Noori Nastaleeq', 'Segoe UI', Tahoma, sans-serif;
+            direction: rtl;
+            text-align: right;
+            font-size: 1.4rem;
+            line-height: 1.8;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(to right, var(--accent1), var(--accent3));
+            color: white;
+        }
+        
+        .btn-generate:hover {
+            background: linear-gradient(to right, #e668a7, #45d7b2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-pdf {
+            background: linear-gradient(to right, #ff7675, #fd79a8);
+            color: white;
+        }
+        
+        .btn-word {
+            background: linear-gradient(to right, #74b9ff, #0984e3);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Circle Time Story Generator</h1>
+            <p class="header-subtitle">Create engaging stories for children with just one click!</p>
+        </header>
+        
+        <div class="content">
+            <div class="form-group">
+                <label for="storyCategory">Select Story Area:</label>
+                <select id="storyCategory">
+                    <option value="islamic">Islamic Stories</option>
+                    <option value="moral">Urdu Moral Stories</option>
+                    <option value="motivational">Motivational Stories</option>
+                    <option value="social">Social Stories</option>
+                    <option value="inspirational">Inspirational Stories</option>
+                    <option value="helping">Helping Stories</option>
+                    <option value="sharing">Sharing & Caring Stories</option>
+                    <option value="school">School Stories</option>
+                    <option value="parent">Parent Stories</option>
+                </select>
+            </div>
+            
+            <div class="language-toggle">
+                <button id="englishBtn" class="active">English</button>
+                <button id="urduBtn">Urdu</button>
+            </div>
+            
+            <button id="generateBtn" class="btn btn-generate">
+                <span>Generate Story</span>
+            </button>
+            
+            <div class="story-output" id="storyOutput">
+                <p style="text-align: center; color: #888; margin-top: 120px;">
+                    Select a story category and click "Generate Story" to create a wonderful story!
+                </p>
+            </div>
+            
+            <div class="button-group">
+                <button id="exportPdf" class="btn btn-pdf">Export as PDF</button>
+                <button id="exportWord" class="btn btn-word">Export as Word</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Circle Time Story Generator &copy; 2023 | Created for Blogger Websites</p>
+    </footer>
+
+    <script>
+        // Story database
+        const stories = {
+            islamic: {
+                english: [
+                    "Prophet Muhammad (PBUH) taught us to be kind to all living things. Once, he saw a man taking baby birds from their nest. The mother bird was crying. The Prophet said, 'Who has hurt this bird by taking its children? Return them at once.' The man learned to be compassionate.",
+                    "A young boy named Ali always shared his food with others. One day, he had only one date left. He met a hungry old woman and gave her the date. The next day, his father brought home delicious food. Allah rewards generosity in wonderful ways.",
+                    "Bilal was an African slave who faced much hardship. But he never gave up faith. He became the first caller to prayer in Islam. His story teaches us that perseverance and faith can overcome any difficulty.",
+                    "A rich merchant once asked Prophet Muhammad (PBUH) for advice. The Prophet said, 'Always be truthful, even when it seems difficult.' The merchant followed this advice and his business flourished because people trusted him completely.",
+                    "Aisha (RA) was known for her love of learning. She would ask many questions to understand Islam better. She became one of the greatest scholars of Islam. Her story teaches us the importance of seeking knowledge.",
+                    "Once, a desert nomad urinated in the mosque. People rushed to scold him, but Prophet Muhammad (PBUH) stopped them. He gently explained the proper place for such acts. This teaches us the importance of gentle correction."
+                ],
+                urdu: [
+                    "پیارے نبی محمد صلی اللہ علیہ وسلم نے ہمیں ہر جاندار کے ساتھ مہربانی کرنا سکھایا۔ ایک بار، انہوں نے ایک آدمی کو بچے پرندوں کو ان کے گھونسلے سے نکالتے دیکھا۔ ماں پرندہ رو رہا تھا۔ نبی صلی اللہ علیہ وسلم نے فرمایا: 'کس نے اس پرندے کو اس کے بچے لے کر تکلیف دی؟ فوراً واپس کردو۔' اس آدمی نے رحم دل بننا سیکھا۔",
+                    "علی نام کا ایک نوجوان لڑکا ہمیشہ اپنا کھانا دوسروں کے ساتھ بانٹتا تھا۔ ایک دن، اس کے پاس صرف ایک کھجور باقی تھی۔ وہ ایک بھوکی بوڑھی عورت سے ملا اور اسے کھجور دے دی۔ اگلے دن، اس کے والد مزیدار کھانا لے کر آئے۔ اللہ سخاوت کو بہترین طریقے سے بدلتا ہے۔",
+                    "بلال ایک افریقی غلام تھے جنہیں بہت مشکل کا سامنا کرنا پڑا۔ لیکن انہوں نے کبھی ایمان نہیں چھوڑا۔ وہ اسلام میں اذان دینے والے پہلے مؤذن بنے۔ ان کی کہانی ہمیں سکھاتی ہے کہ استقامت اور ایمان کسی بھی مشکل پر قابو پا سکتے ہیں۔",
+                    "ایک امیر تاجر نے ایک بار پیغمبر محمد صلی اللہ علیہ وسلم سے نصیحت مانگی۔ نبی صلی اللہ علیہ وسلم نے فرمایا: 'ہمیشہ سچ بولو، چاہے وہ مشکل ہی کیوں نہ لگے۔' تاجر نے اس نصیحت پر عمل کیا اور اس کا کاروبار پھل پھول گیا کیونکہ لوگوں کو اس پر پورا بھروسہ تھا۔",
+                    "حضرت عائشہ رضی اللہ عنہا علم حاصل کرنے کے شوق کے لیے جانی جاتی تھیں۔ وہ اسلام کو بہتر طور پر سمجھنے کے لیے بہت سارے سوالات پوچھتی تھیں۔ وہ اسلام کے عظیم علماء میں سے ایک بن گئیں۔ ان کی کہانی ہمیں علم حاصل کرنے کی اہمیت سکھاتی ہے۔",
+                    "ایک بار، ایک صحرائی بدوی نے مسجد میں پیشاب کر دیا۔ لوگ اسے ڈانٹنے کے لیے دوڑے، لیکن پیغمبر محمد صلی اللہ علیہ وسلم نے انہیں روکا۔ انہوں نے نرمی سے ایسے اعمال کے لیے مناسب جگہ کی وضاحت کی۔ یہ ہمیں نرم اصلاح کی اہمیت سکھاتا ہے۔"
+                ]
+            },
+            moral: {
+                english: [
+                    "The greedy dog saw his reflection in the river while carrying a bone. Thinking it was another dog with a bigger bone, he barked to snatch it. His own bone fell into the river. Moral: Greed leads to loss.",
+                    "A thirsty crow found a pitcher with little water. He dropped pebbles in it to raise the water level and drank. Moral: Where there's a will, there's a way.",
+                    "The lion and mouse became friends. The mouse later saved the lion by gnawing through a net. Moral: Never underestimate anyone based on size.",
+                    "A boy cried 'wolf' too many times as a joke. When a real wolf came, no one believed him. Moral: Liars are not believed even when they tell the truth.",
+                    "The tortoise challenged the hare to a race. The hare was overconfident and took a nap. The slow but steady tortoise won. Moral: Slow and steady wins the race.",
+                    "Two friends met a bear. One climbed a tree, leaving the other. The clever one played dead and survived. Moral: A friend in need is a friend indeed."
+                ],
+                urdu: [
+                    "لالچی کتے نے دریا میں اپنی عکس دیکھی جب وہ ہڈی لے جا رہا تھا۔ یہ سوچ کر کہ یہ ایک اور کتا ہے جس کے پاس بڑی ہڈی ہے، اس نے اسے چھیننے کے لیے بھونکا۔ اس کی اپنی ہڈی دریا میں گر گئی۔ اخلاق: لالچ نقصان کی طرف لے جاتا ہے۔",
+                    "ایک پیاسی کوے نے پانی سے بھرا ایک گھڑا دیکھا۔ اس نے پانی کی سطح کو بلند کرنے کے لیے کنکریاں ڈالیں اور پانی پیا۔ اخلاق: جہاں چاہ وہاں راہ۔",
+                    "شیر اور چوہا دوست بن گئے۔ چوہے نے بعد میں ایک جال کو کاٹ کر شیر کو بچا لیا۔ اخلاق: کبھی بھی کسی کو اس کے سائز کی بنیاد پر کم مت سمجھو۔",
+                    "ایک لڑکے نے مذاق کے طور پر کئی بار 'بھیڑیا' کے لیے چلایا۔ جب ایک اصلی بھیڑیا آیا، تو کسی نے اس کی بات پر یقین نہیں کیا۔ اخلاق: جھوٹوں کی سچی بات پر بھی یقین نہیں کیا جاتا۔",
+                    "کچھوا نے خرگوش کو دوڑ کا مقابلہ کرنے کے لیے للکارا۔ خرگوش بہت پراعتماد تھا اور اس نے اونگھ لی۔ سست لیکن مستقل کچھوا جیت گیا۔ اخلاق: سست اور مستقل مقابلہ جیتتا ہے۔",
+                    "دو دوستوں کی ایک ریچھ سے ملاقات ہوئی۔ ایک درخت پر چڑھ گیا، دوسرے کو چھوڑ کر۔ ہوشیار آدمی نے مردہ ہونے کا ڈرامہ کیا اور بچ گیا۔ اخلاق: مشکل وقت میں ہی دوست کی پہچان ہوتی ہے۔"
+                ]
+            },
+            motivational: {
+                english: [
+                    "Thomas Edison failed thousands of times before inventing the light bulb. He said, 'I didn't fail. I found thousands of ways that won't work.' Never give up on your dreams.",
+                    "A small turtle decides to climb a mountain. Everyone laughs. It takes years, but eventually reaches the top. Moral: Determination makes anything possible.",
+                    "The bamboo tree shows no visible growth for five years while building roots. Then it grows 80 feet in weeks. Moral: Growth takes patience and strong foundations.",
+                    "A man saw a butterfly struggling to emerge from its cocoon. He helped by cutting it open. The butterfly couldn't fly. Struggle is necessary for strength.",
+                    "Viktor Frankl found meaning in suffering during Holocaust. He later wrote, 'When we cannot change a situation, we are challenged to change ourselves.'",
+                    "Helen Keller became deaf and blind at 19 months. With teacher Anne Sullivan, she learned to communicate and graduated from college. Nothing is impossible."
+                ],
+                urdu: [
+                    "تھامس ایڈیسن نے بلب ایجاد کرنے سے پہلے ہزاروں بار ناکام ہوئے۔ انہوں نے کہا، 'میں ناکام نہیں ہوا۔ میں نے ہزاروں طریقے دریافت کیے جو کام نہیں کرتے۔' اپنے خوابوں کو کبھی مت ترک کرو۔",
+                    "ایک چھوٹا کچھوا ایک پہاڑ پر چڑھنے کا فیصلہ کرتا ہے۔ سب ہنستے ہیں۔ اس میں سال لگتے ہیں، لیکن آخر کار وہ چوٹی تک پہنچ جاتا ہے۔ اخلاق: عزم کچھ بھی ممکن بنا دیتا ہے۔",
+                    "بانس کا درخت پانچ سال تک کوئی نظر آنے والی نشوونما نہیں دکھاتا جبکہ جڑیں بناتی ہے۔ پھر یہ ہفتوں میں 80 فٹ بڑھ جاتی ہے۔ اخلاق: ترقی کے لیے صبر اور مضبوط بنیاد درکار ہوتی ہے۔",
+                    "ایک آدمی نے ایک تتلی کو اس کے کوکون سے نکلنے کے لیے جدوجہد کرتے دیکھا۔ اس نے اسے کاٹ کر کھولنے میں مدد کی۔ تتلی اڑ نہیں سکی۔ جدوجہد طاقت کے لیے ضروری ہے۔",
+                    "وکٹر فرینکل نے ہولوکاسٹ کے دوران تکلیف میں معنی پایا۔ انہوں نے بعد میں لکھا، 'جب ہم کسی صورت حال کو تبدیل نہیں کر سکتے، تو ہمیں خود کو تبدیل کرنے کے لیے چیلنج کیا جاتا ہے۔'",
+                    "ہیلن کیلر 19 ماہ میں بہری اور نابینا ہو گئیں۔ استاد این سلیوان کے ساتھ، انہوں نے بات چیت کرنا سیکھا اور کالج سے فارغ التحصیل ہوئیں۔ کچھ بھی ناممکن نہیں ہے۔"
+                ]
+            },
+            social: {
+                english: [
+                    "Lina was new at school. She felt lonely until Sara invited her to join their group. They became best friends. Small acts of inclusion make big differences.",
+                    "An old man dropped his groceries. People rushed to help him pick them up. He thanked them with tears in his eyes. Community is about helping each other.",
+                    "In a diverse neighborhood, everyone brought food from their culture to share. They learned about each other's traditions and built understanding.",
+                    "A community garden brought neighbors together. They shared tools, seeds, and harvest. The garden grew more than vegetables—it grew friendships.",
+                    "Children organized a cleanup day at the local park. Adults joined them too. Together they made their community beautiful again.",
+                    "When Mr. Johnson got sick, neighbors took turns cooking meals for his family. In difficult times, community support matters most."
+                ],
+                urdu: [
+                    "لینا اسکول میں نئی تھی۔ وہ تنہا محسوس کر رہی تھی جب تک کہ سارہ نے اسے اپنے گروپ میں شامل ہونے کے لیے مدعو نہیں کیا۔ وہ بہترین دوست بن گئے۔ شامل کرنے کے چھوٹے چھوٹے اعمال بڑے فرق پیدا کرتے ہیں۔",
+                    "ایک بوڑھے آدمی کے سامان گر گئے۔ لوگ انہیں اٹھانے میں مدد کے لیے دوڑے۔ اس نے ان کا شکریہ ادا کیا اور اس کی آنکھوں میں آنسو تھے۔ کمیونٹی ایک دوسرre کی مدد کرنے کے بارے میں ہے۔",
+                    "ایک متنوع محلے میں، ہر کوئی اپنی ثقافت سے کھانا بانٹنے کے لیے لایا۔ انہوں نے ایک دوسرے کی روایات کے بارے میں سیکھا اور افہام و تفہیم پیدا کی۔",
+                    "ایک کمیونٹی گارڈن پڑوسیوں کو اکٹھا کرتا ہے۔ انہوں نے اوزار، بیج اور فصل بانٹی۔ باغ سبزیوں سے زیادہ اگایا - اس نے دوستیاں اگائیں۔",
+                    "بچوں نے مقامی پارک میں صفائی کے دن کا اہتمام کیا۔ بڑے بھی ان کے ساتھ شامل ہوئے۔ انہوں نے مل کر اپنی کمیونٹی کو دوبارہ خوبصورت بنا دیا۔",
+                    "جب مسٹر جانسن بیمار ہوئے، تو پڑوسیوں نے ان کے خاندان کے لیے کھانا پکانے کی باری لی۔ مشکل وقت میں، کمیونٹی کی حمایت سب سے زیادہ اہمیت رکھتی ہے۔"
+                ]
+            },
+            inspirational: {
+                english: [
+                    "Malala Yousafzai stood up for girls' education despite danger. She survived an attack and became the youngest Nobel Prize winner. Courage changes the world.",
+                    "Nick Vujicic was born without limbs. He learned to swim, type, and live independently. He now inspires millions with his message of hope.",
+                    "Bethany Hamilton lost her arm in a shark attack. One month later, she returned to surfing. She became a professional surfer. Persistence overcomes obstacles.",
+                    "Stephen Hawking continued his work on cosmology despite ALS. He revolutionized physics and inspired millions with his brilliant mind and determination.",
+                    "J.K. Rowling was a single mother on welfare. She wrote Harry Potter in cafes while her baby slept. The books became a global phenomenon. Believe in your dreams.",
+                    "Rosa Parks refused to give up her bus seat, sparking the civil rights movement. One person's courage can ignite change for millions."
+                ],
+                urdu: [
+                    "ملالا یوسفزئی نے خطرے کے باوجود لڑکیوں کی تعلیم کے لیے کھڑی ہوئیں۔ وہ ایک حملے سے بچ گئیں اور سب سے کم عمر نوبل انعام یافتہ بن گئیں۔ ہمت دنیا بدل دیتی ہے۔",
+                    "نک ووجیسیک بغیر اعضاء کے پیدا ہوئے تھے۔ انہوں نے تیرنا، ٹائپ کرنا، اور آزادانہ زندگی گزارنا سیکھا۔ اب وہ اپنے پیغام امید کے ساتھ لاکھوں لوگوں کو متاثر کرتے ہیں۔",
+                    "بتھانی ہیملٹن نے شارک کے حملے میں اپنا بازو کھو دیا۔ ایک مہینے بعد، وہ سرفنگ کرنے لوٹی۔ وہ ایک پیشہ ور سرفر بن گئی۔ persistence رکاوٹوں پر قابو پا لیتی ہے۔",
+                    "سٹیفن ہاکنگ نے ALS کے باوجود کونیات پر اپنا کام جاری رکھا۔ انہوں نے طبیعیات میں انقلاب برپا کیا اور اپنے شاندار دماغ اور عزم سے لاکھوں لوگوں کو متاثر کیا۔",
+                    "جے کے رولنگ welfare پر ایک اکلی ماں تھیں۔ انہوں نے ہیری پوٹر کیفے میں لکھی جب ان کا بچہ سوتا تھا۔ کتابیں ایک عالمی fenomen بن گئیں۔ اپنے خوابوں پر یقین کریں۔",
+                    "روزا پارکس نے اپنی bus سیٹ چھوڑنے سے انکار کر دیا، جس نے civil rights تحریک کو جنم دیا۔ ایک شخص کی ہمت لاکھوں کے لیے تبدیلی لا سکتی ہے۔"
+                ]
+            },
+            helping: {
+                english: [
+                    "A boy helped an old woman carry her heavy bags. She turned out to be his new teacher. Helping others often brings unexpected rewards.",
+                    "During a storm, families opened their homes to those affected. They shared what they had without expecting anything in return.",
+                    "A teenager volunteered at an animal shelter. He helped find homes for abandoned pets. Helping animals teaches compassion and responsibility.",
+                    "A doctor started a free clinic in a poor neighborhood. Other professionals volunteered their services too. Together they improved community health.",
+                    "Students tutored younger children after school. The children's grades improved, and the tutors learned patience and teaching skills.",
+                    "A restaurant owner started a program where customers could buy meals for those in need. The community responded generously, feeding hundreds."
+                ],
+                urdu: [
+                    "ایک لڑکے نے ایک بوڑھی عورت کے بھاری بیگ اٹھانے میں مدد کی۔ وہ اس کی نئی استاد نکلی۔ دوسروں کی مدد کرنا اکثر غیر متوقع rewards لاتی ہے۔",
+                    "طوفان کے دوران، خاندانوں نے متاثرہ لوگوں کے لیے اپنے گھر کھول دیے۔ انہوں نے وہ سب کچھ بانٹا جو ان کے پاس تھا بغیر کسی بدلے کی توقع کے۔",
+                    "ایک نوجوان نے ایک جانوروں کے پناہ گاہ میں رضاکارانہ خدمات انجام دیں۔ اس نے abandoned پالتو جانوروں کے لیے گھر تلاش کرنے میں مدد کی۔ جانوروں کی مدد کرنا compassion اور ذمہ داری سکھاتی ہے۔",
+                    "ایک ڈاکٹر نے ایک غریب محلے میں ایک مفت کلینک شروع کیا۔ دیگر پیشہ ور افراد نے بھی اپنی خدمات رضاکارانہ طور پر دیں۔ انہوں نے مل کر کمیونٹی کی صحت کو بہتر بنایا۔",
+                    "طالب علموں نے اسکول کے بعد چھوٹے بچوں کو tuition دی۔ بچوں کے گریڈز بہتر ہوئے، اور tutors نے صبر اور تدریسی مہارتیں سیکھیں۔",
+                    "ایک ریستوراں مالک نے ایک پروگرام شروع کیا جہاں گاہک ضرورت مندوں کے لیے کھانے خرید سکتے تھے۔ کمیونٹی نے فیاضی سے جواب دیا، سینکڑوں کو کھانا کھلایا۔"
+                ]
+            },
+            sharing: {
+                english: [
+                    "Two sisters had one orange. They argued until their mother suggested one peel it and the other take the pulp. Sharing benefits everyone.",
+                    "A child shared his lunch with a classmate who forgot hers. The next day, she brought cookies to share. Sharing creates cycles of generosity.",
+                    "In a village, everyone shared tools. No one needed to buy everything. The community thrived through sharing resources and helping each other.",
+                    "Children made a rule: anyone bringing toys to the park must share. Arguments decreased, and everyone had more fun with variety of toys.",
+                    "A family grew too much zucchini in their garden. They shared with neighbors who then shared their excess crops. Everyone enjoyed diverse produce.",
+                    "A book lover started a little free library in her front yard. People took books and left others. The neighborhood developed a culture of sharing."
+                ],
+                urdu: [
+                    "دو بہنوں کے پاس ایک سنترا تھا۔ وہ جھگڑتی رہیں جب تک کہ ان کی ماں نے تجویز نہیں دی کہ ایک اس کا چھلکا اتارے اور دوسری گود لے۔ sharing سب کو فائدہ پہنچاتی ہے۔",
+                    "ایک بچے نے اپنا دوپہر کا کھانا ایک ہم جماعت کے ساتھ بانٹا جس نے اپنا کھانا بھول گئی تھی۔ اگلے دن، وہ بانٹنے کے لیے کوکیز لائی۔ sharing فیاضی کے چکر پیدا کرتی ہے۔",
+                    "ایک گاؤں میں، سب نے اوزار بانٹے۔ کسی کو everything خریدنے کی ضرورت نہیں تھی۔ وسائل بانٹنے اور ایک دوسre کی مدد کرنے سے کمیونٹی ترقی کرتی ہے۔",
+                    "بچوں نے ایک rule بنائی: پارک میں کھلونے لانے والا anyone必須分享۔ arguments کم ہو گئے، اور variety کے کھلونوں سے سب کو زیادہ مزہ آیا۔",
+                    "ایک خاندان نے اپنے باغ میں بہت زیادہ zucchini اگائی۔ انہوں نے پڑوسیوں کے ساتھ بانٹی جنہوں نے پھر اپنی excess فصلیں بانٹیں۔ سب نے diverse produce کا لطف اٹھایا۔",
+                    "ایک book lover نے اپنے front yard میں ایک چھوٹی free لائبریری شروع کی۔ لوگ کتابیں لے جاتے اور دوسری چھوڑ جاتے۔ محلے میں sharing کی ثقافت فروغ پائی۔"
+                ]
+            },
+            school: {
+                english: [
+                    "On the first day of school, Emma was nervous. Her teacher gave her a warm welcome and introduced her to classmates. She soon felt at home.",
+                    "A group of students worked on a science project together. They combined their different skills and won first prize. Teamwork leads to success.",
+                    "A student struggled with math. His teacher stayed after school to help him. His grades improved, and he gained confidence in all subjects.",
+                    "The school started a recycling program. Students learned about environmental responsibility and reduced waste significantly.",
+                    "During a school play, a student forgot her lines. Others whispered prompts from backstage. The show went on successfully. Support matters.",
+                    "A new student from another country felt isolated. An ESL teacher helped him learn English while preserving pride in his native language."
+                ],
+                urdu: [
+                    "اسکول کے پہلے دن، ایما گھبرائی ہوئی تھی۔ اس کے استاد نے اس کا گرمجوشی سے خیرمقدم کیا اور اسے ہم جماعتوں سے متعارف کرایا۔ وہ جلد ہی گھر جیسا محسوس کرنے لگی۔",
+                    "طالب علموں کے ایک گروپ نے مل کر ایک سائنس پراجیکٹ پر کام کیا۔ انہوں نے اپنی مختلف مہارتوں کو یکجا کیا اور first prize جیتا۔ teamwork کامیابی کی طرف لے جاتی ہے۔",
+                    "ایک طالب علم کو ریاضی میں مشکل پیش آئی۔ اس کا استاد اسکول کے بعد اس کی مدد کے لیے رکا۔ اس کے گریڈز بہتر ہوئے، اور اسے تمام مضامین میں confidence حاصل ہوا۔",
+                    "اسکول نے ایک recycling پروگرام شروع کیا۔ طلباء نے environmental ذمہ داری کے بارے میں سیکھا اور waste کو نمایاں طور پر کم کیا۔",
+                    "اسکول کے ڈرامے کے دوران، ایک طالبہ اپنی لائنیں بھول گئی۔ دوسروں نے backstage سے prompts کہے۔ show کامیابی سے جاری رہا۔ support اہمیت رکھتی ہے۔",
+                    "دوسرے ملک سے ایک نیا طالب علم isolated محسوس کر رہا تھا۔ ایک ESL استاد نے اسے انگریزی سیکھنے میں مدد کی جبکہ اس کی mother tongue پر فخر برقرار رکھا۔"
+                ]
+            },
+            parent: {
+                english: [
+                    "A mother taught her child to cook traditional family recipes. They bonded over food, and cultural heritage was passed to the next generation.",
+                    "A father worked long hours but always made time to read bedtime stories. Those moments created lasting memories and a love for reading.",
+                    "When a child made a mistake, his parents didn't scold him. Instead, they discussed what he learned from it. Mistakes became learning opportunities.",
+                    "Parents supported their daughter's unusual career choice because they saw her passion. She became successful in her unique path.",
+                    "A single parent struggled financially but emphasized education. The children worked hard, earned scholarships, and built better lives.",
+                    "Grandparents moved in with the family. Children learned family history and values from their elders, creating intergenerational bonds."
+                ],
+                urdu: [
+                    "ایک ماں نے اپنے بچے کو خاندانی recipes پکانا سکھایا۔ وہ کھانے پر bonded، اور ثقافتی ورثہ اگلی نسل کو منتقل ہوا۔",
+                    "ایک باپ لمبے گھنٹے کام کرتا تھا لیکن ہمیشہ bedtime stories پڑھنے کے لیے وقت نکالتا۔ ان لمحات نے lasting memories اور reading کے لیے محبت پیدا کی۔",
+                    "جب ایک بچے سے غلطی ہوئی، تو اس کے parents نے اسے ڈانٹا نہیں۔ اس کے بجائے، انہوں نے discuss کیا کہ اس نے اس سے کیا سیکھا۔ غلطیاں learning opportunities بن گئیں۔",
+                    "والدین نے اپنی بیٹی کے غیر معمولی career choice کی حمایت کی کیونکہ انہوں نے اس کا passion دیکھا۔ وہ اپنے unique راستے میں کامیاب ہوئی۔",
+                    "ایک single parent مالی طور پر جدوجہد کرتی تھی لیکن تعلیم پر زور دیتی تھی۔ بچوں نے محنت کی، scholarships حاصل کیں، اور بہتر زندگیاں بنائیں۔",
+                    "نانا نانی خاندان کے ساتھ رہنے آئے۔ بچوں نے خاندانی تاریخ اور اقدار اپنے بزرگوں سے سیکھیں، intergenerational bonds پیدا کیں۔"
+                ]
+            }
+        };
+
+        // DOM elements
+        const storyCategory = document.getElementById('storyCategory');
+        const englishBtn = document.getElementById('englishBtn');
+        const urduBtn = document.getElementById('urduBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const storyOutput = document.getElementById('storyOutput');
+        const exportPdf = document.getElementById('exportPdf');
+        const exportWord = document.getElementById('exportWord');
+
+        let currentLanguage = 'english';
+
+        // Event listeners
+        englishBtn.addEventListener('click', () => {
+            setLanguage('english');
+        });
+
+        urduBtn.addEventListener('click', () => {
+            setLanguage('urdu');
+        });
+
+        generateBtn.addEventListener('click', generateStory);
+        exportPdf.addEventListener('click', exportToPdf);
+        exportWord.addEventListener('click', exportToWord);
+
+        // Set language function
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            if (lang === 'english') {
+                englishBtn.classList.add('active');
+                urduBtn.classList.remove('active');
+                storyOutput.classList.remove('urdu');
+            } else {
+                urduBtn.classList.add('active');
+                englishBtn.classList.remove('active');
+                storyOutput.classList.add('urdu');
+            }
+        }
+
+        // Generate story function
+        function generateStory() {
+            const category = storyCategory.value;
+            const categoryStories = stories[category][currentLanguage];
+            const randomIndex = Math.floor(Math.random() * categoryStories.length);
+            const story = categoryStories[randomIndex];
+            
+            storyOutput.innerHTML = `<p>${story}</p>`;
+        }
+
+        // Export to PDF function
+        function exportToPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const category = storyCategory.options[storyCategory.selectedIndex].text;
+            const storyText = storyOutput.innerText;
+            
+            doc.setFontSize(20);
+            doc.text(category, 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            const splitText = doc.splitTextToSize(storyText, 180);
+            doc.text(splitText, 105, 30, { align: 'center' });
+            
+            doc.save('story.pdf');
+        }
+
+        // Export to Word function
+        function exportToWord() {
+            const category = storyCategory.options[storyCategory.selectedIndex].text;
+            const storyText = storyOutput.innerText;
+            
+            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                xmlns:w='urn:schemas-microsoft-com:office:word' 
+                xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>${category}</title></head><body>`;
+            const footer = '</body></html>';
+            const sourceHTML = header + `<h1>${category}</h1><p>${storyText}</p>` + footer;
+            
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement('a');
+            
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'story.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+        }
+    </script>
+</body>
+</html>

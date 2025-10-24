@@ -1,0 +1,251 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/227/227882.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/227/227882.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"></meta>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+<title>Magicrills Math Bingo</title>
+<style>
+:root{--primary:#ff6b6b;--secondary:#4ecdc4;--accent:#ffe66d;--dark:#292f36;--light:#f7fff7}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:var(--light);color:var(--dark);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
+header{text-align:center;margin-bottom:20px;width:100%}
+h1{color:var(--primary);font-size:2.5rem;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,0.1)}
+.game-container{background:white;border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,0.1);padding:20px;width:100%;max-width:800px;margin-bottom:20px}
+.controls{display:flex;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap}
+.level-select,.stats{display:flex;align-items:center;gap:10px}
+select,button{padding:10px 15px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;transition:all 0.3s}
+select{background:var(--light);border:2px solid var(--secondary)}
+button{background:var(--primary);color:white}
+button:hover{transform:translateY(-2px);box-shadow:0 5px 10px rgba(0,0,0,0.2)}
+.stats span{font-weight:bold;font-size:1.1rem}
+.bingo-card{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.bingo-cell{aspect-ratio:1;background:var(--secondary);display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:1.5rem;font-weight:bold;color:white;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
+.bingo-cell:hover{transform:scale(1.05)}
+.bingo-cell.marked{background:var(--primary);transform:rotate(360deg)}
+.bingo-cell.free{background:var(--accent);color:var(--dark)}
+.bingo-cell.free:after{content:"FREE";position:absolute;font-size:0.6rem;bottom:5px}
+.problem-display{background:var(--dark);color:white;padding:15px;border-radius:8px;text-align:center;margin-bottom:20px;font-size:1.5rem;min-height:70px;display:flex;align-items:center;justify-content:center}
+.answer-input{width:100%;padding:15px;border-radius:8px;border:2px solid var(--secondary);font-size:1.2rem;text-align:center;margin-bottom:20px}
+.message{text-align:center;margin-bottom:20px;font-weight:bold;font-size:1.2rem;min-height:30px;color:var(--primary)}
+.bingo-animation{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.5s}
+.bingo-animation.show{opacity:1;pointer-events:all}
+.bingo-animation div{background:white;padding:30px;border-radius:15px;text-align:center;max-width:80%}
+.bingo-animation h2{color:var(--primary);font-size:3rem;margin-bottom:20px}
+@media(max-width:600px){h1{font-size:1.8rem}.bingo-cell{font-size:1rem}.problem-display{font-size:1.2rem}.controls{flex-direction:column;gap:10px}.level-select,.stats{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<header>
+<h1>Magicrills Math Bingo</h1>
+<p>Solve equations to mark numbers on your bingo card!</p>
+</header>
+<div class="game-container">
+<div class="controls">
+<div class="level-select">
+<select id="level">
+<option value="easy">Easy</option>
+<option value="average">Average</option>
+<option value="hard">Hard</option>
+<option value="professional">Professional</option>
+</select>
+<button id="new-game"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">New Game</a></button>
+</div>
+<div class="stats">
+<span>Score: <span id="score">0</span></span>
+<span>Bingos: <span id="bingos">0</span></span>
+</div>
+</div>
+<div class="problem-display" id="problem">Press "New Game" to start</div>
+<input class="answer-input" disabled="" id="answer" placeholder="Enter your answer..." type="number" />
+<div class="message" id="message"></div>
+<div class="bingo-card" id="bingo-card"></div>
+</div>
+<div class="bingo-animation" id="bingo-animation">
+<div>
+<h2>BINGO!</h2>
+<p>Congratulations! You solved a bingo!</p>
+<button id="continue">Continue Playing</button>
+</div>
+</div>
+<script>
+(function(){
+// Game variables
+let bingoCard=[],currentProblem={},score=0,bingos=0,markedCount=0;
+const levelSelect=document.getElementById('level'),newGameBtn=document.getElementById('new-game'),
+problemDisplay=document.getElementById('problem'),answerInput=document.getElementById('answer'),
+messageDisplay=document.getElementById('message'),bingoCardEl=document.getElementById('bingo-card'),
+scoreDisplay=document.getElementById('score'),bingosDisplay=document.getElementById('bingos'),
+bingoAnimation=document.getElementById('bingo-animation'),continueBtn=document.getElementById('continue');
+// Sounds
+const sounds={
+correct:new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...'), // Shortened for brevity
+wrong:new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...'),
+bingo:new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...')
+};
+// Initialize game
+function initGame(){
+score=0; markedCount=0;
+updateScore();
+generateBingoCard();
+generateProblem();
+answerInput.value='';
+answerInput.disabled=false;
+answerInput.focus();
+}
+// Generate bingo card
+function generateBingoCard(){
+bingoCardEl.innerHTML='';
+bingoCard=[];
+const size=5,numbers=[],usedNumbers=new Set();
+// Generate unique numbers based on level
+const level=levelSelect.value;
+let min=1,max=25;
+if(level==='average'){min=1;max=50}
+else if(level==='hard'){min=-20;max=50}
+else if(level==='professional'){min=-50;max=100}
+for(let i=0;i<size*size;i++){
+let num;
+do{num=Math.floor(Math.random()*(max-min+1))+min}while(usedNumbers.has(num))
+usedNumbers.add(num);
+numbers.push(num);
+}
+// Create card
+for(let i=0;i<size*size;i++){
+const cell=document.createElement('div');
+cell.className='bingo-cell'+(i===12?' free':'');
+cell.textContent=i===12?'':numbers[i];
+cell.dataset.index=i;
+cell.dataset.value=i===12?'FREE':numbers[i];
+cell.addEventListener('click',()=>{
+if(cell.classList.contains('marked')||i===12)return;
+if(confirm('Are you sure you want to mark this number without solving?')){
+markCell(cell,true);
+}
+});
+bingoCardEl.appendChild(cell);
+bingoCard.push({value:i===12?'FREE':numbers[i],marked:i===12});
+}
+}
+// Generate math problem
+function generateProblem(){
+const level=levelSelect.value;
+let a,b,operator,answer;
+if(level==='easy'){
+a=Math.floor(Math.random()*10)+1;
+b=Math.floor(Math.random()*10)+1;
+operator='+';
+answer=a+b;
+}else if(level==='average'){
+operator=Math.random()>0.5?'+':'-';
+a=Math.floor(Math.random()*25)+1;
+b=Math.floor(Math.random()*25)+1;
+answer=operator==='+'?a+b:a-b;
+}else if(level==='hard'){
+operator=['+','-','*'][Math.floor(Math.random()*3)];
+a=Math.floor(Math.random()*15)+1;
+b=Math.floor(Math.random()*15)+1;
+if(operator==='*'){a=Math.floor(Math.random()*10)+1;b=Math.floor(Math.random()*10)+1}
+answer=operator==='+'?a+b:operator==='-'?a-b:a*b;
+}else{ // professional
+operator=['+','-','*','/'][Math.floor(Math.random()*4)];
+if(operator==='/'){
+b=Math.floor(Math.random()*10)+1;
+a=b*(Math.floor(Math.random()*10)+1);
+answer=a/b;
+}else if(operator==='*'){
+a=Math.floor(Math.random()*15)-5;
+b=Math.floor(Math.random()*15)-5;
+answer=a*b;
+}else{
+a=Math.floor(Math.random()*50)-20;
+b=Math.floor(Math.random()*50)-20;
+answer=operator==='+'?a+b:a-b;
+}
+}
+currentProblem={a,operator,b,answer};
+problemDisplay.textContent=`${a} ${operator} ${b} = ?`;
+}
+// Check answer
+function checkAnswer(){
+const userAnswer=parseInt(answerInput.value);
+if(isNaN(userAnswer)){
+messageDisplay.textContent='Please enter a valid number!';
+return;
+}
+if(userAnswer===currentProblem.answer){
+sounds.correct.play();
+score+=10;
+updateScore();
+messageDisplay.textContent='Correct!';
+// Find and mark the answer on the card
+let found=false;
+document.querySelectorAll('.bingo-cell').forEach(cell=>{
+if(!cell.classList.contains('marked')&&!cell.classList.contains('free')&&parseInt(cell.dataset.value)===userAnswer){
+markCell(cell);
+found=true;
+}
+});
+if(!found)messageDisplay.textContent='Correct, but number not on card!';
+generateProblem();
+}else{
+sounds.wrong.play();
+score=Math.max(0,score-5);
+updateScore();
+messageDisplay.textContent='Incorrect, try again!';
+}
+answerInput.value='';
+answerInput.focus();
+}
+// Mark cell on bingo card
+function markCell(cell,noSound=false){
+if(!noSound)sounds.correct.play();
+cell.classList.add('marked');
+const index=parseInt(cell.dataset.index);
+bingoCard[index].marked=true;
+markedCount++;
+checkBingo();
+}
+// Check for bingo
+function checkBingo(){
+// Check rows
+for(let i=0;i<5;i++){
+if(bingoCard.slice(i*5,i*5+5).every(cell=>cell.marked))return handleBingo();
+}
+// Check columns
+for(let i=0;i<5;i++){
+if([bingoCard[i],bingoCard[i+5],bingoCard[i+10],bingoCard[i+15],bingoCard[i+20]].every(cell=>cell.marked))return handleBingo();
+}
+// Check diagonals
+if([bingoCard[0],bingoCard[6],bingoCard[12],bingoCard[18],bingoCard[24]].every(cell=>cell.marked))return handleBingo();
+if([bingoCard[4],bingoCard[8],bingoCard[12],bingoCard[16],bingoCard[20]].every(cell=>cell.marked))return handleBingo();
+}
+// Handle bingo
+function handleBingo(){
+sounds.bingo.play();
+bingos++;
+bingosDisplay.textContent=bingos;
+bingoAnimation.classList.add('show');
+answerInput.disabled=true;
+}
+// Update score display
+function updateScore(){
+scoreDisplay.textContent=score;
+}
+// Event listeners
+newGameBtn.addEventListener('click',initGame);
+continueBtn.addEventListener('click',()=>{
+bingoAnimation.classList.remove('show');
+answerInput.disabled=false;
+answerInput.focus();
+});
+answerInput.addEventListener('keypress',(e)=>{
+if(e.key==='Enter')checkAnswer();
+});
+// Initialize
+initGame();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/11365/11365056.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/11365/11365056.png"style='display:none'/></a></div>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Weekly Roster Generator</title>
+    <style>
+        :root {
+            --monday: #FF9AA2;
+            --tuesday: #FFB7B2;
+            --wednesday: #FFDAC1;
+            --thursday: #E2F0CB;
+            --friday: #B5EAD7;
+            --information: #C7CEEA;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4A6FA5;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        
+        h2 {
+            color: #6C6EA0;
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .grade-selector, .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        select, button {
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select {
+            min-width: 150px;
+        }
+        
+        select:focus {
+            border-color: #8EC5FC;
+            outline: none;
+        }
+        
+        button {
+            background: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);
+            border: none;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .schedule {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .day {
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .day-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed rgba(0,0,0,0.1);
+        }
+        
+        .duty {
+            margin-bottom: 15px;
+        }
+        
+        .duty label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .duty input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+        }
+        
+        .duty input:focus {
+            border-color: #8EC5FC;
+            outline: none;
+        }
+        
+        .monday {
+            background-color: var(--monday);
+        }
+        
+        .tuesday {
+            background-color: var(--tuesday);
+        }
+        
+        .wednesday {
+            background-color: var(--wednesday);
+        }
+        
+        .thursday {
+            background-color: var(--thursday);
+        }
+        
+        .friday {
+            background-color: var(--friday);
+        }
+        
+        .information {
+            background-color: var(--information);
+            grid-column: 1 / -1;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .information textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+            resize: vertical;
+        }
+        
+        .information textarea:focus {
+            border-color: #8EC5FC;
+            outline: none;
+        }
+        
+        @media (max-width: 768px) {
+            .schedule {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CLASSROOM</h1>
+            <h2>WEEKLY ROSTER GENERATOR</h2>
+        </header>
+        
+        <div class="controls">
+            <div class="grade-selector">
+                <label for="grade-select">Select Grade:</label>
+                <select id="grade-select">
+                    <option value="">-- Select Grade --</option>
+                    <option value="grade2">Grade 2</option>
+                    <option value="grade3">Grade 3</option>
+                    <option value="grade4">Grade 4</option>
+                    <option value="grade5">Grade 5</option>
+                    <option value="grade6">Grade 6</option>
+                    <option value="grade7">Grade 7</option>
+                    <option value="grade8">Grade 8</option>
+                    <option value="grade9">Grade 9</option>
+                    <option value="grade10">Grade 10</option>
+                </select>
+            </div>
+            
+            <div class="actions">
+                <button id="generate-btn">Generate Roster</button>
+                <button id="download-btn">Download as Word</button>
+            </div>
+        </div>
+        
+        <div class="schedule">
+            <div class="day monday">
+                <div class="day-header">Monday</div>
+                <div class="duty">
+                    <label for="monday-duty1">Duty 1:</label>
+                    <input type="text" id="monday-duty1" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="monday-duty2">Duty 2:</label>
+                    <input type="text" id="monday-duty2" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="monday-duty3">Duty 3:</label>
+                    <input type="text" id="monday-duty3" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="monday-duty4">Duty 4:</label>
+                    <input type="text" id="monday-duty4" placeholder="Enter student name">
+                </div>
+            </div>
+            
+            <div class="day tuesday">
+                <div class="day-header">Tuesday</div>
+                <div class="duty">
+                    <label for="tuesday-duty1">Duty 1:</label>
+                    <input type="text" id="tuesday-duty1" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="tuesday-duty2">Duty 2:</label>
+                    <input type="text" id="tuesday-duty2" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="tuesday-duty3">Duty 3:</label>
+                    <input type="text" id="tuesday-duty3" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="tuesday-duty4">Duty 4:</label>
+                    <input type="text" id="tuesday-duty4" placeholder="Enter student name">
+                </div>
+            </div>
+            
+            <div class="day wednesday">
+                <div class="day-header">Wednesday</div>
+                <div class="duty">
+                    <label for="wednesday-duty1">Duty 1:</label>
+                    <input type="text" id="wednesday-duty1" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="wednesday-duty2">Duty 2:</label>
+                    <input type="text" id="wednesday-duty2" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="wednesday-duty3">Duty 3:</label>
+                    <input type="text" id="wednesday-duty3" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="wednesday-duty4">Duty 4:</label>
+                    <input type="text" id="wednesday-duty4" placeholder="Enter student name">
+                </div>
+            </div>
+            
+            <div class="day thursday">
+                <div class="day-header">Thursday</div>
+                <div class="duty">
+                    <label for="thursday-duty1">Duty 1:</label>
+                    <input type="text" id="thursday-duty1" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="thursday-duty2">Duty 2:</label>
+                    <input type="text" id="thursday-duty2" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="thursday-duty3">Duty 3:</label>
+                    <input type="text" id="thursday-duty3" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="thursday-duty4">Duty 4:</label>
+                    <input type="text" id="thursday-duty4" placeholder="Enter student name">
+                </div>
+            </div>
+            
+            <div class="day friday">
+                <div class="day-header">Friday</div>
+                <div class="duty">
+                    <label for="friday-duty1">Duty 1:</label>
+                    <input type="text" id="friday-duty1" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="friday-duty2">Duty 2:</label>
+                    <input type="text" id="friday-duty2" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="friday-duty3">Duty 3:</label>
+                    <input type="text" id="friday-duty3" placeholder="Enter student name">
+                </div>
+                <div class="duty">
+                    <label for="friday-duty4">Duty 4:</label>
+                    <input type="text" id="friday-duty4" placeholder="Enter student name">
+                </div>
+            </div>
+            
+            <div class="information">
+                <div class="day-header">Information</div>
+                <textarea id="info-text" placeholder="Enter any additional information here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gradeSelect = document.getElementById('grade-select');
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            
+            // Generate Roster functionality
+            generateBtn.addEventListener('click', function() {
+                const grade = gradeSelect.value;
+                if (!grade) {
+                    alert('Please select a grade first!');
+                    return;
+                }
+                
+                // In a real application, you might fetch student data based on grade
+                alert(`Roster generated for ${grade.toUpperCase()}!`);
+            });
+            
+            // Download as Word functionality
+            downloadBtn.addEventListener('click', function() {
+                const grade = gradeSelect.value;
+                if (!grade) {
+                    alert('Please select a grade first!');
+                    return;
+                }
+                
+                // Collect all the data from the form
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+                let dutiesData = {};
+                
+                days.forEach(day => {
+                    dutiesData[day] = [];
+                    for (let i = 1; i <= 4; i++) {
+                        const dutyValue = document.getElementById(`${day}-duty${i}`).value;
+                        dutiesData[day].push(dutyValue || `Duty ${i} - TBD`);
+                    }
+                });
+                
+                const information = document.getElementById('info-text').value || 'No additional information.';
+                
+                // Create HTML content for the Word document
+                const htmlContent = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                          xmlns:w="urn:schemas-microsoft-com:office:word" 
+                          xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Classroom Weekly Roster</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            h1 { color: #4A6FA5; }
+                            h2 { color: #6C6EA0; }
+                            .day-section { margin-bottom: 20px; padding: 10px; border-radius: 5px; }
+                            .monday { background-color: #FF9AA2; }
+                            .tuesday { background-color: #FFB7B2; }
+                            .wednesday { background-color: #FFDAC1; }
+                            .thursday { background-color: #E2F0CB; }
+                            .friday { background-color: #B5EAD7; }
+                            .information { background-color: #C7CEEA; padding: 15px; margin-top: 20px; }
+                            table { width: 100%; border-collapse: collapse; }
+                            td { padding: 8px; border: 1px solid #ddd; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>CLASSROOM WEEKLY ROSTER</h1>
+                        <h2>${grade.toUpperCase()}</h2>
+                        
+                        <table>
+                            <tr>
+                                <th>Day</th>
+                                <th>Duty 1</th>
+                                <th>Duty 2</th>
+                                <th>Duty 3</th>
+                                <th>Duty 4</th>
+                            </tr>
+                            ${days.map(day => `
+                                <tr class="${day}">
+                                    <td><strong>${day.charAt(0).toUpperCase() + day.slice(1)}</strong></td>
+                                    ${dutiesData[day].map(duty => `<td>${duty}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </table>
+                        
+                        <div class="information">
+                            <h3>Additional Information:</h3>
+                            <p>${information}</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                
+                // Create a Blob and download link
+                const blob = new Blob([htmlContent], {type: 'application/msword'});
+                const link = document.createElement('a');
+                
+                link.href = URL.createObjectURL(blob);
+                link.download = `Classroom_Roster_${grade}.doc`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+</html>

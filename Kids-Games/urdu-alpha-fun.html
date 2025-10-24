@@ -1,0 +1,1521 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/16172/16172855.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/16172/16172855.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="ur">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>اردو الفا فن</title>
+    <style>
+        @font-face {
+            font-family: 'Jameel Noori Nastaleeq';
+            src: url('//fonts.googleapis.com/earlyaccess/notonastaliqurdu.css') format('woff2');
+            font-display: swap;
+        }
+        body {
+            font-family: 'Jameel Noori Nastaleeq', Tahoma, sans-serif;
+            background: #f9f4e8;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            direction: rtl;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        .header {
+            text-align: center;
+            margin: 10px 0;
+            color: #5e2c04;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 5px 0;
+        }
+        .header p {
+            font-size: 1.2rem;
+            margin: 5px 0;
+        }
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .letter-card {
+            width: 120px;
+            height: 150px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .letter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .letter {
+            font-size: 4rem;
+            color: #8b4513;
+            margin-bottom: 5px;
+        }
+        .word {
+            font-size: 1.2rem;
+            color: #5e2c04;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #8b4513;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Jameel Noori Nastaleeq';
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #5e2c04;
+        }
+        .btn.active {
+            background: #5e2c04;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .letter-display {
+            font-size: 8rem;
+            margin: 10px 0;
+        }
+        .example-word {
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        .example-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px auto;
+            display: block;
+        }
+        .audio-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin: 10px;
+        }
+        .coloring-area {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .brush-size {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .game-container {
+            display: none;
+            width: 100%;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            background: #fff;
+            position: relative;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .draggable {
+            position: absolute;
+            cursor: move;
+        }
+        .dropzone {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed #ccc;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px;
+        }
+        .memory-game {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .memory-card {
+            height: 100px;
+            background: #8b4513;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .memory-card.flipped {
+            background: #fff;
+            color: #333;
+        }
+        .tracing-area {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            background: #fff;
+        }
+        .progress-tracker {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .star {
+            font-size: 1.5rem;
+            color: #ccc;
+        }
+        .star.filled {
+            color: #ffd700;
+        }
+        .quiz-container {
+            text-align: center;
+        }
+        .quiz-question {
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .quiz-option {
+            background: #f0e6d2;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .quiz-option:hover {
+            background: #e0d0b0;
+        }
+        .quiz-feedback {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            min-height: 30px;
+        }
+        .quiz-score {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+        .bubble-game {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            background: #e0f7fa;
+            border-radius: 5px;
+        }
+        .bubble {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #ffeb3b;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .bubble:hover {
+            transform: scale(1.1);
+        }
+        .bubble-game-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin: 10px auto;
+            max-width: 300px;
+        }
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            background-size: 300px 300px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+        }
+        .puzzle-complete {
+            font-size: 1.5rem;
+            color: #4CAF50;
+            margin: 10px 0;
+            display: none;
+        }
+        .word-search-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        .word-search-cell {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background: #fff;
+        }
+        .word-search-cell.selected {
+            background: #ffeb3b;
+        }
+        .word-search-cell.found {
+            background: #a5d6a7;
+        }
+        .word-search-words {
+            margin: 10px 0;
+            text-align: center;
+        }
+        .word-search-word {
+            display: inline-block;
+            margin: 5px 10px;
+            font-size: 1.1rem;
+        }
+        .word-search-word.found {
+            text-decoration: line-through;
+            color: #888;
+        }
+        @media (max-width: 600px) {
+            .letter-card {
+                width: 80px;
+                height: 120px;
+            }
+            .letter {
+                font-size: 3rem;
+            }
+            .memory-game, .quiz-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .puzzle-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .puzzle-piece {
+                width: 80px;
+                height: 80px;
+                background-size: 240px 240px;
+            }
+            .word-search-container {
+                grid-template-columns: repeat(8, 1fr);
+            }
+            .word-search-cell {
+                width: 30px;
+                height: 30px;
+            }
+        }
+        @media (max-width: 400px) {
+            .letter-card {
+                width: 70px;
+                height: 100px;
+            }
+            .letter {
+                font-size: 2.5rem;
+            }
+            .memory-game, .quiz-options {
+                grid-template-columns: 1fr;
+            }
+            .puzzle-piece {
+                width: 70px;
+                height: 70px;
+                background-size: 210px 210px;
+            }
+            .word-search-container {
+                grid-template-columns: repeat(6, 1fr);
+            }
+            .word-search-cell {
+                width: 25px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>اردو الفا فن</h1>
+            <p>بچوں کے لیے اردو حروف سیکھنے کا تفریحی طریقہ</p>
+        </div>
+        <div class="controls">
+            <button class="btn active" id="lettersBtn">حروف دیکھیں</button>
+            <button class="btn" id="coloringBtn">رنگ بھریں</button>
+            <button class="btn" id="dragDropBtn">میل کھیلیں</button>
+            <button class="btn" id="memoryBtn">یادداشت کھیل</button>
+            <button class="btn" id="tracingBtn">حروف لکھیں</button>
+            <button class="btn" id="quizBtn">کوئز کھیلیں</button>
+            <button class="btn" id="bubbleBtn">بلبلے پھوڑیں</button>
+            <button class="btn" id="puzzleBtn">پہیلی حل کریں</button>
+            <button class="btn" id="wordSearchBtn">لفظ ڈھونڈیں</button>
+        </div>
+        <div class="game-area" id="lettersArea"></div>
+        
+        <div class="game-container" id="coloringArea">
+            <canvas class="coloring-area" id="coloringCanvas"></canvas>
+            <div class="color-picker">
+                <div class="color-option" data-color="#ff0000" style="background: #ff0000;"></div>
+                <div class="color-option" data-color="#00ff00" style="background: #00ff00;"></div>
+                <div class="color-option" data-color="#0000ff" style="background: #0000ff;"></div>
+                <div class="color-option" data-color="#ffff00" style="background: #ffff00;"></div>
+                <div class="color-option" data-color="#ff00ff" style="background: #ff00ff;"></div>
+                <div class="color-option" data-color="#00ffff" style="background: #00ffff;"></div>
+                <div class="color-option" data-color="#000000" style="background: #000000;"></div>
+            </div>
+            <div class="brush-size">
+                <button class="btn" data-size="2">پتلا</button>
+                <button class="btn" data-size="5">درمیانہ</button>
+                <button class="btn" data-size="10">موٹا</button>
+            </div>
+            <button class="btn" id="clearColoring">صاف کریں</button>
+        </div>
+        
+        <div class="game-container" id="dragDropArea">
+            <div id="dropzones" style="display: flex; flex-wrap: wrap; justify-content: center; padding: 10px;"></div>
+        </div>
+        
+        <div class="game-container" id="memoryArea">
+            <div class="memory-game" id="memoryGame"></div>
+            <button class="btn" id="restartMemory"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">دوبارہ کھیلیں</a></button>
+        </div>
+        
+        <div class="game-container" id="tracingArea">
+            <canvas class="tracing-area" id="tracingCanvas"></canvas>
+            <button class="btn" id="clearTracing">صاف کریں</button>
+        </div>
+        
+        <div class="game-container" id="quizArea">
+            <div class="quiz-container">
+                <div class="quiz-question" id="quizQuestion"></div>
+                <div class="quiz-options" id="quizOptions"></div>
+                <div class="quiz-feedback" id="quizFeedback"></div>
+                <div class="quiz-score" id="quizScore">سکور: 0</div>
+                <button class="btn" id="nextQuiz">اگلا سوال</button>
+            </div>
+        </div>
+        
+        <div class="game-container" id="bubbleArea">
+            <div class="bubble-game-info">
+                <div>وقت: <span id="bubbleTime">60</span>s</div>
+                <div>سکور: <span id="bubbleScore">0</span></div>
+            </div>
+            <div class="bubble-game" id="bubbleGame"></div>
+            <button class="btn" id="startBubble">شروع کریں</button>
+        </div>
+        
+        <div class="game-container" id="puzzleArea">
+            <div style="text-align: center;">
+                <img alt="مثال" id="puzzleImage" src="" style="display: block; margin: 0 auto; max-width: 200px;" />
+            </div>
+            <div class="puzzle-container" id="puzzleContainer"></div>
+            <div class="puzzle-complete" id="puzzleComplete">مبارک ہو! آپ نے پہیلی حل کر لی!</div>
+            <button class="btn" id="shufflePuzzle">دوبارہ ترتیب دیں</button>
+        </div>
+        
+        <div class="game-container" id="wordSearchArea">
+            <div class="word-search-words" id="wordSearchWords"></div>
+            <div class="word-search-container" id="wordSearchContainer"></div>
+            <button class="btn" id="newWordSearch">نیا کھیل</button>
+        </div>
+        
+        <div class="progress-tracker" id="progressTracker"></div>
+    </div>
+    
+    <div class="modal" id="letterModal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <div class="letter-display" id="modalLetter"></div>
+            <div class="example-word" id="modalWord"></div>
+            <img alt="مثال" class="example-image" id="modalImage" src="" />
+            <button class="audio-btn" id="letterAudio">🔊</button>
+            <button class="audio-btn" id="wordAudio">🔊 لفظ سنیں</button>
+        </div>
+    </div>
+
+    <script>
+        // Urdu letters data
+        const urduLetters = [
+            {letter:"ا", word:"انار", audioLetter:"https://www.soundjay.com/buttons/sounds/button-09.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-10.mp3", image:"https://via.placeholder.com/200x200?text=انار"},
+            {letter:"ب", word:"بلی", audioLetter:"https://www.soundjay.com/buttons/sounds/button-11.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-21.mp3", image:"https://via.placeholder.com/200x200?text=بلی"},
+            {letter:"پ", word:"پنکھا", audioLetter:"https://www.soundjay.com/buttons/sounds/button-16.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-22.mp3", image:"https://via.placeholder.com/200x200?text=پنکھا"},
+            {letter:"ت", word:"تارا", audioLetter:"https://www.soundjay.com/buttons/sounds/button-17.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-23.mp3", image:"https://via.placeholder.com/200x200?text=تارا"},
+            {letter:"ٹ", word:"ٹماٹر", audioLetter:"https://www.soundjay.com/buttons/sounds/button-18.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-24.mp3", image:"https://via.placeholder.com/200x200?text=ٹماٹر"},
+            {letter:"ث", word:"ثابت", audioLetter:"https://www.soundjay.com/buttons/sounds/button-19.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-25.mp3", image:"https://via.placeholder.com/200x200?text=ثابت"},
+            {letter:"ج", word:"جہاز", audioLetter:"https://www.soundjay.com/buttons/sounds/button-20.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-26.mp3", image:"https://via.placeholder.com/200x200?text=جہاز"},
+            {letter:"چ", word:"چمچ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-21.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-27.mp3", image:"https://via.placeholder.com/200x200?text=چمچ"},
+            {letter:"ح", word:"حجام", audioLetter:"https://www.soundjay.com/buttons/sounds/button-22.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-28.mp3", image:"https://via.placeholder.com/200x200?text=حجام"},
+            {letter:"خ", word:"خربوزہ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-23.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-29.mp3", image:"https://via.placeholder.com/200x200?text=خربوزہ"},
+            {letter:"د", word:"دروازہ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-24.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-30.mp3", image:"https://via.placeholder.com/200x200?text=دروازہ"},
+            {letter:"ڈ", word:"ڈول", audioLetter:"https://www.soundjay.com/buttons/sounds/button-25.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-31.mp3", image:"https://via.placeholder.com/200x200?text=ڈول"},
+            {letter:"ذ", word:"ذلیل", audioLetter:"https://www.soundjay.com/buttons/sounds/button-26.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-32.mp3", image:"https://via.placeholder.com/200x200?text=ذلیل"},
+            {letter:"ر", word:"راستہ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-27.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-33.mp3", image:"https://via.placeholder.com/200x200?text=راستہ"},
+            {letter:"ڑ", word:"ڑکاب", audioLetter:"https://www.soundjay.com/buttons/sounds/button-28.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-34.mp3", image:"https://via.placeholder.com/200x200?text=ڑکاب"},
+            {letter:"ز", word:"زمین", audioLetter:"https://www.soundjay.com/buttons/sounds/button-29.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-35.mp3", image:"https://via.placeholder.com/200x200?text=زمین"},
+            {letter:"ژ", word:"ژالہ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-30.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-36.mp3", image:"https://via.placeholder.com/200x200?text=ژالہ"},
+            {letter:"س", word:"سورج", audioLetter:"https://www.soundjay.com/buttons/sounds/button-31.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-37.mp3", image:"https://via.placeholder.com/200x200?text=سورج"},
+            {letter:"ش", word:"شہد", audioLetter:"https://www.soundjay.com/buttons/sounds/button-32.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-38.mp3", image:"https://via.placeholder.com/200x200?text=شہد"},
+            {letter:"ص", word:"صندوق", audioLetter:"https://www.soundjay.com/buttons/sounds/button-33.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-39.mp3", image:"https://via.placeholder.com/200x200?text=صندوق"},
+            {letter:"ض", word:"ضائع", audioLetter:"https://www.soundjay.com/buttons/sounds/button-34.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-40.mp3", image:"https://via.placeholder.com/200x200?text=ضائع"},
+            {letter:"ط", word:"طوطا", audioLetter:"https://www.soundjay.com/buttons/sounds/button-35.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-41.mp3", image:"https://via.placeholder.com/200x200?text=طوطا"},
+            {letter:"ظ", word:"ظالم", audioLetter:"https://www.soundjay.com/buttons/sounds/button-36.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-42.mp3", image:"https://via.placeholder.com/200x200?text=ظالم"},
+            {letter:"ع", word:"عینک", audioLetter:"https://www.soundjay.com/buttons/sounds/button-37.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-43.mp3", image:"https://via.placeholder.com/200x200?text=عینک"},
+            {letter:"غ", word:"غبارہ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-38.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-44.mp3", image:"https://via.placeholder.com/200x200?text=غبارہ"},
+            {letter:"ف", word:"فانوس", audioLetter:"https://www.soundjay.com/buttons/sounds/button-39.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-45.mp3", image:"https://via.placeholder.com/200x200?text=فانوس"},
+            {letter:"ق", word:"قلم", audioLetter:"https://www.soundjay.com/buttons/sounds/button-40.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-46.mp3", image:"https://via.placeholder.com/200x200?text=قلم"},
+            {letter:"ک", word:"کتاب", audioLetter:"https://www.soundjay.com/buttons/sounds/button-41.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-47.mp3", image:"https://via.placeholder.com/200x200?text=کتاب"},
+            {letter:"گ", word:"گلاب", audioLetter:"https://www.soundjay.com/buttons/sounds/button-42.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-48.mp3", image:"https://via.placeholder.com/200x200?text=گلاب"},
+            {letter:"ل", word:"لمبا", audioLetter:"https://www.soundjay.com/buttons/sounds/button-43.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-49.mp3", image:"https://via.placeholder.com/200x200?text=لمبا"},
+            {letter:"م", word:"مچھلی", audioLetter:"https://www.soundjay.com/buttons/sounds/button-44.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-50.mp3", image:"https://via.placeholder.com/200x200?text=مچھلی"},
+            {letter:"ن", word:"ناریل", audioLetter:"https://www.soundjay.com/buttons/sounds/button-45.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-51.mp3", image:"https://via.placeholder.com/200x200?text=ناریل"},
+            {letter:"و", word:"واٹر", audioLetter:"https://www.soundjay.com/buttons/sounds/button-46.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-52.mp3", image:"https://via.placeholder.com/200x200?text=واٹر"},
+            {letter:"ہ", word:"ہاتھی", audioLetter:"https://www.soundjay.com/buttons/sounds/button-47.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-53.mp3", image:"https://via.placeholder.com/200x200?text=ہاتھی"},
+            {letter:"ء", word:"آب", audioLetter:"https://www.soundjay.com/buttons/sounds/button-48.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-54.mp3", image:"https://via.placeholder.com/200x200?text=آب"},
+            {letter:"ی", word:"یخ", audioLetter:"https://www.soundjay.com/buttons/sounds/button-49.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-55.mp3", image:"https://via.placeholder.com/200x200?text=یخ"},
+            {letter:"ے", word:"ے", audioLetter:"https://www.soundjay.com/buttons/sounds/button-50.mp3", audioWord:"https://www.soundjay.com/buttons/sounds/button-56.mp3", image:"https://via.placeholder.com/200x200?text=ے"}
+        ];
+
+        // Game state variables
+        let currentLetter = null;
+        
+        // DOM elements
+        const lettersArea = document.getElementById('lettersArea');
+        const letterModal = document.getElementById('letterModal');
+        const modalLetter = document.getElementById('modalLetter');
+        const modalWord = document.getElementById('modalWord');
+        const modalImage = document.getElementById('modalImage');
+        const letterAudio = document.getElementById('letterAudio');
+        const wordAudio = document.getElementById('wordAudio');
+        const closeBtn = document.querySelector('.close-btn');
+        
+        // Game containers
+        const coloringArea = document.getElementById('coloringArea');
+        const dragDropArea = document.getElementById('dragDropArea');
+        const memoryArea = document.getElementById('memoryArea');
+        const tracingArea = document.getElementById('tracingArea');
+        const quizArea = document.getElementById('quizArea');
+        const bubbleArea = document.getElementById('bubbleArea');
+        const puzzleArea = document.getElementById('puzzleArea');
+        const wordSearchArea = document.getElementById('wordSearchArea');
+        
+        // Progress tracker
+        const progressTracker = document.getElementById('progressTracker');
+
+        // Initialize letter cards
+        function initLetters() {
+            lettersArea.innerHTML = '';
+            urduLetters.forEach((letterData, index) => {
+                const card = document.createElement('div');
+                card.className = 'letter-card';
+                card.innerHTML = `
+                    <div class="letter">${letterData.letter}</div>
+                    <div class="word">${letterData.word}</div>
+                `;
+                card.addEventListener('click', () => openLetterModal(index));
+                lettersArea.appendChild(card);
+            });
+        }
+
+        // Open letter modal
+        function openLetterModal(index) {
+            currentLetter = urduLetters[index];
+            modalLetter.textContent = currentLetter.letter;
+            modalWord.textContent = currentLetter.word;
+            modalImage.src = currentLetter.image;
+            letterModal.style.display = 'flex';
+            updateProgress(currentLetter.letter, 'viewed');
+        }
+
+        // Close modal
+        function closeModal() {
+            letterModal.style.display = 'none';
+        }
+
+        // Play letter audio
+        function playLetterAudio() {
+            if (currentLetter) {
+                const audio = new Audio(currentLetter.audioLetter);
+                audio.play();
+                updateProgress(currentLetter.letter, 'audioPlayed');
+            }
+        }
+
+        // Play word audio
+        function playWordAudio() {
+            if (currentLetter) {
+                const audio = new Audio(currentLetter.audioWord);
+                audio.play();
+                updateProgress(currentLetter.letter, 'wordAudioPlayed');
+            }
+        }
+
+        // Initialize coloring game
+        function initColoring() {
+            const canvas = document.getElementById('coloringCanvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            let currentColor = '#000000';
+            let brushSize = 5;
+
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Fill with white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // Drawing functions
+            function draw(e) {
+                if (!isDrawing) return;
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = brushSize;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            // Event listeners
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            });
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mouseout', () => isDrawing = false);
+
+            // Color picker
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    currentColor = option.getAttribute('data-color');
+                });
+            });
+
+            // Brush size
+            document.querySelectorAll('.brush-size button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    brushSize = parseInt(btn.getAttribute('data-size'));
+                });
+            });
+
+            // Clear canvas
+            document.getElementById('clearColoring').addEventListener('click', () => {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            });
+        }
+
+        // Initialize drag and drop game
+        function initDragDrop() {
+            dragDropArea.innerHTML = '<div id="dropzones" style="display:flex;flex-wrap:wrap;justify-content:center;padding:10px"></div>';
+            const dropzones = document.getElementById('dropzones');
+            
+            // Select 6 random letters
+            const shuffledLetters = [...urduLetters].sort(() => Math.random() - 0.5).slice(0, 6);
+            
+            // Create drop zones
+            shuffledLetters.forEach((letterData, index) => {
+                const dropzone = document.createElement('div');
+                dropzone.className = 'dropzone';
+                dropzone.setAttribute('data-letter', letterData.letter);
+                dropzone.innerHTML = `<div>${letterData.word}</div>`;
+                dropzones.appendChild(dropzone);
+                
+                // Create draggable letters
+                const draggable = document.createElement('div');
+                draggable.className = 'draggable';
+                draggable.setAttribute('draggable', 'true');
+                draggable.setAttribute('data-letter', letterData.letter);
+                draggable.innerHTML = `<div style="font-size:2rem">${letterData.letter}</div>`;
+                draggable.style.position = 'absolute';
+                draggable.style.top = `${50 + index * 30}px`;
+                draggable.style.left = `${50 + index * 30}px`;
+                draggable.addEventListener('dragstart', dragStart);
+                dragDropArea.appendChild(draggable);
+                
+                // Make draggable
+                makeDraggable(draggable);
+            });
+
+            // Drag functions
+            function dragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.getAttribute('data-letter'));
+            }
+
+            function dragOver(e) {
+                e.preventDefault();
+            }
+
+            function drop(e) {
+                e.preventDefault();
+                const letter = e.dataTransfer.getData('text/plain');
+                const dropzone = e.target.closest('.dropzone');
+                
+                if (dropzone && dropzone.getAttribute('data-letter') === letter) {
+                    const draggable = document.querySelector(`.draggable[data-letter="${letter}"]`);
+                    dropzone.innerHTML = `
+                        <div style="font-size:2rem">${letter}</div>
+                        <div>${dropzone.textContent.trim()}</div>
+                    `;
+                    draggable.style.display = 'none';
+                    updateProgress(letter, 'dragDropCompleted');
+                }
+            }
+
+            // Add event listeners to drop zones
+            document.querySelectorAll('.dropzone').forEach(zone => {
+                zone.addEventListener('dragover', dragOver);
+                zone.addEventListener('drop', drop);
+            });
+        }
+
+        // Make elements draggable
+        function makeDraggable(element) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            element.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // Initialize memory game
+        function initMemoryGame() {
+            memoryArea.innerHTML = '<div class="memory-game" id="memoryGame"></div><button class="btn" id="restartMemory">دوبارہ<a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv"> کھیلیں</a></button>';
+            const memoryGame = document.getElementById('memoryGame');
+            
+            // Create memory cards
+            const memoryCards = [];
+            const selectedLetters = urduLetters.sort(() => Math.random() - 0.5).slice(0, 8);
+            
+            selectedLetters.forEach(letter => {
+                memoryCards.push({type: 'letter', content: letter.letter, matched: false});
+                memoryCards.push({type: 'word', content: letter.word, matched: false});
+            });
+            
+            // Shuffle cards
+            memoryCards.sort(() => Math.random() - 0.5);
+            
+            // Create card elements
+            memoryCards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'memory-card';
+                cardElement.setAttribute('data-index', index);
+                cardElement.addEventListener('click', () => flipCard(cardElement, index));
+                memoryGame.appendChild(cardElement);
+            });
+            
+            let flippedCards = [];
+            let matches = 0;
+            
+            // Card flipping logic
+            function flipCard(cardElement, index) {
+                if (flippedCards.length === 2 || cardElement.classList.contains('flipped') || memoryCards[index].matched) return;
+                
+                cardElement.classList.add('flipped');
+                cardElement.textContent = memoryCards[index].content;
+                flippedCards.push({element: cardElement, index});
+                
+                if (flippedCards.length === 2) {
+                    const card1 = memoryCards[flippedCards[0].index];
+                    const card2 = memoryCards[flippedCards[1].index];
+                    
+                    if ((card1.type === 'letter' && card2.type === 'word' && 
+                         urduLetters.find(l => l.letter === card1.content && l.word === card2.content)) ||
+                        (card1.type === 'word' && card2.type === 'letter' && 
+                         urduLetters.find(l => l.word === card1.content && l.letter === card2.content))) {
+                        
+                        card1.matched = true;
+                        card2.matched = true;
+                        flippedCards[0].element.classList.add('matched');
+                        flippedCards[1].element.classList.add('matched');
+                        matches++;
+                        
+                        if (matches === selectedLetters.length) {
+                            updateProgress(card1.type === 'letter' ? card1.content : findLetterByWord(card1.content), 'memoryCompleted');
+                        }
+                    } else {
+                        setTimeout(() => {
+                            flippedCards[0].element.classList.remove('flipped');
+                            flippedCards[1].element.classList.remove('flipped');
+                            flippedCards[0].element.textContent = '';
+                            flippedCards[1].element.textContent = '';
+                            flippedCards = [];
+                        }, 1000);
+                    }
+                } else if (flippedCards.length === 1) {
+                    setTimeout(() => {
+                        if (flippedCards.length === 1) {
+                            flippedCards[0].element.classList.remove('flipped');
+                            flippedCards[0].element.textContent = '';
+                            flippedCards = [];
+                        }
+                    }, 3000);
+                }
+            }
+            
+            // Helper function to find letter by word
+            function findLetterByWord(word) {
+                const letterObj = urduLetters.find(l => l.word === word);
+                return letterObj ? letterObj.letter : '';
+            }
+            
+            // Restart game
+            document.getElementById('restartMemory').addEventListener('click', initMemoryGame);
+        }
+
+        // Initialize tracing game
+        function initTracing() {
+            const canvas = document.getElementById('tracingCanvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let currentLetterIndex = 0;
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Fill with white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000000';
+            
+            // Draw letter to trace
+            function drawLetter() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '200px Jameel Noori Nastaleeq';
+                ctx.fillStyle = '#dddddd';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(urduLetters[currentLetterIndex].letter, canvas.width/2, canvas.height/2);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 5;
+            }
+            
+            // Drawing functions
+            function startDrawing(e) {
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+            
+            function stopDrawing() {
+                isDrawing = false;
+            }
+            
+            // Initial letter
+            drawLetter();
+            
+            // Event listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Clear canvas
+            document.getElementById('clearTracing').addEventListener('click', drawLetter);
+        }
+
+        // Initialize quiz game
+        function initQuiz() {
+            const quizQuestion = document.getElementById('quizQuestion');
+            const quizOptions = document.getElementById('quizOptions');
+            const quizFeedback = document.getElementById('quizFeedback');
+            const quizScore = document.getElementById('quizScore');
+            
+            let currentQuestion = 0;
+            let score = 0;
+            
+            const questions = [
+                {
+                    question: "کون سا حرف 'ا' سے شروع ہوتا ہے؟",
+                    options: ["انار", "بلی", "پنکھا", "ٹماٹر"],
+                    correct: 0
+                },
+                {
+                    question: "کون سا لفظ 'ب' سے شروع ہوتا ہے؟",
+                    options: ["انار", "بلی", "پنکھا", "ٹماٹر"],
+                    correct: 1
+                },
+                {
+                    question: "کون سا لفظ 'پ' سے شروع ہوتا ہے؟",
+                    options: ["انار", "بلی", "پنکھا", "ٹماٹر"],
+                    correct: 2
+                },
+                {
+                    question: "'ج' حرف کا تلفظ سنیں",
+                    options: ["جہاز", "چمچ", "حجام", "خربوزہ"],
+                    correct: 0,
+                    audio: "https://www.soundjay.com/buttons/sounds/button-20.mp3"
+                },
+                {
+                    question: "'مچھلی' کس حرف سے شروع ہوتی ہے؟",
+                    options: ["م", "ن", "و", "ہ"],
+                    correct: 0
+                }
+            ];
+            
+            // Show current question
+            function showQuestion() {
+                if (currentQuestion >= questions.length) {
+                    quizQuestion.textContent = "کوئز مکمل ہو گیا!";
+                    quizOptions.innerHTML = '';
+                    quizFeedback.textContent = `آپ کا حتمی سکور: ${score} میں سے ${questions.length}`;
+                    document.getElementById('nextQuiz').style.display = 'none';
+                    return;
+                }
+                
+                const q = questions[currentQuestion];
+                quizQuestion.textContent = q.question;
+                quizOptions.innerHTML = '';
+                
+                // Play audio if available
+                if (q.audio) {
+                    const audio = new Audio(q.audio);
+                    audio.play();
+                }
+                
+                // Create options
+                q.options.forEach((option, i) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'quiz-option';
+                    optionEl.textContent = option;
+                    optionEl.addEventListener('click', () => checkAnswer(i));
+                    quizOptions.appendChild(optionEl);
+                });
+                
+                quizFeedback.textContent = '';
+            }
+            
+            // Check answer
+            function checkAnswer(selected) {
+                const q = questions[currentQuestion];
+                
+                if (selected === q.correct) {
+                    quizFeedback.textContent = "درست جواب!";
+                    quizFeedback.style.color = 'green';
+                    score++;
+                } else {
+                    quizFeedback.textContent = `غلط جواب! صحیح جواب: ${q.options[q.correct]}`;
+                    quizFeedback.style.color = 'red';
+                }
+                
+                quizScore.textContent = `سکور: ${score}`;
+                document.getElementById('nextQuiz').style.display = 'inline-block';
+                
+                // Disable options after answering
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.style.pointerEvents = 'none';
+                });
+            }
+            
+            // Next question
+            document.getElementById('nextQuiz').addEventListener('click', () => {
+                currentQuestion++;
+                document.getElementById('nextQuiz').style.display = 'none';
+                showQuestion();
+            });
+            
+            // Start quiz
+            showQuestion();
+        }
+
+        // Initialize bubble game
+        function initBubbleGame() {
+            const bubbleGame = document.getElementById('bubbleGame');
+            const bubbleTime = document.getElementById('bubbleTime');
+            const bubbleScore = document.getElementById('bubbleScore');
+            
+            let timeLeft = 60;
+            let score = 0;
+            let gameInterval;
+            
+            // Create bubbles
+            function createBubble() {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                
+                const randomLetter = urduLetters[Math.floor(Math.random() * urduLetters.length)];
+                bubble.textContent = randomLetter.letter;
+                
+                bubble.style.left = `${Math.random() * 90}%`;
+                bubble.style.top = `${Math.random() * 90}%`;
+                bubble.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 70%)`;
+                
+                bubble.addEventListener('click', () => {
+                    bubble.remove();
+                    score++;
+                    bubbleScore.textContent = score;
+                    updateProgress(randomLetter.letter, 'bubblePopped');
+                });
+                
+                bubbleGame.appendChild(bubble);
+            }
+            
+            // Start game
+            function startGame() {
+                bubbleGame.innerHTML = '';
+                score = 0;
+                timeLeft = 60;
+                bubbleScore.textContent = score;
+                bubbleTime.textContent = timeLeft;
+                
+                gameInterval = setInterval(() => {
+                    timeLeft--;
+                    bubbleTime.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(gameInterval);
+                        bubbleGame.innerHTML = '<div style="text-align:center;padding:20px;font-size:1.5rem">کھیل ختم! آپ کا سکور: ' + score + '</div>';
+                    } else if (timeLeft % 2 === 0) {
+                        createBubble();
+                    }
+                }, 1000);
+            }
+            
+            // Start button
+            document.getElementById('startBubble').addEventListener('click', startGame);
+        }
+
+        // Initialize puzzle game
+        function initPuzzle() {
+            const puzzleContainer = document.getElementById('puzzleContainer');
+            const puzzleComplete = document.getElementById('puzzleComplete');
+            const puzzleImage = document.getElementById('puzzleImage');
+            
+            let selectedLetter = urduLetters[Math.floor(Math.random() * urduLetters.length)];
+            puzzleImage.src = selectedLetter.image;
+            
+            // Create puzzle
+            function createPuzzle() {
+                puzzleComplete.style.display = 'none';
+                puzzleContainer.innerHTML = '';
+                
+                const pieces = [];
+                
+                // Create 9 puzzle pieces
+                for (let i = 0; i < 9; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'puzzle-piece';
+                    piece.style.backgroundImage = `url(${selectedLetter.image})`;
+                    piece.style.backgroundPosition = `${-(i % 3) * 100}px ${-(Math.floor(i / 3)) * 100}px`;
+                    piece.setAttribute('data-index', i);
+                    piece.addEventListener('click', () => movePiece(piece));
+                    pieces.push(piece);
+                }
+                
+                // Shuffle pieces
+                shufflePieces(pieces);
+                
+                // Add to container
+                pieces.forEach(piece => puzzleContainer.appendChild(piece));
+            }
+            
+            // Shuffle puzzle pieces
+            function shufflePieces(pieces) {
+                for (let i = pieces.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pieces[i].style.order, pieces[j].style.order] = [pieces[j].style.order, pieces[i].style.order];
+                }
+            }
+            
+            // Move puzzle piece
+            function movePiece(piece) {
+                const currentIndex = parseInt(piece.style.order) || piece.getAttribute('data-index');
+                const emptyIndex = findEmptyIndex();
+                
+                if (isAdjacent(currentIndex, emptyIndex)) {
+                    piece.style.order = emptyIndex;
+                    
+                    if (isPuzzleComplete()) {
+                        puzzleComplete.style.display = 'block';
+                        updateProgress(selectedLetter.letter, 'puzzleCompleted');
+                    }
+                }
+            }
+            
+            // Find empty space
+            function findEmptyIndex() {
+                const pieces = Array.from(document.querySelectorAll('.puzzle-piece'));
+                for (let i = 0; i < 9; i++) {
+                    if (!pieces.some(p => (parseInt(p.style.order) || p.getAttribute('data-index')) == i)) {
+                        return i;
+                    }
+                }
+                return 8;
+            }
+            
+            // Check if pieces are adjacent
+            function isAdjacent(a, b) {
+                const row1 = Math.floor(a / 3);
+                const col1 = a % 3;
+                const row2 = Math.floor(b / 3);
+                const col2 = b % 3;
+                
+                return (Math.abs(row1 - row2) === 1 && col1 === col2) || 
+                       (Math.abs(col1 - col2) === 1 && row1 === row2);
+            }
+            
+            // Check if puzzle is complete
+            function isPuzzleComplete() {
+                const pieces = Array.from(document.querySelectorAll('.puzzle-piece'));
+                return pieces.every(p => (parseInt(p.style.order) || p.getAttribute('data-index')) == p.getAttribute('data-index'));
+            }
+            
+            // Shuffle button
+            document.getElementById('shufflePuzzle').addEventListener('click', () => {
+                selectedLetter = urduLetters[Math.floor(Math.random() * urduLetters.length)];
+                puzzleImage.src = selectedLetter.image;
+                createPuzzle();
+            });
+            
+            // Create initial puzzle
+            createPuzzle();
+        }
+
+        // Initialize word search game
+        function initWordSearch() {
+            const wordSearchContainer = document.getElementById('wordSearchContainer');
+            const wordSearchWords = document.getElementById('wordSearchWords');
+            
+            let wordsToFind = [];
+            let selectedCells = [];
+            
+            // Create word search grid
+            function createWordSearch() {
+                wordSearchContainer.innerHTML = '';
+                wordSearchWords.innerHTML = '';
+                wordsToFind = [];
+                selectedCells = [];
+                
+                const gridSize = 8;
+                const grid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+                const selectedWords = [];
+                
+                // Select words to hide
+                const possibleWords = urduLetters.filter(l => l.word.length <= 5).slice(0, 5);
+                
+                // Place words in grid
+                possibleWords.forEach(wordObj => {
+                    const word = wordObj.word;
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < 50) {
+                        attempts++;
+                        const direction = Math.floor(Math.random() * 4);
+                        let row, col;
+                        
+                        // Horizontal placement
+                        if (direction === 0) {
+                            row = Math.floor(Math.random() * gridSize);
+                            col = Math.floor(Math.random() * (gridSize - word.length));
+                            
+                            placed = true;
+                            for (let i = 0; i < word.length; i++) {
+                                if (grid[row][col + i] && grid[row][col + i] !== word[i]) {
+                                    placed = false;
+                                    break;
+                                }
+                            }
+                            
+                            if (placed) {
+                                for (let i = 0; i < word.length; i++) {
+                                    grid[row][col + i] = word[i];
+                                }
+                                selectedWords.push({
+                                    word,
+                                    positions: Array(word.length).fill().map((_, i) => ({row, col: col + i}))
+                                });
+                            }
+                        }
+                        // Vertical placement
+                        else if (direction === 1) {
+                            row = Math.floor(Math.random() * (gridSize - word.length));
+                            col = Math.floor(Math.random() * gridSize);
+                            
+                            placed = true;
+                            for (let i = 0; i < word.length; i++) {
+                                if (grid[row + i][col] && grid[row + i][col] !== word[i]) {
+                                    placed = false;
+                                    break;
+                                }
+                            }
+                            
+                            if (placed) {
+                                for (let i = 0; i < word.length; i++) {
+                                    grid[row + i][col] = word[i];
+                                }
+                                selectedWords.push({
+                                    word,
+                                    positions: Array(word.length).fill().map((_, i) => ({row: row + i, col}))
+                                });
+                            }
+                        }
+                    }
+                    
+                    if (placed) {
+                        wordsToFind.push(word);
+                    }
+                });
+                
+                // Fill empty spaces with random letters
+                for (let row = 0; row < gridSize; row++) {
+                    for (let col = 0; col < gridSize; col++) {
+                        if (!grid[row][col]) {
+                            grid[row][col] = urduLetters[Math.floor(Math.random() * urduLetters.length)].letter;
+                        }
+                    }
+                }
+                
+                // Create grid cells
+                for (let row = 0; row < gridSize; row++) {
+                    for (let col = 0; col < gridSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'word-search-cell';
+                        cell.textContent = grid[row][col];
+                        cell.setAttribute('data-row', row);
+                        cell.setAttribute('data-col', col);
+                        cell.addEventListener('click', () => selectCell(cell, row, col));
+                        wordSearchContainer.appendChild(cell);
+                    }
+                }
+                
+                // Show words to find
+                wordsToFind.forEach(word => {
+                    const wordEl = document.createElement('span');
+                    wordEl.className = 'word-search-word';
+                    wordEl.textContent = word;
+                    wordSearchWords.appendChild(wordEl);
+                });
+            }
+            
+            // Select cell in word search
+            function selectCell(cell, row, col) {
+                if (cell.classList.contains('found')) return;
+                
+                if (selectedCells.length > 0) {
+                    const last = selectedCells[selectedCells.length - 1];
+                    const sameRow = last.row === row;
+                    const sameCol = last.col === col;
+                    const adjacentRow = Math.abs(last.row - row) === 1;
+                    const adjacentCol = Math.abs(last.col - col) === 1;
+                    
+                    if (!((sameRow && adjacentCol) || (sameCol && adjacentRow) || (adjacentRow && adjacentCol))) {
+                        selectedCells.forEach(c => c.cell.classList.remove('selected'));
+                        selectedCells = [];
+                    }
+                }
+                
+                cell.classList.add('selected');
+                selectedCells.push({cell, row, col});
+                checkForWord();
+            }
+            
+            // Check if selected cells form a word
+            function checkForWord() {
+                if (selectedCells.length < 2) return;
+                
+                const selectedWord = selectedCells.map(c => c.cell.textContent).join('');
+                const foundWord = wordsToFind.find(word => word === selectedWord);
+                
+                if (foundWord) {
+                    selectedCells.forEach(c => {
+                        c.cell.classList.remove('selected');
+                        c.cell.classList.add('found');
+                    });
+                    
+                    wordsToFind = wordsToFind.filter(word => word !== foundWord);
+                    
+                    // Mark word as found
+                    Array.from(wordSearchWords.children).forEach(child => {
+                        if (child.textContent === foundWord) {
+                            child.classList.add('found');
+                            updateProgress(findLetterByWord(foundWord), 'wordSearchFound');
+                        }
+                    });
+                }
+                
+                if (wordsToFind.length === 0) {
+                    wordSearchContainer.innerHTML = '<div style="text-align:center;padding:20px;font-size:1.5rem">مبارک ہو! آپ نے تمام الفاظ ڈھونڈ لیے!</div>';
+                }
+                
+                selectedCells = [];
+            }
+            
+            // New game button
+            document.getElementById('newWordSearch').addEventListener('click', createWordSearch);
+            
+            // Create initial word search
+            createWordSearch();
+        }
+
+        // Helper function to find letter by word
+        function findLetterByWord(word) {
+            const letterObj = urduLetters.find(l => l.word === word);
+            return letterObj ? letterObj.letter : '';
+        }
+
+        // Update progress tracker
+        function updateProgress(letter, action) {
+            let progress = JSON.parse(localStorage.getItem('urduAlphaProgress')) || {};
+            
+            if (!progress[letter]) {
+                progress[letter] = {
+                    viewed: false,
+                    audioPlayed: false,
+                    wordAudioPlayed: false,
+                    dragDropCompleted: false,
+                    memoryCompleted: false,
+                    tracingCompleted: false,
+                    bubblePopped: false,
+                    puzzleCompleted: false,
+                    wordSearchFound: false
+                };
+            }
+            
+            progress[letter][action] = true;
+            localStorage.setItem('urduAlphaProgress', JSON.stringify(progress));
+            
+            renderProgress();
+        }
+
+        // Render progress tracker
+        function renderProgress() {
+            const progress = JSON.parse(localStorage.getItem('urduAlphaProgress')) || {};
+            progressTracker.innerHTML = '';
+            
+            urduLetters.forEach(letterData => {
+                const letter = letterData.letter;
+                const letterProgress = progress[letter] || {};
+                
+                const star = document.createElement('span');
+                star.className = 'star ' + (letterProgress.viewed ? 'filled' : '');
+                star.innerHTML = '★';
+                progressTracker.appendChild(star);
+            });
+        }
+
+        // Show game area
+        function showGameArea(areaId) {
+            // Hide all game areas
+            lettersArea.style.display = 'none';
+            coloringArea.style.display = 'none';
+            dragDropArea.style.display = 'none';
+            memoryArea.style.display = 'none';
+            tracingArea.style.display = 'none';
+            quizArea.style.display = 'none';
+            bubbleArea.style.display = 'none';
+            puzzleArea.style.display = 'none';
+            wordSearchArea.style.display = 'none';
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            document.getElementById(areaId + 'Btn').classList.add('active');
+            
+            // Show selected game area
+            switch (areaId) {
+                case 'letters':
+                    lettersArea.style.display = 'flex';
+                    initLetters();
+                    break;
+                case 'coloring':
+                    coloringArea.style.display = 'block';
+                    initColoring();
+                    break;
+                case 'dragDrop':
+                    dragDropArea.style.display = 'block';
+                    initDragDrop();
+                    break;
+                case 'memory':
+                    memoryArea.style.display = 'block';
+                    initMemoryGame();
+                    break;
+                case 'tracing':
+                    tracingArea.style.display = 'block';
+                    initTracing();
+                    break;
+                case 'quiz':
+                    quizArea.style.display = 'block';
+                    initQuiz();
+                    break;
+                case 'bubble':
+                    bubbleArea.style.display = 'block';
+                    initBubbleGame();
+                    break;
+                case 'puzzle':
+                    puzzleArea.style.display = 'block';
+                    initPuzzle();
+                    break;
+                case 'wordSearch':
+                    wordSearchArea.style.display = 'block';
+                    initWordSearch();
+                    break;
+            }
+        }
+
+        // Event listeners for game buttons
+        document.getElementById('lettersBtn').addEventListener('click', () => showGameArea('letters'));
+        document.getElementById('coloringBtn').addEventListener('click', () => showGameArea('coloring'));
+        document.getElementById('dragDropBtn').addEventListener('click', () => showGameArea('dragDrop'));
+        document.getElementById('memoryBtn').addEventListener('click', () => showGameArea('memory'));
+        document.getElementById('tracingBtn').addEventListener('click', () => showGameArea('tracing'));
+        document.getElementById('quizBtn').addEventListener('click', () => showGameArea('quiz'));
+        document.getElementById('bubbleBtn').addEventListener('click', () => showGameArea('bubble'));
+        document.getElementById('puzzleBtn').addEventListener('click', () => showGameArea('puzzle'));
+        document.getElementById('wordSearchBtn').addEventListener('click', () => showGameArea('wordSearch'));
+
+        // Modal close button
+        closeBtn.addEventListener('click', closeModal);
+        
+        // Audio buttons
+        letterAudio.addEventListener('click', playLetterAudio);
+        wordAudio.addEventListener('click', playWordAudio);
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === letterModal) {
+                closeModal();
+            }
+        });
+        
+        // Handle window resize for canvas elements
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('coloringCanvas');
+            if (canvas) {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+        });
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initLetters();
+            initQuiz();
+            initBubbleGame();
+            initPuzzle();
+            initWordSearch();
+            renderProgress();
+        });
+    </script>
+</body>
+</html>

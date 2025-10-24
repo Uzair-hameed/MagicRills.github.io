@@ -1,0 +1,1310 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/5344/5344646.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/5344/5344646.png" style="display: none;" width="200" /></a></div>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Advanced Lesson Planner Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --accent-color: #ea4335;
+            --light-color: #f8f9fa;
+            --dark-color: #202124;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .planner-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 992px) {
+            .planner-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .form-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: #3367d6;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #2d9249;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #d33426;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn i {
+            margin-right: 0.5rem;
+        }
+
+        .preview-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .preview-content {
+            border: 1px dashed #ccc;
+            padding: 1.5rem;
+            min-height: 300px;
+        }
+
+        .preview-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-item {
+            margin-bottom: 1rem;
+        }
+
+        .preview-item h3 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .preview-item p {
+            padding-left: 1rem;
+        }
+
+        .list-item {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .list-item:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-item input {
+            flex: 1;
+            margin-right: 0.5rem;
+        }
+
+        .add-resource-btn {
+            background-color: #f1f1f1;
+            color: var(--dark-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .add-resource-btn:hover {
+            background-color: #e1e1e1;
+        }
+
+        .methodology-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .methodology-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .methodology-option input {
+            margin-right: 0.5rem;
+        }
+
+        .activity-item {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+
+        .activity-item input {
+            flex: 1;
+            margin-right: 0.5rem;
+        }
+
+        .remove-btn {
+            background-color: #ffebee;
+            color: var(--accent-color);
+            border: 1px solid #ffcdd2;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background-color: #ffcdd2;
+        }
+
+        .rating-container {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .rating-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .rating-option input {
+            margin-right: 0.3rem;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .saved-plans {
+            margin-top: 2rem;
+        }
+
+        .plan-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .plan-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+
+        .generate-btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .auto-generate-btn {
+            background-color: #8e44ad;
+        }
+
+        .auto-generate-btn:hover {
+            background-color: #7d3c98;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .preview-section, .preview-section * {
+                visibility: visible;
+            }
+            .preview-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+                border: none;
+            }
+            .btn-group {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Advanced Lesson Planner Tool</h1>
+        <p class="subtitle">Streamline your teaching process with our comprehensive lesson planning solution</p>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('create-tab')">Create New Plan</div>
+            <div class="tab" onclick="openTab('saved-tab')">Saved Plans</div>
+        </div>
+
+        <div class="tab-content active" id="create-tab">
+            <div class="planner-container">
+                <div class="form-column">
+                    <div class="form-section">
+                        <h2>Basic Information</h2>
+                        <div class="form-group">
+                            <label for="lesson-date">Date</label>
+                            <input id="lesson-date" required="" type="date" />
+                        </div>
+                        <div class="form-group">
+                            <label for="day">Day</label>
+                            <select id="day" required="">
+                                <option value="">Select day</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                                <option value="Sunday">Sunday</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="class">Class/Grade</label>
+                            <input id="class" placeholder="e.g., Grade 5, Class 3B" required="" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input id="subject" placeholder="e.g., Mathematics, Science" required="" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Duration (minutes)</label>
+                            <input id="duration" placeholder="e.g., 45" type="text" />
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Resources</h2>
+                        <div class="form-group">
+                            <label>Basic Resources</label>
+                            <div id="resources-container">
+                                <div class="resource-item">
+                                    <input placeholder="e.g., Textbook page 45, Whiteboard" type="text" />
+                                    <button class="remove-btn" onclick="removeResource(this)">×</button>
+                                </div>
+                            </div>
+                            <button class="add-resource-btn" onclick="addResource()" type="button">
+                                <i>+</i> Add Resource
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Student Learning Outcomes (SLO)</h2>
+                        <div class="form-group">
+                            <label>By the end of this lesson, students will be able to:</label>
+                            <div id="slo-container">
+                                <div class="resource-item">
+                                    <input placeholder="e.g., Understand the concept of fractions" type="text" />
+                                    <button class="remove-btn" onclick="removeSLO(this)">×</button>
+                                </div>
+                            </div>
+                            <button class="add-resource-btn" onclick="addSLO()" type="button">
+                                <i>+</i> Add Outcome
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-section">
+                        <h2>Presentation Methodology</h2>
+                        <div class="form-group">
+                            <label>Select teaching strategies:</label>
+                            <div class="methodology-options">
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Lecture" /> Lecture
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Demonstration" /> Demonstration
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Discussion" /> Discussion
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Group Work" /> Group Work
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Problem Solving" /> Problem Solving
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Inquiry-based" /> Inquiry-based
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Project-based" /> Project-based
+                                </label>
+                                <label class="methodology-option">
+                                    <input name="methodology" type="checkbox" value="Flipped Classroom" /> Flipped Classroom
+                                </label>
+                            </div>
+                            <textarea id="methodology-notes" placeholder="Additional notes about your teaching approach..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Activities</h2>
+                        <div class="generate-btn-group">
+                            <button class="add-resource-btn" onclick="addActivity()" type="button">
+                                <i>+</i> Add Activity
+                            </button>
+                            <button class="btn auto-generate-btn" onclick="generateActivities()" type="button">
+                                <i>✨</i> Auto Generate Activities
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Lesson Activities</label>
+                            <div id="activities-container">
+                                <div class="activity-item">
+                                    <input placeholder="e.g., Warm-up exercise, Group discussion" type="text" />
+                                    <button class="remove-btn" onclick="removeActivity(this)">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Assessment &amp; Feedback</h2>
+                        <div class="form-group">
+                            <label>Lesson Feedback</label>
+                            <textarea id="feedback" placeholder="How did the lesson go? What would you improve?"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Overall Lesson Effectiveness</label>
+                            <div class="rating-container">
+                                <label class="rating-option">
+                                    <input name="rating" type="radio" value="Excellent" /> Excellent
+                                </label>
+                                <label class="rating-option">
+                                    <input name="rating" type="radio" value="Good" /> Good
+                                </label>
+                                <label class="rating-option">
+                                    <input name="rating" type="radio" value="Average" /> Average
+                                </label>
+                                <label class="rating-option">
+                                    <input name="rating" type="radio" value="Needs Improvement" /> Needs Improvement
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hometask">Hometask/Assignment</label>
+                            <textarea id="hometask" placeholder="Assignments for students to complete"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn" onclick="generatePlan()" type="button">
+                            <i>📝</i> Generate Plan
+                        </button>
+                        <button class="btn btn-secondary" onclick="savePlan()" type="button">
+                            <i>💾</i> Save Plan
+                        </button>
+                        <button class="btn btn-danger" onclick="clearForm()" type="button">
+                            <i>🗑️</i> Clear Form
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section" id="preview-section">
+                <h2 class="preview-title">Lesson Plan Preview</h2>
+                <div class="preview-content" id="preview-content">
+                    <div class="empty-state">
+                        <i>📄</i>
+                        <p>Your lesson plan preview will appear here</p>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="downloadPDF()" type="button">
+                        <i>📥</i> <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download PDF</a>
+                    </button>
+                    <button class="btn btn-secondary" onclick="printPlan()" type="button">
+                        <i>🖨️</i> <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Print Plan</a>
+                    </button>
+                    <button class="btn btn-danger" onclick="exportDoc()" type="button">
+                        <i>📄</i> <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Export as DOC</a>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="saved-tab">
+            <div class="saved-plans" id="saved-plans-container">
+                <div class="empty-state">
+                    <i>📂</i>
+                    <p>No saved lesson plans yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Advanced Lesson Planner Tool © 2023 | Designed for Educators</p>
+    </footer>
+
+    <script>
+        // Global variables
+        let savedPlans = JSON.parse(localStorage.getItem('lessonPlans')) || [];
+
+        // Activity suggestions database
+        const activitySuggestions = {
+            general: {
+                Lecture: ["Mini-lecture with key points", "Guest speaker presentation", "Teacher explanation of core concepts"],
+                Demonstration: ["Live demonstration by teacher", "Video demonstration", "Step-by-step modeling"],
+                Discussion: ["Think-pair-share activity", "Whole class discussion", "Socratic seminar"],
+                "Group Work": ["Jigsaw activity", "Collaborative problem solving", "Group project work"],
+                "Problem Solving": ["Case study analysis", "Real-world problem application", "Brainstorming solutions"],
+                "Inquiry-based": ["Guided research activity", "Question formulation technique", "Hypothesis testing"],
+                "Project-based": ["Project planning session", "Project work time", "Project presentations"],
+                "Flipped Classroom": ["Video viewing with notes", "Online discussion forum", "Application activities"]
+            },
+            mathematics: {
+                Lecture: ["Explain key formulas", "Demonstrate problem-solving techniques", "Present mathematical proofs"],
+                Demonstration: ["Show step-by-step solutions", "Use manipulatives to demonstrate concepts", "Model problem-solving approaches"],
+                Discussion: ["Discuss different solution methods", "Analyze common mistakes", "Debate mathematical concepts"],
+                "Group Work": ["Collaborative problem solving", "Peer teaching activities", "Group whiteboard work"],
+                "Problem Solving": ["Word problem analysis", "Real-world math applications", "Challenge problems"],
+                "Inquiry-based": ["Pattern discovery activities", "Mathematical investigations", "Open-ended explorations"],
+                "Project-based": ["Data collection and analysis", "Mathematical modeling", "Design projects using math"],
+                "Flipped Classroom": ["Video tutorials with practice", "Online math games", "Application problems in class"]
+            },
+            science: {
+                Lecture: ["Explain scientific principles", "Present case studies", "Discuss current research"],
+                Demonstration: ["Science experiment demo", "Model scientific processes", "Show equipment use"],
+                Discussion: ["Debate ethical issues", "Discuss experimental results", "Analyze scientific claims"],
+                "Group Work": ["Lab experiments", "Research projects", "Data analysis teams"],
+                "Problem Solving": ["Design experiments", "Troubleshoot lab issues", "Solve real-world science problems"],
+                "Inquiry-based": ["Student-designed experiments", "Research questions development", "Scientific investigations"],
+                "Project-based": ["Science fair projects", "Environmental studies", "Engineering challenges"],
+                "Flipped Classroom": ["Pre-lab video tutorials", "Online simulations", "Hands-on lab work in class"]
+            },
+            english: {
+                Lecture: ["Literary analysis lecture", "Grammar rules explanation", "Writing techniques presentation"],
+                Demonstration: ["Model writing process", "Show annotation techniques", "Demonstrate presentation skills"],
+                Discussion: ["Book club discussion", "Literary analysis debate", "Peer review sessions"],
+                "Group Work": ["Collaborative writing", "Drama performances", "Group research projects"],
+                "Problem Solving": ["Editing challenges", "Writing prompt solutions", "Communication problem scenarios"],
+                "Inquiry-based": ["Author study research", "Literary theme exploration", "Language investigation"],
+                "Project-based": ["Creative writing anthology", "Literary magazine production", "Podcast creation"],
+                "Flipped Classroom": ["Video lectures on concepts", "Online reading discussions", "Writing workshops in class"]
+            },
+            history: {
+                Lecture: ["Historical context presentation", "Primary source analysis", "Timeline of events"],
+                Demonstration: ["Reenact historical events", "Show archival footage", "Demonstrate research methods"],
+                Discussion: ["Debate historical interpretations", "Discuss cause and effect", "Analyze bias in sources"],
+                "Group Work": ["Collaborative timeline creation", "Group research projects", "Museum exhibit design"],
+                "Problem Solving": ["Historical what-if scenarios", "Policy decision analysis", "Conflict resolution exercises"],
+                "Inquiry-based": ["Document-based questions", "Historical investigation", "Oral history projects"],
+                "Project-based": ["Living history museum", "Documentary film production", "Historical fiction writing"],
+                "Flipped Classroom": ["Video lectures at home", "Primary source analysis online", "Simulations in class"]
+            }
+        };
+
+        // DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('lesson-date').value = today;
+            
+            // Load saved plans if they exist
+            if (savedPlans.length > 0) {
+                renderSavedPlans();
+            }
+        });
+
+        // Tab navigation
+        function openTab(tabId) {
+            // Hide all tab contents
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // Show the selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update active tab
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            event.currentTarget.classList.add('active');
+        }
+
+        // Resource management
+        function addResource() {
+            const container = document.getElementById('resources-container');
+            const div = document.createElement('div');
+            div.className = 'resource-item';
+            div.innerHTML = `
+                <input type="text" placeholder="e.g., Textbook page 45, Whiteboard">
+                <button class="remove-btn" onclick="removeResource(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeResource(button) {
+            const container = document.getElementById('resources-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                button.previousElementSibling.value = '';
+            }
+        }
+
+        // SLO management
+        function addSLO() {
+            const container = document.getElementById('slo-container');
+            const div = document.createElement('div');
+            div.className = 'resource-item';
+            div.innerHTML = `
+                <input type="text" placeholder="e.g., Understand the concept of fractions">
+                <button class="remove-btn" onclick="removeSLO(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeSLO(button) {
+            const container = document.getElementById('slo-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                button.previousElementSibling.value = '';
+            }
+        }
+
+        // Activity management
+        function addActivity() {
+            const container = document.getElementById('activities-container');
+            const div = document.createElement('div');
+            div.className = 'activity-item';
+            div.innerHTML = `
+                <input type="text" placeholder="e.g., Warm-up exercise, Group discussion">
+                <button class="remove-btn" onclick="removeActivity(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeActivity(button) {
+            const container = document.getElementById('activities-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                button.previousElementSibling.value = '';
+            }
+        }
+
+        // Auto-generate activities based on subject and methodologies
+        function generateActivities() {
+            const subject = document.getElementById('subject').value.toLowerCase();
+            const methodologies = getCheckedValues('methodology');
+            
+            if (methodologies.length === 0) {
+                alert('Please select at least one teaching methodology first.');
+                return;
+            }
+            
+            // Clear existing activities but keep first one
+            const container = document.getElementById('activities-container');
+            while (container.children.length > 1) {
+                container.removeChild(container.lastChild);
+            }
+            
+            // Determine which subject's activities to use
+            let subjectKey = 'general';
+            if (subject.includes('math') || subject.includes('algebra') || subject.includes('calculus')) {
+                subjectKey = 'mathematics';
+            } else if (subject.includes('science') || subject.includes('biology') || subject.includes('chemistry') || subject.includes('physics')) {
+                subjectKey = 'science';
+            } else if (subject.includes('english') || subject.includes('literature') || subject.includes('writing') || subject.includes('language')) {
+                subjectKey = 'english';
+            } else if (subject.includes('history') || subject.includes('social studies') || subject.includes('geography')) {
+                subjectKey = 'history';
+            }
+            
+            // Get activities for each methodology
+            const allActivities = [];
+            methodologies.forEach(method => {
+                const subjectActivities = activitySuggestions[subjectKey][method] || activitySuggestions.general[method];
+                if (subjectActivities) {
+                    // Pick 1-2 random activities for each methodology
+                    const shuffled = subjectActivities.sort(() => 0.5 - Math.random());
+                    allActivities.push(...shuffled.slice(0, 2));
+                }
+            });
+            
+            // Add activities to form
+            if (allActivities.length > 0) {
+                // Set first activity
+                container.children[0].querySelector('input').value = allActivities[0];
+                
+                // Add additional activities
+                for (let i = 1; i < allActivities.length; i++) {
+                    addActivity();
+                    container.children[i].querySelector('input').value = allActivities[i];
+                }
+                
+                // Show confirmation
+                alert(`Generated ${allActivities.length} activities based on your subject and selected methodologies.`);
+            } else {
+                alert('No activities found for the selected methodologies. Please try different options.');
+            }
+        }
+
+        // Generate lesson plan preview
+        function generatePlan() {
+            // Get all form values
+            const date = document.getElementById('lesson-date').value;
+            const day = document.getElementById('day').value;
+            const className = document.getElementById('class').value;
+            const subject = document.getElementById('subject').value;
+            const duration = document.getElementById('duration').value;
+            
+            // Format date
+            const formattedDate = date ? new Date(date).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            }) : '';
+            
+            // Get resources
+            const resourceInputs = document.getElementById('resources-container').getElementsByTagName('input');
+            const resources = [];
+            for (let i = 0; i < resourceInputs.length; i++) {
+                if (resourceInputs[i].value.trim() !== '') {
+                    resources.push(resourceInputs[i].value.trim());
+                }
+            }
+            
+            // Get SLOs
+            const sloInputs = document.getElementById('slo-container').getElementsByTagName('input');
+            const slos = [];
+            for (let i = 0; i < sloInputs.length; i++) {
+                if (sloInputs[i].value.trim() !== '') {
+                    slos.push(sloInputs[i].value.trim());
+                }
+            }
+            
+            // Get methodologies
+            const methodologyCheckboxes = document.querySelectorAll('input[name="methodology"]:checked');
+            const methodologies = [];
+            methodologyCheckboxes.forEach(cb => {
+                methodologies.push(cb.value);
+            });
+            const methodologyNotes = document.getElementById('methodology-notes').value;
+            
+            // Get activities
+            const activityInputs = document.getElementById('activities-container').getElementsByTagName('input');
+            const activities = [];
+            for (let i = 0; i < activityInputs.length; i++) {
+                if (activityInputs[i].value.trim() !== '') {
+                    activities.push(activityInputs[i].value.trim());
+                }
+            }
+            
+            // Get feedback
+            const feedback = document.getElementById('feedback').value;
+            const rating = document.querySelector('input[name="rating"]:checked') ? 
+                          document.querySelector('input[name="rating"]:checked').value : '';
+            const hometask = document.getElementById('hometask').value;
+            
+            // Generate HTML for preview
+            let html = `
+                <h2 class="preview-title">${subject} Lesson Plan</h2>
+                <div class="preview-item">
+                    <h3>Basic Information</h3>
+                    <p><strong>Date:</strong> ${formattedDate} (${day})</p>
+                    <p><strong>Class:</strong> ${className}</p>
+                    <p><strong>Subject:</strong> ${subject}</p>
+                    ${duration ? `<p><strong>Duration:</strong> ${duration} minutes</p>` : ''}
+                </div>
+            `;
+            
+            if (resources.length > 0) {
+                html += `
+                    <div class="preview-item">
+                        <h3>Resources</h3>
+                        ${resources.map(res => `<p class="list-item">${res}</p>`).join('')}
+                    </div>
+                `;
+            }
+            
+            if (slos.length > 0) {
+                html += `
+                    <div class="preview-item">
+                        <h3>Student Learning Outcomes</h3>
+                        ${slos.map(slo => `<p class="list-item">${slo}</p>`).join('')}
+                    </div>
+                `;
+            }
+            
+            if (methodologies.length > 0 || methodologyNotes) {
+                html += `
+                    <div class="preview-item">
+                        <h3>Presentation Methodology</h3>
+                        ${methodologies.length > 0 ? `
+                            <p><strong>Strategies:</strong> ${methodologies.join(', ')}</p>
+                        ` : ''}
+                        ${methodologyNotes ? `<p>${methodologyNotes}</p>` : ''}
+                    </div>
+                `;
+            }
+            
+            if (activities.length > 0) {
+                html += `
+                    <div class="preview-item">
+                        <h3>Activities</h3>
+                        ${activities.map(act => `<p class="list-item">${act}</p>`).join('')}
+                    </div>
+                `;
+            }
+            
+            if (feedback || rating) {
+                html += `
+                    <div class="preview-item">
+                        <h3>Feedback</h3>
+                        ${rating ? `<p><strong>Rating:</strong> ${rating}</p>` : ''}
+                        ${feedback ? `<p>${feedback}</p>` : ''}
+                    </div>
+                `;
+            }
+            
+            if (hometask) {
+                html += `
+                    <div class="preview-item">
+                        <h3>Hometask</h3>
+                        <p>${hometask}</p>
+                    </div>
+                `;
+            }
+            
+            // Update preview
+            document.getElementById('preview-content').innerHTML = html;
+            
+            // Scroll to preview
+            document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Save lesson plan
+        function savePlan() {
+            // First generate the plan to make sure all data is captured
+            generatePlan();
+            
+            // Get basic info for the plan title
+            const subject = document.getElementById('subject').value || 'Untitled Lesson';
+            const className = document.getElementById('class').value || '';
+            const date = document.getElementById('lesson-date').value || '';
+            
+            // Create plan object
+            const plan = {
+                id: Date.now(),
+                title: `${subject} ${className ? `for ${className}` : ''} ${date ? `on ${date}` : ''}`,
+                date: date,
+                day: document.getElementById('day').value,
+                className: className,
+                subject: subject,
+                duration: document.getElementById('duration').value,
+                resources: getInputValues('resources-container'),
+                slos: getInputValues('slo-container'),
+                methodologies: getCheckedValues('methodology'),
+                methodologyNotes: document.getElementById('methodology-notes').value,
+                activities: getInputValues('activities-container'),
+                feedback: document.getElementById('feedback').value,
+                rating: document.querySelector('input[name="rating"]:checked') ? 
+                       document.querySelector('input[name="rating"]:checked').value : '',
+                hometask: document.getElementById('hometask').value,
+                html: document.getElementById('preview-content').innerHTML,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Add to saved plans
+            savedPlans.push(plan);
+            localStorage.setItem('lessonPlans', JSON.stringify(savedPlans));
+            
+            // Update saved plans display
+            renderSavedPlans();
+            
+            // Switch to saved plans tab
+            openTab('saved-tab');
+            
+            // Show confirmation
+            alert('Lesson plan saved successfully!');
+        }
+
+        // Helper function to get input values from a container
+        function getInputValues(containerId) {
+            const inputs = document.getElementById(containerId).getElementsByTagName('input');
+            const values = [];
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].value.trim() !== '') {
+                    values.push(inputs[i].value.trim());
+                }
+            }
+            return values;
+        }
+
+        // Helper function to get checked checkbox values
+        function getCheckedValues(name) {
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+            const values = [];
+            checkboxes.forEach(cb => {
+                values.push(cb.value);
+            });
+            return values;
+        }
+
+        // Render saved plans
+        function renderSavedPlans() {
+            const container = document.getElementById('saved-plans-container');
+            
+            if (savedPlans.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i>📂</i>
+                        <p>No saved lesson plans yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            // Sort by date (newest first)
+            savedPlans.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            savedPlans.forEach(plan => {
+                const card = document.createElement('div');
+                card.className = 'plan-card';
+                card.innerHTML = `
+                    <div>
+                        <h3>${plan.title}</h3>
+                        <p>Created on ${new Date(plan.timestamp).toLocaleDateString()}</p>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="btn" onclick="loadPlan(${plan.id})">View</button>
+                        <button class="btn btn-danger" onclick="deletePlan(${plan.id})">Delete</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Load a saved plan
+        function loadPlan(id) {
+            const plan = savedPlans.find(p => p.id === id);
+            if (!plan) return;
+            
+            // Set basic info
+            document.getElementById('lesson-date').value = plan.date;
+            document.getElementById('day').value = plan.day;
+            document.getElementById('class').value = plan.className;
+            document.getElementById('subject').value = plan.subject;
+            document.getElementById('duration').value = plan.duration;
+            
+            // Set resources
+            setInputValues('resources-container', plan.resources);
+            
+            // Set SLOs
+            setInputValues('slo-container', plan.slos);
+            
+            // Set methodologies
+            document.querySelectorAll('input[name="methodology"]').forEach(cb => {
+                cb.checked = plan.methodologies.includes(cb.value);
+            });
+            document.getElementById('methodology-notes').value = plan.methodologyNotes;
+            
+            // Set activities
+            setInputValues('activities-container', plan.activities);
+            
+            // Set feedback
+            document.getElementById('feedback').value = plan.feedback;
+            if (plan.rating) {
+                document.querySelector(`input[name="rating"][value="${plan.rating}"]`).checked = true;
+            }
+            
+            // Set hometask
+            document.getElementById('hometask').value = plan.hometask;
+            
+            // Set preview
+            document.getElementById('preview-content').innerHTML = plan.html;
+            
+            // Switch to create tab
+            openTab('create-tab');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Helper function to set input values in a container
+        function setInputValues(containerId, values) {
+            const container = document.getElementById(containerId);
+            
+            // Clear existing inputs (except first one)
+            while (container.children.length > 1) {
+                container.removeChild(container.lastChild);
+            }
+            
+            // Set first input
+            if (values.length > 0) {
+                container.children[0].querySelector('input').value = values[0];
+            } else {
+                container.children[0].querySelector('input').value = '';
+            }
+            
+            // Add additional inputs for remaining values
+            for (let i = 1; i < values.length; i++) {
+                if (containerId === 'resources-container' || containerId === 'slo-container') {
+                    addResource();
+                } else if (containerId === 'activities-container') {
+                    addActivity();
+                }
+                container.children[i].querySelector('input').value = values[i];
+            }
+        }
+
+        // Delete a saved plan
+        function deletePlan(id) {
+            if (confirm('Are you sure you want to delete this lesson plan?')) {
+                savedPlans = savedPlans.filter(p => p.id !== id);
+                localStorage.setItem('lessonPlans', JSON.stringify(savedPlans));
+                renderSavedPlans();
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            if (confirm('Are you sure you want to clear the form? All unsaved data will be lost.')) {
+                // Reset all form fields
+                document.getElementById('lesson-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('day').value = '';
+                document.getElementById('class').value = '';
+                document.getElementById('subject').value = '';
+                document.getElementById('duration').value = '';
+                
+                // Reset resources
+                setInputValues('resources-container', []);
+                
+                // Reset SLOs
+                setInputValues('slo-container', []);
+                
+                // Reset methodologies
+                document.querySelectorAll('input[name="methodology"]').forEach(cb => {
+                    cb.checked = false;
+                });
+                document.getElementById('methodology-notes').value = '';
+                
+                // Reset activities
+                setInputValues('activities-container', []);
+                
+                // Reset feedback
+                document.getElementById('feedback').value = '';
+                document.querySelectorAll('input[name="rating"]').forEach(rb => {
+                    rb.checked = false;
+                });
+                
+                // Reset hometask
+                document.getElementById('hometask').value = '';
+                
+                // Reset preview
+                document.getElementById('preview-content').innerHTML = `
+                    <div class="empty-state">
+                        <i>📄</i>
+                        <p>Your lesson plan preview will appear here</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Download as PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            const subject = document.getElementById('subject').value || 'Lesson Plan';
+            doc.setFontSize(18);
+            doc.text(`${subject} Lesson Plan`, 105, 15, { align: 'center' });
+            
+            // Get all text content from preview
+            const content = document.getElementById('preview-content');
+            const textLines = [];
+            
+            // Helper function to extract text from nodes
+            function extractText(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent.trim();
+                    if (text) textLines.push(text);
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.tagName === 'P') {
+                        const text = node.textContent.trim();
+                        if (text) textLines.push(text);
+                    } else if (node.tagName === 'H3') {
+                        textLines.push('\n' + node.textContent.trim().toUpperCase() + '\n');
+                    } else {
+                        Array.from(node.childNodes).forEach(extractText);
+                    }
+                }
+            }
+            
+            Array.from(content.childNodes).forEach(extractText);
+            
+            // Add text to PDF
+            doc.setFontSize(12);
+            let y = 30;
+            textLines.forEach(line => {
+                if (line.startsWith('\n') && line.endsWith('\n')) {
+                    // Heading
+                    doc.setFont(undefined, 'bold');
+                    const heading = line.trim();
+                    doc.text(heading, 14, y);
+                    doc.setFont(undefined, 'normal');
+                    y += 10;
+                } else {
+                    // Regular text
+                    const splitText = doc.splitTextToSize(line, 180);
+                    doc.text(splitText, 14, y);
+                    y += splitText.length * 7;
+                }
+                
+                // Add new page if needed
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            
+            // Save the PDF
+            doc.save(`${subject.replace(/ /g, '_')}_Lesson_Plan.pdf`);
+        }
+
+        // Print plan
+        function printPlan() {
+            window.print();
+        }
+
+        // Export as DOC (simulated - this will actually be HTML)
+        function exportDoc() {
+            const content = document.getElementById('preview-content').innerHTML;
+            const subject = document.getElementById('subject').value || 'Lesson Plan';
+            
+            // Create a blob with HTML content that Word can open
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${subject} Lesson Plan</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; }
+                        h1 { color: #2c3e50; }
+                        h2 { color: #3498db; margin-top: 20px; }
+                        ul { margin-left: 20px; }
+                        li { margin-bottom: 5px; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `;
+            
+            // Create download link
+            const blob = new Blob([html], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${subject.replace(/ /g, '_')}_Lesson_Plan.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1470 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/9517/9517403.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/9517/9517403.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics Paper Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --info: #4895ef;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --math-bg: #f0f8ff;
+            --math-border: #b8d4ff;
+            --vibrant-1: #7209b7;
+            --vibrant-2: #3a0ca3;
+            --vibrant-3: #4361ee;
+            --vibrant-4: #4cc9f0;
+            --vibrant-5: #f72585;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--vibrant-1), var(--vibrant-2));
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-top: 5px solid var(--vibrant-3);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .card-header i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--vibrant-3);
+        }
+        
+        .card-header h2 {
+            font-size: 1.5rem;
+            color: var(--vibrant-3);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--vibrant-2);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--vibrant-3);
+            outline: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: var(--vibrant-3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--vibrant-2);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: var(--vibrant-4);
+        }
+        
+        .btn-success:hover {
+            background: #3aa8d0;
+        }
+        
+        .btn-warning {
+            background: var(--vibrant-5);
+        }
+        
+        .btn-warning:hover {
+            background: #d41c6c;
+        }
+        
+        .math-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--math-bg);
+            border-radius: 8px;
+            border: 1px solid var(--math-border);
+        }
+        
+        .math-btn {
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .math-btn:hover {
+            background: var(--vibrant-3);
+            color: white;
+        }
+        
+        .preview-area {
+            min-height: 100px;
+            padding: 15px;
+            margin-top: 15px;
+            background: var(--math-bg);
+            border-radius: 8px;
+            border: 1px solid var(--math-border);
+        }
+        
+        .question-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid var(--vibrant-3);
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .question-type {
+            font-size: 0.9rem;
+            background: var(--vibrant-4);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        
+        .delete-btn {
+            background: var(--vibrant-5);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .paper-preview {
+            margin-top: 30px;
+        }
+        
+        #generated-paper {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            min-height: 500px;
+        }
+        
+        .paper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e1e5ee;
+        }
+        
+        .paper-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--vibrant-3);
+        }
+        
+        .paper-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .paper-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e1e5ee;
+            color: var(--vibrant-2);
+        }
+        
+        .objective-question, .subjective-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .question-number {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .option {
+            margin-left: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .matching-pair {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .instructions {
+            font-style: italic;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e5ee;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: var(--vibrant-3);
+            border-bottom: 3px solid var(--vibrant-3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .color-box {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        
+        .color-primary { background: var(--vibrant-1); }
+        .color-secondary { background: var(--vibrant-2); }
+        .color-success { background: var(--vibrant-4); }
+        .color-info { background: var(--vibrant-3); }
+        .color-warning { background: var(--vibrant-5); }
+        
+        .logo-upload {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .logo-preview {
+            width: 100px;
+            height: 100px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .subjective-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .category-btn {
+            padding: 10px;
+            background: white;
+            border: 1px solid #e1e5ee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .category-btn:hover {
+            background: var(--vibrant-3);
+            color: white;
+        }
+        
+        .category-btn.active {
+            background: var(--vibrant-3);
+            color: white;
+        }
+        
+        .paper-logo {
+            max-width: 120px;
+            max-height: 120px;
+        }
+        
+        .paper-header-content {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> Mathematics Paper Generator</h1>
+            <p class="subtitle">Create custom mathematics papers with various question types - No API keys required!</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="create">Create Paper</div>
+            <div class="tab" data-tab="preview">Preview & Export</div>
+            <div class="tab" data-tab="templates">Templates</div>
+        </div>
+        
+        <div class="tab-content active" id="create-tab">
+            <div class="dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h2>Paper Information</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="paper-name">Paper Name</label>
+                        <input type="text" id="paper-name" placeholder="e.g., Midterm Examination">
+                    </div>
+                    <div class="form-group">
+                        <label for="grade-level">Grade Level</label>
+                        <select id="grade-level">
+                            <option value="">Select Grade</option>
+                            <option value="Grade 1">Grade 1</option>
+                            <option value="Grade 2">Grade 2</option>
+                            <option value="Grade 3">Grade 3</option>
+                            <option value="Grade 4">Grade 4</option>
+                            <option value="Grade 5">Grade 5</option>
+                            <option value="Grade 6">Grade 6</option>
+                            <option value="Grade 7">Grade 7</option>
+                            <option value="Grade 8">Grade 8</option>
+                            <option value="Grade 9">Grade 9</option>
+                            <option value="Grade 10">Grade 10</option>
+                            <option value="Grade 11">Grade 11</option>
+                            <option value="Grade 12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" placeholder="e.g., Mathematics" value="Mathematics">
+                    </div>
+                    <div class="form-group">
+                        <label for="school-name">School Name</label>
+                        <input type="text" id="school-name" placeholder="e.g., Springfield High School">
+                    </div>
+                    <div class="form-group logo-upload">
+                        <div>
+                            <label for="school-logo">School Logo</label>
+                            <input type="file" id="school-logo" accept="image/*">
+                        </div>
+                        <div class="logo-preview" id="logo-preview">
+                            <span>Logo Preview</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="time-duration">Time Duration (minutes)</label>
+                        <input type="number" id="time-duration" placeholder="e.g., 60">
+                    </div>
+                    <div class="form-group">
+                        <label for="instructions">General Instructions</label>
+                        <textarea id="instructions" rows="3" placeholder="Enter general instructions for the paper..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-list-ol"></i>
+                        <h2>Objective Questions</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="question-type">Question Type</label>
+                        <select id="question-type">
+                            <option value="mcq">Multiple Choice (MCQ)</option>
+                            <option value="truefalse">True/False</option>
+                            <option value="fillblank">Fill in the Blank</option>
+                            <option value="matching">Matching</option>
+                            <option value="shortanswer">Short Answer</option>
+                        </select>
+                    </div>
+                    
+                    <div id="question-form-container">
+                        <!-- Dynamic form will be inserted here -->
+                    </div>
+                    
+                    <button id="add-objective" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add Question
+                    </button>
+                    
+                    <div id="objective-questions-list">
+                        <!-- Added objective questions will appear here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-pen-fancy"></i>
+                    <h2>Subjective Questions</h2>
+                </div>
+                
+                <div class="subjective-categories">
+                    <div class="category-btn" data-category="addition">Addition</div>
+                    <div class="category-btn" data-category="subtraction">Subtraction</div>
+                    <div class="category-btn" data-category="multiplication">Multiplication</div>
+                    <div class="category-btn" data-category="division">Division</div>
+                    <div class="category-btn" data-category="percentage">Percentage</div>
+                    <div class="category-btn" data-category="geometry">Geometry</div>
+                    <div class="category-btn" data-category="algebra">Algebra</div>
+                    <div class="category-btn" data-category="descriptive">Descriptive</div>
+                </div>
+                
+                <div class="math-toolbar">
+                    <button class="math-btn" data-command="frac">Fraction (a/b)</button>
+                    <button class="math-btn" data-command="sqrt">Square Root (√)</button>
+                    <button class="math-btn" data-command="power">Exponent (a^b)</button>
+                    <button class="math-btn" data-command="integral">Integral (∫)</button>
+                    <button class="math-btn" data-command="sum">Summation (∑)</button>
+                    <button class="math-btn" data-command="pi">Pi (π)</button>
+                    <button class="math-btn" data-command="theta">Theta (θ)</button>
+                    <button class="math-btn" data-command="infty">Infinity (∞)</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="math-editor">Question Text</label>
+                    <textarea id="math-editor" rows="4" placeholder="Type your question here. Use the toolbar above for mathematical notation."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Preview</label>
+                    <div class="preview-area" id="math-preview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="marks">Marks</label>
+                    <input type="number" id="marks" placeholder="e.g., 5" min="1" max="20">
+                </div>
+                
+                <button id="add-subjective" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add Subjective Question
+                </button>
+                
+                <div id="subjective-questions-list">
+                    <!-- Added subjective questions will appear here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="preview-tab">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-pdf"></i>
+                    <h2>Paper Preview</h2>
+                </div>
+                
+                <div class="export-options">
+                    <button id="print-pdf" class="btn btn-warning">
+                        <i class="fas fa-print"></i> Print/Generate PDF
+                    </button>
+                    <button id="download-pdf" class="btn">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </button>
+                    <button id="download-word" class="btn">
+                        <i class="fas fa-file-word"></i> Download Word
+                    </button>
+                    <button id="save-template" class="btn">
+                        <i class="fas fa-save"></i> Save as Template
+                    </button>
+                    <button id="clear-all" class="btn btn-warning">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+                
+                <div id="generated-paper">
+                    <!-- Generated paper will appear here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="templates-tab">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-layer-group"></i>
+                    <h2>Saved Templates</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="template-name">Template Name</label>
+                    <input type="text" id="template-name" placeholder="Enter a name for your template">
+                </div>
+                
+                <button id="save-current" class="btn">
+                    <i class="fas fa-save"></i> Save Current Paper as Template
+                </button>
+                
+                <div id="templates-list" class="form-group">
+                    <!-- Saved templates will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Question type handlers
+        const questionHandlers = {
+            mcq: function() {
+                return `
+                    <div class="form-group">
+                        <label for="question-text">Question</label>
+                        <input type="text" id="question-text" placeholder="Enter the question">
+                    </div>
+                    <div class="form-group">
+                        <label for="option-a">Option A</label>
+                        <input type="text" id="option-a" placeholder="Option A">
+                    </div>
+                    <div class="form-group">
+                        <label for="option-b">Option B</label>
+                        <input type="text" id="option-b" placeholder="Option B">
+                    </div>
+                    <div class="form-group">
+                        <label for="option-c">Option C</label>
+                        <input type="text" id="option-c" placeholder="Option C">
+                    </div>
+                    <div class="form-group">
+                        <label for="option-d">Option D</label>
+                        <input type="text" id="option-d" placeholder="Option D">
+                    </div>
+                    <div class="form-group">
+                        <label for="correct-answer">Correct Answer</label>
+                        <select id="correct-answer">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marks">Marks</label>
+                        <input type="number" id="marks" placeholder="e.g., 1" min="1" max="5">
+                    </div>
+                `;
+            },
+            
+            truefalse: function() {
+                return `
+                    <div class="form-group">
+                        <label for="question-text">Statement</label>
+                        <input type="text" id="question-text" placeholder="Enter the statement">
+                    </div>
+                    <div class="form-group">
+                        <label for="correct-answer">Correct Answer</label>
+                        <select id="correct-answer">
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marks">Marks</label>
+                        <input type="number" id="marks" placeholder="e.g., 1" min="1" max="5">
+                    </div>
+                `;
+            },
+            
+            fillblank: function() {
+                return `
+                    <div class="form-group">
+                        <label for="question-text">Question with Blank</label>
+                        <input type="text" id="question-text" placeholder="E.g., The value of π is approximately ______">
+                    </div>
+                    <div class="form-group">
+                        <label for="correct-answer">Correct Answer</label>
+                        <input type="text" id="correct-answer" placeholder="Enter the correct answer">
+                    </div>
+                    <div class="form-group">
+                        <label for="marks">Marks</label>
+                        <input type="number" id="marks" placeholder="e.g., 1" min="1" max="5">
+                    </div>
+                `;
+            },
+            
+            matching: function() {
+                return `
+                    <div class="form-group">
+                        <label>Matching Pairs</label>
+                        <div class="matching-pair">
+                            <input type="text" class="match-left" placeholder="Left item 1">
+                            <input type="text" class="match-right" placeholder="Right item 1">
+                        </div>
+                        <div class="matching-pair">
+                            <input type="text" class="match-left" placeholder="Left item 2">
+                            <input type="text" class="match-right" placeholder="Right item 2">
+                        </div>
+                        <div class="matching-pair">
+                            <input type="text" class="match-left" placeholder="Left item 3">
+                            <input type="text" class="match-right" placeholder="Right item 3">
+                        </div>
+                        <div class="matching-pair">
+                            <input type="text" class="match-left" placeholder="Left item 4">
+                            <input type="text" class="match-right" placeholder="Right item 4">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="marks">Marks</label>
+                        <input type="number" id="marks" placeholder="e.g., 4" min="1" max="10">
+                    </div>
+                `;
+            },
+            
+            shortanswer: function() {
+                return `
+                    <div class="form-group">
+                        <label for="question-text">Question</label>
+                        <input type="text" id="question-text" placeholder="Enter the question">
+                    </div>
+                    <div class="form-group">
+                        <label for="marks">Marks</label>
+                        <input type="number" id="marks" placeholder="e.g., 2" min="1" max="5">
+                    </div>
+                `;
+            }
+        };
+
+        // Math editor functionality
+        class MathEditor {
+            constructor() {
+                this.editor = document.getElementById('math-editor');
+                this.preview = document.getElementById('math-preview');
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                // Update preview when text changes
+                this.editor.addEventListener('input', () => {
+                    this.previewMath();
+                });
+                
+                // Math toolbar buttons
+                document.querySelectorAll('.math-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.insertSymbol(button.getAttribute('data-command'));
+                    });
+                });
+            }
+            
+            insertSymbol(command) {
+                const textarea = this.editor;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                let insertion = '';
+                
+                switch(command) {
+                    case 'frac':
+                        insertion = '\\frac{a}{b}';
+                        break;
+                    case 'sqrt':
+                        insertion = '\\sqrt{x}';
+                        break;
+                    case 'power':
+                        insertion = 'a^{b}';
+                        break;
+                    case 'integral':
+                        insertion = '\\int_{a}^{b} f(x) dx';
+                        break;
+                    case 'sum':
+                        insertion = '\\sum_{i=1}^{n} i';
+                        break;
+                    case 'pi':
+                        insertion = '\\pi';
+                        break;
+                    case 'theta':
+                        insertion = '\\theta';
+                        break;
+                    case 'infty':
+                        insertion = '\\infty';
+                        break;
+                }
+                
+                textarea.value = text.substring(0, start) + insertion + text.substring(end);
+                textarea.selectionStart = textarea.selectionEnd = start + insertion.length;
+                textarea.focus();
+                this.previewMath();
+            }
+            
+            previewMath() {
+                const text = this.editor.value;
+                this.preview.innerHTML = '';
+                
+                // Simple parsing to identify LaTeX expressions between $ signs
+                const parts = text.split(/(\$[^$]+\$)/g);
+                
+                parts.forEach(part => {
+                    if (part.startsWith('$') && part.endsWith('$')) {
+                        // This is a LaTeX expression
+                        const latex = part.substring(1, part.length - 1);
+                        const element = document.createElement('span');
+                        katex.render(latex, element, {
+                            throwOnError: false
+                        });
+                        this.preview.appendChild(element);
+                    } else if (part.trim() !== '') {
+                        // Regular text
+                        const textNode = document.createTextNode(part);
+                        this.preview.appendChild(textNode);
+                    }
+                });
+            }
+        }
+
+        // Paper Generator class
+        class PaperGenerator {
+            constructor() {
+                this.objectiveQuestions = [];
+                this.subjectiveQuestions = [];
+                this.templates = JSON.parse(localStorage.getItem('mathPaperTemplates')) || {};
+                this.mathEditor = new MathEditor();
+                this.schoolLogo = null;
+                this.currentSubjectiveCategory = null;
+                this.setupEventListeners();
+                this.updateQuestionForm();
+                this.loadTemplatesList();
+            }
+            
+            setupEventListeners() {
+                // Question type change
+                document.getElementById('question-type').addEventListener('change', () => {
+                    this.updateQuestionForm();
+                });
+                
+                // Add objective question
+                document.getElementById('add-objective').addEventListener('click', () => {
+                    this.addObjectiveQuestion();
+                });
+                
+                // Add subjective question
+                document.getElementById('add-subjective').addEventListener('click', () => {
+                    this.addSubjectiveQuestion();
+                });
+                
+                // Tab switching
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        this.switchTab(tab.getAttribute('data-tab'));
+                    });
+                });
+                
+                // Export buttons
+                document.getElementById('print-pdf').addEventListener('click', () => {
+                    this.generatePDF();
+                });
+                
+                document.getElementById('download-pdf').addEventListener('click', () => {
+                    this.downloadPDF();
+                });
+                
+                document.getElementById('download-word').addEventListener('click', () => {
+                    this.downloadWord();
+                });
+                
+                document.getElementById('save-template').addEventListener('click', () => {
+                    this.saveAsTemplate();
+                });
+                
+                document.getElementById('save-current').addEventListener('click', () => {
+                    this.saveCurrentAsTemplate();
+                });
+                
+                document.getElementById('clear-all').addEventListener('click', () => {
+                    if (confirm('Are you sure you want to clear all questions?')) {
+                        this.clearAll();
+                    }
+                });
+                
+                // School logo upload
+                document.getElementById('school-logo').addEventListener('change', (e) => {
+                    this.handleLogoUpload(e);
+                });
+                
+                // Subjective category selection
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentSubjectiveCategory = btn.getAttribute('data-category');
+                    });
+                });
+            }
+            
+            updateQuestionForm() {
+                const type = document.getElementById('question-type').value;
+                const container = document.getElementById('question-form-container');
+                
+                if (type && questionHandlers[type]) {
+                    container.innerHTML = questionHandlers[type]();
+                } else {
+                    container.innerHTML = '<p>Select a question type to continue.</p>';
+                }
+            }
+            
+            addObjectiveQuestion() {
+                const type = document.getElementById('question-type').value;
+                if (!type) return;
+                
+                let questionData = { type };
+                
+                // Collect data based on question type
+                if (type === 'mcq') {
+                    questionData.text = document.getElementById('question-text').value;
+                    questionData.options = {
+                        A: document.getElementById('option-a').value,
+                        B: document.getElementById('option-b').value,
+                        C: document.getElementById('option-c').value,
+                        D: document.getElementById('option-d').value
+                    };
+                    questionData.answer = document.getElementById('correct-answer').value;
+                    questionData.marks = parseInt(document.getElementById('marks').value) || 1;
+                } else if (type === 'truefalse') {
+                    questionData.text = document.getElementById('question-text').value;
+                    questionData.answer = document.getElementById('correct-answer').value;
+                    questionData.marks = parseInt(document.getElementById('marks').value) || 1;
+                } else if (type === 'fillblank') {
+                    questionData.text = document.getElementById('question-text').value;
+                    questionData.answer = document.getElementById('correct-answer').value;
+                    questionData.marks = parseInt(document.getElementById('marks').value) || 1;
+                } else if (type === 'matching') {
+                    questionData.pairs = [];
+                    const leftItems = document.querySelectorAll('.match-left');
+                    const rightItems = document.querySelectorAll('.match-right');
+                    
+                    for (let i = 0; i < leftItems.length; i++) {
+                        if (leftItems[i].value && rightItems[i].value) {
+                            questionData.pairs.push({
+                                left: leftItems[i].value,
+                                right: rightItems[i].value
+                            });
+                        }
+                    }
+                    questionData.marks = parseInt(document.getElementById('marks').value) || 4;
+                } else if (type === 'shortanswer') {
+                    questionData.text = document.getElementById('question-text').value;
+                    questionData.marks = parseInt(document.getElementById('marks').value) || 2;
+                }
+                
+                // Validate required fields
+                if ((type !== 'matching' && !questionData.text) || 
+                    (type === 'matching' && questionData.pairs.length === 0)) {
+                    alert('Please fill in all required fields.');
+                    return;
+                }
+                
+                this.objectiveQuestions.push(questionData);
+                this.renderObjectiveQuestions();
+                this.updateQuestionForm(); // Reset form
+            }
+            
+            addSubjectiveQuestion() {
+                const text = document.getElementById('math-editor').value;
+                const marks = parseInt(document.getElementById('marks').value) || 5;
+                
+                if (!text) {
+                    alert('Please enter a question.');
+                    return;
+                }
+                
+                this.subjectiveQuestions.push({
+                    text,
+                    marks,
+                    category: this.currentSubjectiveCategory || 'general'
+                });
+                
+                this.renderSubjectiveQuestions();
+                
+                // Reset form
+                document.getElementById('math-editor').value = '';
+                document.getElementById('marks').value = '';
+                this.mathEditor.previewMath();
+            }
+            
+            renderObjectiveQuestions() {
+                const container = document.getElementById('objective-questions-list');
+                container.innerHTML = '';
+                
+                this.objectiveQuestions.forEach((question, index) => {
+                    const questionElement = document.createElement('div');
+                    questionElement.className = 'question-container';
+                    
+                    let questionHTML = `
+                        <div class="question-header">
+                            <span class="question-type">${this.getQuestionTypeName(question.type)}</span>
+                            <button class="delete-btn" data-index="${index}" data-type="objective">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                        <p><strong>Question:</strong> ${question.text || 'Matching question'}</p>
+                    `;
+                    
+                    if (question.type === 'mcq') {
+                        questionHTML += `<p><strong>Options:</strong> A) ${question.options.A}, B) ${question.options.B}, C) ${question.options.C}, D) ${question.options.D}</p>`;
+                        questionHTML += `<p><strong>Answer:</strong> ${question.answer}</p>`;
+                    } else if (question.type === 'truefalse' || question.type === 'fillblank') {
+                        questionHTML += `<p><strong>Answer:</strong> ${question.answer}</p>`;
+                    } else if (question.type === 'matching') {
+                        questionHTML += `<p><strong>Pairs:</strong> ${question.pairs.map(p => `${p.left} - ${p.right}`).join(', ')}</p>`;
+                    }
+                    
+                    questionHTML += `<p><strong>Marks:</strong> ${question.marks}</p>`;
+                    
+                    questionElement.innerHTML = questionHTML;
+                    container.appendChild(questionElement);
+                });
+                
+                // Add delete event listeners
+                container.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.closest('.delete-btn').getAttribute('data-index'));
+                        const type = e.target.closest('.delete-btn').getAttribute('data-type');
+                        this.deleteQuestion(index, type);
+                    });
+                });
+            }
+            
+            renderSubjectiveQuestions() {
+                const container = document.getElementById('subjective-questions-list');
+                container.innerHTML = '';
+                
+                this.subjectiveQuestions.forEach((question, index) => {
+                    const questionElement = document.createElement('div');
+                    questionElement.className = 'question-container';
+                    
+                    questionElement.innerHTML = `
+                        <div class="question-header">
+                            <span class="question-type">${this.capitalizeFirst(question.category)}</span>
+                            <button class="delete-btn" data-index="${index}" data-type="subjective">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                        <div class="math-preview">${this.renderMathPreview(question.text)}</div>
+                        <p><strong>Marks:</strong> ${question.marks}</p>
+                    `;
+                    
+                    container.appendChild(questionElement);
+                });
+                
+                // Add delete event listeners
+                container.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.closest('.delete-btn').getAttribute('data-index'));
+                        const type = e.target.closest('.delete-btn').getAttribute('data-type');
+                        this.deleteQuestion(index, type);
+                    });
+                });
+            }
+            
+            renderMathPreview(text) {
+                // Simple parsing to identify LaTeX expressions between $ signs
+                const parts = text.split(/(\$[^$]+\$)/g);
+                let result = '';
+                
+                parts.forEach(part => {
+                    if (part.startsWith('$') && part.endsWith('$')) {
+                        // This is a LaTeX expression
+                        const latex = part.substring(1, part.length - 1);
+                        try {
+                            result += katex.renderToString(latex, {
+                                throwOnError: false
+                            });
+                        } catch (e) {
+                            result += part;
+                        }
+                    } else if (part.trim() !== '') {
+                        // Regular text
+                        result += part;
+                    }
+                });
+                
+                return result;
+            }
+            
+            deleteQuestion(index, type) {
+                if (type === 'objective') {
+                    this.objectiveQuestions.splice(index, 1);
+                    this.renderObjectiveQuestions();
+                } else if (type === 'subjective') {
+                    this.subjectiveQuestions.splice(index, 1);
+                    this.renderSubjectiveQuestions();
+                }
+            }
+            
+            getQuestionTypeName(type) {
+                const names = {
+                    mcq: 'Multiple Choice',
+                    truefalse: 'True/False',
+                    fillblank: 'Fill in the Blank',
+                    matching: 'Matching',
+                    shortanswer: 'Short Answer'
+                };
+                
+                return names[type] || type;
+            }
+            
+            capitalizeFirst(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+            
+            switchTab(tabName) {
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+                
+                // Update active content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+                
+                // Generate paper preview if switching to preview tab
+                if (tabName === 'preview') {
+                    this.generatePaperPreview();
+                }
+            }
+            
+            generatePaperPreview() {
+                const paperElement = document.getElementById('generated-paper');
+                const paperName = document.getElementById('paper-name').value || 'Mathematics Paper';
+                const gradeLevel = document.getElementById('grade-level').value || 'Grade Level';
+                const subject = document.getElementById('subject').value || 'Mathematics';
+                const schoolName = document.getElementById('school-name').value || 'School Name';
+                const timeDuration = document.getElementById('time-duration').value || '60';
+                const instructions = document.getElementById('instructions').value || 'No specific instructions provided.';
+                
+                let logoHTML = '';
+                if (this.schoolLogo) {
+                    logoHTML = `<img src="${this.schoolLogo}" alt="School Logo" class="paper-logo">`;
+                }
+                
+                let paperHTML = `
+                    <div class="paper-header">
+                        <div class="paper-header-content">
+                            <h1 class="paper-title">${paperName}</h1>
+                            <p><strong>Subject:</strong> ${subject}</p>
+                            <p><strong>Grade:</strong> ${gradeLevel}</p>
+                            <p><strong>Time:</strong> ${timeDuration} minutes</p>
+                        </div>
+                        ${logoHTML}
+                    </div>
+                    
+                    <div class="paper-info">
+                        <div>
+                            <p><strong>School:</strong> ${schoolName}</p>
+                        </div>
+                        <div>
+                            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="instructions">
+                        <p><strong>Instructions:</strong> ${instructions}</p>
+                    </div>
+                `;
+                
+                // Add objective questions section if there are any
+                if (this.objectiveQuestions.length > 0) {
+                    paperHTML += `
+                        <div class="paper-section">
+                            <h2 class="section-title">Section A: Objective Questions</h2>
+                            <p>Answer all questions in this section.</p>
+                    `;
+                    
+                    this.objectiveQuestions.forEach((question, index) => {
+                        paperHTML += `<div class="objective-question">`;
+                        paperHTML += `<p><span class="question-number">${index + 1}.</span> `;
+                        
+                        if (question.type === 'mcq') {
+                            paperHTML += `${question.text}</p>`;
+                            paperHTML += `<div class="option">A) ${question.options.A}</div>`;
+                            paperHTML += `<div class="option">B) ${question.options.B}</div>`;
+                            paperHTML += `<div class="option">C) ${question.options.C}</div>`;
+                            paperHTML += `<div class="option">D) ${question.options.D}</div>`;
+                        } else if (question.type === 'truefalse') {
+                            paperHTML += `${question.text}</p>`;
+                            paperHTML += `<div class="option">( ) True</div>`;
+                            paperHTML += `<div class="option">( ) False</div>`;
+                        } else if (question.type === 'fillblank') {
+                            paperHTML += `${question.text}</p>`;
+                        } else if (question.type === 'matching') {
+                            paperHTML += `Match the following:</p>`;
+                            question.pairs.forEach(pair => {
+                                paperHTML += `<div class="matching-pair">`;
+                                paperHTML += `<div>${pair.left}</div>`;
+                                paperHTML += `<div>_________________</div>`;
+                                paperHTML += `</div>`;
+                            });
+                        } else if (question.type === 'shortanswer') {
+                            paperHTML += `${question.text}</p>`;
+                            paperHTML += `<p>Answer: ___________________________________</p>`;
+                        }
+                        
+                        paperHTML += `<p><strong>[${question.marks} marks]</strong></p>`;
+                        paperHTML += `</div>`;
+                    });
+                    
+                    paperHTML += `</div>`;
+                }
+                
+                // Add subjective questions section if there are any
+                if (this.subjectiveQuestions.length > 0) {
+                    paperHTML += `
+                        <div class="paper-section">
+                            <h2 class="section-title">Section B: Subjective Questions</h2>
+                            <p>Answer all questions in this section. Show all your working.</p>
+                    `;
+                    
+                    this.subjectiveQuestions.forEach((question, index) => {
+                        paperHTML += `
+                            <div class="subjective-question">
+                                <p><span class="question-number">${index + 1}.</span> ${this.renderMathPreview(question.text)}</p>
+                                <p><strong>[${question.marks} marks]</strong></p>
+                            </div>
+                        `;
+                    });
+                    
+                    paperHTML += `</div>`;
+                }
+                
+                paperElement.innerHTML = paperHTML;
+            }
+            
+            handleLogoUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.schoolLogo = e.target.result;
+                    const preview = document.getElementById('logo-preview');
+                    preview.innerHTML = `<img src="${this.schoolLogo}" alt="School Logo">`;
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            generatePDF() {
+                window.print();
+            }
+            
+            downloadPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Get paper content
+                const paperElement = document.getElementById('generated-paper');
+                
+                // Use html2canvas to capture the paper as an image
+                html2canvas(paperElement).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 210; // A4 width in mm
+                    const pageHeight = 295; // A4 height in mm
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    
+                    let position = 0;
+                    
+                    // Add first page
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    
+                    // Add more pages if needed
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        doc.addPage();
+                        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+                    
+                    // Save the PDF
+                    doc.save('math_paper.pdf');
+                });
+            }
+            
+            downloadWord() {
+                // This is a simplified version - a real implementation would need more complex processing
+                alert('Word export functionality would require a server-side component for full implementation. For now, you can copy the content from the preview.');
+            }
+            
+            saveAsTemplate() {
+                const templateName = prompt('Enter a name for this template:');
+                if (!templateName) return;
+                
+                const template = {
+                    paperName: document.getElementById('paper-name').value,
+                    gradeLevel: document.getElementById('grade-level').value,
+                    subject: document.getElementById('subject').value,
+                    schoolName: document.getElementById('school-name').value,
+                    timeDuration: document.getElementById('time-duration').value,
+                    instructions: document.getElementById('instructions').value,
+                    objectiveQuestions: this.objectiveQuestions,
+                    subjectiveQuestions: this.subjectiveQuestions
+                };
+                
+                this.templates[templateName] = template;
+                localStorage.setItem('mathPaperTemplates', JSON.stringify(this.templates));
+                this.loadTemplatesList();
+                alert(`Template "${templateName}" saved successfully!`);
+            }
+            
+            saveCurrentAsTemplate() {
+                const templateName = document.getElementById('template-name').value;
+                if (!templateName) {
+                    alert('Please enter a template name.');
+                    return;
+                }
+                
+                const template = {
+                    paperName: document.getElementById('paper-name').value,
+                    gradeLevel: document.getElementById('grade-level').value,
+                    subject: document.getElementById('subject').value,
+                    schoolName: document.getElementById('school-name').value,
+                    timeDuration: document.getElementById('time-duration').value,
+                    instructions: document.getElementById('instructions').value,
+                    objectiveQuestions: this.objectiveQuestions,
+                    subjectiveQuestions: this.subjectiveQuestions
+                };
+                
+                this.templates[templateName] = template;
+                localStorage.setItem('mathPaperTemplates', JSON.stringify(this.templates));
+                this.loadTemplatesList();
+                alert(`Template "${templateName}" saved successfully!`);
+                document.getElementById('template-name').value = '';
+            }
+            
+            loadTemplatesList() {
+                const container = document.getElementById('templates-list');
+                container.innerHTML = '';
+                
+                if (Object.keys(this.templates).length === 0) {
+                    container.innerHTML = '<p>No saved templates yet.</p>';
+                    return;
+                }
+                
+                for (const name in this.templates) {
+                    const template = this.templates[name];
+                    const templateElement = document.createElement('div');
+                    templateElement.className = 'question-container';
+                    
+                    templateElement.innerHTML = `
+                        <div class="question-header">
+                            <h3>${name}</h3>
+                            <div>
+                                <button class="btn" data-template="${name}" data-action="load">
+                                    <i class="fas fa-upload"></i> Load
+                                </button>
+                                <button class="btn btn-warning" data-template="${name}" data-action="delete">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        <p><strong>Paper:</strong> ${template.paperName}</p>
+                        <p><strong>Grade:</strong> ${template.gradeLevel}</p>
+                        <p><strong>Questions:</strong> ${template.objectiveQuestions.length} objective, ${template.subjectiveQuestions.length} subjective</p>
+                    `;
+                    
+                    container.appendChild(templateElement);
+                }
+                
+                // Add event listeners for template buttons
+                container.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const templateName = e.target.closest('button').getAttribute('data-template');
+                        const action = e.target.closest('button').getAttribute('data-action');
+                        
+                        if (action === 'load') {
+                            this.loadTemplate(templateName);
+                        } else if (action === 'delete') {
+                            if (confirm(`Are you sure you want to delete the template "${templateName}"?`)) {
+                                delete this.templates[templateName];
+                                localStorage.setItem('mathPaperTemplates', JSON.stringify(this.templates));
+                                this.loadTemplatesList();
+                            }
+                        }
+                    });
+                });
+            }
+            
+            loadTemplate(templateName) {
+                const template = this.templates[templateName];
+                if (!template) return;
+                
+                document.getElementById('paper-name').value = template.paperName || '';
+                document.getElementById('grade-level').value = template.gradeLevel || '';
+                document.getElementById('subject').value = template.subject || '';
+                document.getElementById('school-name').value = template.schoolName || '';
+                document.getElementById('time-duration').value = template.timeDuration || '';
+                document.getElementById('instructions').value = template.instructions || '';
+                
+                this.objectiveQuestions = template.objectiveQuestions || [];
+                this.subjectiveQuestions = template.subjectiveQuestions || [];
+                
+                this.renderObjectiveQuestions();
+                this.renderSubjectiveQuestions();
+                
+                this.switchTab('create');
+                alert(`Template "${templateName}" loaded successfully!`);
+            }
+            
+            clearAll() {
+                this.objectiveQuestions = [];
+                this.subjectiveQuestions = [];
+                this.renderObjectiveQuestions();
+                this.renderSubjectiveQuestions();
+                
+                document.getElementById('paper-name').value = '';
+                document.getElementById('grade-level').value = '';
+                document.getElementById('subject').value = 'Mathematics';
+                document.getElementById('school-name').value = '';
+                document.getElementById('time-duration').value = '';
+                document.getElementById('instructions').value = '';
+                document.getElementById('math-editor').value = '';
+                document.getElementById('marks').value = '';
+                this.mathEditor.previewMath();
+                
+                alert('All questions cleared!');
+            }
+        }
+
+        // Initialize the application when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new PaperGenerator();
+        });
+    </script>
+</body>
+</html>

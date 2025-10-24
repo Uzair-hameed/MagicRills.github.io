@@ -1,0 +1,2260 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/2995/2995440.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/2995/2995440.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Advanced MCQ Maker Tool</title>
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+
+        .tool-description {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .option-item input[type="text"] {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .option-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .question-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .preview-area {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .preview-question {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .preview-options {
+            margin-left: 20px;
+        }
+
+        .preview-option {
+            margin-bottom: 5px;
+        }
+
+        .correct-answer {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .drag-handle {
+            cursor: move;
+            margin-right: 10px;
+            color: #666;
+        }
+
+        .question-list {
+            min-height: 100px;
+        }
+
+        .question-item.dragging {
+            opacity: 0.5;
+            background-color: #f8f9fa;
+            border: 2px dashed #ccc;
+        }
+
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+
+        .dark-mode .card {
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+        }
+
+        .dark-mode .card-header {
+            background-color: #1a3a5a;
+        }
+
+        .dark-mode .preview-area,
+        .dark-mode .question-item {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+
+        .dark-mode select,
+        .dark-mode input,
+        .dark-mode textarea {
+            background-color: #333;
+            color: #f0f0f0;
+            border-color: #444;
+        }
+
+        .dark-mode .preview-question {
+            border-bottom-color: #444;
+        }
+
+        .dark-mode .tab {
+            background-color: #333;
+            border-color: #444;
+            color: #f0f0f0;
+        }
+
+        .dark-mode .tab.active {
+            background-color: #2d2d2d;
+            border-bottom-color: #2d2d2d;
+        }
+
+        .dark-mode .slider {
+            background-color: #555;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-bar {
+            height: 5px;
+            background-color: var(--accent-color);
+            width: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* Animation for new question addition */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-item {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Responsive adjustments */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            
+            .preview-area {
+                box-shadow: none !important;
+                border: none !important;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <header>
+        <div class="container">
+            <h1>Advanced MCQ Maker Tool</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tool-description">
+            <p>Create professional multiple-choice question papers with ease. Customize, preview, and export in multiple formats.</p>
+        </div>
+
+        <div class="tab-container no-print">
+            <div class="tab active" data-tab="setup">Setup</div>
+            <div class="tab" data-tab="questions">Questions</div>
+            <div class="tab" data-tab="preview">Preview &amp; Export</div>
+            <div class="tab" data-tab="question-bank">Question Bank</div>
+        </div>
+
+        <div class="tab-content active" id="setup">
+            <div class="card">
+                <div class="card-header">
+                    Basic Information
+                </div>
+                <div class="card-body">
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label for="class-level">Class Level</label>
+                            <select id="class-level">
+                                <option value="">Select Class</option>
+                                <option value="1">Class 1</option>
+                                <option value="2">Class 2</option>
+                                <option value="3">Class 3</option>
+                                <option value="4">Class 4</option>
+                                <option value="5">Class 5</option>
+                                <option value="6">Class 6</option>
+                                <option value="7">Class 7</option>
+                                <option value="8">Class 8</option>
+                                <option value="9">Class 9</option>
+                                <option value="10">Class 10</option>
+                                <option value="11">Class 11</option>
+                                <option value="12">Class 12</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <select id="subject">
+                                <option value="">Select Subject</option>
+                                <option value="english">English</option>
+                                <option value="urdu">Urdu</option>
+                                <option value="math">Mathematics</option>
+                                <option value="science">Science</option>
+                                <option value="history">History</option>
+                                <option value="geography">Geography</option>
+                                <option value="computer">Computer Science</option>
+                                <option value="islamiat">Islamiat</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="paper-title">Paper Title</label>
+                        <input id="paper-title" placeholder="Enter paper title" type="text" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chapter">Chapter/Topic</label>
+                        <input id="chapter" placeholder="Enter chapter or topic" type="text" />
+                    </div>
+                    
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label for="total-questions">Number of Questions</label>
+                            <input id="total-questions" min="1" type="number" value="10" />
+                        </div>
+                        <div class="form-group">
+                            <label>Difficulty Distribution</label>
+                            <div style="display: flex; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <label for="easy-questions">Easy</label>
+                                    <input id="easy-questions" min="0" style="width: 100%;" type="number" value="4" />
+                                </div>
+                                <div style="flex: 1;">
+                                    <label for="medium-questions">Medium</label>
+                                    <input id="medium-questions" min="0" style="width: 100%;" type="number" value="4" />
+                                </div>
+                                <div style="flex: 1;">
+                                    <label for="hard-questions">Hard</label>
+                                    <input id="hard-questions" min="0" style="width: 100%;" type="number" value="2" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Additional Options</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                            <label class="toggle-switch">
+                                <input id="randomize-options" type="checkbox" />
+                                <span class="slider"></span>
+                                <span class="toggle-label">Randomize Options</span>
+                            </label>
+                            
+                            <label class="toggle-switch">
+                                <input checked="" id="include-answer-key" type="checkbox" />
+                                <span class="slider"></span>
+                                <span class="toggle-label">Include Answer Key</span>
+                            </label>
+                            
+                            <label class="toggle-switch">
+                                <input id="bilingual-mode" type="checkbox" />
+                                <span class="slider"></span>
+                                <span class="toggle-label">Bilingual Mode</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instructions">Special Instructions</label>
+                        <textarea id="instructions" placeholder="Enter any special instructions for the paper" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card no-print" style="margin-top: 20px;">
+                <div class="card-header">
+                    AI-Assisted Question Generation
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="ai-topic">Enter Topic for AI to Generate Questions</label>
+                        <input id="ai-topic" placeholder="E.g., Photosynthesis, World War II, Algebra" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <label for="ai-difficulty">Difficulty Level</label>
+                        <select id="ai-difficulty">
+                            <option value="easy">Easy</option>
+                            <option selected="" value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                            <option value="mixed">Mixed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ai-count">Number of Questions</label>
+                        <input id="ai-count" max="20" min="1" type="number" value="5" />
+                    </div>
+                    <button class="btn btn-success" id="generate-ai-questions">Generate Questions</button>
+                    <div id="ai-loading" style="display: none; margin-top: 10px;">
+                        <p>Generating questions... This may take a moment.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="questions">
+            <div class="card no-print">
+                <div class="card-header">
+                    Add New Question
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="question-type">Question Type</label>
+                        <select id="question-type">
+                            <option value="single">Single Correct Answer</option>
+                            <option value="multiple">Multiple Correct Answers</option>
+                            <option value="true-false">True/False</option>
+                            <option value="fill-blank">Fill in the Blank</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question-text">Question Text</label>
+                        <textarea id="question-text" placeholder="Enter your question" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group" id="bilingual-question-container" style="display: none;">
+                        <label for="question-text-urdu">Question Text (Urdu)</label>
+                        <textarea id="question-text-urdu" placeholder="Enter question in Urdu" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group" id="options-container">
+                        <label>Options</label>
+                        <div id="option-list">
+                            <div class="option-item">
+                                <input placeholder="Option A" type="text" />
+                                <input class="correct-option" title="Mark as correct" type="checkbox" />
+                                <button class="btn btn-danger btn-sm remove-option">×</button>
+                            </div>
+                            <div class="option-item">
+                                <input placeholder="Option B" type="text" />
+                                <input class="correct-option" title="Mark as correct" type="checkbox" />
+                                <button class="btn btn-danger btn-sm remove-option">×</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm" id="add-option" style="margin-top: 5px;">+ Add Option</button>
+                    </div>
+                    
+                    <div class="form-group" id="true-false-container" style="display: none;">
+                        <label>Correct Answer</label>
+                        <div>
+                            <label><input checked="" name="true-false" type="radio" value="true" /> True</label>
+                            <label style="margin-left: 15px;"><input name="true-false" type="radio" value="false" /> False</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="fill-blank-container" style="display: none;">
+                        <label for="correct-answer-text">Correct Answer</label>
+                        <input id="correct-answer-text" placeholder="Enter correct answer" type="text" />
+                    </div>
+                    
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label for="question-difficulty">Difficulty Level</label>
+                            <select id="question-difficulty">
+                                <option value="easy">Easy</option>
+                                <option selected="" value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="question-image">Image (Optional)</label>
+                            <input accept="image/*" id="question-image" type="file" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question-explanation">Explanation (Optional)</label>
+                        <textarea id="question-explanation" placeholder="Add explanation for the correct answer" rows="2"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-success" id="add-question">Add Question</button>
+                    <button class="btn" id="save-question-bank" style="margin-left: 10px;">Save to Question Bank</button>
+                </div>
+            </div>
+            
+            <div class="card no-print">
+                <div class="card-header">
+                    Question List
+                </div>
+                <div class="card-body">
+                    <div class="question-list" id="question-list">
+                        <p id="no-questions-message">No questions added yet. Start by adding questions above.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="preview">
+            <div class="card no-print">
+                <div class="card-header">
+                    Export Options
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Export Format</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <button class="btn btn-danger" id="export-pdf"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">PDF</a></button>
+                            <button class="btn btn-primary" id="export-doc"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Word</a> (DOCX)</button>
+                            <button class="btn btn-success" id="export-html">HTML</button>
+                            <button class="btn btn-warning" id="export-json">JSON</button>
+                            <button class="btn btn-info" id="export-csv">CSV</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Content to Include</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                            <label class="toggle-switch">
+                                <input checked="" id="include-questions" type="checkbox" />
+                                <span class="slider"></span>
+                                <span class="toggle-label">Questions</span>
+                            </label>
+                            
+                            <label class="toggle-switch">
+                                <input checked="" id="include-answers" type="checkbox" />
+                                <span class="slider"></span>
+                                <span class="toggle-label">Answer Key</span>
+                            </label>
+                            
+                            <label class="toggle-switch">
+                                <input id="include-explanations" type="checkbox" />
+                                <span class="slider"></span>
+                                <span class="toggle-label">Explanations</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="export-title">Document Title</label>
+                        <input id="export-title" placeholder="Enter title for exported document" type="text" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="export-header">Header Text (Optional)</label>
+                        <textarea id="export-header" placeholder="Enter header text for the document" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="export-footer">Footer Text (Optional)</label>
+                        <textarea id="export-footer" placeholder="Enter footer text for the document" rows="2"></textarea>
+                    </div>
+                    
+                    <button class="btn" id="print-paper"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Print Paper</a></button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    Preview
+                </div>
+                <div class="card-body">
+                    <div class="preview-area" id="preview-area">
+                        <h2 id="preview-title">MCQ Paper Preview</h2>
+                        <div id="preview-instructions" style="font-style: italic; margin-bottom: 20px;"></div>
+                        <div id="preview-questions"></div>
+                        <div id="preview-answer-key" style="margin-top: 30px; page-break-before: always;">
+                            <h3>Answer Key</h3>
+                            <div id="preview-answers"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="question-bank">
+            <div class="card no-print">
+                <div class="card-header">
+                    Question Bank Management
+                </div>
+                <div class="card-body">
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label for="bank-class">Filter by Class</label>
+                            <select id="bank-class">
+                                <option value="">All Classes</option>
+                                <option value="1">Class 1</option>
+                                <option value="2">Class 2</option>
+                                <option value="3">Class 3</option>
+                                <option value="4">Class 4</option>
+                                <option value="5">Class 5</option>
+                                <option value="6">Class 6</option>
+                                <option value="7">Class 7</option>
+                                <option value="8">Class 8</option>
+                                <option value="9">Class 9</option>
+                                <option value="10">Class 10</option>
+                                <option value="11">Class 11</option>
+                                <option value="12">Class 12</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bank-subject">Filter by Subject</label>
+                            <select id="bank-subject">
+                                <option value="">All Subjects</option>
+                                <option value="english">English</option>
+                                <option value="urdu">Urdu</option>
+                                <option value="math">Mathematics</option>
+                                <option value="science">Science</option>
+                                <option value="history">History</option>
+                                <option value="geography">Geography</option>
+                                <option value="computer">Computer Science</option>
+                                <option value="islamiat">Islamiat</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label for="bank-difficulty">Filter by Difficulty</label>
+                            <select id="bank-difficulty">
+                                <option value="">All Levels</option>
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bank-topic">Filter by Topic</label>
+                            <input id="bank-topic" placeholder="Enter topic to search" type="text" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bank-search">Search Questions</label>
+                        <input id="bank-search" placeholder="Search question text" type="text" />
+                    </div>
+                    
+                    <button class="btn" id="apply-filters">Apply Filters</button>
+                    <button class="btn btn-warning" id="reset-filters" style="margin-left: 10px;">Reset Filters</button>
+                    <button class="btn btn-success" id="import-questions" style="margin-left: 10px;">Import Questions</button>
+                    <button class="btn btn-info" id="export-bank" style="margin-left: 10px;">Export Question Bank</button>
+                    
+                    <div style="margin-top: 20px;">
+                        <label class="toggle-switch">
+                            <input id="select-all-questions" type="checkbox" />
+                            <span class="slider"></span>
+                            <span class="toggle-label">Select All</span>
+                        </label>
+                        <button class="btn btn-success" id="add-selected" style="margin-left: 15px;">Add Selected to Paper</button>
+                        <button class="btn btn-danger" id="delete-selected" style="margin-left: 10px;">Delete Selected</button>
+                    </div>
+                    
+                    <div id="question-bank-list" style="margin-top: 20px;">
+                        <p>No questions found in the bank. Add questions to build your bank.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="theme-toggle no-print">
+        <button class="theme-toggle-btn" id="themeToggle">🌓</button>
+    </div>
+
+    <script>
+        // Global variables
+        let questions = [];
+        let questionBank = JSON.parse(localStorage.getItem('questionBank')) || [];
+        let currentQuestionId = 1;
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        
+        // DOM elements
+        const progressBar = document.getElementById('progressBar');
+        const themeToggle = document.getElementById('themeToggle');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const questionType = document.getElementById('question-type');
+        const optionsContainer = document.getElementById('options-container');
+        const trueFalseContainer = document.getElementById('true-false-container');
+        const fillBlankContainer = document.getElementById('fill-blank-container');
+        const addOptionBtn = document.getElementById('add-option');
+        const optionList = document.getElementById('option-list');
+        const addQuestionBtn = document.getElementById('add-question');
+        const questionList = document.getElementById('question-list');
+        const noQuestionsMessage = document.getElementById('no-questions-message');
+        const previewQuestions = document.getElementById('preview-questions');
+        const previewAnswers = document.getElementById('preview-answers');
+        const previewTitle = document.getElementById('preview-title');
+        const previewInstructions = document.getElementById('preview-instructions');
+        const exportPdfBtn = document.getElementById('export-pdf');
+        const exportDocBtn = document.getElementById('export-doc');
+        const exportHtmlBtn = document.getElementById('export-html');
+        const exportJsonBtn = document.getElementById('export-json');
+        const exportCsvBtn = document.getElementById('export-csv');
+        const printPaperBtn = document.getElementById('print-paper');
+        const bilingualMode = document.getElementById('bilingual-mode');
+        const bilingualQuestionContainer = document.getElementById('bilingual-question-container');
+        const generateAiQuestionsBtn = document.getElementById('generate-ai-questions');
+        const aiLoading = document.getElementById('ai-loading');
+        const saveQuestionBankBtn = document.getElementById('save-question-bank');
+        const questionBankList = document.getElementById('question-bank-list');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        const importQuestionsBtn = document.getElementById('import-questions');
+        const exportBankBtn = document.getElementById('export-bank');
+        const selectAllQuestions = document.getElementById('select-all-questions');
+        const addSelectedBtn = document.getElementById('add-selected');
+        const deleteSelectedBtn = document.getElementById('delete-selected');
+        
+        // Initialize the app
+        function init() {
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Apply saved dark mode preference
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            }
+            
+            // Initialize the question bank display
+            updateQuestionBankDisplay();
+            
+            // Update progress bar on scroll
+            window.addEventListener('scroll', updateProgressBar);
+        }
+        
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // Question type change
+            questionType.addEventListener('change', handleQuestionTypeChange);
+            
+            // Add option button
+            addOptionBtn.addEventListener('click', addOption);
+            
+            // Add question button
+            addQuestionBtn.addEventListener('click', addQuestion);
+            
+            // Save question to bank button
+            saveQuestionBankBtn.addEventListener('click', saveQuestionToBank);
+            
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleDarkMode);
+            
+            // Bilingual mode toggle
+            bilingualMode.addEventListener('change', () => {
+                bilingualQuestionContainer.style.display = bilingualMode.checked ? 'block' : 'none';
+            });
+            
+            // Generate AI questions
+            generateAiQuestionsBtn.addEventListener('click', generateAiQuestions);
+            
+            // Export buttons
+            exportPdfBtn.addEventListener('click', exportToPdf);
+            exportDocBtn.addEventListener('click', exportToDoc);
+            exportHtmlBtn.addEventListener('click', exportToHtml);
+            exportJsonBtn.addEventListener('click', exportToJson);
+            exportCsvBtn.addEventListener('click', exportToCsv);
+            printPaperBtn.addEventListener('click', printPaper);
+            
+            // Question bank filters
+            applyFiltersBtn.addEventListener('click', updateQuestionBankDisplay);
+            resetFiltersBtn.addEventListener('click', resetQuestionBankFilters);
+            importQuestionsBtn.addEventListener('click', importQuestionBank);
+            exportBankBtn.addEventListener('click', exportQuestionBank);
+            selectAllQuestions.addEventListener('change', toggleSelectAllQuestions);
+            addSelectedBtn.addEventListener('click', addSelectedQuestionsToPaper);
+            deleteSelectedBtn.addEventListener('click', deleteSelectedQuestions);
+            
+            // Delegated event listeners for dynamic elements
+            optionList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-option')) {
+                    if (optionList.children.length > 2) {
+                        e.target.closest('.option-item').remove();
+                    } else {
+                        alert('A question must have at least 2 options.');
+                    }
+                }
+            });
+            
+            questionList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-question')) {
+                    editQuestion(e.target.closest('.question-item').dataset.id);
+                } else if (e.target.classList.contains('delete-question')) {
+                    deleteQuestion(e.target.closest('.question-item').dataset.id);
+                } else if (e.target.classList.contains('drag-handle')) {
+                    // Drag handle clicked - drag functionality is handled separately
+                }
+            });
+            
+            questionBankList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('bank-edit-question')) {
+                    editQuestionFromBank(e.target.closest('.bank-question-item').dataset.id);
+                } else if (e.target.classList.contains('bank-delete-question')) {
+                    deleteQuestionFromBank(e.target.closest('.bank-question-item').dataset.id);
+                } else if (e.target.classList.contains('bank-add-question')) {
+                    addQuestionFromBank(e.target.closest('.bank-question-item').dataset.id);
+                }
+            });
+            
+            // Initialize drag and drop for questions
+            initDragAndDrop();
+        }
+        
+        // Switch between tabs
+        function switchTab(tabId) {
+            tabs.forEach(tab => {
+                if (tab.getAttribute('data-tab') === tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            // Update preview when switching to preview tab
+            if (tabId === 'preview') {
+                updatePreview();
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+        
+        // Handle question type change
+        function handleQuestionTypeChange() {
+            const type = questionType.value;
+            
+            optionsContainer.style.display = type === 'single' || type === 'multiple' ? 'block' : 'none';
+            trueFalseContainer.style.display = type === 'true-false' ? 'block' : 'none';
+            fillBlankContainer.style.display = type === 'fill-blank' ? 'block' : 'none';
+            
+            // For multiple correct answers, change checkboxes to allow multiple selection
+            if (type === 'multiple') {
+                document.querySelectorAll('.correct-option').forEach(checkbox => {
+                    checkbox.type = 'checkbox';
+                });
+            } else {
+                document.querySelectorAll('.correct-option').forEach(checkbox => {
+                    checkbox.type = 'radio';
+                    checkbox.name = 'correct-option';
+                });
+            }
+        }
+        
+        // Add a new option to the question
+        function addOption() {
+            const optionCount = optionList.children.length;
+            if (optionCount >= 6) {
+                alert('Maximum 6 options allowed per question.');
+                return;
+            }
+            
+            const optionLetter = String.fromCharCode(65 + optionCount);
+            const optionItem = document.createElement('div');
+            optionItem.className = 'option-item';
+            
+            const isMultiple = questionType.value === 'multiple';
+            
+            optionItem.innerHTML = `
+                <input type="text" placeholder="Option ${optionLetter}">
+                <input type="${isMultiple ? 'checkbox' : 'radio'}" class="correct-option" 
+                       ${isMultiple ? '' : 'name="correct-option"'} title="Mark as correct">
+                <button class="btn btn-danger btn-sm remove-option">×</button>
+            `;
+            
+            optionList.appendChild(optionItem);
+        }
+        
+        // Add a new question to the list
+        function addQuestion() {
+            const questionText = document.getElementById('question-text').value.trim();
+            const questionTextUrdu = bilingualMode.checked ? document.getElementById('question-text-urdu').value.trim() : '';
+            const questionExplanation = document.getElementById('question-explanation').value.trim();
+            const questionDifficulty = document.getElementById('question-difficulty').value;
+            const type = questionType.value;
+            
+            if (!questionText) {
+                alert('Please enter question text.');
+                return;
+            }
+            
+            let options = [];
+            let correctAnswers = [];
+            
+            if (type === 'single' || type === 'multiple') {
+                const optionInputs = optionList.querySelectorAll('input[type="text"]');
+                const correctOptionInputs = optionList.querySelectorAll('.correct-option');
+                
+                optionInputs.forEach((input, index) => {
+                    const optionText = input.value.trim();
+                    if (!optionText) {
+                        alert(`Option ${String.fromCharCode(65 + index)} is empty.`);
+                        return;
+                    }
+                    
+                    options.push(optionText);
+                    
+                    if (correctOptionInputs[index].checked) {
+                        correctAnswers.push(String.fromCharCode(65 + index));
+                    }
+                });
+                
+                if (correctAnswers.length === 0) {
+                    alert('Please select at least one correct answer.');
+                    return;
+                }
+                
+                if (type === 'single' && correctAnswers.length > 1) {
+                    alert('Single correct answer questions can only have one correct option.');
+                    return;
+                }
+            } else if (type === 'true-false') {
+                options = ['True', 'False'];
+                const selectedValue = document.querySelector('input[name="true-false"]:checked').value;
+                correctAnswers = [selectedValue === 'true' ? 'A' : 'B'];
+            } else if (type === 'fill-blank') {
+                const correctAnswer = document.getElementById('correct-answer-text').value.trim();
+                if (!correctAnswer) {
+                    alert('Please enter the correct answer for the fill-in-the-blank question.');
+                    return;
+                }
+                correctAnswers = [correctAnswer];
+            }
+            
+            // Handle image upload
+            const imageInput = document.getElementById('question-image');
+            let imageData = null;
+            
+            if (imageInput.files.length > 0) {
+                const file = imageInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imageData = e.target.result;
+                    saveQuestionToArray(questionText, questionTextUrdu, options, correctAnswers, type, questionDifficulty, questionExplanation, imageData);
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                saveQuestionToArray(questionText, questionTextUrdu, options, correctAnswers, type, questionDifficulty, questionExplanation, imageData);
+            }
+        }
+        
+        // Save question data to the questions array
+        function saveQuestionToArray(questionText, questionTextUrdu, options, correctAnswers, type, difficulty, explanation, imageData) {
+            const question = {
+                id: currentQuestionId++,
+                text: questionText,
+                textUrdu: questionTextUrdu,
+                options: options,
+                correctAnswers: correctAnswers,
+                type: type,
+                difficulty: difficulty,
+                explanation: explanation,
+                image: imageData,
+                classLevel: document.getElementById('class-level').value,
+                subject: document.getElementById('subject').value,
+                chapter: document.getElementById('chapter').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            questions.push(question);
+            updateQuestionList();
+            resetQuestionForm();
+            
+            // Scroll to the new question
+            const newQuestionElement = document.querySelector(`.question-item[data-id="${question.id}"]`);
+            if (newQuestionElement) {
+                newQuestionElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        
+        // Update the question list display
+        function updateQuestionList() {
+            if (questions.length === 0) {
+                noQuestionsMessage.style.display = 'block';
+                questionList.innerHTML = '';
+                return;
+            }
+            
+            noQuestionsMessage.style.display = 'none';
+            questionList.innerHTML = '';
+            
+            questions.forEach(question => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                questionItem.dataset.id = question.id;
+                questionItem.draggable = true;
+                
+                let optionsText = '';
+                if (question.type !== 'fill-blank') {
+                    optionsText = question.options.map((opt, idx) => {
+                        const isCorrect = question.correctAnswers.includes(String.fromCharCode(65 + idx));
+                        return `${String.fromCharCode(65 + idx)}. ${opt} ${isCorrect ? '✓' : ''}`;
+                    }).join('<br>');
+                } else {
+                    optionsText = `Correct answer: ${question.correctAnswers[0]}`;
+                }
+                
+                questionItem.innerHTML = `
+                    <div class="question-header">
+                        <div>
+                            <span class="drag-handle">☰</span>
+                            <strong>Q${questions.findIndex(q => q.id === question.id) + 1}:</strong> 
+                            ${question.text.length > 50 ? question.text.substring(0, 50) + '...' : question.text}
+                            <span class="badge" style="background-color: ${getDifficultyColor(question.difficulty)}; 
+                                color: white; padding: 2px 5px; border-radius: 3px; font-size: 0.8em; margin-left: 5px;">
+                                ${question.difficulty}
+                            </span>
+                        </div>
+                        <div class="question-actions">
+                            <button class="btn btn-sm edit-question">Edit</button>
+                            <button class="btn btn-sm btn-danger delete-question">Delete</button>
+                        </div>
+                    </div>
+                    <div style="margin-left: 20px;">
+                        ${optionsText}
+                    </div>
+                    ${question.explanation ? `<div style="margin-top: 5px; font-style: italic;">Explanation: ${question.explanation}</div>` : ''}
+                    ${question.image ? `<div style="margin-top: 5px;"><img src="${question.image}" style="max-width: 100px; max-height: 100px;"></div>` : ''}
+                `;
+                
+                questionList.appendChild(questionItem);
+            });
+        }
+        
+        // Reset the question form
+        function resetQuestionForm() {
+            document.getElementById('question-text').value = '';
+            document.getElementById('question-text-urdu').value = '';
+            document.getElementById('question-explanation').value = '';
+            document.getElementById('question-image').value = '';
+            document.getElementById('correct-answer-text').value = '';
+            
+            // Reset options
+            optionList.innerHTML = `
+                <div class="option-item">
+                    <input type="text" placeholder="Option A">
+                    <input type="${questionType.value === 'multiple' ? 'checkbox' : 'radio'}" class="correct-option" 
+                           ${questionType.value === 'multiple' ? '' : 'name="correct-option"'} title="Mark as correct">
+                    <button class="btn btn-danger btn-sm remove-option">×</button>
+                </div>
+                <div class="option-item">
+                    <input type="text" placeholder="Option B">
+                    <input type="${questionType.value === 'multiple' ? 'checkbox' : 'radio'}" class="correct-option" 
+                           ${questionType.value === 'multiple' ? '' : 'name="correct-option"'} title="Mark as correct">
+                    <button class="btn btn-danger btn-sm remove-option">×</button>
+                </div>
+            `;
+            
+            // Reset true/false to default (True)
+            document.querySelector('input[name="true-false"][value="true"]').checked = true;
+            
+            // Reset question type to single
+            questionType.value = 'single';
+            handleQuestionTypeChange();
+        }
+        
+        // Edit a question
+        function editQuestion(questionId) {
+            const question = questions.find(q => q.id == questionId);
+            if (!question) return;
+            
+            // Remove the question from the array
+            questions = questions.filter(q => q.id != questionId);
+            updateQuestionList();
+            
+            // Populate the form with the question data
+            document.getElementById('question-text').value = question.text;
+            document.getElementById('question-text-urdu').value = question.textUrdu || '';
+            document.getElementById('question-explanation').value = question.explanation || '';
+            document.getElementById('question-difficulty').value = question.difficulty;
+            questionType.value = question.type;
+            handleQuestionTypeChange();
+            
+            if (question.type === 'single' || question.type === 'multiple') {
+                // Clear existing options
+                optionList.innerHTML = '';
+                
+                // Add options from the question
+                question.options.forEach((option, index) => {
+                    const optionLetter = String.fromCharCode(65 + index);
+                    const optionItem = document.createElement('div');
+                    optionItem.className = 'option-item';
+                    
+                    optionItem.innerHTML = `
+                        <input type="text" placeholder="Option ${optionLetter}" value="${option}">
+                        <input type="${question.type === 'multiple' ? 'checkbox' : 'radio'}" class="correct-option" 
+                               ${question.type === 'multiple' ? '' : 'name="correct-option"'} 
+                               title="Mark as correct" ${question.correctAnswers.includes(optionLetter) ? 'checked' : ''}>
+                        <button class="btn btn-danger btn-sm remove-option">×</button>
+                    `;
+                    
+                    optionList.appendChild(optionItem);
+                });
+            } else if (question.type === 'true-false') {
+                const correctValue = question.correctAnswers[0] === 'A' ? 'true' : 'false';
+                document.querySelector(`input[name="true-false"][value="${correctValue}"]`).checked = true;
+            } else if (question.type === 'fill-blank') {
+                document.getElementById('correct-answer-text').value = question.correctAnswers[0];
+            }
+            
+            // Scroll to the form
+            document.getElementById('question-text').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Delete a question
+        function deleteQuestion(questionId) {
+            if (confirm('Are you sure you want to delete this question?')) {
+                questions = questions.filter(q => q.id != questionId);
+                updateQuestionList();
+            }
+        }
+        
+        // Update the preview area
+        function updatePreview() {
+            const paperTitle = document.getElementById('paper-title').value || 'MCQ Paper';
+            const instructions = document.getElementById('instructions').value;
+            const randomizeOptions = document.getElementById('randomize-options').checked;
+            const includeAnswerKey = document.getElementById('include-answer-key').checked;
+            
+            previewTitle.textContent = paperTitle;
+            previewInstructions.textContent = instructions || 'Answer all questions. Choose the correct option for each question.';
+            previewQuestions.innerHTML = '';
+            previewAnswers.innerHTML = '';
+            
+            if (questions.length === 0) {
+                previewQuestions.innerHTML = '<p>No questions added yet.</p>';
+                return;
+            }
+            
+            questions.forEach((question, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'preview-question';
+                
+                // Display question text
+                let questionText = `<strong>Q${index + 1}:</strong> ${question.text}`;
+                if (bilingualMode.checked && question.textUrdu) {
+                    questionText += `<br><span style="direction: rtl; display: inline-block;">${question.textUrdu}</span>`;
+                }
+                
+                // Display image if available
+                if (question.image) {
+                    questionText += `<div style="margin: 10px 0;"><img src="${question.image}" style="max-width: 300px; max-height: 200px;"></div>`;
+                }
+                
+                // Display options
+                let optionsHtml = '';
+                if (question.type !== 'fill-blank') {
+                    let options = question.options.map((opt, idx) => {
+                        return {
+                            letter: String.fromCharCode(65 + idx),
+                            text: opt
+                        };
+                    });
+                    
+                    // Randomize options if enabled
+                    if (randomizeOptions && question.type !== 'true-false') {
+                        options = shuffleArray(options);
+                    }
+                    
+                    optionsHtml = '<div class="preview-options">';
+                    options.forEach(opt => {
+                        const isCorrect = question.correctAnswers.includes(opt.letter);
+                        optionsHtml += `<div class="preview-option">${opt.letter}. ${opt.text}</div>`;
+                    });
+                    optionsHtml += '</div>';
+                } else {
+                    optionsHtml = '<div class="preview-options"><div class="preview-option">___________________________</div></div>';
+                }
+                
+                questionElement.innerHTML = `
+                    <div>${questionText}</div>
+                    ${optionsHtml}
+                `;
+                
+                previewQuestions.appendChild(questionElement);
+                
+                // Add to answer key if enabled
+                if (includeAnswerKey) {
+                    const answerElement = document.createElement('div');
+                    answerElement.className = 'preview-question';
+                    
+                    let correctAnswerText;
+                    if (question.type !== 'fill-blank') {
+                        correctAnswerText = question.correctAnswers.map(ans => {
+                            const optionIndex = ans.charCodeAt(0) - 65;
+                            return `${ans}. ${question.options[optionIndex]}`;
+                        }).join(', ');
+                    } else {
+                        correctAnswerText = question.correctAnswers[0];
+                    }
+                    
+                    answerElement.innerHTML = `
+                        <div><strong>Q${index + 1}:</strong> ${question.text.length > 50 ? question.text.substring(0, 50) + '...' : question.text}</div>
+                        <div class="correct-answer">Correct Answer: ${correctAnswerText}</div>
+                        ${question.explanation ? `<div>Explanation: ${question.explanation}</div>` : ''}
+                    `;
+                    
+                    previewAnswers.appendChild(answerElement);
+                }
+            });
+        }
+        
+        // Export to PDF
+        function exportToPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            const title = document.getElementById('export-title').value || 'MCQ Paper';
+            doc.setFontSize(18);
+            doc.text(title, 105, 20, { align: 'center' });
+            
+            // Add header text if provided
+            const headerText = document.getElementById('export-header').value;
+            if (headerText) {
+                doc.setFontSize(10);
+                const splitHeader = doc.splitTextToSize(headerText, 180);
+                doc.text(splitHeader, 105, 30, { align: 'center' });
+            }
+            
+            // Add instructions
+            const instructions = document.getElementById('instructions').value;
+            if (instructions) {
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                const splitInstructions = doc.splitTextToSize(instructions, 180);
+                doc.text(splitInstructions, 15, 40);
+                doc.setTextColor(0);
+            }
+            
+            // Add questions
+            doc.setFontSize(12);
+            let yPosition = 60;
+            
+            const includeQuestions = document.getElementById('include-questions').checked;
+            const includeAnswers = document.getElementById('include-answers').checked;
+            const includeExplanations = document.getElementById('include-explanations').checked;
+            
+            if (includeQuestions) {
+                questions.forEach((question, index) => {
+                    // Check if we need a new page
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    // Question text
+                    let questionText = `Q${index + 1}: ${question.text}`;
+                    const splitQuestion = doc.splitTextToSize(questionText, 180);
+                    doc.text(splitQuestion, 15, yPosition);
+                    yPosition += splitQuestion.length * 7;
+                    
+                    // Image if available
+                    if (question.image) {
+                        // In a real implementation, you would need to convert the image to a format jsPDF can use
+                        // This is simplified for the example
+                        doc.text('[Image]', 15, yPosition);
+                        yPosition += 20;
+                    }
+                    
+                    // Options
+                    if (question.type !== 'fill-blank') {
+                        question.options.forEach((opt, idx) => {
+                            doc.text(`${String.fromCharCode(65 + idx)}. ${opt}`, 20, yPosition);
+                            yPosition += 7;
+                        });
+                    } else {
+                        doc.text('___________________________', 20, yPosition);
+                        yPosition += 7;
+                    }
+                    
+                    yPosition += 5; // Space between questions
+                });
+            }
+            
+            // Add answer key if requested
+            if (includeAnswers && (includeQuestions || includeExplanations)) {
+                // Add a new page for answer key
+                doc.addPage();
+                yPosition = 20;
+                
+                doc.setFontSize(16);
+                doc.text('Answer Key', 105, yPosition, { align: 'center' });
+                yPosition += 15;
+                doc.setFontSize(12);
+                
+                questions.forEach((question, index) => {
+                    // Check if we need a new page
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    // Question reference
+                    doc.text(`Q${index + 1}: ${question.text.substring(0, 50)}${question.text.length > 50 ? '...' : ''}`, 15, yPosition);
+                    yPosition += 7;
+                    
+                    // Correct answer
+                    let correctAnswerText;
+                    if (question.type !== 'fill-blank') {
+                        correctAnswerText = question.correctAnswers.map(ans => {
+                            const optionIndex = ans.charCodeAt(0) - 65;
+                            return `${ans}. ${question.options[optionIndex]}`;
+                        }).join(', ');
+                    } else {
+                        correctAnswerText = question.correctAnswers[0];
+                    }
+                    
+                    doc.setTextColor(0, 128, 0); // Green color for correct answer
+                    doc.text(`Correct Answer: ${correctAnswerText}`, 20, yPosition);
+                    yPosition += 7;
+                    doc.setTextColor(0);
+                    
+                    // Explanation if requested
+                    if (includeExplanations && question.explanation) {
+                        doc.setTextColor(100);
+                        const splitExplanation = doc.splitTextToSize(`Explanation: ${question.explanation}`, 180);
+                        doc.text(splitExplanation, 20, yPosition);
+                        yPosition += splitExplanation.length * 7;
+                        doc.setTextColor(0);
+                    }
+                    
+                    yPosition += 5; // Space between answers
+                });
+            }
+            
+            // Add footer if provided
+            const footerText = document.getElementById('export-footer').value;
+            if (footerText) {
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(100);
+                    doc.text(footerText, 105, 287, { align: 'center' });
+                }
+            }
+            
+            // Save the PDF
+            doc.save(`${title.replace(/ /g, '_')}.pdf`);
+        }
+        
+        // Export to Word (simplified - in a real app you would use a proper library)
+        function exportToDoc() {
+            alert('In a real implementation, this would export to DOCX format. For this demo, please use PDF or HTML export.');
+        }
+        
+        // Export to HTML
+        function exportToHtml() {
+            const title = document.getElementById('export-title').value || 'MCQ Paper';
+            const headerText = document.getElementById('export-header').value;
+            const footerText = document.getElementById('export-footer').value;
+            const instructions = document.getElementById('instructions').value;
+            
+            let htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+        h1 { text-align: center; }
+        .question { margin-bottom: 20px; }
+        .options { margin-left: 20px; }
+        .correct-answer { color: green; font-weight: bold; }
+        .instructions { font-style: italic; margin-bottom: 30px; }
+        .footer { margin-top: 50px; font-size: 0.8em; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+    ${headerText ? `<div class="header">${headerText}</div>` : ''}
+    ${instructions ? `<div class="instructions">${instructions}</div>` : ''}
+    <div class="questions">
+            `;
+            
+            const includeQuestions = document.getElementById('include-questions').checked;
+            const includeAnswers = document.getElementById('include-answers').checked;
+            const includeExplanations = document.getElementById('include-explanations').checked;
+            const randomizeOptions = document.getElementById('randomize-options').checked;
+            
+            if (includeQuestions) {
+                questions.forEach((question, index) => {
+                    htmlContent += `<div class="question">
+                        <div><strong>Q${index + 1}:</strong> ${question.text}</div>`;
+                    
+                    if (question.image) {
+                        htmlContent += `<div><img src="${question.image}" style="max-width: 300px;"></div>`;
+                    }
+                    
+                    if (question.type !== 'fill-blank') {
+                        let options = question.options.map((opt, idx) => {
+                            return {
+                                letter: String.fromCharCode(65 + idx),
+                                text: opt
+                            };
+                        });
+                        
+                        if (randomizeOptions && question.type !== 'true-false') {
+                            options = shuffleArray(options);
+                        }
+                        
+                        htmlContent += '<div class="options">';
+                        options.forEach(opt => {
+                            htmlContent += `<div>${opt.letter}. ${opt.text}</div>`;
+                        });
+                        htmlContent += '</div>';
+                    } else {
+                        htmlContent += '<div class="options">___________________________</div>';
+                    }
+                    
+                    htmlContent += '</div>';
+                });
+            }
+            
+            if (includeAnswers && (includeQuestions || includeExplanations)) {
+                htmlContent += `<div style="page-break-before: always; margin-top: 50px;">
+                    <h2>Answer Key</h2>`;
+                
+                questions.forEach((question, index) => {
+                    htmlContent += `<div class="question">
+                        <div><strong>Q${index + 1}:</strong> ${question.text.length > 50 ? question.text.substring(0, 50) + '...' : question.text}</div>
+                        <div class="correct-answer">Correct Answer: `;
+                    
+                    if (question.type !== 'fill-blank') {
+                        const correctAnswers = question.correctAnswers.map(ans => {
+                            const optionIndex = ans.charCodeAt(0) - 65;
+                            return `${ans}. ${question.options[optionIndex]}`;
+                        }).join(', ');
+                        htmlContent += correctAnswers;
+                    } else {
+                        htmlContent += question.correctAnswers[0];
+                    }
+                    
+                    htmlContent += '</div>';
+                    
+                    if (includeExplanations && question.explanation) {
+                        htmlContent += `<div>Explanation: ${question.explanation}</div>`;
+                    }
+                    
+                    htmlContent += '</div>';
+                });
+                
+                htmlContent += '</div>';
+            }
+            
+            htmlContent += `
+    </div>
+    ${footerText ? `<div class="footer">${footerText}</div>` : ''}
+</body>
+</html>`;
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            saveAs(blob, `${title.replace(/ /g, '_')}.html`);
+        }
+        
+        // Export to JSON
+        function exportToJson() {
+            const title = document.getElementById('export-title').value || 'MCQ Paper';
+            const data = {
+                title: title,
+                metadata: {
+                    classLevel: document.getElementById('class-level').value,
+                    subject: document.getElementById('subject').value,
+                    chapter: document.getElementById('chapter').value,
+                    instructions: document.getElementById('instructions').value,
+                    createdAt: new Date().toISOString()
+                },
+                questions: questions
+            };
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            saveAs(blob, `${title.replace(/ /g, '_')}.json`);
+        }
+        
+        // Export to CSV
+        function exportToCsv() {
+            const title = document.getElementById('export-title').value || 'MCQ Paper';
+            let csvContent = "Question,Option A,Option B,Option C,Option D,Correct Answer,Explanation,Difficulty\n";
+            
+            questions.forEach(question => {
+                const row = [
+                    `"${question.text.replace(/"/g, '""')}"`,
+                    question.options.length > 0 ? `"${question.options[0].replace(/"/g, '""')}"` : '',
+                    question.options.length > 1 ? `"${question.options[1].replace(/"/g, '""')}"` : '',
+                    question.options.length > 2 ? `"${question.options[2].replace(/"/g, '""')}"` : '',
+                    question.options.length > 3 ? `"${question.options[3].replace(/"/g, '""')}"` : '',
+                    question.correctAnswers.join(','),
+                    `"${(question.explanation || '').replace(/"/g, '""')}"`,
+                    question.difficulty
+                ];
+                
+                csvContent += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, `${title.replace(/ /g, '_')}.csv`);
+        }
+        
+        // Print the paper
+        function printPaper() {
+            window.print();
+        }
+        
+        // Toggle dark mode
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+        
+        // Generate AI questions (simulated)
+        function generateAiQuestions() {
+            const topic = document.getElementById('ai-topic').value.trim();
+            const difficulty = document.getElementById('ai-difficulty').value;
+            const count = parseInt(document.getElementById('ai-count').value);
+            
+            if (!topic) {
+                alert('Please enter a topic for AI to generate questions.');
+                return;
+            }
+            
+            if (count < 1 || count > 20) {
+                alert('Please enter a number between 1 and 20 for question count.');
+                return;
+            }
+            
+            aiLoading.style.display = 'block';
+            generateAiQuestionsBtn.disabled = true;
+            
+            // Simulate API call with timeout
+            setTimeout(() => {
+                const generatedQuestions = simulateAiQuestionGeneration(topic, difficulty, count);
+                
+                // Add generated questions to the list
+                generatedQuestions.forEach(q => {
+                    questions.push(q);
+                    if (q.id >= currentQuestionId) {
+                        currentQuestionId = q.id + 1;
+                    }
+                });
+                
+                updateQuestionList();
+                aiLoading.style.display = 'none';
+                generateAiQuestionsBtn.disabled = false;
+                
+                // Switch to questions tab
+                switchTab('questions');
+            }, 2000);
+        }
+        
+        // Simulate AI question generation
+        function simulateAiQuestionGeneration(topic, difficulty, count) {
+            const questionTypes = ['single', 'multiple', 'true-false', 'fill-blank'];
+            const generatedQuestions = [];
+            
+            for (let i = 0; i < count; i++) {
+                const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+                let questionText, options = [], correctAnswers = [];
+                
+                switch (type) {
+                    case 'single':
+                        questionText = `What is the primary purpose of ${topic}?`;
+                        options = [
+                            `To enhance ${topic} efficiency`,
+                            `To reduce ${topic} costs`,
+                            `To improve ${topic} quality`,
+                            `All of the above`
+                        ];
+                        correctAnswers = ['C'];
+                        break;
+                    case 'multiple':
+                        questionText = `Which of the following are benefits of ${topic}?`;
+                        options = [
+                            `Increased ${topic} productivity`,
+                            `Reduced ${topic} errors`,
+                            `Lower ${topic} maintenance`,
+                            `Faster ${topic} processing`
+                        ];
+                        correctAnswers = ['A', 'B', 'D'];
+                        break;
+                    case 'true-false':
+                        questionText = `${topic} was first introduced in the 20th century.`;
+                        options = ['True', 'False'];
+                        correctAnswers = [Math.random() > 0.5 ? 'A' : 'B'];
+                        break;
+                    case 'fill-blank':
+                        questionText = `The process of ${topic} involves ____________.`;
+                        correctAnswers = ['several complex steps'];
+                        break;
+                }
+                
+                generatedQuestions.push({
+                    id: currentQuestionId + i,
+                    text: questionText,
+                    options: options,
+                    correctAnswers: correctAnswers,
+                    type: type,
+                    difficulty: difficulty === 'mixed' ? 
+                        ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)] : difficulty,
+                    explanation: `This question tests your understanding of ${topic}.`,
+                    classLevel: document.getElementById('class-level').value,
+                    subject: document.getElementById('subject').value,
+                    chapter: document.getElementById('chapter').value,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            return generatedQuestions;
+        }
+        
+        // Save question to question bank
+        function saveQuestionToBank() {
+            if (questions.length === 0) {
+                alert('No questions to save. Please add questions first.');
+                return;
+            }
+            
+            // Get the last added question
+            const question = questions[questions.length - 1];
+            
+            // Check if already in bank
+            const exists = questionBank.some(q => q.text === question.text && 
+                JSON.stringify(q.options) === JSON.stringify(question.options));
+            
+            if (exists) {
+                alert('This question is already in the question bank.');
+                return;
+            }
+            
+            questionBank.push(question);
+            localStorage.setItem('questionBank', JSON.stringify(questionBank));
+            updateQuestionBankDisplay();
+            
+            alert('Question saved to question bank!');
+        }
+        
+        // Update question bank display
+        function updateQuestionBankDisplay() {
+            const classFilter = document.getElementById('bank-class').value;
+            const subjectFilter = document.getElementById('bank-subject').value;
+            const difficultyFilter = document.getElementById('bank-difficulty').value;
+            const topicFilter = document.getElementById('bank-topic').value.toLowerCase();
+            const searchFilter = document.getElementById('bank-search').value.toLowerCase();
+            
+            let filteredQuestions = questionBank;
+            
+            if (classFilter) {
+                filteredQuestions = filteredQuestions.filter(q => q.classLevel === classFilter);
+            }
+            
+            if (subjectFilter) {
+                filteredQuestions = filteredQuestions.filter(q => q.subject === subjectFilter);
+            }
+            
+            if (difficultyFilter) {
+                filteredQuestions = filteredQuestions.filter(q => q.difficulty === difficultyFilter);
+            }
+            
+            if (topicFilter) {
+                filteredQuestions = filteredQuestions.filter(q => 
+                    (q.chapter && q.chapter.toLowerCase().includes(topicFilter)) || 
+                    (q.text && q.text.toLowerCase().includes(topicFilter))
+                );
+            }
+            
+            if (searchFilter) {
+                filteredQuestions = filteredQuestions.filter(q => 
+                    q.text.toLowerCase().includes(searchFilter) ||
+                    (q.explanation && q.explanation.toLowerCase().includes(searchFilter)) ||
+                    (q.chapter && q.chapter.toLowerCase().includes(searchFilter))
+                );
+            }
+            
+            if (filteredQuestions.length === 0) {
+                questionBankList.innerHTML = '<p>No questions found matching your filters.</p>';
+                return;
+            }
+            
+            questionBankList.innerHTML = '';
+            
+            filteredQuestions.forEach(question => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'bank-question-item question-item';
+                questionItem.dataset.id = question.id;
+                
+                let optionsText = '';
+                if (question.type !== 'fill-blank') {
+                    optionsText = question.options.map((opt, idx) => {
+                        const isCorrect = question.correctAnswers.includes(String.fromCharCode(65 + idx));
+                        return `${String.fromCharCode(65 + idx)}. ${opt} ${isCorrect ? '✓' : ''}`;
+                    }).join('<br>');
+                } else {
+                    optionsText = `Correct answer: ${question.correctAnswers[0]}`;
+                }
+                
+                questionItem.innerHTML = `
+                    <div class="question-header">
+                        <div>
+                            <strong>${question.text.length > 50 ? question.text.substring(0, 50) + '...' : question.text}</strong>
+                            <span class="badge" style="background-color: ${getDifficultyColor(question.difficulty)}; 
+                                color: white; padding: 2px 5px; border-radius: 3px; font-size: 0.8em; margin-left: 5px;">
+                                ${question.difficulty}
+                            </span>
+                            <span style="font-size: 0.8em; color: #666; margin-left: 5px;">
+                                ${question.classLevel ? 'Class ' + question.classLevel : ''} 
+                                ${question.subject ? ' | ' + question.subject.charAt(0).toUpperCase() + question.subject.slice(1) : ''}
+                                ${question.chapter ? ' | ' + question.chapter : ''}
+                            </span>
+                        </div>
+                        <div class="question-actions">
+                            <button class="btn btn-sm bank-add-question">Add</button>
+                            <button class="btn btn-sm bank-edit-question">Edit</button>
+                            <button class="btn btn-sm btn-danger bank-delete-question">Delete</button>
+                        </div>
+                    </div>
+                    <div style="margin-left: 20px; margin-top: 5px;">
+                        ${optionsText}
+                    </div>
+                    ${question.explanation ? `<div style="margin-top: 5px; font-style: italic;">Explanation: ${question.explanation}</div>` : ''}
+                    <div style="margin-top: 5px; font-size: 0.8em; color: #666;">
+                        <input type="checkbox" class="bank-question-checkbox" style="margin-right: 5px;">
+                        <label>Select for batch operation</label>
+                    </div>
+                `;
+                
+                questionBankList.appendChild(questionItem);
+            });
+        }
+        
+        // Reset question bank filters
+        function resetQuestionBankFilters() {
+            document.getElementById('bank-class').value = '';
+            document.getElementById('bank-subject').value = '';
+            document.getElementById('bank-difficulty').value = '';
+            document.getElementById('bank-topic').value = '';
+            document.getElementById('bank-search').value = '';
+            updateQuestionBankDisplay();
+        }
+        
+        // Import question bank
+        function importQuestionBank() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json,.csv';
+            
+            fileInput.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        let importedQuestions = [];
+                        
+                        if (file.name.endsWith('.json')) {
+                            const data = JSON.parse(event.target.result);
+                            if (Array.isArray(data.questions)) {
+                                importedQuestions = data.questions;
+                            } else if (Array.isArray(data)) {
+                                importedQuestions = data;
+                            } else {
+                                throw new Error('Invalid JSON format');
+                            }
+                        } else if (file.name.endsWith('.csv')) {
+                            // Simplified CSV parsing - in a real app you'd use a proper CSV parser
+                            const lines = event.target.result.split('\n');
+                            const headers = lines[0].split(',');
+                            
+                            for (let i = 1; i < lines.length; i++) {
+                                if (!lines[i].trim()) continue;
+                                
+                                const values = lines[i].split(',');
+                                const question = {
+                                    id: currentQuestionId++,
+                                    text: values[0].replace(/^"|"$/g, ''),
+                                    options: [
+                                        values[1].replace(/^"|"$/g, ''),
+                                        values[2].replace(/^"|"$/g, ''),
+                                        values[3].replace(/^"|"$/g, ''),
+                                        values[4].replace(/^"|"$/g, '')
+                                    ].filter(opt => opt),
+                                    correctAnswers: values[5].split(','),
+                                    type: values[5].includes(',') ? 'multiple' : 'single',
+                                    explanation: values[6].replace(/^"|"$/g, ''),
+                                    difficulty: values[7] || 'medium',
+                                    timestamp: new Date().toISOString()
+                                };
+                                
+                                importedQuestions.push(question);
+                            }
+                        }
+                        
+                        // Add to question bank
+                        questionBank = [...questionBank, ...importedQuestions];
+                        localStorage.setItem('questionBank', JSON.stringify(questionBank));
+                        updateQuestionBankDisplay();
+                        
+                        alert(`Successfully imported ${importedQuestions.length} questions to the question bank.`);
+                    } catch (error) {
+                        alert('Error importing questions: ' + error.message);
+                    }
+                };
+                
+                if (file.name.endsWith('.json')) {
+                    reader.readAsText(file);
+                } else if (file.name.endsWith('.csv')) {
+                    reader.readAsText(file);
+                } else {
+                    alert('Unsupported file format. Please upload a JSON or CSV file.');
+                }
+            };
+            
+            fileInput.click();
+        }
+        
+        // Export question bank
+        function exportQuestionBank() {
+            const title = 'Question_Bank_' + new Date().toISOString().split('T')[0];
+            const data = {
+                metadata: {
+                    exportedAt: new Date().toISOString(),
+                    totalQuestions: questionBank.length
+                },
+                questions: questionBank
+            };
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            saveAs(blob, `${title}.json`);
+        }
+        
+        // Toggle select all questions in bank
+        function toggleSelectAllQuestions() {
+            const checkboxes = questionBankList.querySelectorAll('.bank-question-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllQuestions.checked;
+            });
+        }
+        
+        // Add selected questions from bank to paper
+        function addSelectedQuestionsToPaper() {
+            const checkboxes = questionBankList.querySelectorAll('.bank-question-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one question to add.');
+                return;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                const questionItem = checkbox.closest('.bank-question-item');
+                const questionId = questionItem.dataset.id;
+                const question = questionBank.find(q => q.id == questionId);
+                
+                if (question) {
+                    // Create a copy with a new ID to avoid conflicts
+                    const newQuestion = {...question, id: currentQuestionId++};
+                    questions.push(newQuestion);
+                }
+            });
+            
+            updateQuestionList();
+            alert(`Added ${checkboxes.length} questions to your paper.`);
+        }
+        
+        // Delete selected questions from bank
+        function deleteSelectedQuestions() {
+            const checkboxes = questionBankList.querySelectorAll('.bank-question-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one question to delete.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} questions from the question bank?`)) {
+                return;
+            }
+            
+            const idsToDelete = Array.from(checkboxes).map(checkbox => 
+                parseInt(checkbox.closest('.bank-question-item').dataset.id)
+            );
+            
+            questionBank = questionBank.filter(q => !idsToDelete.includes(q.id));
+            localStorage.setItem('questionBank', JSON.stringify(questionBank));
+            updateQuestionBankDisplay();
+            
+            alert(`Deleted ${idsToDelete.length} questions from the question bank.`);
+        }
+        
+        // Add question from bank to paper
+        function addQuestionFromBank(questionId) {
+            const question = questionBank.find(q => q.id == questionId);
+            if (question) {
+                // Create a copy with a new ID to avoid conflicts
+                const newQuestion = {...question, id: currentQuestionId++};
+                questions.push(newQuestion);
+                updateQuestionList();
+            }
+        }
+        
+        // Edit question from bank
+        function editQuestionFromBank(questionId) {
+            const question = questionBank.find(q => q.id == questionId);
+            if (!question) return;
+            
+            // Switch to questions tab and populate the form
+            switchTab('questions');
+            
+            document.getElementById('question-text').value = question.text;
+            document.getElementById('question-text-urdu').value = question.textUrdu || '';
+            document.getElementById('question-explanation').value = question.explanation || '';
+            document.getElementById('question-difficulty').value = question.difficulty;
+            questionType.value = question.type;
+            handleQuestionTypeChange();
+            
+            if (question.type === 'single' || question.type === 'multiple') {
+                // Clear existing options
+                optionList.innerHTML = '';
+                
+                // Add options from the question
+                question.options.forEach((option, index) => {
+                    const optionLetter = String.fromCharCode(65 + index);
+                    const optionItem = document.createElement('div');
+                    optionItem.className = 'option-item';
+                    
+                    optionItem.innerHTML = `
+                        <input type="text" placeholder="Option ${optionLetter}" value="${option}">
+                        <input type="${question.type === 'multiple' ? 'checkbox' : 'radio'}" class="correct-option" 
+                               ${question.type === 'multiple' ? '' : 'name="correct-option"'} 
+                               title="Mark as correct" ${question.correctAnswers.includes(optionLetter) ? 'checked' : ''}>
+                        <button class="btn btn-danger btn-sm remove-option">×</button>
+                    `;
+                    
+                    optionList.appendChild(optionItem);
+                });
+            } else if (question.type === 'true-false') {
+                const correctValue = question.correctAnswers[0] === 'A' ? 'true' : 'false';
+                document.querySelector(`input[name="true-false"][value="${correctValue}"]`).checked = true;
+            } else if (question.type === 'fill-blank') {
+                document.getElementById('correct-answer-text').value = question.correctAnswers[0];
+            }
+            
+            // Remove the question from the bank (user will need to save it again if they want to keep it)
+            questionBank = questionBank.filter(q => q.id != questionId);
+            localStorage.setItem('questionBank', JSON.stringify(questionBank));
+            updateQuestionBankDisplay();
+            
+            // Scroll to the form
+            document.getElementById('question-text').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Delete question from bank
+        function deleteQuestionFromBank(questionId) {
+            if (confirm('Are you sure you want to delete this question from the question bank?')) {
+                questionBank = questionBank.filter(q => q.id != questionId);
+                localStorage.setItem('questionBank', JSON.stringify(questionBank));
+                updateQuestionBankDisplay();
+            }
+        }
+        
+        // Initialize drag and drop for questions
+        function initDragAndDrop() {
+            const questionList = document.getElementById('question-list');
+            
+            questionList.addEventListener('dragstart', e => {
+                if (e.target.classList.contains('question-item')) {
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', e.target.dataset.id);
+                } else if (e.target.closest('.question-item')) {
+                    const questionItem = e.target.closest('.question-item');
+                    questionItem.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', questionItem.dataset.id);
+                }
+            });
+            
+            questionList.addEventListener('dragover', e => {
+                e.preventDefault();
+                const draggingItem = document.querySelector('.question-item.dragging');
+                if (!draggingItem) return;
+                
+                const afterElement = getDragAfterElement(questionList, e.clientY);
+                if (afterElement) {
+                    questionList.insertBefore(draggingItem, afterElement);
+                } else {
+                    questionList.appendChild(draggingItem);
+                }
+            });
+            
+            questionList.addEventListener('dragend', e => {
+                const draggingItem = document.querySelector('.question-item.dragging');
+                if (draggingItem) {
+                    draggingItem.classList.remove('dragging');
+                    
+                    // Update the questions array to match the new order
+                    const newQuestions = [];
+                    const questionItems = questionList.querySelectorAll('.question-item');
+                    
+                    questionItems.forEach(item => {
+                        const question = questions.find(q => q.id == item.dataset.id);
+                        if (question) newQuestions.push(question);
+                    });
+                    
+                    questions = newQuestions;
+                }
+            });
+        }
+        
+        // Helper for drag and drop
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.question-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        // Update progress bar on scroll
+        function updateProgressBar() {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollProgress = (scrollTop / scrollHeight) * 100;
+            progressBar.style.width = scrollProgress + '%';
+        }
+        
+        // Get color for difficulty level
+        function getDifficultyColor(difficulty) {
+            switch (difficulty) {
+                case 'easy': return '#28a745'; // green
+                case 'medium': return '#ffc107'; // yellow
+                case 'hard': return '#dc3545'; // red
+                default: return '#6c757d'; // gray
+            }
+        }
+        
+        // Shuffle array (for randomizing options)
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

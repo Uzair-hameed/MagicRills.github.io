@@ -1,0 +1,2311 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/2643/2643516.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/2643/2643516.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Online Observation Tool for ECCE Students</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --info-color: #1abc9c;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .student-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .form-group:last-child {
+            margin-right: 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .assessment-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 15px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 5px 5px 0 0;
+            font-size: 20px;
+        }
+        
+        .assessment-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .assessment-table th, .assessment-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .assessment-table th {
+            background-color: var(--light-color);
+            font-weight: bold;
+        }
+        
+        .assessment-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .performance-select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .performance-select.NI {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .performance-select.E {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .performance-select.D {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .performance-select.S {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        
+        .progress-summary {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bars {
+            margin-top: 15px;
+        }
+        
+        .progress-item {
+            margin-bottom: 10px;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .form-group {
+                flex: 100%;
+                margin-right: 0;
+            }
+            
+            .assessment-table th, .assessment-table td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+        }
+        
+        /* Loading animation */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Print styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-content, .print-content * {
+                visibility: visible;
+            }
+            .print-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .assessment-table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Generating report, please wait...</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>Online Observation Tool for ECCE Students</h1>
+            <p>ABC School - Early Childhood Care and Education Progress Report</p>
+        </header>
+        
+        <div class="student-info">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="school">School</label>
+                    <input id="school" readonly="" type="text" value="ABC School" />
+                </div>
+                <div class="form-group">
+                    <label for="class">Class</label>
+                    <input id="class" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="term">Term</label>
+                    <input id="term" type="text" />
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="childName">Child's Name</label>
+                    <input id="childName" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="fatherName">Father's Name</label>
+                    <input id="fatherName" type="text" />
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input id="age" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="regNumber">Registration #</label>
+                    <input id="regNumber" type="text" />
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="workingDays">Total Working Days</label>
+                    <input id="workingDays" type="number" />
+                </div>
+                <div class="form-group">
+                    <label for="daysAttended">Days Attended</label>
+                    <input id="daysAttended" type="number" />
+                </div>
+                <div class="form-group">
+                    <label for="attendancePercentage">Attendance Percentage</label>
+                    <input id="attendancePercentage" readonly="" type="text" />
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fromDate">Progress Report From</label>
+                    <input id="fromDate" type="date" />
+                </div>
+                <div class="form-group">
+                    <label for="toDate">To</label>
+                    <input id="toDate" type="date" />
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend no-print">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #f8d7da;"></div>
+                <span>NI - Not Introduced</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fff3cd;"></div>
+                <span>E - Emerging</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #cce5ff;"></div>
+                <span>D - Developing</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #d4edda;"></div>
+                <span>S - Secure</span>
+            </div>
+        </div>
+        
+        <div class="progress-summary no-print">
+            <h3>Progress Summary</h3>
+            <div class="progress-bars">
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Personal, Social, and Emotional Development</span>
+                        <span id="progress-1">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-1" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Language and Literacy</span>
+                        <span id="progress-2">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-2" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Basic Mathematical Concepts</span>
+                        <span id="progress-3">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-3" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Health Hygiene and Safety</span>
+                        <span id="progress-4">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-4" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Physical Development</span>
+                        <span id="progress-5">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-5" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Creative Arts</span>
+                        <span id="progress-6">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-6" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>World Around Us</span>
+                        <span id="progress-7">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-7" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step A: Personal, Social, and Emotional Development -->
+        <div class="assessment-section">
+            <div class="section-title">Step A: Personal, Social, and Emotional Development</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Identifies occasions when she/he feels happy, sad, scared, loved, angry, excited and bored</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Chooses and talks about an activity/work that she/he enjoys doing the most in class</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Expresses likes and dislikes and talks about strengths</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Demonstrates how to dress up</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Demonstrates eating habits</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Demonstrates proper posture while walking, talking and sitting</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Takes care of his/her and others' belongings</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Asks for help when needed</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Demonstrates problem solving skills while participating in different activities</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Works cooperatively, shares materials and ideas with peers, teachers, and other</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognizes historical and cultural place</td>
+                        <td>
+                            <select class="performance-select" data-section="1">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Step B: Language and Literacy -->
+        <div class="assessment-section">
+            <div class="section-title">Step B: Language and Literacy</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Listens attentively in small and large groups</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Shares views in small and large groups about everyday events and special occasions</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Responds to others in appropriate verbal and non-verbal ways for a variety of purposes</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Shares her/his experiences and feelings with peers and adults by using complete sentences</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Responds to and verbally expresses feelings, such as, joy and sorrow, wonder and anger</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Waits for her/his turn to speak and not interrupt when others are talking</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Initiates conversations with peers and adults</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises letters with her/his initial sounds</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises and differentiates between sounds in the environment</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Understands and follows instructions</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses correct pronunciation</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin-top: 20px;">Reading Skills</h3>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Holds, opens and turns pages of a book with care</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Enjoys skimming/scanning through age appropriate books</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Predicts the story by looking at the cover page and flipping through pages</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Predicts what comes next in stories</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Asks open ended questions about the story to support critical and logical thinking</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Repeats simple repetitive sequences in traditional and popular children's stories</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tells a simple story by looking at pictures</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Retells a favourite story in the correct sequence</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Differentiates between the parts of a book (the cover, the title and the end)</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Knows that some books tell stories and others give information</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Knows that Urdu is read from right to left and top to bottom</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Knows that English is read from left to right and top to bottom</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises her/his names in print English</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises her/his names in print Urdu</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises letters of the English alphabet</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin-top: 20px;">Writing Skills</h3>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Makes marks and scribbles to communicate meaning</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses English letters in her/his writing to communicate meaning</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses Urdu letters in her/his writing to communicate meaning</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Draws pictures to communicate meaning</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Holds writing tools properly to develop a comfortable and efficient pencil grip</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Colours a simple picture keeping within designated space</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Traces, copies, draws and colours different shapes</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Traces and draws different lines and simple patterns made up of lines and shapes</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Traces, copies and writes the letter of Urdu alphabet</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Traces, copies and writes the letters of the English alphabet</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Write her/his own names in English with appropriate use of upper and lower case letters</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Write her/his own names in Urdu</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Write a word or a sentence while describing a picture</td>
+                        <td>
+                            <select class="performance-select" data-section="2">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Step C: Basic Mathematical Concepts -->
+        <div class="assessment-section">
+            <div class="section-title">Step C: Basic Mathematical Concepts</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Recognises, name and differentiate between colours</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Differentiates and arrange objects and pictures based on size, weight, length, width and textures</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Matches and compares object</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sorts and groups objects</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Observes, identifies and extends patterns with various concrete materials</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Observes, identifies and extends the given picture/symbol patterns</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies and differentiates between broad and narrow</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies and differentiates between Some and all</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies and differentiates between more, less and equal</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies and differentiates between half and full</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Creates own patterns using concrete materials and pictures and then explains them</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Observes and identifies the "odd one out" from the given set and explains the answer</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin-top: 20px;">Shapes and position of Objects</h3>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Recognises, names, draws and explains features of two dimensional shapes</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises, names, draws and explains features of three dimensional shapes</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies the shapes in her/his environment</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Draws object of her/his own choice using various shapes</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Describes the position and order of objects using position words</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin-top: 20px;">Measurement</h3>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Describes and compares objects using measurement attributes</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Observes various objects and estimate her/his weight and length</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Verifies her/his estimations using simple tools</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognises informal time units and tells that clocks and calendars mark the passage of time</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sequences events in time and anticipate events</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin-top: 20px;">Quantity, Counting and Number Operations</h3>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Understands one-to-one correspondence</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Counts up to 50 orally</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses numbers to represent quantities in daily life interaction</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Compares quantities of objects</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Demonstrates an understanding of the concept of zero (meaning nothing)</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies and writes correct numerals to represent numbers from 0-50</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sequences numerals correctly from 0-50</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies which numeral represents a bigger quantity or lesser quantity</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Identifies ordinal numbers up to ten</td>
+                        <td>
+                            <select class="performance-select" data-section="3">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Step D: Health Hygiene and Safety -->
+        <div class="assessment-section">
+            <div class="section-title">Step D: Health Hygiene and Safety</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Demonstrates an understanding on private body parts (good touch and bad touch)</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Understands that they must reports to parents and teacher immediately if someone touches them inappropriately</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Understands that they should not talks to strangers, go with strangers, take anything from strangers, go out alone</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Explores ways of dealing with issues through role play</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Understands how to cross a road carefully</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recognise and follows basic safety rules</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Expresses needs and feelings (hungry, thirsty, need to go to toilet etc.)</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Keeps herself/himself safe and knows what to do in an emergency</td>
+                        <td>
+                            <select class="performance-select" data-section="4">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Step E: Physical Development -->
+        <div class="assessment-section">
+            <div class="section-title">Step E: Physical Development</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Moves in a number of ways, such as running, jumping, skipping, sliding, and hopping</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Moves around, climbs, balances, walks on a straight, curved, zig zag lines</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Moves through spaces with consideration of other children/people and objects in the environment</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Shows respect for other children's personal space while playing</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Handles child-appropriate materials safely with increasing control and confidence</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Manipulates small objects with ease, pick up small objects with fingers</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Differentiates between smells bad, good, strong, light, fruity, flowery, pungent</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Differentiates between different tastes; sweet, bitter, salty, sour, and spicy</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Differentiates between textures; smooth, rough, hard, soft, silky, fluffy, bumpy, slimy</td>
+                        <td>
+                            <select class="performance-select" data-section="5">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Step F: Creative Arts -->
+        <div class="assessment-section">
+            <div class="section-title">Step F: Creative Arts</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Holds crayon, colour, pencil, paint brush, scissors and demonstrates understanding of safe use</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses a variety of mediums to expresses her/his thoughts, feelings, imagination and observations</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Practices art work by using technology</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Shares ideas for creates various objects from low/no cost material</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses art techniques, such as, drawing, colouring, collage, printing and folding to create craftwork</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Produces sound patterns/rhythms by counting out beats</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Explores the sounds made by various musical instruments</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Performs poems with actions</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Explores and enact a variety of roles</td>
+                        <td>
+                            <select class="performance-select" data-section="6">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Step G: World Around Us -->
+        <div class="assessment-section">
+            <div class="section-title">Step G: World Around Us</div>
+            <table class="assessment-table">
+                <thead>
+                    <tr>
+                        <th width="70%">Assessment Focus</th>
+                        <th width="30%">Child's Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Recognizes pictures, objects and events and relates them with daily life experiences</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Describes the focus concept/theme using relevant terms and examples</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Groups pictures, objects and events related to the focus concept/theme and share the reasons for grouping</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Compares pictures, objects and events related to the focus concept/theme</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Uses non-standard units to record observations about the focus concept/theme</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Makes predictions about the focus concept/ theme</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Explores the answers using a variety of resources</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Handles materials carefully while exploration</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Demonstrates care while handling materials</td>
+                        <td>
+                            <select class="performance-select" data-section="7">
+                                <option value="NI">NI</option>
+                                <option value="E">E</option>
+                                <option value="D">D</option>
+                                <option value="S">S</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="actions no-print">
+            <button class="btn btn-primary" id="saveBtn"><a href="https://essentialmost.com/AbJdyf">Save Progress</a></button>
+            <button class="btn btn-success" id="printBtn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Print Report</a></button>
+            <button class="btn btn-warning" id="pdfBtn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download PDF</a></button>
+            <button class="btn btn-danger" id="resetBtn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Reset Form</a></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize form data from localStorage if available
+            loadFormData();
+            
+            // Calculate attendance percentage
+            document.getElementById('workingDays').addEventListener('input', calculateAttendance);
+            document.getElementById('daysAttended').addEventListener('input', calculateAttendance);
+            
+            // Update select box colors when changed
+            const performanceSelects = document.querySelectorAll('.performance-select');
+            performanceSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    updateSelectColor(this);
+                    calculateProgress();
+                });
+            });
+            
+            // Save button
+            document.getElementById('saveBtn').addEventListener('click', saveFormData);
+            
+            // Print button
+            document.getElementById('printBtn').addEventListener('click', printReport);
+            
+            // PDF button
+            document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+            
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', resetForm);
+            
+            // Initial progress calculation
+            calculateProgress();
+        });
+        
+        function calculateAttendance() {
+            const workingDays = parseInt(document.getElementById('workingDays').value) || 0;
+            const daysAttended = parseInt(document.getElementById('daysAttended').value) || 0;
+            
+            if (workingDays > 0) {
+                const percentage = Math.round((daysAttended / workingDays) * 100);
+                document.getElementById('attendancePercentage').value = percentage + '%';
+            } else {
+                document.getElementById('attendancePercentage').value = '';
+            }
+        }
+        
+        function updateSelectColor(selectElement) {
+            // Remove all classes first
+            selectElement.classList.remove('NI', 'E', 'D', 'S');
+            
+            // Add the appropriate class based on value
+            if (selectElement.value) {
+                selectElement.classList.add(selectElement.value);
+            }
+        }
+        
+        function calculateProgress() {
+            const sections = [1, 2, 3, 4, 5, 6, 7];
+            
+            sections.forEach(section => {
+                const selects = document.querySelectorAll(`.performance-select[data-section="${section}"]`);
+                let secureCount = 0;
+                
+                selects.forEach(select => {
+                    if (select.value === 'S') {
+                        secureCount++;
+                    }
+                });
+                
+                const percentage = selects.length > 0 ? Math.round((secureCount / selects.length) * 100) : 0;
+                document.getElementById(`progress-${section}`).textContent = percentage + '%';
+                document.getElementById(`progress-bar-${section}`).style.width = percentage + '%';
+            });
+        }
+        
+        function saveFormData() {
+            const formData = {
+                school: document.getElementById('school').value,
+                class: document.getElementById('class').value,
+                term: document.getElementById('term').value,
+                childName: document.getElementById('childName').value,
+                fatherName: document.getElementById('fatherName').value,
+                age: document.getElementById('age').value,
+                regNumber: document.getElementById('regNumber').value,
+                workingDays: document.getElementById('workingDays').value,
+                daysAttended: document.getElementById('daysAttended').value,
+                fromDate: document.getElementById('fromDate').value,
+                toDate: document.getElementById('toDate').value
+            };
+            
+            // Save performance selections
+            const performanceData = {};
+            document.querySelectorAll('.performance-select').forEach((select, index) => {
+                performanceData[`select-${index}`] = select.value;
+            });
+            
+            formData.performance = performanceData;
+            
+            localStorage.setItem('ecceObservationToolData', JSON.stringify(formData));
+            
+            alert('Form data saved successfully!');
+        }
+        
+        function loadFormData() {
+            const savedData = localStorage.getItem('ecceObservationToolData');
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                
+                document.getElementById('school').value = formData.school || '';
+                document.getElementById('class').value = formData.class || '';
+                document.getElementById('term').value = formData.term || '';
+                document.getElementById('childName').value = formData.childName || '';
+                document.getElementById('fatherName').value = formData.fatherName || '';
+                document.getElementById('age').value = formData.age || '';
+                document.getElementById('regNumber').value = formData.regNumber || '';
+                document.getElementById('workingDays').value = formData.workingDays || '';
+                document.getElementById('daysAttended').value = formData.daysAttended || '';
+                document.getElementById('fromDate').value = formData.fromDate || '';
+                document.getElementById('toDate').value = formData.toDate || '';
+                
+                calculateAttendance();
+                
+                // Load performance selections
+                if (formData.performance) {
+                    const selects = document.querySelectorAll('.performance-select');
+                    selects.forEach((select, index) => {
+                        const key = `select-${index}`;
+                        if (formData.performance[key]) {
+                            select.value = formData.performance[key];
+                            updateSelectColor(select);
+                        }
+                    });
+                }
+                
+                calculateProgress();
+            }
+        }
+        
+        function printReport() {
+            // Show loading
+            document.getElementById('loading').style.display = 'flex';
+            
+            // Delay to allow loading to show
+            setTimeout(() => {
+                // Create a print version of the content
+                const printContent = document.createElement('div');
+                printContent.className = 'print-content';
+                printContent.style.padding = '20px';
+                
+                // Add header
+                const header = document.createElement('div');
+                header.style.textAlign = 'center';
+                header.style.marginBottom = '20px';
+                
+                const schoolName = document.createElement('h1');
+                schoolName.textContent = document.getElementById('school').value || 'ABC School';
+                schoolName.style.marginBottom = '5px';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'Early Childhood Care and Education Progress Report';
+                title.style.marginBottom = '10px';
+                
+                const termInfo = document.createElement('p');
+                termInfo.textContent = `Term: ${document.getElementById('term').value || ''} | Class: ${document.getElementById('class').value || ''}`;
+                
+                header.appendChild(schoolName);
+                header.appendChild(title);
+                header.appendChild(termInfo);
+                printContent.appendChild(header);
+                
+                // Add student info
+                const studentInfo = document.createElement('div');
+                studentInfo.style.marginBottom = '30px';
+                
+                const studentName = document.createElement('p');
+                studentName.innerHTML = `<strong>Child's Name:</strong> ${document.getElementById('childName').value || ''}`;
+                
+                const fatherName = document.createElement('p');
+                fatherName.innerHTML = `<strong>Father's Name:</strong> ${document.getElementById('fatherName').value || ''}`;
+                
+                const ageReg = document.createElement('p');
+                ageReg.innerHTML = `<strong>Age:</strong> ${document.getElementById('age').value || ''} | <strong>Registration #:</strong> ${document.getElementById('regNumber').value || ''}`;
+                
+                const attendance = document.createElement('p');
+                attendance.innerHTML = `<strong>Attendance:</strong> ${document.getElementById('daysAttended').value || '0'} of ${document.getElementById('workingDays').value || '0'} days (${document.getElementById('attendancePercentage').value || '0%'})`;
+                
+                const period = document.createElement('p');
+                period.innerHTML = `<strong>Report Period:</strong> ${document.getElementById('fromDate').value || ''} to ${document.getElementById('toDate').value || ''}`;
+                
+                studentInfo.appendChild(studentName);
+                studentInfo.appendChild(fatherName);
+                studentInfo.appendChild(ageReg);
+                studentInfo.appendChild(attendance);
+                studentInfo.appendChild(period);
+                printContent.appendChild(studentInfo);
+                
+                // Add legend
+                const legend = document.createElement('div');
+                legend.style.display = 'flex';
+                legend.style.justifyContent = 'center';
+                legend.style.marginBottom = '20px';
+                legend.style.flexWrap = 'wrap';
+                
+                const legendItems = [
+                    { color: '#f8d7da', label: 'NI - Not Introduced' },
+                    { color: '#fff3cd', label: 'E - Emerging' },
+                    { color: '#cce5ff', label: 'D - Developing' },
+                    { color: '#d4edda', label: 'S - Secure' }
+                ];
+                
+                legendItems.forEach(item => {
+                    const legendItem = document.createElement('div');
+                    legendItem.style.display = 'flex';
+                    legendItem.style.alignItems = 'center';
+                    legendItem.style.margin = '0 10px';
+                    
+                    const colorBox = document.createElement('div');
+                    colorBox.style.width = '20px';
+                    colorBox.style.height = '20px';
+                    colorBox.style.backgroundColor = item.color;
+                    colorBox.style.marginRight = '5px';
+                    colorBox.style.border = '1px solid #ccc';
+                    
+                    const label = document.createElement('span');
+                    label.textContent = item.label;
+                    
+                    legendItem.appendChild(colorBox);
+                    legendItem.appendChild(label);
+                    legend.appendChild(legendItem);
+                });
+                
+                printContent.appendChild(legend);
+                
+                // Add assessment sections
+                const sections = document.querySelectorAll('.assessment-section');
+                sections.forEach(section => {
+                    const sectionClone = section.cloneNode(true);
+                    
+                    // Remove section title background color for printing
+                    const title = sectionClone.querySelector('.section-title');
+                    if (title) {
+                        title.style.backgroundColor = 'transparent';
+                        title.style.color = '#000';
+                        title.style.borderBottom = '2px solid #000';
+                    }
+                    
+                    // Update select boxes to show text instead
+                    const selects = sectionClone.querySelectorAll('.performance-select');
+                    selects.forEach(select => {
+                        const value = select.value;
+                        const text = select.options[select.selectedIndex].text;
+                        const span = document.createElement('span');
+                        span.textContent = text;
+                        span.style.fontWeight = 'bold';
+                        
+                        // Add color based on value
+                        if (value === 'NI') span.style.color = '#721c24';
+                        else if (value === 'E') span.style.color = '#856404';
+                        else if (value === 'D') span.style.color = '#004085';
+                        else if (value === 'S') span.style.color = '#155724';
+                        
+                        select.parentNode.replaceChild(span, select);
+                    });
+                    
+                    printContent.appendChild(sectionClone);
+                });
+                
+                // Create a new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>ECCE Progress Report</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                            th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+                            th { background-color: #f2f2f2; font-weight: bold; }
+                            .assessment-section { margin-bottom: 30px; page-break-inside: avoid; }
+                            .section-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+                            @page { size: A4; margin: 20mm; }
+                            @media print {
+                                body { padding: 0; }
+                                .assessment-section { page-break-inside: avoid; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                `);
+                printWindow.document.write(printContent.innerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Give time for content to load before printing
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            }, 100);
+        }
+        
+        function generatePDF() {
+            // Show loading
+            document.getElementById('loading').style.display = 'flex';
+            
+            // In a real implementation, you would use a library like jsPDF or html2pdf
+            // For this example, we'll simulate it with a timeout
+            setTimeout(() => {
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // In a real implementation, this would generate and download a PDF
+                alert('PDF generation would happen here. In a real implementation, you would use a library like jsPDF or html2pdf to generate the PDF from the HTML content.');
+                
+                // For a real implementation, you might use something like:
+                // const element = document.createElement('div');
+                // element.innerHTML = '...'; // Your HTML content for PDF
+                // html2pdf().from(element).save('ECCE_Progress_Report.pdf');
+            }, 1500);
+        }
+        
+        function resetForm() {
+            if (confirm('Are you sure you want to reset all form data? This cannot be undone.')) {
+                localStorage.removeItem('ecceObservationToolData');
+                
+                // Reset form fields
+                document.getElementById('class').value = '';
+                document.getElementById('term').value = '';
+                document.getElementById('childName').value = '';
+                document.getElementById('fatherName').value = '';
+                document.getElementById('age').value = '';
+                document.getElementById('regNumber').value = '';
+                document.getElementById('workingDays').value = '';
+                document.getElementById('daysAttended').value = '';
+                document.getElementById('attendancePercentage').value = '';
+                document.getElementById('fromDate').value = '';
+                document.getElementById('toDate').value = '';
+                
+                // Reset performance selects
+                const selects = document.querySelectorAll('.performance-select');
+                selects.forEach(select => {
+                    select.value = 'NI';
+                    updateSelectColor(select);
+                });
+                
+                calculateProgress();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,841 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/10832/10832711.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/10832/10832711.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Time Song Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --blue-light: #aed6f1;
+            --blue-medium: #5dade2;
+            --blue-dark: #2e86c1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--primary), var(--blue-dark));
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+            transform: rotate(30deg);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 25px;
+            gap: 25px;
+        }
+        
+        .options-panel {
+            flex: 1;
+            min-width: 300px;
+            background: var(--light);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .preview-panel {
+            flex: 2;
+            min-width: 300px;
+            padding: 25px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-right: 12px;
+            margin-top: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            background: var(--blue-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-pdf {
+            background: var(--accent);
+        }
+        
+        .btn-pdf:hover {
+            background: #c0392b;
+        }
+        
+        .btn-word {
+            background: var(--secondary);
+        }
+        
+        .btn-word:hover {
+            background: #27ae60;
+        }
+        
+        .song-preview {
+            flex: 1;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            overflow-y: auto;
+            min-height: 450px;
+            margin-top: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .song-title {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--blue-light);
+        }
+        
+        .song-content {
+            line-height: 1.8;
+            white-space: pre-line;
+            font-size: 1.1rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: var(--dark);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .language-option input {
+            width: auto;
+            margin-right: 12px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .urdu-text {
+            font-family: 'Segoe UI', 'NafeesRegular', 'Urdu Naskh Asiatype', sans-serif;
+            font-size: 1.5rem;
+            direction: rtl;
+            text-align: right;
+            line-height: 2.2;
+        }
+        
+        .decoration {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" font-size="40" fill="rgba(255,255,255,0.2)" text-anchor="middle" dominant-baseline="middle">♫</text></svg>');
+            opacity: 0.1;
+        }
+        
+        .decoration-1 {
+            top: 20px;
+            left: 5%;
+        }
+        
+        .decoration-2 {
+            bottom: 20px;
+            right: 5%;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted var(--primary);
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .animated {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Circle Time Song Generator</h1>
+            <p class="subtitle">Create fun educational songs for your ECCE classroom</p>
+            <div class="decoration decoration-1"></div>
+            <div class="decoration decoration-2"></div>
+        </header>
+        
+        <div class="main-content">
+            <div class="options-panel">
+                <h2>Song Options</h2>
+                
+                <div class="form-group">
+                    <label for="language">Language:</label>
+                    <select id="language">
+                        <option value="english">English</option>
+                        <option value="urdu">Urdu</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Category: <span class="tooltip">(?)
+                        <span class="tooltiptext">Select the educational category for your song</span>
+                    </span></label>
+                    <select id="category">
+                        <option value="alphabet">Alphabet</option>
+                        <option value="phonics">Phonics</option>
+                        <option value="digraph">Digraph</option>
+                        <option value="vowel">Vowel Sounds</option>
+                        <option value="trigraph">Trigraph</option>
+                        <option value="sightwords">Sight Words</option>
+                        <option value="counting">Maths Counting</option>
+                        <option value="shapes">Shapes</option>
+                        <option value="colors">Colors</option>
+                        <option value="days">Days of Week</option>
+                        <option value="months">Months</option>
+                        <option value="fruits">Fruits</option>
+                        <option value="vegetables">Vegetables</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic">Specific Topic: <span class="tooltip">(?)
+                        <span class="tooltiptext">Enter a specific letter, number, or word</span>
+                    </span></label>
+                    <input type="text" id="topic" placeholder="e.g., Letter A, Number 5, Apple">
+                </div>
+                
+                <div class="form-group">
+                    <label for="tune">Tune (Optional):</label>
+                    <input type="text" id="tune" placeholder="e.g., Twinkle Twinkle, Wheels on the Bus">
+                </div>
+                
+                <button id="generate-btn" class="btn-generate">Generate Song</button>
+                
+                <div class="export-buttons">
+                    <button id="pdf-btn" class="btn-pdf">Export as PDF</button>
+                    <button id="word-btn" class="btn-word">Export as Word</button>
+                    <button id="copy-btn" class="btn-copy">Copy to Clipboard</button>
+                </div>
+            </div>
+            
+            <div class="preview-panel">
+                <h2>Song Preview</h2>
+                <div class="song-preview">
+                    <h3 class="song-title">Your Song Will Appear Here</h3>
+                    <div class="song-content" id="song-output">
+                        Select options and click "Generate Song" to create a custom song for your classroom.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Circle Time Song Generator &copy; 2025 - For ECCE Teachers</p>
+        </footer>
+    </div>
+
+    <script>
+        // Song database with all categories filled
+        const songTemplates = {
+            english: {
+                alphabet: {
+                    default: `The Alphabet Song
+                    
+A, B, C, D, E, F, G,
+H, I, J, K, L-M-N-O-P,
+Q, R, S, T, U, V,
+W, X, Y, and Z.
+
+Now I know my ABCs,
+Next time won't you sing with me!`,
+                    specific: {
+                        "A": `The Letter A Song
+                        
+Apple starts with A, A, A,
+Ant starts with A, A, A,
+Alligator starts with A, A, A,
+A is the sound of A!`,
+                        "B": `The Letter B Song
+                        
+Ball starts with B, B, B,
+Bear starts with B, B, B,
+Butterfly starts with B, B, B,
+B is the sound of B!`,
+                        "C": `The Letter C Song
+                        
+Cat starts with C, C, C,
+Car starts with C, C, C,
+Cake starts with C, C, C,
+C is the sound of C!`
+                    }
+                },
+                phonics: {
+                    default: `Phonics Fun
+                    
+Let's learn our sounds today,
+In a fun and special way!
+Say the sounds both loud and clear,
+For everyone to hear!`,
+                    specific: {
+                        "C": `The C Sound Song
+                        
+C can make two different sounds,
+In words that we have found!
+Sometimes it's soft like in "ice",
+Sometimes it's hard like in "mice"!`,
+                        "SH": `The SH Sound Song
+                        
+Sh, sh, sh, what do we say?
+When we want to quiet play!
+Ship and shop and shoe and shore,
+Sh is a sound we can't ignore!`,
+                        "TH": `The TH Sound Song
+                        
+Th, th, th, goes the thirsty thief,
+Th, th, th, shaking the leaf!
+This and that and them and those,
+Th is the sound that everyone knows!`
+                    }
+                },
+                digraph: {
+                    default: `Digraph Song
+                    
+Two letters together, making one sound,
+Digraphs are everywhere to be found!
+CH and SH and TH and PH,
+Let's sing a digraph melody!`,
+                    specific: {
+                        "CH": `The CH Sound Song
+                        
+Ch, ch, ch, goes the choo-choo train,
+Ch, ch, ch, in the sunshine and rain!
+Cheese and chair and church and cheek,
+Ch is the sound that we all seek!`,
+                        "SH": `The SH Sound Song
+                        
+Sh, sh, sh, what do we say?
+When we want to quiet play!
+Ship and shop and shoe and shore,
+Sh is a sound we can't ignore!`,
+                        "TH": `The TH Sound Song
+                        
+Th, th, th, goes the thirsty thief,
+Th, th, th, shaking the leaf!
+This and that and them and those,
+Th is the sound that everyone knows!`
+                    }
+                },
+                vowel: {
+                    default: `Vowel Song
+                    
+A, E, I, O, U,
+Sometimes Y and W too!
+Vowels are the special ones,
+In words, they're second to none!`,
+                    specific: {
+                        "A": `The Vowel A Song
+                        
+A is a vowel, open and wide,
+In words like apple and airplane ride!
+Short A says ă like in cat,
+Long A says ā like in cake, that's that!`,
+                        "E": `The Vowel E Song
+                        
+E is a vowel, happy and free,
+In words like elephant and eagle you see!
+Short E says ĕ like in bed,
+Long E says ē like in bee, it's said!`
+                    }
+                },
+                trigraph: {
+                    default: `Trigraph Song
+                    
+Three letters together, making one sound,
+Trigraphs are everywhere around!
+IGH and TCH and DGE and EAR,
+Let's sing them loud and clear!`,
+                    specific: {
+                        "IGH": `The IGH Trigraph Song
+                        
+I-G-H says "eye" like in light,
+Making words both day and night!
+High and sigh and right and bright,
+I-G-H makes the sound just right!`,
+                        "TCH": `The TCH Trigraph Song
+                        
+T-C-H says "ch" like in catch,
+Making words that are a perfect match!
+Watch and patch and hatch and stitch,
+T-C-H is a perfect fit!`
+                    }
+                },
+                sightwords: {
+                    default: `Sight Words Song
+                    
+Sight words, sight words, we know them by sight,
+We read them each morning, we read them at night!
+They help us with reading, they help us with writing,
+Sight words make learning really exciting!`,
+                    specific: {
+                        "THE": `The Word "The" Song
+                        
+T-H-E spells the, the, the,
+We see it everywhere, as plain as can be!
+The cat, the dog, the sun up above,
+The is a word that we all love!`,
+                        "AND": `The Word "And" Song
+                        
+A-N-D spells and, and, and,
+It joins things together throughout the land!
+Peanut butter and jelly, salt and pepper too,
+And is a word that helps us through!`
+                    }
+                },
+                counting: {
+                    default: `Counting Song
+                    
+One, two, three, four, five,
+Once I caught a fish alive.
+Six, seven, eight, nine, ten,
+Then I let it go again!`,
+                    specific: {
+                        "5": `Counting to Five
+                        
+One little, two little, three little numbers,
+Four little, five little, numbers so bright,
+Counting them, adding them, all day long,
+Learning our numbers with all of our might!`,
+                        "10": `Counting to Ten
+                        
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10!
+Let's count them all again!
+10, 9, 8, 7, 6, 5, 4, 3, 2, 1!
+Now our counting song is done!`
+                    }
+                },
+                shapes: {
+                    default: `Shapes Song
+                    
+Circle, square, triangle, rectangle,
+Shapes are everywhere, what a spectacle!
+Star and heart and oval too,
+So many shapes for me and you!`,
+                    specific: {
+                        "CIRCLE": `The Circle Song
+                        
+Round and round, no corners to see,
+A circle is as round as can be!
+Like a pizza, like a clock, like a big full moon,
+A circle is a shape that makes us swoon!`,
+                        "SQUARE": `The Square Song
+                        
+Four equal sides, four corners just right,
+A square is a shape that's sturdy and tight!
+Like a window, like a box, like a piece of bread,
+A square is a shape that's widely spread!`
+                    }
+                },
+                colors: {
+                    default: `Rainbow Colors
+                    
+Red and orange, green and blue,
+Shiny yellow, purple too!
+All the colors that we know,
+Live up in the rainbow!`,
+                    specific: {
+                        "RED": `The Color Red Song
+                        
+R-E-D spells red, red, red,
+The color of strawberries and a flower bed!
+Apples and fire trucks and roses so fine,
+Red is a color that's simply divine!`,
+                        "BLUE": `The Color Blue Song
+                        
+B-L-U-E spells blue, blue, blue,
+The color of the ocean and the sky so true!
+Blueberries and jeans and a little bird too,
+Blue is a color for me and you!`
+                    }
+                },
+                days: {
+                    default: `Days of the Week Song
+                    
+Sunday, Monday, Tuesday, Wednesday,
+Thursday, Friday, Saturday!
+Seven days make up a week,
+Let's sing them strong, let's sing them meek!`,
+                    specific: {
+                        "MONDAY": `Monday Song
+                        
+M-O-N-D-A-Y, Monday, Monday,
+The first day of the week, fun-day, Monday!
+We start our week with work and play,
+Hello, hello, to Monday!`
+                    }
+                },
+                months: {
+                    default: `Months of the Year Song
+                    
+January, February, March, and April,
+May, June, July, don't stand still!
+August, September, October, November,
+December ends, so remember!`,
+                    specific: {
+                        "JANUARY": `January Song
+                        
+J-A-N-U-A-R-Y, January,
+The first month of the year, so merry!
+Snow and cold and a brand new start,
+January plays a special part!`
+                    }
+                },
+                fruits: {
+                    default: `Fruit Song
+                    
+Apples, bananas, oranges too,
+Peaches and grapes for me and you!
+Fruits are healthy, fruits are sweet,
+Fruits are really good to eat!`,
+                    specific: {
+                        "APPLE": `Apple Song
+                        
+A-P-P-L-E spells apple, apple,
+Crunchy and juicy, a healthy example!
+Red or green, so good to eat,
+An apple a day can't be beat!`
+                    }
+                },
+                vegetables: {
+                    default: `Vegetable Song
+                    
+Carrots, broccoli, peas, and corn,
+Vegetables are where health is born!
+Spinach, lettuce, cucumbers too,
+Vegetables are good for you!`,
+                    specific: {
+                        "CARROT": `Carrot Song
+                        
+C-A-R-R-O-T spells carrot, carrot,
+Orange and crunchy, a healthy parrot!
+Good for eyesight, good for health,
+Carrots are better than wealth!`
+                    }
+                }
+            },
+            urdu: {
+                alphabet: {
+                    default: `اردو حروف تہجی
+                    
+ا، ب، پ، ت، ٹ، ث، ج، چ، ح، خ
+د، ڈ، ذ، ر، ڑ، ز، ژ، س، ش، ص
+ض، ط، ظ، ع، غ، ف، ق، ک، گ، ل
+م، ن، ں، و، ہ، ھ، ء، ی، ے
+
+اب میں اپنے اے بی سیز جانتا ہوں،
+اگلی بار تم بھی میرے ساتھ گاؤ گے!`,
+                    specific: {
+                        "ا": `حرف ا کی گیت
+                        
+الف سے انار ہے مزیدار ہے،
+الف سے املی ہے میٹھی ہے،
+الف سے انڈا ہے گول ہے،
+یہ حرف ا ہے خوبصورت ہے!`,
+                        "ب": `حرف ب کی گیت
+                        
+ب سے بکری ہے می می می،
+ب سے بلی ہے میاؤ میاؤ،
+ب سے بارش ہے قطروں کی،
+یہ حرف ب ہے خوبصورت ہے!`
+                    }
+                },
+                phonics: {
+                    default: `اردو آوازیں
+                    
+آئیے آوازیں سیکھیں آج،
+ایک مزیدار اور انوکھے انداز میں!
+آوازیں کہیں زور سے اور صاف،
+سب کے سننے کے لیے تیار!`,
+                    specific: {
+                        "ا": `آواز ا کی گیت
+                        
+ا سے انار ہے مزیدار ہے،
+ا سے اٹھنا ہے صبح سویرے،
+ا سے انڈا ہے گول گول،
+یہ آواز ا ہے انوکھی!`
+                    }
+                }
+            }
+        };
+
+        // DOM elements
+        const languageSelect = document.getElementById('language');
+        const categorySelect = document.getElementById('category');
+        const topicInput = document.getElementById('topic');
+        const tuneInput = document.getElementById('tune');
+        const generateBtn = document.getElementById('generate-btn');
+        const pdfBtn = document.getElementById('pdf-btn');
+        const wordBtn = document.getElementById('word-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const songOutput = document.getElementById('song-output');
+        const songTitle = document.querySelector('.song-title');
+
+        // Generate song function
+        function generateSong() {
+            const language = languageSelect.value;
+            const category = categorySelect.value;
+            const topic = topicInput.value.trim();
+            const tune = tuneInput.value.trim();
+            
+            let song = "No song template available for these options. Please try different options.";
+            
+            // Check if we have a template for this selection
+            if (songTemplates[language] && songTemplates[language][category]) {
+                const categoryTemplates = songTemplates[language][category];
+                
+                // Check for specific topic song
+                if (topic && categoryTemplates.specific && categoryTemplates.specific[topic.toUpperCase()]) {
+                    song = categoryTemplates.specific[topic.toUpperCase()];
+                } else {
+                    song = categoryTemplates.default;
+                }
+                
+                // Add tune information if provided
+                if (tune) {
+                    song = `To the tune of: ${tune}\n\n${song}`;
+                }
+            }
+            
+            // Update the preview
+            const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+            songTitle.textContent = `${categoryName} Song`;
+            
+            if (language === 'urdu') {
+                songOutput.className = 'song-content urdu-text animated';
+            } else {
+                songOutput.className = 'song-content animated';
+            }
+            
+            songOutput.textContent = song;
+        }
+
+        // Export to PDF function
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const title = songTitle.textContent;
+            const content = songOutput.textContent;
+            
+            doc.setFontSize(20);
+            doc.text(title, 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            const lines = doc.splitTextToSize(content, 180);
+            doc.text(lines, 15, 30);
+            
+            doc.save('circle-time-song.pdf');
+        }
+
+        // Export to Word function
+        function exportToWord() {
+            const title = songTitle.textContent;
+            const content = songOutput.textContent;
+            
+            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+xmlns:w='urn:schemas-microsoft-com:office:word' 
+xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='utf-8'><title>${title}</title></head><body>`;
+            
+            const footer = '</body></html>';
+            const sourceHTML = header + `<h1>${title}</h1><pre>${content}</pre>` + footer;
+            
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement('a');
+            
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'circle-time-song.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard() {
+            const content = songOutput.textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Song copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', generateSong);
+        pdfBtn.addEventListener('click', exportToPDF);
+        wordBtn.addEventListener('click', exportToWord);
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        // Initialize with a sample song
+        window.onload = function() {
+            // Set some default values
+            topicInput.value = "A";
+            generateSong();
+        };
+    </script>
+</body>
+</html>

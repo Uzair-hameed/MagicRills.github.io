@@ -1,0 +1,1188 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/3153/3153490.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/3153/3153490.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Advanced Notebook Checking Generator Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cae;
+            --accent-color: #ff7e5f;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        header p {
+            margin: 10px 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card-title {
+            color: var(--primary-color);
+            margin-top: 0;
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input {
+            margin-right: 8px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a7c9e;
+        }
+        
+        .btn-accent {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-accent:hover {
+            background-color: #ff6a45;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 40px;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-title {
+            color: var(--primary-color);
+            margin: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .status-yes {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+        
+        .status-no {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        
+        .thumbnail-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .thumbnail {
+            flex: 1 1 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        
+        .thumbnail:hover {
+            transform: translateY(-5px);
+        }
+        
+        .thumbnail-img {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .thumbnail-content {
+            padding: 15px;
+        }
+        
+        .thumbnail-title {
+            margin: 0 0 10px;
+            color: var(--primary-color);
+        }
+        
+        .thumbnail-desc {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected {
+            border-color: var(--dark-color);
+            transform: scale(1.1);
+        }
+        
+        .report-color-1 { background-color: #4a6fa5; }
+        .report-color-2 { background-color: #6b8cae; }
+        .report-color-3 { background-color: #ff7e5f; }
+        .report-color-4 { background-color: #28a745; }
+        .report-color-5 { background-color: #6c757d; }
+        
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animated {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            height: 10px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            background-color: var(--primary-color);
+            width: 0;
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Advanced Notebook Checking Generator</h1>
+            <p>A comprehensive tool for teachers and coordinators to evaluate student notebooks efficiently</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card animated">
+            <h2 class="card-title">About This Tool</h2>
+            <p>This advanced notebook checking generator helps teachers and school coordinators systematically evaluate student notebooks. The tool generates professional reports that can be downloaded in PDF or DOC format, saving time while ensuring comprehensive assessment.</p>
+            
+            <div class="thumbnail-container">
+                <div class="thumbnail">
+                    <div class="thumbnail-img" style="background-image: linear-gradient(135deg, #4a6fa5, #6b8cae);"></div>
+                    <div class="thumbnail-content">
+                        <h3 class="thumbnail-title">Comprehensive Evaluation</h3>
+                        <p class="thumbnail-desc">Assess notebooks against 14 key parameters for complete evaluation</p>
+                    </div>
+                </div>
+                
+                <div class="thumbnail">
+                    <div class="thumbnail-img" style="background-image: linear-gradient(135deg, #ff7e5f, #ff6a45);"></div>
+                    <div class="thumbnail-content">
+                        <h3 class="thumbnail-title">Colorful Reports</h3>
+                        <p class="thumbnail-desc">Generate visually appealing reports with color customization</p>
+                    </div>
+                </div>
+                
+                <div class="thumbnail">
+                    <div class="thumbnail-img" style="background-image: linear-gradient(135deg, #28a745, #218838);"></div>
+                    <div class="thumbnail-content">
+                        <h3 class="thumbnail-title">Easy Export</h3>
+                        <p class="thumbnail-desc">Download reports in PDF or DOC format with one click</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card animated" style="animation-delay: 0.2s;">
+            <h2 class="card-title">Notebook Information</h2>
+            <form id="notebookForm">
+                <div class="form-group">
+                    <label for="schoolName">School's Name:</label>
+                    <input id="schoolName" name="schoolName" required="" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="teacherName">Teacher's Name:</label>
+                    <input id="teacherName" name="teacherName" required="" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="className">Class:</label>
+                    <input id="className" name="className" required="" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Subject:</label>
+                    <input id="subject" name="subject" required="" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="totalStudents">Total No. of students in the class:</label>
+                    <input id="totalStudents" min="1" name="totalStudents" required="" type="number" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="notebooksReceived">No. of notebooks received:</label>
+                    <input id="notebooksReceived" min="1" name="notebooksReceived" required="" type="number" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastWorkChecked">Last work checked:</label>
+                    <input id="lastWorkChecked" name="lastWorkChecked" required="" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="uncheckedWork">Unchecked Work:</label>
+                    <input id="uncheckedWork" name="uncheckedWork" required="" type="text" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Condition of Notebooks:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input id="conditionCovered" name="condition" type="checkbox" value="Covered" />
+                            <label for="conditionCovered">Covered</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="conditionMaintained" name="condition" type="checkbox" value="Well-maintained" />
+                            <label for="conditionMaintained">Well-maintained</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="conditionUntidy" name="condition" type="checkbox" value="Untidy / Not covered" />
+                            <label for="conditionUntidy">Untidy / Not covered</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Report Color Theme:</label>
+                    <div class="color-palette">
+                        <div class="color-option report-color-1 selected" data-color="4a6fa5" onclick="selectColor(this)"></div>
+                        <div class="color-option report-color-2" data-color="6b8cae" onclick="selectColor(this)"></div>
+                        <div class="color-option report-color-3" data-color="ff7e5f" onclick="selectColor(this)"></div>
+                        <div class="color-option report-color-4" data-color="28a745" onclick="selectColor(this)"></div>
+                        <div class="color-option report-color-5" data-color="6c757d" onclick="selectColor(this)"></div>
+                    </div>
+                    <input id="selectedColor" type="hidden" value="4a6fa5" />
+                </div>
+                
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card animated" style="animation-delay: 0.4s;">
+            <h2 class="card-title">Evaluation Parameters</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sr.#</th>
+                        <th>Parameters</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody id="parametersTable">
+                    <tr>
+                        <td>1.</td>
+                        <td class="tooltip">Complete information on title page<span class="tooltiptext">Name, Class, Section, Subject, and School Name</span></td>
+                        <td>
+                            <select class="status-select" data-param="1">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="1" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>2.</td>
+                        <td class="tooltip">Date written<span class="tooltiptext">Date Format: Monday, January 23, 2020 (Complete spelling of Day and Month)</span></td>
+                        <td>
+                            <select class="status-select" data-param="2">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="2" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>3.</td>
+                        <td>Pointer Page is created for unit no. and unit name</td>
+                        <td>
+                            <select class="status-select" data-param="3">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="3" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>4.</td>
+                        <td>Topic written and underlined</td>
+                        <td>
+                            <select class="status-select" data-param="4">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="4" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>5.</td>
+                        <td>Question / Exercise written</td>
+                        <td>
+                            <select class="status-select" data-param="5">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="5" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>6.</td>
+                        <td>Work presentation neat</td>
+                        <td>
+                            <select class="status-select" data-param="6">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="6" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>7.</td>
+                        <td class="tooltip">Corrections done regularly<span class="tooltiptext">Done by students</span></td>
+                        <td>
+                            <select class="status-select" data-param="7">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="7" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>8.</td>
+                        <td class="tooltip">Notebooks indicate uniformity in work<span class="tooltiptext">Questions done by students in same manner and format</span></td>
+                        <td>
+                            <select class="status-select" data-param="8">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="8" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>9.</td>
+                        <td class="tooltip">Quality of checking / remarks<span class="tooltiptext">As per key provided in policy</span></td>
+                        <td>
+                            <select class="status-select" data-param="9">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="9" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>10.</td>
+                        <td>Regularity of checking</td>
+                        <td>
+                            <select class="status-select" data-param="10">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="10" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>11.</td>
+                        <td class="tooltip">Absent work mentioned &amp; covered<span class="tooltiptext">Mentioned by teacher and done by student</span></td>
+                        <td>
+                            <select class="status-select" data-param="11">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="11" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>12.</td>
+                        <td>Homework is assigned according to homework schedule</td>
+                        <td>
+                            <select class="status-select" data-param="12">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="12" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>13.</td>
+                        <td>Notebooks regularly counter checked by School Head</td>
+                        <td>
+                            <select class="status-select" data-param="13">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="13" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>14.</td>
+                        <td>Homework diary is signed by teacher and head teacher</td>
+                        <td>
+                            <select class="status-select" data-param="14">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </td>
+                        <td><input class="remarks-input" data-param="14" placeholder="Optional remarks" type="text" /></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="btn-group">
+                <button class="btn" onclick="generateReport()" type="button">Generate Report</button>
+                <button class="btn btn-secondary" onclick="resetForm()" type="reset">Reset Form</button>
+            </div>
+        </div>
+        
+        <div class="result-section" id="resultSection">
+            <div class="result-card animated">
+                <div class="result-header">
+                    <h2 class="result-title">Notebook Checking Report</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-accent" onclick="downloadPDF()" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download PDF</a></button>
+                        <button class="btn" onclick="downloadDOC()" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download DOC</a></button>
+                    </div>
+                </div>
+                
+                <div id="reportContent">
+                    <!-- Report content will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>Advanced Notebook Checking Generator Tool © 2023 | For Teachers and School Coordinators</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Global variables
+        let reportData = {};
+        let selectedColor = "#4a6fa5";
+        
+        // Select color theme
+        function selectColor(element) {
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedColor = "#" + element.getAttribute('data-color');
+            document.getElementById('selectedColor').value = element.getAttribute('data-color');
+            
+            // Update UI elements with new color
+            document.documentElement.style.setProperty('--primary-color', selectedColor);
+        }
+        
+        // Generate report
+        function generateReport() {
+            // Show progress bar
+            document.getElementById('progressContainer').style.display = 'block';
+            animateProgressBar();
+            
+            // Collect form data
+            const form = document.getElementById('notebookForm');
+            const formData = new FormData(form);
+            
+            reportData = {
+                schoolName: formData.get('schoolName'),
+                teacherName: formData.get('teacherName'),
+                className: formData.get('className'),
+                subject: formData.get('subject'),
+                totalStudents: formData.get('totalStudents'),
+                notebooksReceived: formData.get('notebooksReceived'),
+                lastWorkChecked: formData.get('lastWorkChecked'),
+                uncheckedWork: formData.get('uncheckedWork'),
+                conditions: [],
+                parameters: [],
+                colorTheme: selectedColor
+            };
+            
+            // Get notebook conditions
+            document.querySelectorAll('input[name="condition"]:checked').forEach(checkbox => {
+                reportData.conditions.push(checkbox.value);
+            });
+            
+            // Get evaluation parameters
+            document.querySelectorAll('.status-select').forEach(select => {
+                const paramId = select.getAttribute('data-param');
+                const remark = document.querySelector(`.remarks-input[data-param="${paramId}"]`).value;
+                
+                reportData.parameters.push({
+                    id: paramId,
+                    parameter: select.parentNode.parentNode.querySelector('td:nth-child(2)').textContent.trim(),
+                    status: select.value,
+                    remark: remark
+                });
+            });
+            
+            // Generate report HTML
+            generateReportHTML();
+            
+            // Show result section
+            document.getElementById('resultSection').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+        
+        // Animate progress bar
+        function animateProgressBar() {
+            const progressBar = document.getElementById('progressBar');
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    document.getElementById('progressContainer').style.display = 'none';
+                } else {
+                    width++;
+                    progressBar.style.width = width + '%';
+                }
+            }, 20);
+        }
+        
+        // Generate report HTML
+        function generateReportHTML() {
+            const reportContent = document.getElementById('reportContent');
+            let html = `
+                <style>
+                    .report-header {
+                        color: ${selectedColor};
+                        border-bottom: 2px solid ${selectedColor};
+                        padding-bottom: 10px;
+                        margin-bottom: 20px;
+                    }
+                    .report-section {
+                        margin-bottom: 25px;
+                    }
+                    .report-title {
+                        color: ${selectedColor};
+                        margin-bottom: 10px;
+                    }
+                    .parameter-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    .parameter-table th {
+                        background-color: ${selectedColor};
+                        color: white;
+                        padding: 10px;
+                        text-align: left;
+                    }
+                    .parameter-table td {
+                        padding: 10px;
+                        border-bottom: 1px solid #ddd;
+                    }
+                    .parameter-table tr:nth-child(even) {
+                        background-color: #f9f9f9;
+                    }
+                    .status-yes {
+                        color: #28a745;
+                        font-weight: bold;
+                    }
+                    .status-no {
+                        color: #dc3545;
+                        font-weight: bold;
+                    }
+                    .signature-line {
+                        margin-top: 50px;
+                        border-top: 1px solid #333;
+                        width: 300px;
+                        display: inline-block;
+                    }
+                </style>
+                
+                <div class="report-header">
+                    <h2>${reportData.schoolName}</h2>
+                    <p>Notebook Checking Report</p>
+                </div>
+                
+                <div class="report-section">
+                    <h3 class="report-title">Basic Information</h3>
+                    <table>
+                        <tr>
+                            <td><strong>Teacher's Name:</strong></td>
+                            <td>${reportData.teacherName}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Class:</strong></td>
+                            <td>${reportData.className}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Subject:</strong></td>
+                            <td>${reportData.subject}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Students:</strong></td>
+                            <td>${reportData.totalStudents}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Notebooks Received:</strong></td>
+                            <td>${reportData.notebooksReceived}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Last Work Checked:</strong></td>
+                            <td>${reportData.lastWorkChecked}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Unchecked Work:</strong></td>
+                            <td>${reportData.uncheckedWork}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Condition of Notebooks:</strong></td>
+                            <td>${reportData.conditions.join(', ')}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="report-section">
+                    <h3 class="report-title">Evaluation Parameters</h3>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Sr.#</th>
+                                <th>Parameter</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            reportData.parameters.forEach(param => {
+                html += `
+                    <tr>
+                        <td>${param.id}.</td>
+                        <td>${param.parameter}</td>
+                        <td class="status-${param.status}">${param.status.toUpperCase()}</td>
+                        <td>${param.remark || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="report-section">
+                    <div style="margin-top: 40px;">
+                        <div class="signature-line"></div>
+                        <p>Date: _______________ &nbsp; &nbsp; School Head's Signature: _______________</p>
+                    </div>
+                </div>
+            `;
+            
+            reportContent.innerHTML = html;
+        }
+        
+        // Download PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add school name and title
+            doc.setFontSize(16);
+            doc.setTextColor(hexToRgb(selectedColor));
+            doc.text(reportData.schoolName, 105, 15, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text('Notebook Checking Report', 105, 22, { align: 'center' });
+            
+            // Reset font and color
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            
+            // Add basic information
+            doc.text('Basic Information', 14, 35);
+            doc.line(14, 37, 60, 37);
+            
+            let y = 45;
+            doc.text(`Teacher's Name: ${reportData.teacherName}`, 14, y);
+            y += 7;
+            doc.text(`Class: ${reportData.className}`, 14, y);
+            y += 7;
+            doc.text(`Subject: ${reportData.subject}`, 14, y);
+            y += 7;
+            doc.text(`Total Students: ${reportData.totalStudents}`, 14, y);
+            y += 7;
+            doc.text(`Notebooks Received: ${reportData.notebooksReceived}`, 14, y);
+            y += 7;
+            doc.text(`Last Work Checked: ${reportData.lastWorkChecked}`, 14, y);
+            y += 7;
+            doc.text(`Unchecked Work: ${reportData.uncheckedWork}`, 14, y);
+            y += 7;
+            doc.text(`Condition of Notebooks: ${reportData.conditions.join(', ')}`, 14, y);
+            y += 15;
+            
+            // Add evaluation parameters
+            doc.text('Evaluation Parameters', 14, y);
+            doc.line(14, y+2, 60, y+2);
+            y += 10;
+            
+            // Create table for parameters
+            const headers = [['Sr.#', 'Parameter', 'Status', 'Remarks']];
+            const data = reportData.parameters.map(param => [
+                param.id,
+                param.parameter,
+                param.status.toUpperCase(),
+                param.remark || '-'
+            ]);
+            
+            doc.autoTable({
+                startY: y,
+                head: headers,
+                body: data,
+                headStyles: {
+                    fillColor: hexToRgb(selectedColor),
+                    textColor: [255, 255, 255]
+                },
+                alternateRowStyles: {
+                    fillColor: [249, 249, 249]
+                },
+                didDrawCell: (data) => {
+                    if (data.section === 'body' && data.column.index === 2) {
+                        const status = data.cell.raw;
+                        if (status === 'YES') {
+                            data.cell.styles.textColor = [40, 167, 69];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (status === 'NO') {
+                            data.cell.styles.textColor = [220, 53, 69];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+            });
+            
+            // Add signature line
+            const finalY = doc.lastAutoTable.finalY + 15;
+            doc.line(20, finalY, 80, finalY);
+            doc.text('Date: _______________', 20, finalY + 10);
+            doc.text('School Head\'s Signature: _______________', 20, finalY + 20);
+            
+            // Save the PDF
+            doc.save(`Notebook_Check_Report_${reportData.className}_${reportData.subject}.pdf`);
+        }
+        
+        // Download DOC
+        function downloadDOC() {
+            // Create HTML content for the DOC
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 20px;
+                        }
+                        .header {
+                            color: ${selectedColor};
+                            text-align: center;
+                            margin-bottom: 30px;
+                        }
+                        .section-title {
+                            color: ${selectedColor};
+                            border-bottom: 1px solid ${selectedColor};
+                            padding-bottom: 5px;
+                            margin-top: 20px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                        }
+                        th {
+                            background-color: ${selectedColor};
+                            color: white;
+                            padding: 8px;
+                            text-align: left;
+                        }
+                        td {
+                            padding: 8px;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        tr:nth-child(even) {
+                            background-color: #f9f9f9;
+                        }
+                        .status-yes {
+                            color: #28a745;
+                            font-weight: bold;
+                        }
+                        .status-no {
+                            color: #dc3545;
+                            font-weight: bold;
+                        }
+                        .signature-line {
+                            margin-top: 50px;
+                            border-top: 1px solid #333;
+                            width: 300px;
+                            display: inline-block;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>${reportData.schoolName}</h1>
+                        <h2>Notebook Checking Report</h2>
+                    </div>
+                    
+                    <div>
+                        <h3 class="section-title">Basic Information</h3>
+                        <table>
+                            <tr>
+                                <td><strong>Teacher's Name:</strong></td>
+                                <td>${reportData.teacherName}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Class:</strong></td>
+                                <td>${reportData.className}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Subject:</strong></td>
+                                <td>${reportData.subject}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Students:</strong></td>
+                                <td>${reportData.totalStudents}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Notebooks Received:</strong></td>
+                                <td>${reportData.notebooksReceived}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Work Checked:</strong></td>
+                                <td>${reportData.lastWorkChecked}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Unchecked Work:</strong></td>
+                                <td>${reportData.uncheckedWork}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Condition of Notebooks:</strong></td>
+                                <td>${reportData.conditions.join(', ')}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div>
+                        <h3 class="section-title">Evaluation Parameters</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sr.#</th>
+                                    <th>Parameter</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            reportData.parameters.forEach(param => {
+                htmlContent += `
+                    <tr>
+                        <td>${param.id}.</td>
+                        <td>${param.parameter}</td>
+                        <td class="status-${param.status}">${param.status.toUpperCase()}</td>
+                        <td>${param.remark || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            htmlContent += `
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-top: 50px;">
+                        <div class="signature-line"></div>
+                        <p>Date: _______________ &nbsp; &nbsp; School Head's Signature: _______________</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // Create a Blob with the HTML content
+            const blob = new Blob([htmlContent], { type: 'application/msword' });
+            
+            // Create a download link
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Notebook_Check_Report_${reportData.className}_${reportData.subject}.doc`;
+            
+            // Trigger the download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Helper function to convert hex color to RGB array
+        function hexToRgb(hex) {
+            // Remove # if present
+            hex = hex.replace('#', '');
+            
+            // Parse r, g, b values
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            
+            return [r, g, b];
+        }
+        
+        // Reset form
+        function resetForm() {
+            document.getElementById('notebookForm').reset();
+            document.querySelectorAll('.status-select').forEach(select => {
+                select.value = 'yes';
+            });
+            document.querySelectorAll('.remarks-input').forEach(input => {
+                input.value = '';
+            });
+            document.getElementById('resultSection').style.display = 'none';
+            
+            // Reset color selection
+            document.querySelector('.color-option.report-color-1').click();
+        }
+    </script>
+</body>
+</html>

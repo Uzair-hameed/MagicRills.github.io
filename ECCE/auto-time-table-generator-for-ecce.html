@@ -1,0 +1,135 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/1754/1754177.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/1754/1754177.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"></meta>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+<title>Auto Time Table Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
+.container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, .1); }
+h1 { text-align: center; color: #333; }
+input, select, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+button { background: #007bff; color: #fff; border: none; cursor: pointer; }
+button:hover { background: #0056b3; }
+.logo-preview { margin: 10px 0; text-align: center; }
+.logo-preview img { max-width: 100px; border-radius: 5px; }
+.timetable { margin-top: 20px; border-collapse: collapse; width: 100%; }
+.timetable th, .timetable td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+.timetable th { background: #007bff; color: #fff; }
+.timetable td { background: #f8f9fa; }
+.download-btns { text-align: center; margin-top: 20px; }
+.download-btns a { margin: 0 10px; padding: 10px 20px; background: #28a745; color: #fff; text-decoration: none; border-radius: 5px; }
+.download-btns a:hover { background: #218838; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Auto Time Table Generator</h1>
+<input accept="image/*" id="logo" type="file" /><br />
+<input id="schoolName" placeholder="School Name" type="text" /><br />
+<input id="teacherName" placeholder="Teacher Name" type="text" /><br />
+<input id="className" placeholder="Class" type="text" /><br />
+<select id="timing">
+<option value="8:00 - 12:30">8:00 - 12:30</option>
+<option value="9:00 - 1:30">9:00 - 1:30</option>
+</select><br />
+<input id="periodDuration" placeholder="Period Duration (in minutes)" type="number" value="45" /><br />
+<button onclick="generateTimetable()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Generate Time Table</a></button>
+<div class="logo-preview"></div>
+<table class="timetable" id="timetable">
+<thead>
+<tr><th>Day</th><th>Time</th><th>Activity</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+<div class="download-btns">
+<a href="#" id="pdfDownload" onclick="downloadPDF()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download PDF</a></a>
+<a href="#" id="docDownload" onclick="downloadDOC()"><a href="https://essentialmost.com/AbJdyf">Download DOC</a></a>
+</div>
+</div>
+<script>
+function generateTimetable() {
+const schoolName = document.getElementById('schoolName').value;
+const teacherName = document.getElementById('teacherName').value;
+const className = document.getElementById('className').value;
+const timing = document.getElementById('timing').value;
+const periodDuration = parseInt(document.getElementById('periodDuration').value) || 45;
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const subjects = [
+{name: "Personal, Social, and Emotional Development", type: "Elective"},
+{name: "Language and Literacy - Urdu", type: "Compulsory"},
+{name: "Basic Mathematical Concepts", type: "Compulsory"},
+{name: "Health Hygiene and Safety", type: "Elective"},
+{name: "Physical Development", type: "Elective"},
+{name: "Creative Arts", type: "Elective"},
+{name: "World Around Us", type: "Elective"}
+];
+let startTime = timing.split(" - ")[0];
+let endTime = timing.split(" - ")[1];
+let snackTime = getSnackTime(startTime, endTime);
+let timetableHTML = `<tr><td colspan="3" style="background:#f8d7da;">School: ${schoolName}<br>Teacher: ${teacherName}<br>Class: ${className}<br>Timing: ${timing}</td></tr>`;
+days.forEach(day => {
+let currentTime = startTime;
+timetableHTML += `<tr><td rowspan="5">${day}</td><td>${currentTime} - ${addMinutes(currentTime, periodDuration)}</td><td>Circle Time</td></tr>`;
+currentTime = addMinutes(currentTime, periodDuration);
+let selectedSubjects = [...subjects.filter(s => s.type === "Compulsory")];
+while (selectedSubjects.length < 4) {
+let randomIndex = Math.floor(Math.random() * subjects.filter(s => s.type === "Elective").length);
+selectedSubjects.push(subjects.filter(s => s.type === "Elective")[randomIndex]);
+}
+selectedSubjects.forEach((subject, index) => {
+if (index === 2 && snackTime >= currentTime) {
+timetableHTML += `<tr><td>${currentTime} - ${snackTime}</td><td>Snack Time</td></tr>`;
+currentTime = snackTime;
+}
+timetableHTML += `<tr><td>${currentTime} - ${addMinutes(currentTime, periodDuration)}</td><td>${subject.name}</td></tr>`;
+currentTime = addMinutes(currentTime, periodDuration);
+});
+});
+document.getElementById('timetable').getElementsByTagName('tbody')[0].innerHTML = timetableHTML;
+const logoInput = document.getElementById('logo');
+if (logoInput.files.length > 0) {
+const logoPreview = document.querySelector('.logo-preview');
+const reader = new FileReader();
+reader.onload = function(e) { logoPreview.innerHTML = `<img src="${e.target.result}" alt="Logo">`; };
+reader.readAsDataURL(logoInput.files[0]);
+} else { document.querySelector('.logo-preview').innerHTML = ''; }
+}
+function getSnackTime(start, end) {
+let startMinutes = timeToMinutes(start);
+let endMinutes = timeToMinutes(end);
+let snackMinutes = startMinutes + (endMinutes - startMinutes) / 2;
+return minutesToTime(snackMinutes);
+}
+function timeToMinutes(time) {
+let [hours, minutes] = time.split(":").map(Number);
+return hours * 60 + minutes;
+}
+function minutesToTime(minutes) {
+let hours = Math.floor(minutes / 60);
+let mins = minutes % 60;
+return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
+function addMinutes(time, minutesToAdd) {
+let totalMinutes = timeToMinutes(time) + minutesToAdd;
+return minutesToTime(totalMinutes);
+}
+function downloadPDF() {
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+const timetableHTML = document.getElementById('timetable').outerHTML;
+doc.autoTable({ html: '#timetable' });
+doc.save('timetable.pdf');
+}
+function downloadDOC() {
+const timetableHTML = document.getElementById('timetable').outerHTML;
+const blob = new Blob([timetableHTML], { type: 'application/msword' });
+saveAs(blob, 'timetable.doc');
+}
+</script>
+</body>
+</html>

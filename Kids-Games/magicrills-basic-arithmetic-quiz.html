@@ -1,0 +1,419 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/5677/5677910.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/5677/5677910.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Magicrills Basic Arithmetic Quiz</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .game-container {
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .title {
+            color: #ff6b6b;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            color: #4ecdc4;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        .level-selector {
+            margin-bottom: 30px;
+        }
+        .level-btn {
+            background-color: #ffd166;
+            border: none;
+            border-radius: 50px;
+            color: #333;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 5px;
+            padding: 12px 25px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .level-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .level-btn.active {
+            background-color: #06d6a0;
+            color: #fff;
+        }
+        .quiz-screen {
+            display: none;
+        }
+        .question {
+            font-size: 2.5rem;
+            margin: 30px 0;
+            color: #333;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .option-btn {
+            background-color: #a5dff9;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+        .option-btn:hover {
+            background-color: #7fc6f3;
+            transform: scale(1.05);
+        }
+        .feedback {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+        .correct {
+            color: #06d6a0;
+        }
+        .incorrect {
+            color: #ef476f;
+        }
+        .score {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .timer {
+            font-size: 1.2rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        .next-btn, .restart-btn {
+            background-color: #ff6b6b;
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 12px 30px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .next-btn:hover, .restart-btn:hover {
+            background-color: #ff8e8e;
+            transform: translateY(-3px);
+        }
+        .game-over {
+            display: none;
+        }
+        .final-score {
+            font-size: 2rem;
+            color: #06d6a0;
+            margin: 20px 0;
+        }
+        .celebration {
+            font-size: 1.5rem;
+            color: #ff6b6b;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 600px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            .question {
+                font-size: 2rem;
+            }
+            .option-btn {
+                font-size: 1.2rem;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">Magicrills Math Quiz</h1>
+        <p class="subtitle">Test your arithmetic skills!</p>
+        
+        <div class="level-selector">
+            <h2>Select Difficulty:</h2>
+            <button class="level-btn" data-level="easy">Easy</button>
+            <button class="level-btn" data-level="average">Average</button>
+            <button class="level-btn" data-level="hard">Hard</button>
+            <button class="level-btn" data-level="professional"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Professional</a></button>
+        </div>
+        
+        <div class="quiz-screen">
+            <div class="timer">Time: <span id="time">60</span>s</div>
+            <div class="score">Score: <span id="current-score">0</span></div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+            <button class="next-btn" id="next-btn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Next Question</a></button>
+        </div>
+        
+        <div class="game-over">
+            <h2>Quiz Complete!</h2>
+            <div class="final-score">Your Score: <span id="final-score">0</span></div>
+            <div class="celebration" id="celebration"></div>
+            <button class="restart-btn" id="restart-btn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Play Again</a></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const levelBtns = document.querySelectorAll('.level-btn');
+            const levelSelector = document.querySelector('.level-selector');
+            const quizScreen = document.querySelector('.quiz-screen');
+            const gameOverScreen = document.querySelector('.game-over');
+            const questionEl = document.getElementById('question');
+            const optionsEl = document.getElementById('options');
+            const feedbackEl = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const timeEl = document.getElementById('time');
+            const currentScoreEl = document.getElementById('current-score');
+            const finalScoreEl = document.getElementById('final-score');
+            const celebrationEl = document.getElementById('celebration');
+            
+            // Game variables
+            let currentLevel = '';
+            let score = 0;
+            let timeLeft = 60;
+            let timer;
+            let currentQuestion = {};
+            
+            // Audio elements
+            const correctAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+            const wrongAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+            const levelUpAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3');
+            const gameOverAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3');
+            
+            // Event listeners
+            levelBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentLevel = this.getAttribute('data-level');
+                    levelBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    startGame();
+                });
+            });
+            
+            nextBtn.addEventListener('click', generateQuestion);
+            restartBtn.addEventListener('click', resetGame);
+            
+            // Game functions
+            function startGame() {
+                levelSelector.style.display = 'none';
+                quizScreen.style.display = 'block';
+                gameOverScreen.style.display = 'none';
+                score = 0;
+                currentScoreEl.textContent = score;
+                timeLeft = 60;
+                timeEl.textContent = timeLeft;
+                startTimer();
+                generateQuestion();
+            }
+            
+            function startTimer() {
+                clearInterval(timer);
+                timer = setInterval(function() {
+                    timeLeft--;
+                    timeEl.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        endGame();
+                    }
+                }, 1000);
+            }
+            
+            function generateQuestion() {
+                feedbackEl.textContent = '';
+                feedbackEl.className = 'feedback';
+                nextBtn.style.display = 'none';
+                
+                let num1, num2, answer;
+                const operation = Math.floor(Math.random() * 4); // 0-3 for +, -, *, /
+                
+                // Set number ranges based on difficulty
+                switch(currentLevel) {
+                    case 'easy':
+                        num1 = Math.floor(Math.random() * 10) + 1;
+                        num2 = Math.floor(Math.random() * 10) + 1;
+                        break;
+                    case 'average':
+                        num1 = Math.floor(Math.random() * 20) + 1;
+                        num2 = Math.floor(Math.random() * 20) + 1;
+                        break;
+                    case 'hard':
+                        num1 = Math.floor(Math.random() * 50) + 1;
+                        num2 = Math.floor(Math.random() * 50) + 1;
+                        break;
+                    case 'professional':
+                        num1 = Math.floor(Math.random() * 100) + 1;
+                        num2 = Math.floor(Math.random() * 100) + 1;
+                        break;
+                    default:
+                        num1 = Math.floor(Math.random() * 10) + 1;
+                        num2 = Math.floor(Math.random() * 10) + 1;
+                }
+                
+                // Generate question based on operation
+                switch(operation) {
+                    case 0: // Addition
+                        answer = num1 + num2;
+                        questionEl.textContent = `${num1} + ${num2} = ?`;
+                        break;
+                    case 1: // Subtraction
+                        if (num2 > num1) { // Ensure positive result
+                            [num1, num2] = [num2, num1];
+                        }
+                        answer = num1 - num2;
+                        questionEl.textContent = `${num1} - ${num2} = ?`;
+                        break;
+                    case 2: // Multiplication
+                        answer = num1 * num2;
+                        questionEl.textContent = `${num1} × ${num2} = ?`;
+                        break;
+                    case 3: // Division
+                        num2 = Math.max(1, num2); // Avoid division by zero
+                        answer = Math.floor(num1 / num2);
+                        questionEl.textContent = `${num1} ÷ ${num2} = ?`;
+                        break;
+                }
+                
+                currentQuestion = { num1, num2, operation, answer };
+                generateOptions(answer);
+            }
+            
+            function generateOptions(correctAnswer) {
+                optionsEl.innerHTML = '';
+                let options = [correctAnswer];
+                
+                // Generate 3 unique wrong answers
+                while (options.length < 4) {
+                    let randomOption;
+                    if (currentLevel === 'easy') {
+                        randomOption = Math.floor(Math.random() * 20) + 1;
+                    } else if (currentLevel === 'average') {
+                        randomOption = Math.floor(Math.random() * 40) + 1;
+                    } else if (currentLevel === 'hard') {
+                        randomOption = Math.floor(Math.random() * 100) + 1;
+                    } else {
+                        randomOption = Math.floor(Math.random() * 200) + 1;
+                    }
+                    
+                    if (!options.includes(randomOption) && randomOption !== correctAnswer) {
+                        options.push(randomOption);
+                    }
+                }
+                
+                // Shuffle options
+                options = shuffleArray(options);
+                
+                // Create option buttons
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.className = 'option-btn';
+                    button.textContent = option;
+                    button.addEventListener('click', function() {
+                        checkAnswer(parseInt(this.textContent), this);
+                    });
+                    optionsEl.appendChild(button);
+                });
+            }
+            
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            
+            function checkAnswer(selectedAnswer, button) {
+                clearInterval(timer);
+                
+                if (selectedAnswer === currentQuestion.answer) {
+                    score += 10;
+                    currentScoreEl.textContent = score;
+                    feedbackEl.textContent = 'Correct! 🎉';
+                    feedbackEl.className = 'feedback correct';
+                    button.style.backgroundColor = '#06d6a0';
+                    correctAudio.play();
+                } else {
+                    feedbackEl.textContent = `Wrong! The correct answer was ${currentQuestion.answer}.`;
+                    feedbackEl.className = 'feedback incorrect';
+                    button.style.backgroundColor = '#ef476f';
+                    wrongAudio.play();
+                }
+                
+                // Disable all options and highlight correct answer
+                Array.from(optionsEl.children).forEach(btn => {
+                    btn.disabled = true;
+                    if (parseInt(btn.textContent) === currentQuestion.answer) {
+                        btn.style.backgroundColor = '#06d6a0';
+                    }
+                });
+                
+                nextBtn.style.display = 'inline-block';
+            }
+            
+            function endGame() {
+                quizScreen.style.display = 'none';
+                gameOverScreen.style.display = 'block';
+                finalScoreEl.textContent = score;
+                gameOverAudio.play();
+                
+                let message = '';
+                if (score >= 100) {
+                    message = 'Math Wizard! 🌟';
+                    levelUpAudio.play();
+                } else if (score >= 70) {
+                    message = 'Great Job! 👍';
+                } else if (score >= 40) {
+                    message = 'Not bad! 😊';
+                } else {
+                    message = 'Keep practicing! 💪';
+                }
+                celebrationEl.textContent = message;
+            }
+            
+            function resetGame() {
+                levelSelector.style.display = 'block';
+                quizScreen.style.display = 'none';
+                gameOverScreen.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

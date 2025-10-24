@@ -1,0 +1,1113 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/5732/5732026.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/5732/5732026.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>History, Geography & GK Quiz Challenge</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --timer-color: #e67e22;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--dark-color);
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .subject-card {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideUp 0.5s ease-out;
+            border: 3px solid transparent;
+        }
+        
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        .subject-card h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+        
+        .subject-card p {
+            margin-bottom: 0;
+            opacity: 0.9;
+        }
+        
+        .levels {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .level-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .level-btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .level-btn.easy { background: #2ecc71; }
+        .level-btn.average { background: #f39c12; }
+        .level-btn.hard { background: #e74c3c; }
+        
+        .quiz-container {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .timer-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .timer {
+            background: var(--timer-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        .timer i {
+            margin-right: 8px;
+        }
+        
+        .timer.warning {
+            background: var(--warning-color);
+            animation: pulseFast 0.5s infinite alternate;
+        }
+        
+        .timer.danger {
+            background: var(--danger-color);
+            animation: pulseVeryFast 0.3s infinite alternate;
+        }
+        
+        .question-container {
+            background: var(--light-color);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .question-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+        
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .points-badge {
+            background: #f39c12;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .option-btn {
+            background: #fff;
+            border: 2px solid #bdc3c7;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-btn:hover {
+            background: #f1f1f1;
+            border-color: #95a5a6;
+        }
+        
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: rgba(52, 152, 219, 0.1);
+            transition: width 0.3s;
+        }
+        
+        .option-btn:hover::before {
+            width: 5px;
+        }
+        
+        .selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .correct {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+            animation: bounce 0.5s;
+        }
+        
+        .incorrect {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+            animation: shake 0.5s;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-btn i {
+            margin-right: 5px;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .progress-text {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .current-score {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .result-container {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .result-container h2 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+        
+        .score-display {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            background: var(--light-color);
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 25px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--secondary-color);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .result-details {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .result-box {
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            min-width: 120px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .result-box h3 {
+            color: var(--dark-color);
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        
+        .result-box p {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .correct-answers { color: var(--secondary-color); }
+        .wrong-answers { color: var(--danger-color); }
+        .time-taken { color: var(--primary-color); }
+        .accuracy { color: var(--warning-color); }
+        .total-points { color: #9b59b6; }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .next-level-btn, .restart-btn, .dashboard-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .next-level-btn {
+            background: var(--secondary-color);
+        }
+        
+        .restart-btn {
+            background: var(--warning-color);
+        }
+        
+        .dashboard-btn {
+            background: var(--dark-color);
+        }
+        
+        .next-level-btn:hover, .restart-btn:hover, .dashboard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .next-level-btn i, .restart-btn i, .dashboard-btn i {
+            margin-right: 8px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        
+        @keyframes pulseFast {
+            from { transform: scale(1); }
+            to { transform: scale(1.08); }
+        }
+        
+        @keyframes pulseVeryFast {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .levels {
+                grid-template-columns: 1fr;
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+            
+            .option-btn {
+                padding: 12px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .next-level-btn, .restart-btn, .dashboard-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .progress-container {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .result-details {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"></link>
+</head>
+<body>
+    <div class="container">
+        <h1>Enhanced History, Geography &amp; GK Quiz Challenge</h1>
+        
+        <div class="dashboard">
+            <div class="subject-card" onclick="showLevels('history')">
+                <h2><i class="fas fa-landmark"></i> History</h2>
+                <p>Test your knowledge of past events</p>
+            </div>
+            <div class="subject-card" onclick="showLevels('geography')">
+                <h2><i class="fas fa-globe-asia"></i> Geography</h2>
+                <p>Explore the world around you</p>
+            </div>
+            <div class="subject-card" onclick="showLevels('gk')">
+                <h2><i class="fas fa-brain"></i> General Knowledge</h2>
+                <p>Broaden your understanding</p>
+            </div>
+        </div>
+        
+        <div class="levels" id="history-levels">
+            <button class="level-btn easy" onclick="startQuiz('history',1)"><i class="fas fa-star"></i> Level 1 - Easy</button>
+            <button class="level-btn average" onclick="startQuiz('history',2)"><i class="fas fa-star-half-alt"></i> Level 2 - Average</button>
+            <button class="level-btn hard" onclick="startQuiz('history',3)"><i class="fas fa-star"></i> Level 3 - Hard</button>
+        </div>
+        
+        <div class="levels" id="geography-levels">
+            <button class="level-btn easy" onclick="startQuiz('geography',1)"><i class="fas fa-star"></i> Level 1 - Easy</button>
+            <button class="level-btn average" onclick="startQuiz('geography',2)"><i class="fas fa-star-half-alt"></i> Level 2 - Average</button>
+            <button class="level-btn hard" onclick="startQuiz('geography',3)"><i class="fas fa-star"></i> Level 3 - Hard</button>
+        </div>
+        
+        <div class="levels" id="gk-levels">
+            <button class="level-btn easy" onclick="startQuiz('gk',1)"><i class="fas fa-star"></i> Level 1 - Easy</button>
+            <button class="level-btn average" onclick="startQuiz('gk',2)"><i class="fas fa-star-half-alt"></i> Level 2 - Average</button>
+            <button class="level-btn hard" onclick="startQuiz('gk',3)"><i class="fas fa-star"></i> Level 3 - Hard</button>
+        </div>
+        
+        <div class="quiz-container" id="quiz-container">
+            <div class="timer-container">
+                <div class="timer" id="timer">
+                    <i class="fas fa-clock"></i> <span id="time">01:00</span>
+                </div>
+                <div class="current-score" id="current-score">Points: 0</div>
+            </div>
+            
+            <div class="question-container" id="question-container">
+                <div class="question-meta">
+                    <span id="subject-level"></span>
+                    <span id="question-number"></span>
+                    <span class="points-badge" id="question-points">+1 point</span>
+                </div>
+                <h3 class="question-text" id="question-text">Question will appear here</h3>
+                <div class="options-container" id="options-container"></div>
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" disabled="" id="prev-btn" onclick="prevQuestion()">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                
+                <div class="progress-container">
+                    <div class="progress-text" id="progress-text">1 of 20</div>
+                </div>
+                
+                <button class="nav-btn" id="next-btn" onclick="nextQuestion()">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="result-container" id="result-container">
+            <h2><i class="fas fa-trophy"></i> Quiz Completed!</h2>
+            
+            <div class="score-display">
+                You scored <span id="score-text">15</span> out of <span id="total-questions">20</span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progress-fill"></div>
+            </div>
+            
+            <div class="message" id="message"></div>
+            
+            <div class="result-details">
+                <div class="result-box">
+                    <h3>Correct Answers</h3>
+                    <p class="correct-answers" id="correct-answers">0</p>
+                </div>
+                <div class="result-box">
+                    <h3>Wrong Answers</h3>
+                    <p class="wrong-answers" id="wrong-answers">0</p>
+                </div>
+                <div class="result-box">
+                    <h3>Time Taken</h3>
+                    <p class="time-taken" id="time-taken">00:00</p>
+                </div>
+                <div class="result-box">
+                    <h3>Accuracy</h3>
+                    <p class="accuracy" id="accuracy">0%</p>
+                </div>
+                <div class="result-box">
+                    <h3>Total Points</h3>
+                    <p class="total-points" id="total-points">0</p>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="next-level-btn" id="next-level-btn" onclick="nextLevel()" style="display: none;">
+                    <i class="fas fa-arrow-up"></i> Next Level
+                </button>
+                <button class="restart-btn" id="restart-btn" onclick="restartQuiz()">
+                    <i class="fas fa-redo"></i> Restart Quiz
+                </button>
+                <button class="dashboard-btn" id="dashboard-btn" onclick="returnToDashboard()">
+                    <i class="fas fa-home"></i> Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {
+            history: {
+                1: {
+                    name: "History - Level 1 (Easy)",
+                    timeLimit: 60,
+                    questions: [
+                        {question: "Which period is known as the Viking Age?", options: ["793-1066", "1200-1400", "500-700", "1500-1700"], answer: 0, points: 1},
+                        {question: "Who was the first Tudor monarch?", options: ["Henry VII", "Henry VIII", "Elizabeth I", "Richard III"], answer: 0, points: 1},
+                        {question: "What was the primary religion in Europe during the Middle Ages?", options: ["Christianity", "Islam", "Judaism", "Paganism"], answer: 0, points: 1},
+                        {question: "Which famous Viking explorer reached North America around 1000 AD?", options: ["Leif Erikson", "Ragnar Lothbrok", "Harald Hardrada", "Eric the Red"], answer: 0, points: 1},
+                        {question: "What was the main purpose of castles in the Middle Ages?", options: ["Defense", "Royal residences", "Prisons", "Religious centers"], answer: 0, points: 1},
+                        {question: "Which Tudor monarch had six wives?", options: ["Henry VIII", "Edward VI", "Mary I", "Elizabeth I"], answer: 0, points: 1},
+                        {question: "What was the Domesday Book?", options: ["A survey of England", "A religious text", "A Viking saga", "A medical treatise"], answer: 0, points: 1},
+                        {question: "What was the primary language of the Vikings?", options: ["Old Norse", "Latin", "Old English", "Greek"], answer: 0, points: 1},
+                        {question: "Which event marked the end of the Middle Ages in England?", options: ["Battle of Bosworth Field", "Signing of Magna Carta", "Norman Conquest", "Black Death"], answer: 0, points: 1},
+                        {question: "What was the name of Henry VIII's first wife?", options: ["Catherine of Aragon", "Anne Boleyn", "Jane Seymour", "Anne of Cleves"], answer: 0, points: 1},
+                        {question: "Which Viking settlement was established in modern-day Canada?", options: ["Vinland", "Greenland", "Iceland", "Normandy"], answer: 0, points: 1},
+                        {question: "What was the feudal system?", options: ["A social hierarchy based on land ownership", "A religious order", "A military strategy", "A trading network"], answer: 0, points: 1},
+                        {question: "Which famous battle took place in 1066?", options: ["Hastings", "Agincourt", "Waterloo", "Bosworth"], answer: 0, points: 1},
+                        {question: "What was the primary export of medieval England?", options: ["Wool", "Spices", "Silk", "Wine"], answer: 0, points: 1},
+                        {question: "Which Tudor monarch was known as 'Bloody Mary'?", options: ["Mary I", "Mary, Queen of Scots", "Mary of Guise", "Mary Tudor"], answer: 0, points: 1},
+                        {question: "What was a Viking longship primarily used for?", options: ["Raiding and exploration", "Fishing", "Trade", "Ceremonies"], answer: 0, points: 1},
+                        {question: "Which document limited the power of English monarchs in 1215?", options: ["Magna Carta", "Domesday Book", "Doomsday Book", "Anglo-Saxon Chronicle"], answer: 0, points: 1},
+                        {question: "What was the Black Death?", options: ["A deadly plague", "A military defeat", "A religious movement", "A famine"], answer: 0, points: 1},
+                        {question: "Who succeeded Henry VIII as monarch?", options: ["Edward VI", "Mary I", "Elizabeth I", "James I"], answer: 0, points: 1},
+                        {question: "What was the name of the Viking assembly?", options: ["Thing", "Althing", "Witenagemot", "Parlament"], answer: 0, points: 1}
+                    ]
+                },
+                2: {
+                    name: "History - Level 2 (Average)",
+                    timeLimit: 45,
+                    questions: [
+                        {question: "When was the Great Fire of London?", options: ["1666", "1605", "1588", "1707"], answer: 0, points: 2},
+                        {question: "Who sponsored Christopher Columbus's voyage in 1492?", options: ["Ferdinand and Isabella of Spain", "Henry VII of England", "Charles VIII of France", "John II of Portugal"], answer: 0, points: 2},
+                        {question: "Which city was the capital of the Umayyad Caliphate?", options: ["Damascus", "Baghdad", "Cairo", "Mecca"], answer: 0, points: 2},
+                        {question: "What was the main purpose of the Age of Exploration?", options: ["Finding new trade routes", "Spreading Christianity", "Conquering new lands", "Scientific discovery"], answer: 0, points: 2},
+                        {question: "Which dynasty succeeded the Umayyads?", options: ["Abbasids", "Fatimids", "Seljuks", "Ottomans"], answer: 0, points: 2},
+                        {question: "What was the main export from the Americas during the Age of Discovery?", options: ["Silver", "Spices", "Silk", "Porcelain"], answer: 0, points: 2},
+                        {question: "Where did the Abbasids move their capital to?", options: ["Baghdad", "Damascus", "Cairo", "Medina"], answer: 0, points: 2},
+                        {question: "Who was the first European to reach India by sea?", options: ["Vasco da Gama", "Christopher Columbus", "Ferdinand Magellan", "Marco Polo"], answer: 0, points: 2},
+                        {question: "What was the House of Wisdom in Baghdad?", options: ["A major academic center", "A royal palace", "A religious school", "A trading post"], answer: 0, points: 2},
+                        {question: "Which English monarch established the Church of England?", options: ["Henry VIII", "Elizabeth I", "Mary I", "Edward VI"], answer: 0, points: 2},
+                        {question: "What was the primary language of the Abbasid court?", options: ["Arabic", "Persian", "Turkish", "Greek"], answer: 0, points: 2},
+                        {question: "Which explorer circumnavigated the globe first?", options: ["Magellan's expedition", "Columbus", "Da Gama", "Drake"], answer: 0, points: 2},
+                        {question: "What was the main religion of the Umayyad Caliphate?", options: ["Islam", "Christianity", "Zoroastrianism", "Judaism"], answer: 0, points: 2},
+                        {question: "Which London landmark was rebuilt after the Great Fire?", options: ["St. Paul's Cathedral", "Westminster Abbey", "The Tower of London", "Buckingham Palace"], answer: 0, points: 2},
+                        {question: "What was the Silk Road?", options: ["A network of trade routes", "A military road", "A pilgrimage route", "A postal system"], answer: 0, points: 2},
+                        {question: "Which Abbasid caliph is most associated with the golden age?", options: ["Harun al-Rashid", "Al-Mansur", "Al-Ma'mun", "Al-Mutawakkil"], answer: 0, points: 2},
+                        {question: "What was the main consequence of the Age of Exploration?", options: ["Globalization", "Religious wars", "Industrial revolution", "Scientific revolution"], answer: 0, points: 2},
+                        {question: "Where did the Umayyads establish a caliphate after being overthrown?", options: ["Spain", "North Africa", "Syria", "Persia"], answer: 0, points: 2},
+                        {question: "What was the primary purpose of London's medieval walls?", options: ["Defense", "Tax collection", "Religious processions", "Market boundaries"], answer: 0, points: 2},
+                        {question: "Which invention helped spread knowledge during the Abbasid era?", options: ["Paper", "Printing press", "Compass", "Gunpowder"], answer: 0, points: 2}
+                    ]
+                },
+                3: {
+                    name: "History - Level 3 (Hard)",
+                    timeLimit: 30,
+                    questions: [
+                        {question: "Who founded the Delhi Sultanate?", options: ["Qutb-ud-din Aibak", "Iltutmish", "Balban", "Alauddin Khalji"], answer: 0, points: 3},
+                        {question: "Which Mughal emperor built the Taj Mahal?", options: ["Shah Jahan", "Akbar", "Jahangir", "Aurangzeb"], answer: 0, points: 3},
+                        {question: "What was the dominant religion in the Early Modern Age Europe?", options: ["Christianity", "Islam", "Judaism", "Deism"], answer: 0, points: 3},
+                        {question: "Which dynasty ruled the Delhi Sultanate first?", options: ["Mamluk", "Khilji", "Tughlaq", "Lodhi"], answer: 0, points: 3},
+                        {question: "Who was the first Mughal emperor?", options: ["Babur", "Humayun", "Akbar", "Sher Shah Suri"], answer: 0, points: 3},
+                        {question: "What was the main intellectual movement of the Early Modern Age?", options: ["Enlightenment", "Renaissance", "Reformation", "Scientific Revolution"], answer: 0, points: 3},
+                        {question: "Which Delhi Sultan introduced the token currency?", options: ["Muhammad bin Tughlaq", "Alauddin Khalji", "Iltutmish", "Firoz Shah Tughlaq"], answer: 0, points: 3},
+                        {question: "What was the main cause of the Mughal decline?", options: ["Multiple factors including weak successors", "British invasion", "Economic collapse", "Religious conflicts"], answer: 0, points: 3},
+                        {question: "Which European power first established trade with Mughal India?", options: ["Portuguese", "British", "Dutch", "French"], answer: 0, points: 3},
+                        {question: "What was the Mansabdari system?", options: ["Mughal military and civil administration", "Tax collection system", "Religious organization", "Trade network"], answer: 0, points: 3},
+                        {question: "Which Delhi Sultan is known for market reforms?", options: ["Alauddin Khalji", "Balban", "Iltutmish", "Qutb-ud-din Aibak"], answer: 0, points: 3},
+                        {question: "What was the main architectural contribution of the Mughals?", options: ["Indo-Islamic architecture", "Gothic architecture", "Baroque architecture", "Dravidian architecture"], answer: 0, points: 3},
+                        {question: "Which Early Modern Age thinker proposed the social contract?", options: ["John Locke", "Voltaire", "Rousseau", "Montesquieu"], answer: 0, points: 3},
+                        {question: "What was the main language of Mughal administration?", options: ["Persian", "Urdu", "Arabic", "Hindi"], answer: 0, points: 3},
+                        {question: "Which Delhi Sultanate ruler defeated the Mongols?", options: ["Alauddin Khalji", "Iltutmish", "Balban", "Muhammad bin Tughlaq"], answer: 0, points: 3},
+                        {question: "What was the main economic system of the Early Modern Age?", options: ["Mercantilism", "Capitalism", "Feudalism", "Socialism"], answer: 0, points: 3},
+                        {question: "Which Mughal emperor abolished the jizya tax?", options: ["Akbar", "Aurangzeb", "Shah Jahan", "Jahangir"], answer: 0, points: 3},
+                        {question: "What was the main religion of the Delhi Sultanate rulers?", options: ["Islam", "Hinduism", "Buddhism", "Zoroastrianism"], answer: 0, points: 3},
+                        {question: "Which Early Modern Age invention revolutionized warfare?", options: ["Gunpowder weapons", "Steel swords", "Catapults", "Chain mail"], answer: 0, points: 3},
+                        {question: "What was the main legacy of the Mughal Empire?", options: ["Cultural synthesis", "Military conquests", "Religious unity", "Technological advancement"], answer: 0, points: 3}
+                    ]
+                }
+            },
+            geography: {
+                1: {
+                    name: "Geography - Level 1 (Easy)",
+                    timeLimit: 60,
+                    questions: [
+                        {question: "Which of these is a predominantly Muslim country?", options: ["Indonesia", "Brazil", "Japan", "Russia"], answer: 0, points: 1},
+                        {question: "What is the largest Muslim-majority country by area?", options: ["Kazakhstan", "Indonesia", "Saudi Arabia", "Pakistan"], answer: 0, points: 1},
+                        {question: "Which climate dominates the Arabian Peninsula?", options: ["Arid", "Tropical", "Temperate", "Polar"], answer: 0, points: 1},
+                        {question: "What is the main agricultural product of Egypt?", options: ["Cotton", "Coffee", "Rubber", "Tea"], answer: 0, points: 1},
+                        {question: "Which river is vital for agriculture in Iraq?", options: ["Tigris and Euphrates", "Nile", "Indus", "Ganges"], answer: 0, points: 1},
+                        {question: "What is the primary crop in Pakistan's Punjab region?", options: ["Wheat", "Rice", "Corn", "Barley"], answer: 0, points: 1},
+                        {question: "Which country is the world's largest producer of dates?", options: ["Egypt", "Saudi Arabia", "Iraq", "Iran"], answer: 0, points: 1},
+                        {question: "What is the dominant climate in Malaysia?", options: ["Tropical rainforest", "Desert", "Temperate", "Mediterranean"], answer: 0, points: 1},
+                        {question: "Which Muslim country is famous for olive production?", options: ["Tunisia", "Malaysia", "Bangladesh", "Turkey"], answer: 0, points: 1},
+                        {question: "What is the main agricultural export of Morocco?", options: ["Citrus fruits", "Coffee", "Rubber", "Spices"], answer: 0, points: 1},
+                        {question: "Which sea is important for Muslim world trade?", options: ["Mediterranean", "Baltic", "Caribbean", "South China"], answer: 0, points: 1},
+                        {question: "What is the primary crop in Bangladesh?", options: ["Rice", "Wheat", "Corn", "Barley"], answer: 0, points: 1},
+                        {question: "Which country has the largest Muslim population?", options: ["Indonesia", "Pakistan", "India", "Bangladesh"], answer: 0, points: 1},
+                        {question: "What is the main climate type in Central Asia?", options: ["Continental", "Tropical", "Mediterranean", "Polar"], answer: 0, points: 1},
+                        {question: "Which country is a major producer of natural gas in Muslim world?", options: ["Qatar", "Morocco", "Jordan", "Malaysia"], answer: 0, points: 1},
+                        {question: "What is the main agricultural product of Turkey?", options: ["Hazelnuts", "Coffee", "Rubber", "Spices"], answer: 0, points: 1},
+                        {question: "Which river is sacred in Islam and flows through Iraq?", options: ["Euphrates", "Nile", "Amazon", "Yangtze"], answer: 0, points: 1},
+                        {question: "What is the primary climate of the Sahel region?", options: ["Semi-arid", "Tropical", "Temperate", "Polar"], answer: 0, points: 1},
+                        {question: "Which country is the largest producer of palm oil?", options: ["Indonesia", "Saudi Arabia", "Egypt", "Turkey"], answer: 0, points: 1},
+                        {question: "What is the main agricultural product of Iran?", options: ["Pistachios", "Coffee", "Rubber", "Spices"], answer: 0, points: 1}
+                    ]
+                },
+                2: {
+                    name: "Geography - Level 2 (Average)",
+                    timeLimit: 45,
+                    questions: [
+                        {question: "Which Muslim country has the largest oil reserves?", options: ["Saudi Arabia", "Iran", "Iraq", "Kuwait"], answer: 0, points: 2},
+                        {question: "What is the main mineral resource of Morocco?", options: ["Phosphates", "Oil", "Gold", "Copper"], answer: 0, points: 2},
+                        {question: "Which country is a major producer of natural gas?", options: ["Qatar", "Egypt", "Malaysia", "Turkey"], answer: 0, points: 2},
+                        {question: "What was the first Muslim country to industrialize?", options: ["Turkey", "Egypt", "Iran", "Pakistan"], answer: 0, points: 2},
+                        {question: "Which city is a major financial center in the Muslim world?", options: ["Dubai", "Cairo", "Jakarta", "Tehran"], answer: 0, points: 2},
+                        {question: "What is the main export of Brunei?", options: ["Oil and gas", "Textiles", "Electronics", "Agricultural products"], answer: 0, points: 2},
+                        {question: "Which organization coordinates trade among Muslim countries?", options: ["OIC", "OPEC", "ASEAN", "GCC"], answer: 0, points: 2},
+                        {question: "What is the main industrial sector in Malaysia?", options: ["Electronics", "Automobiles", "Steel", "Chemicals"], answer: 0, points: 2},
+                        {question: "Which country has significant bauxite reserves?", options: ["Guinea", "Saudi Arabia", "Egypt", "Pakistan"], answer: 0, points: 2},
+                        {question: "What is the main trade route through Egypt?", options: ["Suez Canal", "Silk Road", "Panama Canal", "Trans-Siberian"], answer: 0, points: 2},
+                        {question: "Which country is a major producer of copper?", options: ["Indonesia", "Bangladesh", "Jordan", "Oman"], answer: 0, points: 2},
+                        {question: "What is the main industry in Bangladesh?", options: ["Textiles", "Oil", "Mining", "Automobiles"], answer: 0, points: 2},
+                        {question: "Which Muslim country has the most diversified economy?", options: ["Malaysia", "Saudi Arabia", "Qatar", "Kuwait"], answer: 0, points: 2},
+                        {question: "What is the main mineral export of Niger?", options: ["Uranium", "Oil", "Gold", "Iron"], answer: 0, points: 2},
+                        {question: "Which city is known as the commercial capital of Pakistan?", options: ["Karachi", "Lahore", "Islamabad", "Peshawar"], answer: 0, points: 2},
+                        {question: "What is the main export of Indonesia?", options: ["Palm oil", "Oil", "Textiles", "Electronics"], answer: 0, points: 2},
+                        {question: "Which country has significant gold reserves?", options: ["Sudan", "Bangladesh", "Lebanon", "Syria"], answer: 0, points: 2},
+                        {question: "What is the main industrial center of Iran?", options: ["Isfahan", "Tehran", "Mashhad", "Tabriz"], answer: 0, points: 2},
+                        {question: "Which Muslim country has the most advanced space program?", options: ["UAE", "Saudi Arabia", "Pakistan", "Turkey"], answer: 0, points: 2},
+                        {question: "What is the main trade organization for Arab countries?", options: ["GCC", "OIC", "OPEC", "ASEAN"], answer: 0, points: 2}
+                    ]
+                },
+                3: {
+                    name: "Geography - Level 3 (Hard)",
+                    timeLimit: 30,
+                    questions: [
+                        {question: "Which Muslim country has the most extensive rail network?", options: ["Turkey", "Egypt", "Pakistan", "Iran"], answer: 0, points: 3},
+                        {question: "What is the main environmental challenge in the Sahel?", options: ["Desertification", "Deforestation", "Flooding", "Earthquakes"], answer: 0, points: 3},
+                        {question: "Which country has the highest population growth rate in Muslim world?", options: ["Niger", "Pakistan", "Egypt", "Indonesia"], answer: 0, points: 3},
+                        {question: "What is the main cause of water scarcity in Middle East?", options: ["Climate and overuse", "Pollution", "Dams", "Industrial use"], answer: 0, points: 3},
+                        {question: "Which Muslim country has the most advanced metro system?", options: ["UAE", "Saudi Arabia", "Turkey", "Malaysia"], answer: 0, points: 3},
+                        {question: "What is the main environmental issue in Bangladesh?", options: ["Flooding", "Drought", "Earthquakes", "Volcanoes"], answer: 0, points: 3},
+                        {question: "Which country has the highest urbanization rate in Muslim world?", options: ["Kuwait", "Saudi Arabia", "Malaysia", "Turkey"], answer: 0, points: 3},
+                        {question: "What is the main challenge for transport in Central Asia?", options: ["Distance and terrain", "Cost", "Technology", "Regulations"], answer: 0, points: 3},
+                        {question: "Which Muslim country has the lowest population density?", options: ["Kazakhstan", "Saudi Arabia", "Libya", "Mauritania"], answer: 0, points: 3},
+                        {question: "What is the main pollution problem in Cairo?", options: ["Air pollution", "Water pollution", "Noise pollution", "Soil pollution"], answer: 0, points: 3},
+                        {question: "Which country has the most advanced telecom infrastructure?", options: ["UAE", "Saudi Arabia", "Malaysia", "Turkey"], answer: 0, points: 3},
+                        {question: "What is the main environmental threat to the Maldives?", options: ["Rising sea levels", "Deforestation", "Drought", "Earthquakes"], answer: 0, points: 3},
+                        {question: "Which Muslim country has the highest HDI?", options: ["UAE", "Saudi Arabia", "Malaysia", "Turkey"], answer: 0, points: 3},
+                        {question: "What is the main population challenge for Pakistan?", options: ["Rapid growth", "Aging", "Migration", "Urbanization"], answer: 0, points: 3},
+                        {question: "Which country has the most refugees in Muslim world?", options: ["Turkey", "Pakistan", "Jordan", "Lebanon"], answer: 0, points: 3},
+                        {question: "What is the main transport mode in Indonesia?", options: ["Ferries", "Trains", "Buses", "Air"], answer: 0, points: 3},
+                        {question: "Which environmental issue affects the Aral Sea?", options: ["Shrinking", "Pollution", "Acidification", "Overfishing"], answer: 0, points: 3},
+                        {question: "What is the main communication challenge in rural Muslim world?", options: ["Infrastructure", "Cost", "Literacy", "Regulations"], answer: 0, points: 3},
+                        {question: "Which country has the youngest population in Muslim world?", options: ["Niger", "Somalia", "Afghanistan", "Yemen"], answer: 0, points: 3},
+                        {question: "What is the main transport project connecting Muslim countries?", options: ["China's Belt and Road", "Trans-Arabian Railway", "Islamic Highway", "Silk Road Renewal"], answer: 0, points: 3}
+                    ]
+                }
+            },
+            gk: {
+                1: {
+                    name: "General Knowledge - Level 1 (Easy)",
+                    timeLimit: 60,
+                    questions: [
+                        {question: "Who was the first caliph after Prophet Muhammad?", options: ["Abu Bakr", "Umar", "Uthman", "Ali"], answer: 0, points: 1},
+                        {question: "Which Southeast Asian country has the largest Muslim population?", options: ["Indonesia", "Malaysia", "Brunei", "Philippines"], answer: 0, points: 1},
+                        {question: "Who is known as the father of algebra?", options: ["Al-Khwarizmi", "Ibn Sina", "Al-Razi", "Omar Khayyam"], answer: 0, points: 1},
+                        {question: "Which Muslim traveler wrote about his journeys to Africa and Asia?", options: ["Ibn Battuta", "Al-Biruni", "Al-Idrisi", "Ibn Khaldun"], answer: 0, points: 1},
+                        {question: "What was the first Islamic capital after Prophet Muhammad?", options: ["Medina", "Mecca", "Damascus", "Baghdad"], answer: 0, points: 1},
+                        {question: "Which Muslim scientist pioneered optics?", options: ["Ibn al-Haytham", "Al-Kindi", "Al-Farabi", "Jabir ibn Hayyan"], answer: 0, points: 1},
+                        {question: "Where did Islam first spread outside Arabia?", options: ["Levant and Persia", "North Africa", "Spain", "India"], answer: 0, points: 1},
+                        {question: "Who wrote the famous medical encyclopedia 'The Canon'?", options: ["Ibn Sina", "Al-Razi", "Al-Zahrawi", "Ibn al-Nafis"], answer: 0, points: 1},
+                        {question: "Which Southeast Asian country is an Islamic monarchy?", options: ["Brunei", "Malaysia", "Indonesia", "Thailand"], answer: 0, points: 1},
+                        {question: "Who was the famous Muslim philosopher known as 'The Second Teacher'?", options: ["Al-Farabi", "Al-Kindi", "Ibn Rushd", "Al-Ghazali"], answer: 0, points: 1},
+                        {question: "What was the main trade route connecting Muslim world to China?", options: ["Silk Road", "Spice Route", "Incense Road", "Amber Road"], answer: 0, points: 1},
+                        {question: "Which Muslim scientist developed the concept of algorithms?", options: ["Al-Khwarizmi", "Omar Khayyam", "Al-Biruni", "Ibn Sina"], answer: 0, points: 1},
+                        {question: "Where did Ibn Battuta begin his travels?", options: ["Morocco", "Egypt", "Spain", "Syria"], answer: 0, points: 1},
+                        {question: "Who established the first Islamic hospital in Baghdad?", options: ["Harun al-Rashid", "Al-Ma'mun", "Al-Mansur", "Al-Mutawakkil"], answer: 0, points: 1},
+                        {question: "Which Southeast Asian country has Islam as its state religion?", options: ["Malaysia", "Indonesia", "Brunei", "Singapore"], answer: 0, points: 1},
+                        {question: "Who wrote the 'Muqaddimah', considered the first work of sociology?", options: ["Ibn Khaldun", "Al-Farabi", "Al-Ghazali", "Ibn Rushd"], answer: 0, points: 1},
+                        {question: "What was the main contribution of Muslim Spain to Europe?", options: ["Preservation and transmission of knowledge", "Military technology", "Political systems", "Agricultural techniques"], answer: 0, points: 1},
+                        {question: "Which Muslim scientist accurately calculated the Earth's circumference?", options: ["Al-Biruni", "Al-Khwarizmi", "Ibn Sina", "Omar Khayyam"], answer: 0, points: 1},
+                        {question: "What was the main language of science in the Muslim world?", options: ["Arabic", "Persian", "Turkish", "Urdu"], answer: 0, points: 1},
+                        {question: "Which Muslim philosopher greatly influenced medieval European thought?", options: ["Ibn Rushd (Averroes)", "Al-Ghazali", "Al-Farabi", "Ibn Sina"], answer: 0, points: 1}
+                    ]
+                },
+                2: {
+                    name: "General Knowledge - Level 2 (Average)",
+                    timeLimit: 45,
+                    questions: [
+                        {question: "What was the main cause of Muslim decline in the 18th century?", options: ["Internal divisions and stagnation", "European colonialism", "Economic collapse", "Natural disasters"], answer: 0, points: 2},
+                        {question: "Who led the Indian Rebellion of 1857 against British rule?", options: ["Bahadur Shah Zafar", "Tipu Sultan", "Mir Jafar", "Nana Sahib"], answer: 0, points: 2},
+                        {question: "What was the main goal of the Khilafat Movement?", options: ["Protect Ottoman Caliphate", "Indian independence", "Islamic revival", "Social reform"], answer: 0, points: 2},
+                        {question: "Who founded the Aligarh Muslim University?", options: ["Sir Syed Ahmed Khan", "Muhammad Iqbal", "Maulana Azad", "Muhammad Ali Jinnah"], answer: 0, points: 2},
+                        {question: "What was the main contribution of Muhammad Abduh?", options: ["Islamic modernism", "Political leadership", "Military strategy", "Economic reform"], answer: 0, points: 2},
+                        {question: "Which movement aimed to unite Hindus and Muslims against British rule?", options: ["Khilafat Movement", "Aligarh Movement", "Deobandi Movement", "Wahhabi Movement"], answer: 0, points: 2},
+                        {question: "Who wrote 'The Reconstruction of Religious Thought in Islam'?", options: ["Muhammad Iqbal", "Maulana Maududi", "Hassan al-Banna", "Sayyid Qutb"], answer: 0, points: 2},
+                        {question: "What was the main achievement of the Young Turks?", options: ["Constitutional revolution in Ottoman Empire", "Military victories", "Economic reforms", "Educational advancement"], answer: 0, points: 2},
+                        {question: "Who led the Sanusi resistance against Italian colonization?", options: ["Omar Mukhtar", "Muhammad Ahmad", "Abd al-Qadir", "Usman dan Fodio"], answer: 0, points: 2},
+                        {question: "What was the main idea of Jamal al-Din al-Afghani?", options: ["Pan-Islamism", "Nationalism", "Socialism", "Secularism"], answer: 0, points: 2},
+                        {question: "Which country first gained independence from European rule in Muslim world?", options: ["Turkey", "Egypt", "Indonesia", "Pakistan"], answer: 0, points: 2},
+                        {question: "Who established the first Islamic republic in modern times?", options: ["Pakistan under Jinnah", "Indonesia under Sukarno", "Egypt under Nasser", "Iran under Khomeini"], answer: 0, points: 2},
+                        {question: "What was the main strategy of Muslim League for Pakistan?", options: ["Constitutional politics", "Armed struggle", "Non-cooperation", "Civil disobedience"], answer: 0, points: 2},
+                        {question: "Who led the resistance against French in Algeria?", options: ["Abd al-Qadir", "Ahmed Bey", "Muhammad Ali", "Khedive Ismail"], answer: 0, points: 2},
+                        {question: "What was the main goal of the Muslim Brotherhood?", options: ["Islamic revival and social reform", "Political power", "Military jihad", "Economic development"], answer: 0, points: 2},
+                        {question: "Which conference demanded separate electorates for Muslims in India?", options: ["Simla Deputation", "Round Table Conferences", "Lucknow Pact", "Cabinet Mission"], answer: 0, points: 2},
+                        {question: "Who was known as the 'Lion of the Punjab' in freedom movement?", options: ["Lala Lajpat Rai", "Bal Gangadhar Tilak", "Bhagat Singh", "Sardar Patel"], answer: 0, points: 2},
+                        {question: "What was the main achievement of the Lucknow Pact?", options: ["Hindu-Muslim unity", "Constitutional reforms", "Economic policy", "Educational advancement"], answer: 0, points: 2},
+                        {question: "Who founded the Deobandi movement?", options: ["Muhammad Qasim Nanautavi", "Shah Waliullah", "Ahmad Sirhindi", "Muhammad ibn Abdul Wahhab"], answer: 0, points: 2},
+                        {question: "What was the main contribution of Maulana Azad?", options: ["National unity and education", "Political leadership", "Religious revival", "Economic reforms"], answer: 0, points: 2}
+                    ]
+                },
+                3: {
+                    name: "General Knowledge - Level 3 (Hard)",
+                    timeLimit: 30,
+                    questions: [
+                        {question: "What was the main outcome of the 1946 elections in India?", options: ["Muslim League's mandate for Pakistan", "Congress victory", "Coalition government", "British continuation"], answer: 0, points: 3},
+                        {question: "Who was the first Governor-General of Pakistan?", options: ["Muhammad Ali Jinnah", "Liaquat Ali Khan", "Iskander Mirza", "Ayub Khan"], answer: 0, points: 3},
+                        {question: "What was the main issue leading to Bangladesh's creation?", options: ["Political and economic disparity", "Religious differences", "Language conflict", "Foreign intervention"], answer: 0, points: 3},
+                        {question: "Who drafted the Universal Islamic Declaration of Human Rights?", options: ["Islamic Council of Europe", "OIC", "Al-Azhar", "Muslim World League"], answer: 0, points: 3},
+                        {question: "What was the main principle of Pakistan's 1973 Constitution?", options: ["Islamic provisions", "Secularism", "Military rule", "Socialism"], answer: 0, points: 3},
+                        {question: "Which document first outlined the concept of Pakistan?", options: ["Lahore Resolution", "Delhi Proposals", "Lucknow Pact", "Cabinet Mission Plan"], answer: 0, points: 3},
+                        {question: "Who led the freedom movement in Indonesia?", options: ["Sukarno", "Hatta", "Sjahrir", "Natsir"], answer: 0, points: 3},
+                        {question: "What was the main achievement of the 1935 Government of India Act?", options: ["Provincial autonomy", "Independence", "Partition", "Economic reform"], answer: 0, points: 3},
+                        {question: "Who was known as the 'Frontier Gandhi'?", options: ["Khan Abdul Ghaffar Khan", "Maulana Azad", "Muhammad Ali Jinnah", "Allama Iqbal"], answer: 0, points: 3},
+                        {question: "What was the main challenge for Pakistan after 1947?", options: ["Refugee crisis and state-building", "Economic collapse", "Military threats", "Religious conflicts"], answer: 0, points: 3},
+                        {question: "Which conference finalized the partition plan?", options: ["3rd June Plan", "Cabinet Mission", "Simla Conference", "Round Table"], answer: 0, points: 3},
+                        {question: "Who was Pakistan's first Prime Minister?", options: ["Liaquat Ali Khan", "Khwaja Nazimuddin", "Muhammad Ali Bogra", "I.I. Chundrigar"], answer: 0, points: 3},
+                        {question: "What was the main issue in the 1965 war between India and Pakistan?", options: ["Kashmir", "Water resources", "Refugees", "Economic disparity"], answer: 0, points: 3},
+                        {question: "Which organization promotes human rights in Muslim countries?", options: ["OIC", "Arab League", "GCC", "ECO"], answer: 0, points: 3},
+                        {question: "What was the main impact of the 1971 war?", options: ["Creation of Bangladesh", "Kashmir resolution", "Nuclear development", "Economic growth"], answer: 0, points: 3},
+                        {question: "Who proposed the 'Two Nation Theory'?", options: ["Muhammad Ali Jinnah", "Allama Iqbal", "Sir Syed Ahmed Khan", "Maulana Maududi"], answer: 0, points: 3},
+                        {question: "What was the main principle of the Universal Islamic Declaration?", options: ["Compatibility with Sharia", "Western model", "Socialist ideals", "Nationalist approach"], answer: 0, points: 3},
+                        {question: "Which event marked Pakistan's nuclear capability?", options: ["1998 tests", "1974 test", "1980s program", "2000s development"], answer: 0, points: 3},
+                        {question: "What was the main challenge for Bangladesh after independence?", options: ["Reconstruction and recognition", "Economic boom", "Political stability", "Military strength"], answer: 0, points: 3},
+                        {question: "Which concept is central to Islamic human rights?", options: ["Human dignity", "Individual freedom", "Secularism", "Nationalism"], answer: 0, points: 3}
+                    ]
+                }
+            }
+        };
+
+        let currentSubject = "";
+        let currentLevel = 0;
+        let currentQuestion = 0;
+        let score = 0;
+        let totalPoints = 0;
+        let userAnswers = [];
+        let timer;
+        let timeLeft;
+        let startTime;
+        let endTime;
+
+        function showLevels(subject) {
+            document.getElementById("history-levels").style.display = "none";
+            document.getElementById("geography-levels").style.display = "none";
+            document.getElementById("gk-levels").style.display = "none";
+            document.getElementById(subject + "-levels").style.display = "grid";
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("result-container").style.display = "none";
+        }
+
+        function startQuiz(subject, level) {
+            currentSubject = subject;
+            currentLevel = level;
+            currentQuestion = 0;
+            score = 0;
+            totalPoints = 0;
+            userAnswers = Array(quizData[subject][level].questions.length).fill(null);
+            
+            // Set up timer
+            timeLeft = quizData[subject][level].timeLimit;
+            startTime = new Date();
+            
+            document.getElementById("quiz-container").style.display = "block";
+            document.getElementById("result-container").style.display = "none";
+            
+            // Update subject and level info
+            document.getElementById("subject-level").textContent = quizData[subject][level].name;
+            document.getElementById("current-score").textContent = "Points: 0";
+            
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            updateTimerDisplay();
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById("time").textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Change timer color based on remaining time
+            const timerElement = document.getElementById("timer");
+            timerElement.classList.remove("warning", "danger");
+            
+            if (timeLeft <= 15 && timeLeft > 5) {
+                timerElement.classList.add("warning");
+            } else if (timeLeft <= 5) {
+                timerElement.classList.add("danger");
+            }
+        }
+
+        function timeUp() {
+            // Auto-submit the current answer if any
+            if (userAnswers[currentQuestion] === null && currentQuestion < quizData[currentSubject][currentLevel].questions.length - 1) {
+                nextQuestion();
+            }
+            
+            // Show results
+            showResult();
+        }
+
+        function showQuestion() {
+            const question = quizData[currentSubject][currentLevel].questions[currentQuestion];
+            document.getElementById("question-text").textContent = question.question;
+            
+            // Update points display
+            document.getElementById("question-points").textContent = `+${question.points} point${question.points > 1 ? 's' : ''}`;
+            
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement("button");
+                button.className = "option-btn";
+                
+                if (userAnswers[currentQuestion] === index) {
+                    button.classList.add("selected");
+                }
+                
+                button.textContent = option;
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+            
+            document.getElementById("question-number").textContent = `Question ${currentQuestion + 1}`;
+            document.getElementById("progress-text").textContent = `${currentQuestion + 1} of ${quizData[currentSubject][currentLevel].questions.length}`;
+            document.getElementById("prev-btn").disabled = currentQuestion === 0;
+            document.getElementById("next-btn").disabled = userAnswers[currentQuestion] === null;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestion] = index;
+            const options = document.querySelectorAll(".option-btn");
+            const currentQuestionData = quizData[currentSubject][currentLevel].questions[currentQuestion];
+            
+            options.forEach((btn, i) => {
+                btn.classList.remove("selected", "correct", "incorrect");
+                
+                if (i === index) {
+                    btn.classList.add("selected");
+                    
+                    // Check if answer is correct and update score
+                    if (i === currentQuestionData.answer) {
+                        totalPoints += currentQuestionData.points;
+                        document.getElementById("current-score").textContent = `Points: ${totalPoints}`;
+                    }
+                }
+            });
+            
+            document.getElementById("next-btn").disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData[currentSubject][currentLevel].questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                endTime = new Date();
+                showResult();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function showResult() {
+            clearInterval(timer);
+            
+            // Calculate score
+            score = 0;
+            quizData[currentSubject][currentLevel].questions.forEach((question, index) => {
+                if (userAnswers[index] === question.answer) {
+                    score++;
+                }
+            });
+            
+            // Calculate time taken
+            const totalSeconds = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const timeTaken = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Calculate accuracy
+            const accuracy = Math.round((score / quizData[currentSubject][currentLevel].questions.length) * 100);
+            
+            // Update result display
+            document.getElementById("score-text").textContent = score;
+            document.getElementById("total-questions").textContent = quizData[currentSubject][currentLevel].questions.length;
+            document.getElementById("progress-fill").style.width = `${accuracy}%`;
+            document.getElementById("correct-answers").textContent = score;
+            document.getElementById("wrong-answers").textContent = quizData[currentSubject][currentLevel].questions.length - score;
+            document.getElementById("time-taken").textContent = timeTaken;
+            document.getElementById("accuracy").textContent = `${accuracy}%`;
+            document.getElementById("total-points").textContent = totalPoints;
+            
+            // Set message based on performance
+            let message = "";
+            if (accuracy >= 80) {
+                message = "🏆 Excellent! You have mastered this level. 🏆";
+            } else if (accuracy >= 60) {
+                message = "👍 Good job! You have a solid understanding. 👍";
+            } else if (accuracy >= 40) {
+                message = "💪 Keep practicing! You're getting there. 💪";
+            } else {
+                message = "📚 Don't give up! Review the material and try again. 📚";
+            }
+            
+            document.getElementById("message").innerHTML = message;
+            
+            // Show next level button if not on the last level
+            if (currentLevel < 3) {
+                document.getElementById("next-level-btn").style.display = "inline-block";
+            } else {
+                document.getElementById("next-level-btn").style.display = "none";
+            }
+            
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("result-container").style.display = "block";
+        }
+
+        function nextLevel() {
+            startQuiz(currentSubject, currentLevel + 1);
+        }
+
+        function restartQuiz() {
+            startQuiz(currentSubject, currentLevel);
+        }
+
+        function returnToDashboard() {
+            document.getElementById("history-levels").style.display = "none";
+            document.getElementById("geography-levels").style.display = "none";
+            document.getElementById("gk-levels").style.display = "none";
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("result-container").style.display = "none";
+        }
+    </script>
+</body>
+</html>

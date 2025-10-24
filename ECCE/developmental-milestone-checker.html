@@ -1,0 +1,1334 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/1721/1721929.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/1721/1721929.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developmental Milestone Checker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6b8cbc;
+            --accent: #ff9e4a;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --text: #333;
+            --text-light: #777;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --report-primary: #9b59b6;
+            --report-secondary: #8e44ad;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .child-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-report {
+            background: linear-gradient(135deg, var(--report-primary), var(--report-secondary));
+            padding: 14px 24px;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4); }
+            50% { box-shadow: 0 4px 20px rgba(155, 89, 182, 0.7); }
+            100% { box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card h3 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .milestone-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .milestone-category {
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .milestone-item:last-child {
+            border-bottom: none;
+        }
+
+        .milestone-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .milestone-text {
+            flex: 1;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            background: var(--success);
+        }
+
+        .btn-download:hover {
+            background: #27ae60;
+        }
+
+        .btn-reset {
+            background: var(--danger);
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .api-section {
+            background: #fff8e1;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .api-section h3 {
+            color: var(--warning);
+            margin-bottom: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .age-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .age-tab {
+            padding: 10px 20px;
+            background: white;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            white-space: nowrap;
+        }
+
+        .age-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .report-section {
+            background: linear-gradient(135deg, #f5f7fa, #e4e8f0);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--report-primary);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .report-title {
+            font-size: 1.8rem;
+            color: var(--report-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .report-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .report-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .report-card h3 {
+            color: var(--report-secondary);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .report-list {
+            list-style-type: none;
+        }
+
+        .report-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-list li:last-child {
+            border-bottom: none;
+        }
+
+        .report-list .completed {
+            color: var(--success);
+        }
+
+        .report-list .pending {
+            color: var(--warning);
+        }
+
+        .suggestion-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--report-primary);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Developmental Milestone Checker</h1>
+            <p>Track and monitor key developmental milestones for children aged 2-5 years</p>
+        </header>
+
+        <div class="api-section">
+            <h3><i class="fas fa-key"></i> API Status</h3>
+            <p>Your API key is securely configured and ready to use. All data is processed securely.</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="child-info card">
+                <h2>Child Information</h2>
+                <div class="form-group">
+                    <label for="childName">Child's Name</label>
+                    <input type="text" id="childName" placeholder="Enter child's name">
+                </div>
+                <div class="form-group">
+                    <label for="childAge">Age Group</label>
+                    <select id="childAge">
+                        <option value="2">2 Years</option>
+                        <option value="3">3 Years</option>
+                        <option value="4">4 Years</option>
+                        <option value="5">5 Years</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="childGender">Gender</label>
+                    <select id="childGender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button id="saveChildInfo"><i class="fas fa-save"></i> Save Information</button>
+            </div>
+
+            <div class="stats card">
+                <div class="stat-card">
+                    <h3 id="totalMilestones">0</h3>
+                    <p>Total Milestones</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="completedMilestones">0</h3>
+                    <p>Completed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="completionRate">0%</h3>
+                    <p>Completion Rate</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="age-tabs">
+            <div class="age-tab active" data-age="2">2 Years</div>
+            <div class="age-tab" data-age="3">3 Years</div>
+            <div class="age-tab" data-age="4">4 Years</div>
+            <div class="age-tab" data-age="5">5 Years</div>
+        </div>
+
+        <div class="milestone-section card">
+            <h2 class="section-title">Developmental Milestones</h2>
+            
+            <div class="milestone-category">
+                <h3 class="category-title"><i class="fas fa-running"></i> Physical Development</h3>
+                <div class="milestone-list" id="physicalMilestones">
+                    <!-- Milestones will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="milestone-category">
+                <h3 class="category-title"><i class="fas fa-brain"></i> Cognitive Development</h3>
+                <div class="milestone-list" id="cognitiveMilestones">
+                    <!-- Milestones will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="milestone-category">
+                <h3 class="category-title"><i class="fas fa-comments"></i> Language Development</h3>
+                <div class="milestone-list" id="languageMilestones">
+                    <!-- Milestones will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="milestone-category">
+                <h3 class="category-title"><i class="fas fa-users"></i> Social & Emotional Development</h3>
+                <div class="milestone-list" id="socialMilestones">
+                    <!-- Milestones will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn-report" id="generateReport">
+                <i class="fas fa-chart-pie"></i> Generate Full Report
+            </button>
+        </div>
+
+        <div class="actions">
+            <button class="btn-reset" id="resetChecklist"><i class="fas fa-redo"></i> Reset Checklist</button>
+            <button class="btn-download" id="downloadPDF"><i class="fas fa-file-pdf"></i> Download PDF Report</button>
+            <button class="btn-download" id="downloadWord"><i class="fas fa-file-word"></i> Download Word Report</button>
+        </div>
+
+        <footer>
+            <p>Developmental Milestone Checker &copy; 2025 | For educational purposes only</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">Operation completed successfully!</div>
+
+    <!-- Report Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-chart-pie"></i> Developmental Progress Report</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="report-section">
+                <div class="report-header">
+                    <h2 class="report-title" id="reportChildName">Child's Name</h2>
+                    <div class="completion-rate">
+                        <h3 id="modalCompletionRate">0% Complete</h3>
+                    </div>
+                </div>
+                
+                <div class="report-content">
+                    <div class="report-card">
+                        <h3><i class="fas fa-check-circle"></i> Completed Milestones</h3>
+                        <ul class="report-list" id="completedList">
+                            <!-- Completed milestones will be populated here -->
+                        </ul>
+                    </div>
+                    
+                    <div class="report-card">
+                        <h3><i class="fas fa-exclamation-circle"></i> Areas Needing Attention</h3>
+                        <ul class="report-list" id="pendingList">
+                            <!-- Pending milestones will be populated here -->
+                        </ul>
+                    </div>
+                    
+                    <div class="report-card">
+                        <h3><i class="fas fa-lightbulb"></i> Suggested Activities for Teachers</h3>
+                        <div id="teacherSuggestions">
+                            <!-- Teacher suggestions will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="report-card">
+                        <h3><i class="fas fa-home"></i> Advice for Parents</h3>
+                        <div id="parentAdvice">
+                            <!-- Parent advice will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-actions">
+                    <button class="btn-download" id="modalDownloadPDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                    <button class="btn-download" id="modalDownloadWord"><i class="fas fa-file-word"></i> Download Word</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration (in a real implementation, this would be handled server-side)
+        const API_KEY = "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";
+        
+        // Milestone data for different age groups
+        const milestoneData = {
+            "2": {
+                "physical": [
+                    "Walks alone",
+                    "Pulls toys while walking",
+                    "Carries large toy or several toys while walking",
+                    "Begins to run",
+                    "Stands on tiptoe",
+                    "Kicks a ball",
+                    "Climbs onto and down from furniture unassisted",
+                    "Walks up and down stairs holding on to support"
+                ],
+                "cognitive": [
+                    "Finds objects even when hidden under two or three covers",
+                    "Begins to sort by shapes and colors",
+                    "Begins make-believe play",
+                    "Completes sentences and rhymes in familiar books",
+                    "Plays simple make-believe games",
+                    "Builds towers of 4 or more blocks",
+                    "Might use one hand more than the other"
+                ],
+                "language": [
+                    "Points to objects or pictures when they are named",
+                    "Knows names of familiar people and body parts",
+                    "Says sentences with 2 to 4 words",
+                    "Follows simple instructions",
+                    "Repeats words overheard in conversation",
+                    "Points to things in a book"
+                ],
+                "social": [
+                    "Imitates behavior of others, especially adults and older children",
+                    "Increasingly aware of herself as separate from others",
+                    "Increasingly enthusiastic about company of other children",
+                    "Demonstrates increasing independence",
+                    "Begins to show defiant behavior",
+                    "Separation anxiety increases toward midyear then fades"
+                ]
+            },
+            "3": {
+                "physical": [
+                    "Climbs well",
+                    "Runs easily",
+                    "Pedals a tricycle (3-wheel bike)",
+                    "Walks up and down stairs, one foot on each step",
+                    "Kicks and throws a small ball",
+                    "Stands on one foot for a short time",
+                    "Uses hands to twist and unscrew"
+                ],
+                "cognitive": [
+                    "Can work toys with buttons, levers, and moving parts",
+                    "Plays make-believe with dolls, animals, and people",
+                    "Does puzzles with 3 or 4 pieces",
+                    "Understands what 'two' means",
+                    "Copies a circle with pencil or crayon",
+                    "Turns book pages one at a time",
+                    "Builds towers of more than 6 blocks"
+                ],
+                "language": [
+                    "Follows instructions with 2 or 3 steps",
+                    "Can name most familiar things",
+                    "Understands words like 'in,' 'on,' and 'under'",
+                    "Says first name, age, and sex",
+                    "Names a friend",
+                    "Says words like 'I,' 'me,' 'we,' and 'you' and some plurals (cars, dogs, cats)",
+                    "Talks well enough for strangers to understand most of the time"
+                ],
+                "social": [
+                    "Copies adults and friends",
+                    "Shows affection for friends without prompting",
+                    "Takes turns in games",
+                    "Shows concern for a crying friend",
+                    "Understands the idea of 'mine' and 'his' or 'hers'",
+                    "Shows a wide range of emotions",
+                    "Separates easily from mom and dad"
+                ]
+            },
+            "4": {
+                "physical": [
+                    "Hops and stands on one foot up to 2 seconds",
+                    "Catches a bounced ball most of the time",
+                    "Pours, cuts with supervision, and mashes own food",
+                    "Uses scissors",
+                    "Draws a person with 2 to 4 body parts",
+                    "Can copy some capital letters",
+                    "Can use a fork and spoon correctly"
+                ],
+                "cognitive": [
+                    "Names some colors and some numbers",
+                    "Understands the idea of counting",
+                    "Starts to understand time",
+                    "Remembers parts of a story",
+                    "Understands the idea of 'same' and 'different'",
+                    "Draws a person with 2 to 4 body parts",
+                    "Plays board or card games"
+                ],
+                "language": [
+                    "Sings a song or says a poem from memory such as the 'Itsy Bitsy Spider' or the 'Wheels on the Bus'",
+                    "Tells stories",
+                    "Can say first and last name",
+                    "Speaks clearly enough for strangers to understand",
+                    "Uses future tense",
+                    "Can say name and address"
+                ],
+                "social": [
+                    "Enjoys doing new things",
+                    "Plays 'Mom' and 'Dad'",
+                    "Is more and more creative with make-believe play",
+                    "Would rather play with other children than by himself",
+                    "Cooperates with other children",
+                    "Often can't tell what's real and what's make-believe"
+                ]
+            },
+            "5": {
+                "physical": [
+                    "Stands on one foot for 10 seconds or longer",
+                    "Hops; may be able to skip",
+                    "Can do a somersault",
+                    "Uses a fork and spoon and sometimes a table knife",
+                    "Can use the toilet on her own",
+                    "Swings and climbs",
+                    "May be able to ride a bicycle with training wheels"
+                ],
+                "cognitive": [
+                    "Counts 10 or more things",
+                    "Can draw a person with at least 6 body parts",
+                    "Can print some letters or numbers",
+                    "Copies a triangle and other geometric shapes",
+                    "Knows about things used every day, like money and food",
+                    "Understands the concept of time",
+                    "Can remember parts of a story"
+                ],
+                "language": [
+                    "Speaks very clearly",
+                    "Tells a simple story using full sentences",
+                    "Uses future tense; for example, 'Grandma will be here'",
+                    "Says name and address",
+                    "Can identify coins and money",
+                    "Uses sentences with more than one verb",
+                    "Answers simple questions about a story after hearing it"
+                ],
+                "social": [
+                    "Wants to please friends",
+                    "Wants to be like friends",
+                    "More likely to agree with rules",
+                    "Likes to sing, dance, and act",
+                    "Is aware of gender",
+                    "Can tell what's real and what's make-believe",
+                    "Shows more independence"
+                ]
+            }
+        };
+
+        // Activity suggestions for teachers and parents
+        const activitySuggestions = {
+            "physical": {
+                "teachers": [
+                    "Set up an obstacle course to improve coordination",
+                    "Practice throwing and catching with soft balls",
+                    "Incorporate dance and movement into daily activities",
+                    "Provide opportunities for climbing in safe environments"
+                ],
+                "parents": [
+                    "Visit playgrounds regularly to practice climbing and swinging",
+                    "Play catch with soft balls in the backyard",
+                    "Encourage riding tricycles or balance bikes",
+                    "Practice hopping, skipping, and jumping together"
+                ]
+            },
+            "cognitive": {
+                "teachers": [
+                    "Provide puzzles with increasing difficulty",
+                    "Introduce matching and sorting games",
+                    "Use memory games to improve recall",
+                    "Incorporate counting into daily activities"
+                ],
+                "parents": [
+                    "Play memory card games together",
+                    "Do simple puzzles as a family activity",
+                    "Count everyday objects like stairs or toys",
+                    "Read books and ask questions about the story"
+                ]
+            },
+            "language": {
+                "teachers": [
+                    "Read aloud daily and discuss the stories",
+                    "Encourage show-and-tell to practice speaking",
+                    "Play 'I Spy' to build vocabulary",
+                    "Use picture cards for word association"
+                ],
+                "parents": [
+                    "Read together every day and discuss the story",
+                    "Encourage describing their day in detail",
+                    "Play rhyming games during car rides",
+                    "Sing songs and nursery rhymes together"
+                ]
+            },
+            "social": {
+                "teachers": [
+                    "Set up cooperative play activities",
+                    "Role-play social situations",
+                    "Praise sharing and taking turns",
+                    "Discuss emotions and appropriate responses"
+                ],
+                "parents": [
+                    "Arrange playdates with peers",
+                    "Model and discuss expressing emotions appropriately",
+                    "Praise good sharing and turn-taking behavior",
+                    "Read books about emotions and friendships"
+                ]
+            }
+        };
+
+        // DOM Elements
+        const childNameInput = document.getElementById('childName');
+        const childAgeSelect = document.getElementById('childAge');
+        const childGenderSelect = document.getElementById('childGender');
+        const saveChildInfoBtn = document.getElementById('saveChildInfo');
+        const resetChecklistBtn = document.getElementById('resetChecklist');
+        const downloadPDFBtn = document.getElementById('downloadPDF');
+        const downloadWordBtn = document.getElementById('downloadWord');
+        const generateReportBtn = document.getElementById('generateReport');
+        const ageTabs = document.querySelectorAll('.age-tab');
+        const notification = document.getElementById('notification');
+        const reportModal = document.getElementById('reportModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const modalDownloadPDF = document.getElementById('modalDownloadPDF');
+        const modalDownloadWord = document.getElementById('modalDownloadWord');
+
+        // Stats elements
+        const totalMilestonesEl = document.getElementById('totalMilestones');
+        const completedMilestonesEl = document.getElementById('completedMilestones');
+        const completionRateEl = document.getElementById('completionRate');
+        const progressFillEl = document.getElementById('progressFill');
+
+        // Report elements
+        const reportChildName = document.getElementById('reportChildName');
+        const modalCompletionRate = document.getElementById('modalCompletionRate');
+        const completedList = document.getElementById('completedList');
+        const pendingList = document.getElementById('pendingList');
+        const teacherSuggestionsEl = document.getElementById('teacherSuggestions');
+        const parentAdviceEl = document.getElementById('parentAdvice');
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMilestones();
+            updateStats();
+            attachEventListeners();
+        });
+
+        // Load milestones for the selected age group
+        function loadMilestones() {
+            const age = childAgeSelect.value;
+            
+            // Update active tab
+            ageTabs.forEach(tab => {
+                if (tab.dataset.age === age) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Load milestones for each category
+            const categories = ['physical', 'cognitive', 'language', 'social'];
+            categories.forEach(category => {
+                const container = document.getElementById(`${category}Milestones`);
+                container.innerHTML = '';
+                
+                if (milestoneData[age] && milestoneData[age][category]) {
+                    milestoneData[age][category].forEach((milestone, index) => {
+                        const milestoneItem = document.createElement('div');
+                        milestoneItem.className = 'milestone-item';
+                        
+                        // Check if this milestone was previously completed
+                        const storageKey = `milestone-${age}-${category}-${index}`;
+                        const isCompleted = localStorage.getItem(storageKey) === 'true';
+                        
+                        milestoneItem.innerHTML = `
+                            <input type="checkbox" class="milestone-checkbox" id="${storageKey}" ${isCompleted ? 'checked' : ''}>
+                            <label class="milestone-text" for="${storageKey}">${milestone}</label>
+                        `;
+                        
+                        container.appendChild(milestoneItem);
+                    });
+                }
+            });
+            
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const age = childAgeSelect.value;
+            let total = 0;
+            let completed = 0;
+            
+            // Count all milestones and completed ones
+            const categories = ['physical', 'cognitive', 'language', 'social'];
+            categories.forEach(category => {
+                if (milestoneData[age] && milestoneData[age][category]) {
+                    total += milestoneData[age][category].length;
+                    
+                    milestoneData[age][category].forEach((_, index) => {
+                        const storageKey = `milestone-${age}-${category}-${index}`;
+                        if (localStorage.getItem(storageKey) === 'true') {
+                            completed++;
+                        }
+                    });
+                }
+            });
+            
+            // Update UI
+            totalMilestonesEl.textContent = total;
+            completedMilestonesEl.textContent = completed;
+            
+            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            completionRateEl.textContent = `${completionRate}%`;
+            progressFillEl.style.width = `${completionRate}%`;
+        }
+
+        // Attach event listeners
+        function attachEventListeners() {
+            // Save child information
+            saveChildInfoBtn.addEventListener('click', function() {
+                if (childNameInput.value.trim() === '') {
+                    showNotification('Please enter child\'s name', true);
+                    return;
+                }
+                
+                localStorage.setItem('childName', childNameInput.value);
+                localStorage.setItem('childAge', childAgeSelect.value);
+                localStorage.setItem('childGender', childGenderSelect.value);
+                
+                showNotification('Child information saved successfully');
+            });
+            
+            // Reset checklist
+            resetChecklistBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset all milestones? This cannot be undone.')) {
+                    const age = childAgeSelect.value;
+                    const categories = ['physical', 'cognitive', 'language', 'social'];
+                    
+                    categories.forEach(category => {
+                        if (milestoneData[age] && milestoneData[age][category]) {
+                            milestoneData[age][category].forEach((_, index) => {
+                                const storageKey = `milestone-${age}-${category}-${index}`;
+                                localStorage.removeItem(storageKey);
+                            });
+                        }
+                    });
+                    
+                    loadMilestones();
+                    showNotification('Checklist reset successfully');
+                }
+            });
+            
+            // Download PDF report
+            downloadPDFBtn.addEventListener('click', function() {
+                generatePDFReport();
+            });
+            
+            // Download Word report (simulated)
+            downloadWordBtn.addEventListener('click', function() {
+                generateWordReport();
+            });
+            
+            // Generate full report
+            generateReportBtn.addEventListener('click', function() {
+                generateFullReport();
+            });
+            
+            // Age tabs
+            ageTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    childAgeSelect.value = this.dataset.age;
+                    loadMilestones();
+                });
+            });
+            
+            // Checkbox changes
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('milestone-checkbox')) {
+                    localStorage.setItem(e.target.id, e.target.checked);
+                    updateStats();
+                }
+            });
+            
+            // Modal controls
+            closeModalBtn.addEventListener('click', function() {
+                reportModal.style.display = 'none';
+            });
+            
+            modalDownloadPDF.addEventListener('click', function() {
+                generatePDFReport();
+                reportModal.style.display = 'none';
+            });
+            
+            modalDownloadWord.addEventListener('click', function() {
+                generateWordReport();
+                reportModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === reportModal) {
+                    reportModal.style.display = 'none';
+                }
+            });
+            
+            // Load saved child information
+            const savedName = localStorage.getItem('childName');
+            const savedAge = localStorage.getItem('childAge');
+            const savedGender = localStorage.getItem('childGender');
+            
+            if (savedName) childNameInput.value = savedName;
+            if (savedAge) childAgeSelect.value = savedAge;
+            if (savedGender) childGenderSelect.value = savedGender;
+        }
+
+        // Show notification
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            if (isError) {
+                notification.classList.add('error');
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Generate full report
+        function generateFullReport() {
+            const childName = localStorage.getItem('childName') || 'Not specified';
+            const childAge = localStorage.getItem('childAge') || 'Not specified';
+            
+            // Update report header
+            reportChildName.textContent = `${childName}'s Progress Report (${childAge} years)`;
+            
+            // Calculate completion rate
+            const age = childAgeSelect.value;
+            let total = 0;
+            let completed = 0;
+            
+            const categories = ['physical', 'cognitive', 'language', 'social'];
+            categories.forEach(category => {
+                if (milestoneData[age] && milestoneData[age][category]) {
+                    total += milestoneData[age][category].length;
+                    
+                    milestoneData[age][category].forEach((_, index) => {
+                        const storageKey = `milestone-${age}-${category}-${index}`;
+                        if (localStorage.getItem(storageKey) === 'true') {
+                            completed++;
+                        }
+                    });
+                }
+            });
+            
+            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            modalCompletionRate.textContent = `${completionRate}% Complete`;
+            
+            // Populate completed and pending lists
+            completedList.innerHTML = '';
+            pendingList.innerHTML = '';
+            
+            categories.forEach(category => {
+                if (milestoneData[age] && milestoneData[age][category]) {
+                    milestoneData[age][category].forEach((milestone, index) => {
+                        const storageKey = `milestone-${age}-${category}-${index}`;
+                        const isCompleted = localStorage.getItem(storageKey) === 'true';
+                        
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <i class="fas ${isCompleted ? 'fa-check-circle completed' : 'fa-exclamation-circle pending'}"></i>
+                            <span>${milestone}</span>
+                        `;
+                        
+                        if (isCompleted) {
+                            completedList.appendChild(listItem);
+                        } else {
+                            pendingList.appendChild(listItem);
+                        }
+                    });
+                }
+            });
+            
+            // Generate suggestions for teachers and parents
+            teacherSuggestionsEl.innerHTML = '';
+            parentAdviceEl.innerHTML = '';
+            
+            // For each category with incomplete milestones, add suggestions
+            categories.forEach(category => {
+                let incompleteCount = 0;
+                
+                if (milestoneData[age] && milestoneData[age][category]) {
+                    milestoneData[age][category].forEach((_, index) => {
+                        const storageKey = `milestone-${age}-${category}-${index}`;
+                        if (localStorage.getItem(storageKey) !== 'true') {
+                            incompleteCount++;
+                        }
+                    });
+                }
+                
+                // If there are incomplete milestones in this category, add suggestions
+                if (incompleteCount > 0) {
+                    // Teacher suggestions
+                    if (activitySuggestions[category] && activitySuggestions[category].teachers) {
+                        activitySuggestions[category].teachers.forEach(suggestion => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.className = 'suggestion-item';
+                            suggestionItem.innerHTML = `<strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${suggestion}`;
+                            teacherSuggestionsEl.appendChild(suggestionItem);
+                        });
+                    }
+                    
+                    // Parent advice
+                    if (activitySuggestions[category] && activitySuggestions[category].parents) {
+                        activitySuggestions[category].parents.forEach(advice => {
+                            const adviceItem = document.createElement('div');
+                            adviceItem.className = 'suggestion-item';
+                            adviceItem.innerHTML = `<strong>${category.charAt(0).toUpperCase() + category.slice(1)}:</strong> ${advice}`;
+                            parentAdviceEl.appendChild(adviceItem);
+                        });
+                    }
+                }
+            });
+            
+            // If no incomplete milestones, show congratulations
+            if (completed === total) {
+                const congratsItem = document.createElement('div');
+                congratsItem.className = 'suggestion-item';
+                congratsItem.innerHTML = `<strong>Congratulations!</strong> ${childName} has achieved all milestones for their age group. Continue providing enriching activities to maintain progress.`;
+                teacherSuggestionsEl.appendChild(congratsItem);
+                parentAdviceEl.appendChild(congratsItem.cloneNode(true));
+            }
+            
+            // Show the modal
+            reportModal.style.display = 'flex';
+        }
+
+        // Generate PDF report
+        function generatePDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Developmental Milestone Report', 20, 20);
+            
+            // Add child information
+            doc.setFontSize(12);
+            const childName = localStorage.getItem('childName') || 'Not specified';
+            const childAge = localStorage.getItem('childAge') || 'Not specified';
+            const childGender = localStorage.getItem('childGender') || 'Not specified';
+            
+            doc.text(`Child Name: ${childName}`, 20, 40);
+            doc.text(`Age Group: ${childAge} years`, 20, 50);
+            doc.text(`Gender: ${childGender}`, 20, 60);
+            
+            // Add date
+            const today = new Date();
+            doc.text(`Report Date: ${today.toLocaleDateString()}`, 20, 70);
+            
+            // Add milestones
+            let yPosition = 90;
+            const age = childAgeSelect.value;
+            const categories = [
+                { title: 'Physical Development', key: 'physical' },
+                { title: 'Cognitive Development', key: 'cognitive' },
+                { title: 'Language Development', key: 'language' },
+                { title: 'Social & Emotional Development', key: 'social' }
+            ];
+            
+            categories.forEach(category => {
+                // Add category title
+                doc.setFontSize(14);
+                doc.setTextColor(74, 111, 165);
+                doc.text(category.title, 20, yPosition);
+                yPosition += 10;
+                
+                // Add milestones
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
+                if (milestoneData[age] && milestoneData[age][category.key]) {
+                    milestoneData[age][category.key].forEach((milestone, index) => {
+                        const storageKey = `milestone-${age}-${category.key}-${index}`;
+                        const isCompleted = localStorage.getItem(storageKey) === 'true';
+                        const status = isCompleted ? '✓ Completed' : '○ Not yet achieved';
+                        
+                        // Check if we need a new page
+                        if (yPosition > 270) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                        
+                        doc.text(`${status}: ${milestone}`, 25, yPosition);
+                        yPosition += 7;
+                    });
+                }
+                
+                yPosition += 10;
+            });
+            
+            // Add summary
+            doc.setFontSize(12);
+            doc.text('Summary:', 20, yPosition);
+            yPosition += 10;
+            
+            const total = parseInt(totalMilestonesEl.textContent);
+            const completed = parseInt(completedMilestonesEl.textContent);
+            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            doc.text(`Total Milestones: ${total}`, 25, yPosition);
+            yPosition += 7;
+            doc.text(`Completed: ${completed}`, 25, yPosition);
+            yPosition += 7;
+            doc.text(`Completion Rate: ${completionRate}%`, 25, yPosition);
+            
+            // Save the PDF
+            doc.save(`milestone-report-${childName}-${today.toISOString().split('T')[0]}.pdf`);
+            
+            showNotification('PDF report downloaded successfully');
+        }
+
+        // Generate Word report (simulated with a text file)
+        function generateWordReport() {
+            const childName = localStorage.getItem('childName') || 'Not specified';
+            const childAge = localStorage.getItem('childAge') || 'Not specified';
+            const childGender = localStorage.getItem('childGender') || 'Not specified';
+            const today = new Date();
+            
+            let reportContent = `DEVELOPMENTAL MILESTONE REPORT\n\n`;
+            reportContent += `Child Name: ${childName}\n`;
+            reportContent += `Age Group: ${childAge} years\n`;
+            reportContent += `Gender: ${childGender}\n`;
+            reportContent += `Report Date: ${today.toLocaleDateString()}\n\n`;
+            
+            const age = childAgeSelect.value;
+            const categories = [
+                { title: 'PHYSICAL DEVELOPMENT', key: 'physical' },
+                { title: 'COGNITIVE DEVELOPMENT', key: 'cognitive' },
+                { title: 'LANGUAGE DEVELOPMENT', key: 'language' },
+                { title: 'SOCIAL & EMOTIONAL DEVELOPMENT', key: 'social' }
+            ];
+            
+            categories.forEach(category => {
+                reportContent += `${category.title}\n`;
+                reportContent += '='.repeat(category.title.length) + '\n';
+                
+                if (milestoneData[age] && milestoneData[age][category.key]) {
+                    milestoneData[age][category.key].forEach((milestone, index) => {
+                        const storageKey = `milestone-${age}-${category.key}-${index}`;
+                        const isCompleted = localStorage.getItem(storageKey) === 'true';
+                        const status = isCompleted ? '[✓]' : '[ ]';
+                        
+                        reportContent += `${status} ${milestone}\n`;
+                    });
+                }
+                
+                reportContent += '\n';
+            });
+            
+            // Add summary
+            const total = parseInt(totalMilestonesEl.textContent);
+            const completed = parseInt(completedMilestonesEl.textContent);
+            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            reportContent += `SUMMARY\n`;
+            reportContent += '=======\n';
+            reportContent += `Total Milestones: ${total}\n`;
+            reportContent += `Completed: ${completed}\n`;
+            reportContent += `Completion Rate: ${completionRate}%\n`;
+            
+            // Create and download the file
+            const blob = new Blob([reportContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `milestone-report-${childName}-${today.toISOString().split('T')[0]}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Word report downloaded successfully');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1034 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/11455/11455598.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/11455/11455598.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>English Paper Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border-radius: 0 5px 5px 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], 
+        input[type="number"], 
+        textarea, 
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        .question-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .options-container {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .option-item input[type="text"] {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .option-item input[type="radio"] {
+            margin-right: 10px;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .paper-preview {
+            background-color: white;
+            padding: 30px;
+            margin-top: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            page-break-after: always;
+        }
+        .paper-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            position: relative;
+        }
+        .paper-header input {
+            text-align: center;
+            border: none;
+            border-bottom: 1px dashed #333;
+            font-size: 18px;
+            margin: 5px 0;
+            width: 50%;
+        }
+        .school-logo {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            max-width: 100px;
+            max-height: 100px;
+        }
+        .header-info {
+            margin-top: 20px;
+        }
+        .header-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 5px;
+        }
+        .header-item {
+            display: flex;
+            align-items: center;
+        }
+        .header-item label {
+            margin-right: 10px;
+            margin-bottom: 0;
+        }
+        .header-item span {
+            font-weight: bold;
+        }
+        .section-title {
+            font-weight: bold;
+            margin: 20px 0 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .question-preview {
+            margin-bottom: 15px;
+        }
+        .mcq-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .mcq-option {
+            display: flex;
+            align-items: center;
+        }
+        .mcq-option span {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .space-for-answer {
+            border-bottom: 1px solid #333;
+            min-height: 20px;
+            margin: 10px 0;
+        }
+        .long-answer-space {
+            min-height: 100px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .font-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .font-option {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .font-option:hover {
+            background-color: #f1f1f1;
+        }
+        .font-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .logo-upload {
+            margin-top: 15px;
+        }
+        .logo-preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            display: none;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            .paper-preview {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container no-print">
+        <header>
+            <h1>English Paper Generator</h1>
+            <p>Create customized English examination papers for your students</p>
+        </header>
+
+        <div class="tabs no-print">
+            <div class="tab active" data-tab="paper-settings">Paper Settings</div>
+            <div class="tab" data-tab="objective-section">Objective Section</div>
+            <div class="tab" data-tab="subjective-section">Subjective Section</div>
+            <div class="tab" data-tab="preview">Preview &amp; Generate</div>
+        </div>
+
+        <div class="tab-content active" id="paper-settings">
+            <div class="form-group">
+                <label for="school-name">School Name</label>
+                <input id="school-name" placeholder="Enter school name" type="text" />
+            </div>
+            <div class="form-group">
+                <label for="paper-title">Paper Title</label>
+                <input id="paper-title" placeholder="Enter paper title (e.g., Mid-Term Examination)" type="text" />
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input id="subject" placeholder="Enter subject (e.g., English)" type="text" />
+            </div>
+            <div class="form-group">
+                <label for="class-grade">Class/Grade</label>
+                <input id="class-grade" placeholder="Enter class/grade" type="text" />
+            </div>
+            <div class="form-group">
+                <label for="term">Term</label>
+                <select id="term">
+                    <option value="First Term">First Term</option>
+                    <option value="Second Term">Second Term</option>
+                    <option value="Final Term">Final Term</option>
+                    <option value="Annual">Annual</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="total-marks">Total Marks</label>
+                <input id="total-marks" placeholder="Enter total marks" type="number" />
+            </div>
+            <div class="form-group">
+                <label for="time-allowed">Time Allowed</label>
+                <input id="time-allowed" placeholder="e.g., 3 hours" type="text" />
+            </div>
+            <div class="form-group">
+                <label>Select Font Style</label>
+                <div class="font-options">
+                    <div class="font-option selected" data-font="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Standard</div>
+                    <div class="font-option" data-font="'Times New Roman', Times, serif">Times New Roman</div>
+                    <div class="font-option" data-font="Arial, Helvetica, sans-serif">Arial</div>
+                    <div class="font-option" data-font="'Courier New', Courier, monospace">Courier New</div>
+                    <div class="font-option" data-font="Georgia, serif">Georgia</div>
+                    <div class="font-option" data-font="'Palatino Linotype', 'Book Antiqua', Palatino, serif">Palatino</div>
+                </div>
+            </div>
+            <div class="form-group logo-upload">
+                <label for="school-logo">School Logo (Optional)</label>
+                <input accept="image/*" id="school-logo" type="file" />
+                <img alt="Logo Preview" class="logo-preview" id="logo-preview" />
+            </div>
+        </div>
+
+        <div class="tab-content" id="objective-section">
+            <div class="form-group">
+                <label for="objective-title">Section Title</label>
+                <input id="objective-title" type="text" value="Objective Section (Total Marks: ______)" />
+            </div>
+            <div class="form-group">
+                <label for="objective-instructions">Instructions</label>
+                <textarea id="objective-instructions" placeholder="Enter instructions for this section">Circle the correct answers.</textarea>
+            </div>
+            
+            <div id="objective-questions-container">
+                <!-- Objective questions will be added here -->
+            </div>
+            
+            <button class="btn" id="add-mcq-btn">Add MCQ Question</button>
+            <button class="btn" id="add-true-false-btn">Add True/False Question</button>
+            <button class="btn" id="add-fill-blanks-btn">Add Fill in the Blanks</button>
+            <button class="btn" id="add-matching-btn">Add Matching Question</button>
+        </div>
+
+        <div class="tab-content" id="subjective-section">
+            <div class="form-group">
+                <label for="subjective-title">Section Title</label>
+                <input id="subjective-title" type="text" value="Subjective Section (Total Marks: ______)" />
+            </div>
+            <div class="form-group">
+                <label for="subjective-instructions">Instructions</label>
+                <textarea id="subjective-instructions" placeholder="Enter instructions for this section">Attempt all questions. Write your answers in the space provided.</textarea>
+            </div>
+            
+            <div id="subjective-questions-container">
+                <!-- Subjective questions will be added here -->
+            </div>
+            
+            <button class="btn" id="add-short-question-btn">Add Short Question</button>
+            <button class="btn" id="add-long-question-btn">Add Long Question</button>
+            <button class="btn" id="add-comprehension-btn">Add Comprehension</button>
+        </div>
+
+        <div class="tab-content" id="preview">
+            <div class="action-buttons">
+                <button class="btn btn-success" id="generate-preview-btn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Generate Preview</a></a></button>
+                <button class="btn" id="print-paper-btn">Print Paper</button>
+                <button class="btn" id="download-paper-btn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download as PDF</a></button>
+            </div>
+            
+            <div id="paper-preview-container">
+                <!-- Generated paper preview will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and content
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Font selection
+            const fontOptions = document.querySelectorAll('.font-option');
+            fontOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.font-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Logo upload preview
+            const logoUpload = document.getElementById('school-logo');
+            const logoPreview = document.getElementById('logo-preview');
+            
+            logoUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        logoPreview.src = e.target.result;
+                        logoPreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Objective Section - Question Management
+            const objectiveContainer = document.getElementById('objective-questions-container');
+            let objectiveQuestionCount = 0;
+            
+            // Add MCQ Question
+            document.getElementById('add-mcq-btn').addEventListener('click', function() {
+                objectiveQuestionCount++;
+                const questionId = 'obj-q-' + objectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${objectiveQuestionCount} (MCQ)</label>
+                            <textarea class="question-text" placeholder="Enter question text"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Marks</label>
+                            <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                        </div>
+                        <div class="options-container">
+                            <div class="option-item">
+                                <input type="radio" name="${questionId}-correct" value="a" checked>
+                                <input type="text" class="option-text" placeholder="Option A">
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" name="${questionId}-correct" value="b">
+                                <input type="text" class="option-text" placeholder="Option B">
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" name="${questionId}-correct" value="c">
+                                <input type="text" class="option-text" placeholder="Option C">
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" name="${questionId}-correct" value="d">
+                                <input type="text" class="option-text" placeholder="Option D">
+                            </div>
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                objectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberObjectiveQuestions();
+                });
+            });
+            
+            // Add True/False Question
+            document.getElementById('add-true-false-btn').addEventListener('click', function() {
+                objectiveQuestionCount++;
+                const questionId = 'obj-q-' + objectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${objectiveQuestionCount} (True/False)</label>
+                            <textarea class="question-text" placeholder="Enter statement"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Marks</label>
+                            <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                        </div>
+                        <div class="options-container">
+                            <div class="option-item">
+                                <input type="radio" name="${questionId}-correct" value="true" checked>
+                                <label>True</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" name="${questionId}-correct" value="false">
+                                <label>False</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                objectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberObjectiveQuestions();
+                });
+            });
+            
+            // Add Fill in the Blanks Question
+            document.getElementById('add-fill-blanks-btn').addEventListener('click', function() {
+                objectiveQuestionCount++;
+                const questionId = 'obj-q-' + objectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${objectiveQuestionCount} (Fill in the Blanks)</label>
+                            <textarea class="question-text" placeholder="Enter sentence with blank (use _____ for blank)"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Marks</label>
+                            <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Correct Answer</label>
+                            <input type="text" class="correct-answer" placeholder="Enter correct answer for the blank">
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                objectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberObjectiveQuestions();
+                });
+            });
+            
+            // Add Matching Question
+            document.getElementById('add-matching-btn').addEventListener('click', function() {
+                objectiveQuestionCount++;
+                const questionId = 'obj-q-' + objectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${objectiveQuestionCount} (Matching)</label>
+                            <textarea class="question-text" placeholder="Enter instructions for matching"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Marks</label>
+                            <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Pairs</label>
+                            <input type="number" class="matching-pairs-count" placeholder="Enter number of pairs" min="2" max="10" value="4">
+                        </div>
+                        <div class="matching-pairs-container">
+                            <!-- Pairs will be added here -->
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                objectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add initial pairs
+                const pairsContainer = document.querySelector(`#${questionId} .matching-pairs-container`);
+                addMatchingPairs(questionId, pairsContainer, 4);
+                
+                // Add event listener for changing number of pairs
+                document.querySelector(`#${questionId} .matching-pairs-count`).addEventListener('change', function() {
+                    const count = parseInt(this.value);
+                    pairsContainer.innerHTML = '';
+                    addMatchingPairs(questionId, pairsContainer, count);
+                });
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberObjectiveQuestions();
+                });
+            });
+            
+            function addMatchingPairs(questionId, container, count) {
+                for (let i = 0; i < count; i++) {
+                    const pairHTML = `
+                        <div class="form-group matching-pair">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="matching-left" placeholder="Left item ${i+1}" style="flex: 1;">
+                                <span>matches with</span>
+                                <input type="text" class="matching-right" placeholder="Right item ${i+1}" style="flex: 1;">
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', pairHTML);
+                }
+            }
+            
+            // Subjective Section - Question Management
+            const subjectiveContainer = document.getElementById('subjective-questions-container');
+            let subjectiveQuestionCount = 0;
+            
+            // Add Short Question
+            document.getElementById('add-short-question-btn').addEventListener('click', function() {
+                subjectiveQuestionCount++;
+                const questionId = 'subj-q-' + subjectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${subjectiveQuestionCount} (Short Answer)</label>
+                            <textarea class="question-text" placeholder="Enter question text"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Marks</label>
+                            <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Answer Space Lines</label>
+                            <input type="number" class="answer-lines" placeholder="Number of lines for answer" min="1" value="5">
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                subjectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberSubjectiveQuestions();
+                });
+            });
+            
+            // Add Long Question
+            document.getElementById('add-long-question-btn').addEventListener('click', function() {
+                subjectiveQuestionCount++;
+                const questionId = 'subj-q-' + subjectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${subjectiveQuestionCount} (Long Answer)</label>
+                            <textarea class="question-text" placeholder="Enter question text"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Marks</label>
+                            <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Answer Space Lines</label>
+                            <input type="number" class="answer-lines" placeholder="Number of lines for answer" min="1" value="10">
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                subjectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberSubjectiveQuestions();
+                });
+            });
+            
+            // Add Comprehension
+            document.getElementById('add-comprehension-btn').addEventListener('click', function() {
+                subjectiveQuestionCount++;
+                const questionId = 'subj-q-' + subjectiveQuestionCount;
+                
+                const questionHTML = `
+                    <div class="question-item" id="${questionId}">
+                        <div class="form-group">
+                            <label>Question ${subjectiveQuestionCount} (Comprehension)</label>
+                            <textarea class="comprehension-text" placeholder="Enter the passage/text for comprehension"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Questions</label>
+                            <input type="number" class="comprehension-questions-count" placeholder="Enter number of questions" min="1" max="10" value="3">
+                        </div>
+                        <div class="comprehension-questions-container">
+                            <!-- Comprehension questions will be added here -->
+                        </div>
+                        <button class="btn btn-danger remove-question-btn" data-question-id="${questionId}">Remove Question</button>
+                    </div>
+                `;
+                
+                subjectiveContainer.insertAdjacentHTML('beforeend', questionHTML);
+                
+                // Add initial comprehension questions
+                const compContainer = document.querySelector(`#${questionId} .comprehension-questions-container`);
+                addComprehensionQuestions(questionId, compContainer, 3);
+                
+                // Add event listener for changing number of questions
+                document.querySelector(`#${questionId} .comprehension-questions-count`).addEventListener('change', function() {
+                    const count = parseInt(this.value);
+                    compContainer.innerHTML = '';
+                    addComprehensionQuestions(questionId, compContainer, count);
+                });
+                
+                // Add event listener to remove button
+                document.querySelector(`#${questionId} .remove-question-btn`).addEventListener('click', function() {
+                    document.getElementById(questionId).remove();
+                    // Renumber remaining questions
+                    renumberSubjectiveQuestions();
+                });
+            });
+            
+            function addComprehensionQuestions(questionId, container, count) {
+                for (let i = 0; i < count; i++) {
+                    const qNum = i + 1;
+                    const questionHTML = `
+                        <div class="question-item comprehension-question">
+                            <div class="form-group">
+                                <label>Question ${qNum}</label>
+                                <textarea class="question-text" placeholder="Enter question text"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Marks</label>
+                                <input type="number" class="question-marks" placeholder="Enter marks" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Answer Space Lines</label>
+                                <input type="number" class="answer-lines" placeholder="Number of lines for answer" min="1" value="${qNum <= 2 ? 5 : 10}">
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', questionHTML);
+                }
+            }
+            
+            // Renumber objective questions after deletion
+            function renumberObjectiveQuestions() {
+                const questions = objectiveContainer.querySelectorAll('.question-item');
+                questions.forEach((question, index) => {
+                    const questionLabel = question.querySelector('label');
+                    if (questionLabel) {
+                        const questionType = questionLabel.textContent.match(/\(([^)]+)\)/)?.[1] || '';
+                        questionLabel.textContent = `Question ${index + 1} (${questionType})`;
+                    }
+                });
+                objectiveQuestionCount = questions.length;
+            }
+            
+            // Renumber subjective questions after deletion
+            function renumberSubjectiveQuestions() {
+                const questions = subjectiveContainer.querySelectorAll('.question-item:not(.comprehension-question)');
+                let questionNumber = 0;
+                
+                questions.forEach(question => {
+                    questionNumber++;
+                    const questionLabel = question.querySelector('label');
+                    if (questionLabel) {
+                        const questionType = questionLabel.textContent.match(/\(([^)]+)\)/)?.[1] || '';
+                        questionLabel.textContent = `Question ${questionNumber} (${questionType})`;
+                        
+                        // Renumber comprehension questions if this is a comprehension
+                        const compQuestions = question.querySelectorAll('.comprehension-question');
+                        if (compQuestions.length > 0) {
+                            compQuestions.forEach((compQ, i) => {
+                                const compQLabel = compQ.querySelector('label');
+                                if (compQLabel) {
+                                    compQLabel.textContent = `Question ${questionNumber}.${i + 1}`;
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                subjectiveQuestionCount = questionNumber;
+            }
+            
+            // Generate Preview
+            document.getElementById('generate-preview-btn').addEventListener('click', function() {
+                generatePreview();
+            });
+            
+            // Print Paper
+            document.getElementById('print-paper-btn').addEventListener('click', function() {
+                generatePreview();
+                setTimeout(() => {
+                    window.print();
+                }, 500);
+            });
+            
+            // Download as PDF
+            document.getElementById('download-paper-btn').addEventListener('click', function() {
+                generatePreview();
+                
+                setTimeout(() => {
+                    const element = document.getElementById('paper-preview-container');
+                    const opt = {
+                        margin: 10,
+                        filename: 'english_paper.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    
+                    // Generate PDF
+                    html2pdf().set(opt).from(element).save();
+                }, 500);
+            });
+            
+            function generatePreview() {
+                const previewContainer = document.getElementById('paper-preview-container');
+                const selectedFont = document.querySelector('.font-option.selected').getAttribute('data-font');
+                
+                // Get paper settings
+                const schoolName = document.getElementById('school-name').value || 'School Name';
+                const paperTitle = document.getElementById('paper-title').value || 'Examination Paper';
+                const subject = document.getElementById('subject').value || 'English';
+                const classGrade = document.getElementById('class-grade').value || 'Class';
+                const term = document.getElementById('term').value;
+                const totalMarks = document.getElementById('total-marks').value || '______';
+                const timeAllowed = document.getElementById('time-allowed').value || '______';
+                const logoUrl = logoPreview.src || '';
+                
+                // Get objective section details
+                const objectiveTitle = document.getElementById('objective-title').value || 'Objective Section';
+                const objectiveInstructions = document.getElementById('objective-instructions').value || 'Circle the correct answers.';
+                
+                // Get subjective section details
+                const subjectiveTitle = document.getElementById('subjective-title').value || 'Subjective Section';
+                const subjectiveInstructions = document.getElementById('subjective-instructions').value || 'Attempt all questions. Write your answers in the space provided.';
+                
+                // Generate objective questions preview
+                let objectiveQuestionsHTML = '';
+                const objectiveQuestions = objectiveContainer.querySelectorAll('.question-item');
+                
+                objectiveQuestions.forEach((question, index) => {
+                    const questionText = question.querySelector('.question-text').value || `Question ${index + 1}`;
+                    const marks = question.querySelector('.question-marks').value || '___';
+                    
+                    // Check question type
+                    if (question.querySelector('.options-container')) {
+                        // MCQ or True/False
+                        const options = question.querySelectorAll('.option-item');
+                        let optionsHTML = '<div class="mcq-options">';
+                        
+                        options.forEach((option, optIndex) => {
+                            const optionLabel = String.fromCharCode(97 + optIndex); // a, b, c, etc.
+                            const optionText = option.querySelector('.option-text') ? 
+                                option.querySelector('.option-text').value || `Option ${optionLabel}` : 
+                                option.querySelector('label').textContent;
+                            
+                            optionsHTML += `
+                                <div class="mcq-option">
+                                    <span>(${optionLabel})</span> ${optionText}
+                                </div>
+                            `;
+                        });
+                        
+                        optionsHTML += '</div>';
+                        
+                        objectiveQuestionsHTML += `
+                            <div class="question-preview">
+                                <p><strong>${index + 1}. ${questionText} [${marks}]</strong></p>
+                                ${optionsHTML}
+                            </div>
+                        `;
+                    } else if (question.querySelector('.correct-answer')) {
+                        // Fill in the blanks
+                        objectiveQuestionsHTML += `
+                            <div class="question-preview">
+                                <p><strong>${index + 1}. ${questionText} [${marks}]</strong></p>
+                                <div class="space-for-answer"></div>
+                            </div>
+                        `;
+                    } else if (question.querySelector('.matching-pairs-container')) {
+                        // Matching question
+                        const pairsCount = question.querySelector('.matching-pairs-count').value || 4;
+                        const pairs = question.querySelectorAll('.matching-pair');
+                        
+                        let leftColumn = '<div style="float: left; width: 45%; margin-right: 5%;">';
+                        let rightColumn = '<div style="float: left; width: 45%;">';
+                        
+                        pairs.forEach((pair, pairIndex) => {
+                            const leftItem = pair.querySelector('.matching-left').value || `Item ${pairIndex + 1}`;
+                            const rightItem = pair.querySelector('.matching-right').value || `Match ${pairIndex + 1}`;
+                            
+                            leftColumn += `<p>${pairIndex + 1}. ${leftItem}</p>`;
+                            rightColumn += `<p>${String.fromCharCode(97 + pairIndex)}. ${rightItem}</p>`;
+                        });
+                        
+                        leftColumn += '</div>';
+                        rightColumn += '</div>';
+                        
+                        objectiveQuestionsHTML += `
+                            <div class="question-preview" style="overflow: hidden;">
+                                <p><strong>${index + 1}. ${questionText} [${marks}]</strong></p>
+                                ${leftColumn}
+                                ${rightColumn}
+                                <div style="clear: both;"></div>
+                                <p>Write the correct matching (e.g., 1 - a) in the space below:</p>
+                                <div class="space-for-answer"></div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // Generate subjective questions preview
+                let subjectiveQuestionsHTML = '';
+                const subjectiveQuestions = subjectiveContainer.querySelectorAll('.question-item:not(.comprehension-question)');
+                
+                subjectiveQuestions.forEach((question, index) => {
+                    // Check if this is a comprehension
+                    const compQuestions = question.querySelectorAll('.comprehension-question');
+                    
+                    if (compQuestions.length > 0) {
+                        // Comprehension with sub-questions
+                        const comprehensionText = question.querySelector('.comprehension-text').value || 'Read the following passage and answer the questions below:';
+                        
+                        let compQuestionsHTML = '';
+                        compQuestions.forEach((compQ, compIndex) => {
+                            const compQText = compQ.querySelector('.question-text').value || `Question ${index + 1}.${compIndex + 1}`;
+                            const compQMarks = compQ.querySelector('.question-marks').value || '___';
+                            const answerLines = compQ.querySelector('.answer-lines').value || 5;
+                            
+                            compQuestionsHTML += `
+                                <div class="question-preview">
+                                    <p><strong>${index + 1}.${compIndex + 1} ${compQText} [${compQMarks}]</strong></p>
+                                    <div class="space-for-answer" style="min-height: ${answerLines * 20}px;"></div>
+                                </div>
+                            `;
+                        });
+                        
+                        subjectiveQuestionsHTML += `
+                            <div class="question-preview">
+                                <p><strong>${index + 1}. Read the following passage and answer the questions below:</strong></p>
+                                <p style="font-style: italic; margin-left: 20px;">${comprehensionText}</p>
+                                ${compQuestionsHTML}
+                            </div>
+                        `;
+                    } else {
+                        // Regular short or long question
+                        const questionText = question.querySelector('.question-text').value || `Question ${index + 1}`;
+                        const marks = question.querySelector('.question-marks').value || '___';
+                        const answerLines = question.querySelector('.answer-lines').value || (questionText.length > 100 ? 10 : 5);
+                        
+                        subjectiveQuestionsHTML += `
+                            <div class="question-preview">
+                                <p><strong>${index + 1}. ${questionText} [${marks}]</strong></p>
+                                <div class="space-for-answer" style="min-height: ${answerLines * 20}px;"></div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // Combine everything into the preview
+                const previewHTML = `
+                    <div class="paper-preview" style="font-family: ${selectedFont}">
+                        <div class="paper-header">
+                            ${logoUrl ? `<img src="${logoUrl}" class="school-logo" alt="School Logo">` : ''}
+                            <h2>${schoolName}</h2>
+                            <h3>${paperTitle}</h3>
+                            <div class="header-info">
+                                <div class="header-row">
+                                    <div class="header-item">
+                                        <label>Subject:</label>
+                                        <span>${subject}</span>
+                                    </div>
+                                    <div class="header-item">
+                                        <label>Class:</label>
+                                        <span>${classGrade}</span>
+                                    </div>
+                                </div>
+                                <div class="header-row">
+                                    <div class="header-item">
+                                        <label>Term:</label>
+                                        <span>${term}</span>
+                                    </div>
+                                    <div class="header-item">
+                                        <label>Total Marks:</label>
+                                        <span>${totalMarks}</span>
+                                    </div>
+                                    <div class="header-item">
+                                        <label>Time Allowed:</label>
+                                        <span>${timeAllowed}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">${objectiveTitle}</div>
+                        <p>${objectiveInstructions}</p>
+                        ${objectiveQuestionsHTML || '<p>No objective questions added.</p>'}
+                        
+                        <div class="section-title">${subjectiveTitle}</div>
+                        <p>${subjectiveInstructions}</p>
+                        ${subjectiveQuestionsHTML || '<p>No subjective questions added.</p>'}
+                    </div>
+                `;
+                
+                previewContainer.innerHTML = previewHTML;
+                
+                // Switch to preview tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector('.tab[data-tab="preview"]').classList.add('active');
+                document.getElementById('preview').classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

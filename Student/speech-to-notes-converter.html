@@ -1,0 +1,363 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/13063/13063535.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/13063/13063535.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>MagicRills | Speech-to-Notes Converter</title>
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: var(--light);
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+        body.dark-mode {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        .dark-mode .container {
+            background: #1e293b;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .tool-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .recorder-section, .output-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+            font-size: 16px;
+        }
+        .dark-mode textarea {
+            background: #334155;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+        .btn {
+            padding: 10px 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-danger {
+            background: var(--danger);
+        }
+        .btn-success {
+            background: var(--success);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        #recordingStatus {
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .recording {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .dark-mode .recording {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+        .idle {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .dark-mode .idle {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+        .summary-section {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f1f5f9;
+        }
+        .dark-mode .summary-section {
+            background: #334155;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .dark-mode .stat-box {
+            background: #334155;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .stat-box h3 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="mode-toggle" id="modeToggle">🌙 Dark Mode</button>
+        <h1> Speech-to-Notes Converter</h1>
+        
+        <div class="tool-container">
+            <div class="recorder-section">
+                <h2>Record Lecture</h2>
+                <div class="idle" id="recordingStatus">Ready to record</div>
+                <textarea id="transcribedText" placeholder="Transcribed text will appear here..."></textarea>
+                <div class="btn-group">
+                    <button class="btn" id="startRecording">🎤 Start Recording</button>
+                    <button class="btn btn-danger" disabled="" id="stopRecording">⏹ Stop</button>
+                    <button class="btn btn-success" id="summarizeText">📝 Summarize</button>
+                    <button class="btn" id="clearText">🗑 Clear</button>
+                </div>
+            </div>
+            
+            <div class="output-section" id="outputSection" style="display: none;">
+                <h2>AI Summary</h2>
+                <div class="summary-section">
+                    <p id="summaryText"></p>
+                </div>
+                <div class="stats">
+                    <div class="stat-box">
+                        <h3>Words</h3>
+                        <p id="wordCount">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Key Points</h3>
+                        <p id="keyPoints">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Time Saved</h3>
+                        <p id="timeSaved">~5 min</p>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" id="copySummary">📋 <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Copy Summary</a></button>
+                    <button class="btn btn-success" id="exportNotes">📥 <a href="https://essentialmost.com/AbJdyf">Export Notes</a></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark Mode Toggle
+        const modeToggle = document.getElementById('modeToggle');
+        modeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                modeToggle.textContent = '☀️ Light Mode';
+            } else {
+                modeToggle.textContent = '🌙 Dark Mode';
+            }
+        });
+
+        // Speech Recognition
+        const startBtn = document.getElementById('startRecording');
+        const stopBtn = document.getElementById('stopRecording');
+        const statusDiv = document.getElementById('recordingStatus');
+        const transcribedText = document.getElementById('transcribedText');
+        const summaryText = document.getElementById('summaryText');
+        const outputSection = document.getElementById('outputSection');
+
+        let recognition;
+        let isRecording = false;
+
+        // Check browser support
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        } else {
+            alert("Speech recognition not supported in this browser. Try Chrome or Edge.");
+            startBtn.disabled = true;
+        }
+
+        if (recognition) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isRecording = true;
+                statusDiv.textContent = "Recording... Speak now!";
+                statusDiv.className = "recording";
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Recognition error:", event.error);
+                statusDiv.textContent = `Error: ${event.error}`;
+                statusDiv.className = "error";
+                isRecording = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            recognition.onend = () => {
+                if (isRecording) {
+                    recognition.start(); // Restart if still recording
+                } else {
+                    statusDiv.textContent = "Ready to record";
+                    statusDiv.className = "idle";
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }
+            };
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+
+                for (let i = 0; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        final += event.results[i][0].transcript;
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+
+                transcribedText.value = final || interim;
+            };
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (recognition) {
+                recognition.start();
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            isRecording = false;
+            if (recognition) {
+                recognition.stop();
+            }
+        });
+
+        // Summarize Text (Mock AI - replace with OpenAI API in production)
+        document.getElementById('summarizeText').addEventListener('click', () => {
+            const text = transcribedText.value.trim();
+            if (!text) {
+                alert("Please record or enter some text first!");
+                return;
+            }
+
+            // Mock AI summarization
+            const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [text];
+            const summary = sentences
+                .filter((_, i) => i % 2 === 0) // Take every other sentence
+                .slice(0, 5) // Max 5 sentences
+                .join(' ');
+
+            summaryText.textContent = summary || "No key points could be extracted.";
+            outputSection.style.display = 'block';
+            document.getElementById('wordCount').textContent = text.split(' ').length;
+            document.getElementById('keyPoints').textContent = summary.split('.').length - 1;
+        });
+
+        // Copy Summary
+        document.getElementById('copySummary').addEventListener('click', () => {
+            navigator.clipboard.writeText(summaryText.textContent).then(() => {
+                alert("Summary copied to clipboard!");
+            });
+        });
+
+        // Export Notes (Mock)
+        document.getElementById('exportNotes').addEventListener('click', () => {
+            const content = `Lecture Notes Summary:\n\n${summaryText.textContent}\n\n---\nGenerated by MagicRills.com`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'lecture_notes.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Clear Text
+        document.getElementById('clearText').addEventListener('click', () => {
+            transcribedText.value = '';
+            summaryText.textContent = '';
+            outputSection.style.display = 'none';
+            if (isRecording && recognition) {
+                recognition.stop();
+            }
+        });
+    </script>
+</body>
+</html>

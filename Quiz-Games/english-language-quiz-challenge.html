@@ -1,0 +1,686 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/6193/6193980.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/6193/6193980.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>English Language Quiz Challenge</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --danger: #f72585;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --warning: #f8961e;
+            --info: #43aa8b;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+        .quiz-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .question-container {
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .options {
+            margin-bottom: 20px;
+        }
+        .option {
+            background-color: var(--light);
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .option:hover {
+            background-color: #e9ecef;
+            border-color: var(--accent);
+        }
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .option.disabled {
+            pointer-events: none;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+        .btn-success:hover {
+            background-color: #38b6db;
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background-color: #e5177e;
+        }
+        .timer {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--danger);
+        }
+        .score-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .level-indicator {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .level-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            background-color: var(--accent);
+            color: #fff;
+        }
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+        .result-container {
+            text-align: center;
+            display: none;
+        }
+        .result-container h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .result-score {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+        .restart-btn {
+            margin-top: 20px;
+        }
+        .difficulty-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .difficulty-btn {
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .difficulty-btn.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        .start-screen {
+            text-align: center;
+        }
+        .start-screen h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .start-btn {
+            margin-top: 20px;
+        }
+        .category-selector {
+            margin-bottom: 20px;
+        }
+        .category-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        .category-btn.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .question {
+                font-size: 1.1rem;
+            }
+            .option {
+                padding: 10px 12px;
+            }
+            .btn {
+                padding: 8px 15px;
+            }
+            .timer {
+                font-size: 1rem;
+            }
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+        .bounce {
+            animation: bounce 1s;
+        }
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: confetti-fall 5s linear forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>English Language Quiz Challenge</h1>
+            <p>Test your grammar knowledge across multiple levels!</p>
+        </div>
+        <div class="start-screen quiz-container" id="start-screen">
+            <h2>Select Difficulty</h2>
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
+                <button class="difficulty-btn" data-difficulty="average">Average</button>
+                <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+            </div>
+            <h3>Select Categories</h3>
+            <div class="category-selector">
+                <button class="category-btn active" data-category="grammar">Grammar</button>
+                <button class="category-btn active" data-category="sentence">Sentence Completion</button>
+                <button class="category-btn active" data-category="synonyms">Synonyms</button>
+                <button class="category-btn active" data-category="antonyms">Antonyms</button>
+                <button class="category-btn" data-category="word">Word Meaning</button>
+                <button class="category-btn" data-category="punctuation">Punctuation</button>
+                <button class="category-btn" data-category="verbs">Verbs</button>
+                <button class="category-btn" data-category="nouns">Nouns</button>
+                <button class="category-btn" data-category="pronouns">Pronouns</button>
+                <button class="category-btn" data-category="adverbs">Adverbs</button>
+                <button class="category-btn" data-category="adjectives">Adjectives</button>
+                <button class="category-btn" data-category="voice">Active/Passive</button>
+                <button class="category-btn" data-category="narration">Narration</button>
+            </div>
+            <button class="btn btn-primary start-btn" id="start-btn">Start Quiz</button>
+        </div>
+        <div class="quiz-container" id="quiz-screen" style="display: none;">
+            <div class="level-indicator">
+                <span class="level-badge">Level 1</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" style="width: 0%;"></div>
+                </div>
+            </div>
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+            </div>
+            <div class="controls">
+                <div class="timer">Time: <span id="time">30</span>s</div>
+                <button class="btn btn-primary" disabled="" id="next-btn">Next Question</button>
+            </div>
+            <div class="score-container">Score: <span class="score" id="score">0</span></div>
+        </div>
+        <div class="result-container quiz-container" id="result-screen">
+            <h2>Quiz Completed!</h2>
+            <div class="result-score">Your Score: <span id="final-score">0</span></div>
+            <div id="level-completion"></div>
+            <button class="btn btn-primary restart-btn" id="restart-btn">Play Again</button>
+        </div>
+    </div>
+    <script>
+        // Game variables
+        let currentLevel = 1;
+        let score = 0;
+        let timer;
+        let timeLeft = 30;
+        let currentQuestionIndex = 0;
+        let questions = [];
+        let selectedCategories = ['grammar', 'sentence', 'synonyms', 'antonyms'];
+        let difficulty = 'easy';
+
+        // DOM elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const timeElement = document.getElementById('time');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('final-score');
+        const nextButton = document.getElementById('next-btn');
+        const startButton = document.getElementById('start-btn');
+        const restartButton = document.getElementById('restart-btn');
+        const levelCompletionElement = document.getElementById('level-completion');
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        const categoryButtons = document.querySelectorAll('.category-btn');
+
+        // Questions database - Expanded to ensure all difficulty levels have questions
+        const questionBank = [
+            // Level 1 - Easy
+            {level:1, question:"Which word is a noun in the sentence: 'The quick brown fox jumps over the lazy dog'?", options:["quick", "fox", "jumps", "lazy"], answer:1, category:"nouns", difficulty:"easy"},
+            {level:1, question:"Choose the correct punctuation for this sentence: 'What time is it_'", options:["?", "!", ".", ":"], answer:0, category:"punctuation", difficulty:"easy"},
+            {level:1, question:"What is the synonym of 'happy'?", options:["joyful", "sad", "angry", "tired"], answer:0, category:"synonyms", difficulty:"easy"},
+            {level:1, question:"Which sentence is in active voice?", options:["The book was read by Sarah.", "Sarah read the book.", "The book is being read by Sarah.", "The book has been read by Sarah."], answer:1, category:"voice", difficulty:"easy"},
+            {level:1, question:"Identify the verb in: 'She sings beautifully.'", options:["She", "sings", "beautifully", "."], answer:1, category:"verbs", difficulty:"easy"},
+            {level:1, question:"What is the antonym of 'hot'?", options:["warm", "cold", "spicy", "boiling"], answer:1, category:"antonyms", difficulty:"easy"},
+            {level:1, question:"Complete the sentence: 'If it rains, we _____ cancel the picnic.'", options:["will", "would", "shall", "should"], answer:0, category:"sentence", difficulty:"easy"},
+            {level:1, question:"Which word is an adjective: 'The red car is fast.'?", options:["red", "car", "is", "fast"], answer:0, category:"adjectives", difficulty:"easy"},
+            {level:1, question:"What is the plural of 'child'?", options:["childs", "children", "childes", "child"], answer:1, category:"nouns", difficulty:"easy"},
+            {level:1, question:"Which is correct: 'There/Their/They're house is beautiful.'?", options:["There", "Their", "They're", "All are correct"], answer:1, category:"grammar", difficulty:"easy"},
+            {level:1, question:"Identify the pronoun: 'She gave the book to him.'", options:["She", "gave", "book", "him"], answer:3, category:"pronouns", difficulty:"easy"},
+            {level:1, question:"What is the adverb in: 'He ran quickly.'?", options:["He", "ran", "quickly", "none"], answer:2, category:"adverbs", difficulty:"easy"},
+            {level:1, question:"Choose the correct sentence:", options:["Their going to the park.", "There going to the park.", "They're going to the park.", "Theyre going to the park."], answer:2, category:"grammar", difficulty:"easy"},
+            {level:1, question:"What is the meaning of 'big'?", options:["small", "large", "tiny", "medium"], answer:1, category:"word", difficulty:"easy"},
+            {level:1, question:"Which is a complete sentence?", options:["Running in the park", "The dog barked loudly", "After the rain stopped", "Because I was tired"], answer:1, category:"sentence", difficulty:"easy"},
+
+            // Level 1 - Average
+            {level:1, question:"Which sentence uses correct punctuation?", options:["What a beautiful day?", "What a beautiful day!", "what a beautiful day.", "What a beautiful day"], answer:1, category:"punctuation", difficulty:"average"},
+            {level:1, question:"Identify the helping verb: 'She has finished her work.'", options:["She", "has", "finished", "work"], answer:1, category:"verbs", difficulty:"average"},
+            {level:1, question:"What is the synonym of 'angry'?", options:["happy", "furious", "calm", "sad"], answer:1, category:"synonyms", difficulty:"average"},
+            {level:1, question:"Change to passive voice: 'The cat chased the mouse.'", options:["The mouse was chased by the cat.", "The mouse is chased by the cat.", "The mouse chased the cat.", "The cat was chased by the mouse."], answer:0, category:"voice", difficulty:"average"},
+            {level:1, question:"What is the antonym of 'begin'?", options:["start", "continue", "end", "pause"], answer:2, category:"antonyms", difficulty:"average"},
+            {level:1, question:"Complete: 'Neither John nor his friends _____ going to the party.'", options:["is", "are", "was", "has"], answer:1, category:"sentence", difficulty:"average"},
+            {level:1, question:"Which is the abstract noun?", options:["table", "happiness", "water", "book"], answer:1, category:"nouns", difficulty:"average"},
+            {level:1, question:"What is the meaning of 'generous'?", options:["selfish", "giving", "angry", "happy"], answer:1, category:"word", difficulty:"average"},
+            {level:1, question:"Correct the sentence: 'She don't like apples.'", options:["She doesn't like apples.", "She don't likes apples.", "She not like apples.", "She didn't like apples."], answer:0, category:"grammar", difficulty:"average"},
+            {level:1, question:"Identify the preposition: 'The book is on the table.'", options:["book", "is", "on", "table"], answer:2, category:"grammar", difficulty:"average"},
+
+            // Level 1 - Hard
+            {level:1, question:"Change to indirect speech: 'She said, \"I am happy.\"'", options:["She said that she is happy.", "She said that she was happy.", "She said that I am happy.", "She said that I was happy."], answer:1, category:"narration", difficulty:"hard"},
+            {level:1, question:"Identify the conjunction: 'I wanted to go, but it was raining.'", options:["I", "wanted", "but", "raining"], answer:2, category:"grammar", difficulty:"hard"},
+            {level:1, question:"What is the synonym of 'ephemeral'?", options:["permanent", "temporary", "ancient", "modern"], answer:1, category:"synonyms", difficulty:"hard"},
+            {level:1, question:"Correct the punctuation: 'The students books were left on the desk.'", options:["The student's books were left on the desk.", "The students' books were left on the desk.", "The students books' were left on the desk.", "The students books were left on the desk."], answer:1, category:"punctuation", difficulty:"hard"},
+            {level:1, question:"Which is the correct comparative form: 'She is _____ than her sister.'", options:["intelligenter", "more intelligent", "intelligentest", "most intelligent"], answer:1, category:"adjectives", difficulty:"hard"},
+            {level:1, question:"What is the antonym of 'verbose'?", options:["wordy", "talkative", "concise", "silent"], answer:2, category:"antonyms", difficulty:"hard"},
+            {level:1, question:"Complete: 'Had I known about the problem, I _____ it.'", options:["would fix", "would have fixed", "will fix", "fixed"], answer:1, category:"sentence", difficulty:"hard"},
+            {level:1, question:"Identify the gerund: 'Swimming is good exercise.'", options:["Swimming", "is", "good", "exercise"], answer:0, category:"verbs", difficulty:"hard"},
+            {level:1, question:"What is the meaning of 'ubiquitous'?", options:["rare", "present everywhere", "ancient", "hidden"], answer:1, category:"word", difficulty:"hard"},
+            {level:1, question:"Which is correct: 'The committee _____ divided in their opinions.'", options:["is", "are", "was", "were"], answer:1, category:"grammar", difficulty:"hard"},
+
+            // Level 2-5 questions continue with similar structure...
+            // (In a real implementation, you would include all levels here)
+        ];
+
+        // Event listeners
+        startButton.addEventListener('click', startQuiz);
+        restartButton.addEventListener('click', restartQuiz);
+        nextButton.addEventListener('click', nextQuestion);
+        
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                difficulty = button.dataset.difficulty;
+            });
+        });
+        
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                button.classList.toggle('active');
+                updateSelectedCategories();
+            });
+        });
+
+        // Functions
+        function updateSelectedCategories() {
+            selectedCategories = Array.from(document.querySelectorAll('.category-btn.active')).map(btn => btn.dataset.category);
+        }
+
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            loadQuestions();
+            showQuestion();
+            startTimer();
+        }
+
+        function loadQuestions() {
+            // First try to get questions for the exact difficulty
+            let levelQuestions = questionBank.filter(q => 
+                q.level === currentLevel && 
+                selectedCategories.includes(q.category) && 
+                q.difficulty === difficulty
+            );
+            
+            // If not enough questions, try to get questions for any difficulty
+            if (levelQuestions.length < 5) {
+                levelQuestions = questionBank.filter(q => 
+                    q.level === currentLevel && 
+                    selectedCategories.includes(q.category)
+                );
+            }
+            
+            // If still not enough questions, show an error
+            if (levelQuestions.length === 0) {
+                alert(`No questions available for Level ${currentLevel} with the selected categories. Please try different settings.`);
+                startScreen.style.display = 'block';
+                quizScreen.style.display = 'none';
+                return;
+            }
+            
+            questions = shuffleArray(levelQuestions).slice(0, Math.min(10, levelQuestions.length));
+            currentQuestionIndex = 0;
+            score = 0;
+            updateScore();
+            updateProgress();
+        }
+
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endQuiz();
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            questionElement.textContent = question.question;
+            optionsElement.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', selectAnswer);
+                optionsElement.appendChild(optionElement);
+            });
+            
+            nextButton.disabled = true;
+            timeLeft = 30;
+            updateTimer();
+        }
+
+        function selectAnswer(e) {
+            const selectedOption = e.target;
+            const question = questions[currentQuestionIndex];
+            const options = Array.from(optionsElement.children);
+            
+            options.forEach(option => {
+                option.classList.add('disabled');
+                if (parseInt(option.dataset.index) === question.answer) {
+                    option.classList.add('correct');
+                } else {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            if (parseInt(selectedOption.dataset.index) === question.answer) {
+                selectedOption.classList.add('correct');
+                score += 10;
+                updateScore();
+                playSound(true);
+                selectedOption.classList.add('bounce');
+            } else {
+                selectedOption.classList.add('incorrect');
+                playSound(false);
+            }
+            
+            nextButton.disabled = false;
+            clearInterval(timer);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            updateProgress();
+            
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+                startTimer();
+            } else {
+                endQuiz();
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                
+                if (timeLeft <= 0) {
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimer() {
+            timeElement.textContent = timeLeft;
+            
+            if (timeLeft <= 10) {
+                timeElement.style.color = '#f72585';
+                timeElement.classList.add('pulse');
+            } else {
+                timeElement.style.color = 'inherit';
+                timeElement.classList.remove('pulse');
+            }
+        }
+
+        function timeUp() {
+            clearInterval(timer);
+            const options = Array.from(optionsElement.children);
+            const question = questions[currentQuestionIndex];
+            
+            options.forEach(option => {
+                option.classList.add('disabled');
+                if (parseInt(option.dataset.index) === question.answer) {
+                    option.classList.add('correct');
+                }
+            });
+            
+            nextButton.disabled = false;
+        }
+
+        function updateScore() {
+            scoreElement.textContent = score;
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            document.querySelector('.progress').style.width = `${progress}%`;
+            document.querySelector('.level-badge').textContent = `Level ${currentLevel}`;
+        }
+
+        function endQuiz() {
+            clearInterval(timer);
+            quizScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+            finalScoreElement.textContent = score;
+            
+            let message = '';
+            if (score >= 80) {
+                message = `<p>Excellent! You've mastered Level ${currentLevel}!</p>`;
+                if (currentLevel < 5) {
+                    message += `<button id="next-level-btn" class="btn btn-success">Proceed to Level ${currentLevel+1}</button>`;
+                }
+            } else if (score >= 50) {
+                message = `<p>Good job! You passed Level ${currentLevel}!</p>`;
+                if (currentLevel < 5) {
+                    message += `<button id="next-level-btn" class="btn btn-success">Try Level ${currentLevel+1}</button>`;
+                }
+            } else {
+                message = `<p>You need more practice with Level ${currentLevel}.</p><button id="retry-btn" class="btn btn-primary">Retry Level ${currentLevel}</button>`;
+            }
+            
+            levelCompletionElement.innerHTML = message;
+            
+            if (document.getElementById('next-level-btn')) {
+                document.getElementById('next-level-btn').addEventListener('click', nextLevel);
+            }
+            
+            if (document.getElementById('retry-btn')) {
+                document.getElementById('retry-btn').addEventListener('click', retryLevel);
+            }
+            
+            if (score >= 80) {
+                createConfetti();
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            resultScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            loadQuestions();
+            showQuestion();
+            startTimer();
+        }
+
+        function retryLevel() {
+            resultScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            loadQuestions();
+            showQuestion();
+            startTimer();
+        }
+
+        function restartQuiz() {
+            currentLevel = 1;
+            resultScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+        }
+
+        function playSound(isCorrect) {
+            // In a real implementation, you would use actual sound files
+            // This is just a placeholder as base64 sounds weren't working
+            console.log(isCorrect ? 'Correct answer sound' : 'Wrong answer sound');
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

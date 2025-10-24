@@ -1,0 +1,2838 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/17621/17621148.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/17621/17621148.png" style="display: none;" width="200" /></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Disabilities Dashboard</title>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --reading: #4a6fa5;
+            --writing: #e67e22;
+            --math: #c0392b;
+            --attention: #8e44ad;
+            --processing: #16a085;
+            --visual: #3498db;
+            --executive: #d35400;
+            --text: #2c3e50;
+            --light: #ecf0f1;
+            --white: #fff;
+            --gray: #bdc3c7;
+            --dark-gray: #7f8c8d;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        
+        a {
+            text-decoration: none;
+            color: var(--reading);
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--reading);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5a8a;
+        }
+        
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            padding: 15px;
+            color: var(--white);
+            font-weight: 700;
+        }
+        
+        .card-body {
+            padding: 15px;
+            background-color: var(--white);
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+            color: var(--white);
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .search-bar {
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--gray);
+            outline: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links li {
+            margin-left: 20px;
+        }
+        
+        .nav-links a {
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            color: var(--reading);
+        }
+        
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--white);
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            border-radius: 8px;
+            padding: 10px 0;
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        .dropdown-content a {
+            color: var(--text);
+            padding: 10px 15px;
+            display: block;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f5f5f5;
+            color: var(--reading);
+        }
+        
+        /* Dashboard Grid */
+        #dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .disability-card .card-header {
+            background-color: var(--reading);
+        }
+        
+        .disability-card.writing .card-header {
+            background-color: var(--writing);
+        }
+        
+        .disability-card.math .card-header {
+            background-color: var(--math);
+        }
+        
+        .disability-card.attention .card-header {
+            background-color: var(--attention);
+        }
+        
+        .disability-card.processing .card-header {
+            background-color: var(--processing);
+        }
+        
+        .disability-card.visual .card-header {
+            background-color: var(--visual);
+        }
+        
+        .disability-card.executive .card-header {
+            background-color: var(--executive);
+        }
+        
+        .disability-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Disability Page */
+        #disability-page {
+            padding: 30px 0;
+        }
+        
+        .disability-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        
+        .disability-image {
+            flex: 0 0 300px;
+            margin-right: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .disability-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .disability-title {
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+        
+        .quick-facts {
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-facts h3 {
+            margin-top: 0;
+        }
+        
+        .quick-facts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .fact-item {
+            background-color: var(--white);
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .fact-item h4 {
+            margin: 0 0 5px;
+            font-size: 1rem;
+        }
+        
+        .fact-item p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray);
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--dark-gray);
+            position: relative;
+        }
+        
+        .tab-btn.active {
+            color: var(--text);
+            font-weight: 600;
+        }
+        
+        .tab-btn.active:after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--reading);
+        }
+        
+        .tab-content {
+            padding: 20px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .symptoms-list,
+        .difficulties-list,
+        .types-list,
+        .remedies-list,
+        .activities-list {
+            padding-left: 20px;
+        }
+        
+        .symptoms-list li,
+        .difficulties-list li,
+        .types-list li,
+        .remedies-list li,
+        .activities-list li {
+            margin-bottom: 8px;
+        }
+        
+        .age-groups {
+            margin-top: 20px;
+        }
+        
+        .age-group {
+            margin-bottom: 15px;
+        }
+        
+        .age-group h4 {
+            background-color: var(--light);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .teacher-tools {
+            margin-top: 40px;
+        }
+        
+        .tool-card {
+            margin-bottom: 20px;
+        }
+        
+        .tool-card h3 {
+            border-bottom: 2px solid var(--gray);
+            padding-bottom: 5px;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .checklist-item input {
+            margin-right: 10px;
+            margin-top: 3px;
+        }
+        
+        .resource-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .resource-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            color: var(--reading);
+        }
+        
+        /* Interactive Features */
+        #symptom-matcher {
+            padding: 20px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .symptom-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .symptom-option input {
+            margin-right: 10px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            padding: 15px;
+            background-color: var(--light);
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .result-card h4 {
+            margin: 0 0 5px;
+        }
+        
+        .result-card .match-score {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+        }
+        
+        .age-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .age-filter-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: var(--light);
+            border: 1px solid var(--gray);
+            cursor: pointer;
+        }
+        
+        .age-filter-btn.active {
+            background-color: var(--reading);
+            color: var(--white);
+            border-color: var(--reading);
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--text);
+            color: var(--white);
+            padding: 40px 0;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+        
+        .footer-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .footer-section p {
+            margin: 0 0 15px;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-section ul li a {
+            color: #bbb;
+        }
+        
+        .footer-section ul li a:hover {
+            color: var(--white);
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .social-icons a {
+            color: var(--white);
+            font-size: 1.2rem;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-bar {
+                width: 100%;
+                margin: 15px 0;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 15px;
+            }
+            
+            .nav-links li {
+                margin-left: 0;
+            }
+            
+            .disability-header {
+                flex-direction: column;
+            }
+            
+            .disability-image {
+                flex: 1 1 100%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .quick-facts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media print {
+            .navbar,
+            .tabs,
+            .age-filter,
+            #symptom-matcher,
+            footer {
+                display: none;
+            }
+            
+            .tab-content {
+                display: block !important;
+                box-shadow: none;
+                padding: 0;
+            }
+            
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header/Navigation Bar -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a class="logo" href="#" onclick="showDashboard()">
+                    <span>MagicRills Learning Disabilities Dashboard</span>
+                </a>
+                <div class="search-bar">
+                    <input id="search-input" onkeyup="searchDisabilities()" placeholder="Search disabilities or symptoms..." type="text" />
+                </div>
+                <ul class="nav-links">
+                    <li class="dropdown">
+                        <a href="#">Disabilities <i class="fas fa-chevron-down"></i></a>
+                        <div class="dropdown-content" id="disabilities-dropdown">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </li>
+                    <li><a href="#" onclick="showAbout()">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div class="container" id="dashboard">
+        <h1>Learning Disabilities Dashboard</h1>
+        <p>Explore information about various learning disabilities, their symptoms, and interventions.</p>
+        
+        <div class="age-filter">
+            <button class="age-filter-btn active" data-age="all">All Ages</button>
+            <button class="age-filter-btn" data-age="early">Early Childhood (3-7)</button>
+            <button class="age-filter-btn" data-age="elementary">Elementary (8-12)</button>
+            <button class="age-filter-btn" data-age="teen">Teen (13-18)</button>
+            <button class="age-filter-btn" data-age="adult">Adult</button>
+        </div>
+        
+        <div id="dashboard-grid">
+            <!-- Cards will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="container hidden" id="about-section">
+        <h1>About This Dashboard</h1>
+        <p>This Learning Disabilities Dashboard is designed to help educators, parents, and professionals quickly access information about various learning disabilities. Our goal is to provide comprehensive, research-based information in an easily digestible format.</p>
+        
+        <h2>Features</h2>
+        <ul>
+            <li>Detailed information on 9 common learning disabilities</li>
+            <li>Age-specific symptoms and interventions</li>
+            <li>Teacher tools and checklists</li>
+            <li>Symptom matching tool to help identify potential disabilities</li>
+            <li>Printable resources and guides</li>
+        </ul>
+        
+        <h2>How to Use</h2>
+        <p>Browse disabilities by category using the dropdown menu, or search for specific symptoms. Click on any disability card to view detailed information. Use the age filters to find information relevant to specific age groups.</p>
+        
+        <button class="btn btn-primary" onclick="showDashboard()">Back to Dashboard</button>
+    </div>
+
+    <!-- Disability Page -->
+    <div class="container hidden" id="disability-page">
+        <button class="btn btn-primary" onclick="showDashboard()" style="margin-bottom: 20px;">← Back to Dashboard</button>
+        
+        <div class="disability-header">
+            <div class="disability-image">
+                <img alt="Disability illustration" id="disability-image" src="https://via.placeholder.com/300x200" />
+            </div>
+            <div>
+                <h1 class="disability-title" id="disability-name">Disability Name</h1>
+                <div class="quick-facts">
+                    <h3>Quick Facts</h3>
+                    <div class="quick-facts-grid" id="quick-facts">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="symptoms">Symptoms</button>
+            <button class="tab-btn" data-tab="difficulties">Difficulties</button>
+            <button class="tab-btn" data-tab="types">Types</button>
+            <button class="tab-btn" data-tab="remedies">Remedies</button>
+            <button class="tab-btn" data-tab="activities">Activities</button>
+        </div>
+        
+        <div class="tab-content" id="overview-tab">
+            <h2>Overview</h2>
+            <p id="disability-definition">Definition will be loaded here.</p>
+            
+            <h3>How It Affects Learning</h3>
+            <div id="learning-impact">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="tab-content hidden" id="symptoms-tab">
+            <h2>Symptoms</h2>
+            <ul class="symptoms-list" id="symptoms-list">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Age-Specific Symptoms</h3>
+            <div class="age-groups" id="age-specific-symptoms">
+                <!-- Populated by JavaScript -->
+            </div>
+            
+            <h3>Warning Signs for Teachers</h3>
+            <ul id="teacher-warning-signs">
+                <!-- Populated by JavaScript -->
+            </ul>
+        </div>
+        
+        <div class="tab-content hidden" id="difficulties-tab">
+            <h2>Difficulties Faced</h2>
+            <h3>Academic Challenges</h3>
+            <ul class="difficulties-list" id="academic-challenges">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Social/Emotional Impacts</h3>
+            <ul class="difficulties-list" id="social-impacts">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Daily Life Struggles</h3>
+            <ul class="difficulties-list" id="daily-struggles">
+                <!-- Populated by JavaScript -->
+            </ul>
+        </div>
+        
+        <div class="tab-content hidden" id="types-tab">
+            <h2>Types/Subtypes</h2>
+            <div id="types-content">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="tab-content hidden" id="remedies-tab">
+            <h2>Remedies &amp; Interventions</h2>
+            <h3>Teaching Strategies</h3>
+            <ul class="remedies-list" id="teaching-strategies">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Classroom Accommodations</h3>
+            <ul class="remedies-list" id="classroom-accommodations">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Therapy/Treatment Options</h3>
+            <ul class="remedies-list" id="therapy-options">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Assistive Technology Tools</h3>
+            <ul class="remedies-list" id="assistive-tech">
+                <!-- Populated by JavaScript -->
+            </ul>
+        </div>
+        
+        <div class="tab-content hidden" id="activities-tab">
+            <h2>Activities</h2>
+            <div class="age-groups" id="age-specific-activities">
+                <!-- Populated by JavaScript -->
+            </div>
+            
+            <h3>Multisensory Learning Ideas</h3>
+            <ul class="activities-list" id="multisensory-ideas">
+                <!-- Populated by JavaScript -->
+            </ul>
+            
+            <h3>Games and Exercises</h3>
+            <ul class="activities-list" id="games-exercises">
+                <!-- Populated by JavaScript -->
+            </ul>
+        </div>
+        
+        <div class="teacher-tools">
+            <h2>Teacher Tools</h2>
+            
+            <div class="tool-card">
+                <h3>Identification Checklist</h3>
+                <div id="identification-checklist">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>Accommodation Planner</h3>
+                <div id="accommodation-planner">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>Resource Library</h3>
+                <div id="resource-library">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="window.print()" style="margin-top: 20px;">Print This Guide</button>
+    </div>
+
+    <!-- Symptom Matcher Tool -->
+    <div class="container" id="symptom-matcher">
+        <h2>Symptom Matcher Tool</h2>
+        <p>Select symptoms you've observed to find possible matching learning disabilities.</p>
+        
+        <div id="symptom-options">
+            <!-- Populated by JavaScript -->
+        </div>
+        
+        <button class="btn btn-primary" onclick="matchSymptoms()" style="margin-top: 15px;">Find Matches</button>
+        
+        <div class="results-grid hidden" id="match-results">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About MagicRills</h3>
+                    <p>Providing resources for educators and parents to support children with learning differences.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" onclick="showDashboard()">Dashboard</a></li>
+                        <li><a href="#" onclick="showAbout()">About</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Disclaimer</h3>
+                    <p>This dashboard is for informational purposes only and not a substitute for professional diagnosis.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2025 MagicRills Learning Disabilities Dashboard. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Disability Data - extracted from your document
+        const disabilities = [
+            {
+                id: "dyslexia",
+                name: "Dyslexia",
+                category: "reading",
+                description: "A learning disorder affecting reading, writing, and spelling skills.",
+                definition: "Dyslexia is a learning disorder that affects reading, writing, and spelling. It is neurological in origin and characterized by difficulties with accurate and/or fluent word recognition and by poor spelling and decoding abilities.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 5-10% of population" },
+                    { title: "Age Identified", content: "Often in early school years" },
+                    { title: "Gender Ratio", content: "Equal in males and females" },
+                    { title: "Lifespan", content: "Lifelong condition" }
+                ],
+                learningImpact: "<p>Dyslexia primarily affects the ability to decode written language. Students with dyslexia may struggle with:</p><ul><li>Phonemic awareness (connecting sounds to letters)</li><li>Reading fluency and speed</li><li>Spelling and written expression</li><li>Memorizing sequences like days of the week or math facts</li></ul>",
+                symptoms: [
+                    "Slow, inaccurate reading",
+                    "Skipping words or guessing words",
+                    "Frequent spelling mistakes",
+                    "Letter reversals (b/d, p/q)",
+                    "Poor handwriting",
+                    "Difficulty connecting sounds to letters",
+                    "Trouble remembering sequences",
+                    "Slow processing speed",
+                    "Avoidance of reading/writing tasks"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Difficulty learning letter names", "Trouble with rhyming", "Struggles with basic phonics"],
+                    elementary: ["Persistent reading struggles", "Poor spelling", "Slow writing"],
+                    teen: ["Reading remains effortful", "May develop coping strategies"],
+                    adult: ["Slow reading speed", "Difficulty with unfamiliar words", "Spelling challenges"]
+                },
+                teacherWarningSigns: [
+                    "Slow, labored reading",
+                    "Persistent spelling errors",
+                    "Difficulty rhyming or segmenting words",
+                    "Avoidance of reading tasks",
+                    "Discrepancy between verbal and written abilities"
+                ],
+                academicChallenges: [
+                    "Struggles with decoding words and comprehension",
+                    "Poor performance in timed tests",
+                    "Difficulty following multi-step instructions",
+                    "Trouble organizing thoughts in writing"
+                ],
+                socialImpacts: [
+                    "Low self-esteem due to academic struggles",
+                    "Frustration with schoolwork",
+                    "May be reluctant to participate in reading activities"
+                ],
+                dailyStruggles: [
+                    "Difficulty remembering instructions",
+                    "Takes longer to complete reading/writing tasks",
+                    "Avoidance of tasks involving reading"
+                ],
+                types: [
+                    {
+                        name: "Phonological Dyslexia",
+                        description: "Difficulty breaking words into sounds."
+                    },
+                    {
+                        name: "Surface Dyslexia",
+                        description: "Trouble recognizing whole words by sight."
+                    },
+                    {
+                        name: "Rapid Naming Deficit",
+                        description: "Slow word retrieval (naming letters/numbers quickly)."
+                    },
+                    {
+                        name: "Double Deficit Dyslexia",
+                        description: "Combination of phonological & rapid naming issues."
+                    }
+                ],
+                teachingStrategies: [
+                    "Multisensory learning approaches",
+                    "Explicit phonics instruction",
+                    "Structured literacy programs",
+                    "Pre-teach vocabulary",
+                    "Use visual aids to support text"
+                ],
+                classroomAccommodations: [
+                    "Extra time for reading/writing tasks",
+                    "Oral exams or alternatives to written work",
+                    "Use of audiobooks",
+                    "Provide notes or outlines",
+                    "Allow use of spell-check"
+                ],
+                therapyOptions: [
+                    "Structured literacy programs (Orton-Gillingham, Wilson)",
+                    "Reading specialist support",
+                    "Speech therapy for phonological awareness"
+                ],
+                assistiveTech: [
+                    "Text-to-speech software",
+                    "Speech-to-text software",
+                    "Audiobooks",
+                    "Electronic dictionaries",
+                    "Word prediction software"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Phonemic awareness games (rhyming, syllable clapping)",
+                        "Tactile letter formation (sand, clay)",
+                        "Color-coding and visual aids"
+                    ],
+                    elementary: [
+                        "Paired reading with support",
+                        "Chunking words into smaller parts",
+                        "Memory and sequencing activities (flashcards)"
+                    ],
+                    teen: [
+                        "Assistive technology training",
+                        "Note-taking strategies",
+                        "Advanced reading comprehension techniques"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Sand writing for letter formation",
+                    "Movement activities while learning sounds",
+                    "Color-coded syllable division"
+                ],
+                gamesExercises: [
+                    "Word building with letter tiles",
+                    "Phonics bingo",
+                    "Memory matching games with sight words",
+                    "Online phonics games"
+                ],
+                identificationChecklist: [
+                    "Consistent reading difficulties despite effort",
+                    "Poor spelling compared to peers",
+                    "Avoidance of reading tasks",
+                    "Discrepancy between verbal and written abilities",
+                    "Family history of reading difficulties"
+                ],
+                accommodationSuggestions: [
+                    "Extended time on tests",
+                    "Alternative assessment formats",
+                    "Reduced written work",
+                    "Use of audiobooks",
+                    "Preferential seating"
+                ],
+                resources: [
+                    {
+                        type: "book",
+                        title: "Overcoming Dyslexia by Sally Shaywitz",
+                        link: "#"
+                    },
+                    {
+                        type: "website",
+                        title: "International Dyslexia Association",
+                        link: "https://dyslexiaida.org"
+                    },
+                    {
+                        type: "app",
+                        title: "Learning Ally Audiobooks",
+                        link: "#"
+                    },
+                    {
+                        type: "program",
+                        title: "Orton-Gillingham Approach",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "dysgraphia",
+                name: "Dysgraphia",
+                category: "writing",
+                description: "A learning disability affecting writing abilities, including handwriting and spelling.",
+                definition: "Dysgraphia is a learning disability that affects writing abilities, including handwriting, typing, and spelling. It is neurological in origin and can impact a student's academic performance and self-esteem.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 5-20% of students" },
+                    { title: "Age Identified", content: "Often in early school years" },
+                    { title: "Co-occurrence", content: "Common with dyslexia and ADHD" },
+                    { title: "Lifespan", content: "Lifelong condition" }
+                ],
+                learningImpact: "<p>Dysgraphia primarily affects written expression. Students with dysgraphia may struggle with:</p><ul><li>Forming letters and numbers</li><li>Spacing and sizing of written work</li><li>Expressing thoughts in writing</li><li>Writing speed and fluency</li></ul>",
+                symptoms: [
+                    "Irregular letter sizes and shapes",
+                    "Inconsistent spacing between words/letters",
+                    "Difficulty staying on the line",
+                    "Frequent spelling mistakes",
+                    "Difficulty organizing thoughts in writing",
+                    "Slow writing speed",
+                    "Pain or discomfort while writing",
+                    "Unusual pencil grip",
+                    "Avoidance of writing tasks"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Difficulty holding pencil", "Avoidance of coloring/drawing", "Poor pre-writing skills"],
+                    elementary: ["Illegible handwriting", "Slow writing speed", "Difficulty with spelling"],
+                    teen: ["Avoidance of note-taking", "Difficulty organizing written work", "Poor written expression"],
+                    adult: ["Difficulty with forms", "Avoidance of writing tasks", "Preference for typing"]
+                },
+                teacherWarningSigns: [
+                    "Inconsistent letter formation",
+                    "Poor spacing on paper",
+                    "Slow writing speed",
+                    "Physical discomfort when writing",
+                    "Discrepancy between verbal and written expression"
+                ],
+                academicChallenges: [
+                    "Poor performance in written exams despite knowing answers",
+                    "Difficulty taking notes",
+                    "Struggles with written assignments",
+                    "Trouble completing written work on time"
+                ],
+                socialImpacts: [
+                    "Low self-esteem due to messy work",
+                    "Frustration with writing tasks",
+                    "May be reluctant to share written work"
+                ],
+                dailyStruggles: [
+                    "Difficulty filling out forms",
+                    "Avoidance of writing tasks",
+                    "Physical fatigue from writing"
+                ],
+                types: [
+                    {
+                        name: "Motor Dysgraphia",
+                        description: "Caused by poor fine motor skills; writing is slow and labored."
+                    },
+                    {
+                        name: "Dyslexic Dysgraphia",
+                        description: "Poor spelling and illegible writing (but fine motor skills are intact)."
+                    },
+                    {
+                        name: "Spatial Dysgraphia",
+                        description: "Difficulty with spacing and sizing letters (due to spatial awareness issues)."
+                    }
+                ],
+                teachingStrategies: [
+                    "Multi-sensory writing approaches",
+                    "Explicit handwriting instruction",
+                    "Focus on content rather than form",
+                    "Provide alternatives to writing"
+                ],
+                classroomAccommodations: [
+                    "Allow oral responses",
+                    "Provide notes or outlines",
+                    "Use of speech-to-text software",
+                    "Reduce written workload",
+                    "Allow extra time for writing tasks"
+                ],
+                therapyOptions: [
+                    "Occupational therapy for fine motor skills",
+                    "Handwriting instruction",
+                    "Keyboarding instruction"
+                ],
+                assistiveTech: [
+                    "Speech-to-text software",
+                    "Word processors with spell-check",
+                    "Graph paper for math",
+                    "Pencil grips",
+                    "Tablets for digital writing"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Tactile letter formation (sand trays, finger paints)",
+                        "Tracing activities with stencils",
+                        "Gross motor play to strengthen arms"
+                    ],
+                    elementary: [
+                        "Graph paper for spacing practice",
+                        "Typing programs",
+                        "Chunking writing tasks"
+                    ],
+                    teen: [
+                        "Note-taking accommodations",
+                        "Alternative assignments (posters, slideshows)",
+                        "Keyboarding mastery"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Writing letters in shaving cream",
+                    "Using clay to form letters",
+                    "Large motor writing on chalkboards"
+                ],
+                gamesExercises: [
+                    "LEGO building for fine motor skills",
+                    "Threading beads",
+                    "Scissor skills activities",
+                    "Typing games"
+                ],
+                identificationChecklist: [
+                    "Illegible handwriting despite effort",
+                    "Slow writing speed",
+                    "Physical discomfort when writing",
+                    "Discrepancy between verbal and written expression",
+                    "Avoidance of writing tasks"
+                ],
+                accommodationSuggestions: [
+                    "Allow oral responses",
+                    "Provide scribe or note-taker",
+                    "Reduce written workload",
+                    "Allow use of assistive technology",
+                    "Grade content separate from handwriting"
+                ],
+                resources: [
+                    {
+                        type: "program",
+                        title: "Handwriting Without Tears",
+                        link: "#"
+                    },
+                    {
+                        type: "website",
+                        title: "Understood.org Dysgraphia Resources",
+                        link: "https://www.understood.org"
+                    },
+                    {
+                        type: "app",
+                        title: "Dragon NaturallySpeaking",
+                        link: "#"
+                    },
+                    {
+                        type: "tool",
+                        title: "The Pencil Grip",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "dyscalculia",
+                name: "Dyscalculia",
+                category: "math",
+                description: "A specific learning disability affecting mathematical comprehension and arithmetic skills.",
+                definition: "Dyscalculia is a specific learning disability affecting mathematical comprehension, number sense, and arithmetic skills despite normal intelligence. It impacts the ability to understand numbers and math concepts.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 3-6% of population" },
+                    { title: "Age Identified", content: "Often in early school years" },
+                    { title: "Gender Ratio", content: "Equal in males and females" },
+                    { title: "Lifespan", content: "Lifelong condition" }
+                ],
+                learningImpact: "<p>Dyscalculia primarily affects numerical and mathematical understanding. Students with dyscalculia may struggle with:</p><ul><li>Basic number concepts</li><li>Arithmetic facts and calculations</li><li>Mathematical reasoning</li><li>Applying math to real-life situations</li></ul>",
+                symptoms: [
+                    "Difficulty recognizing numbers or symbols",
+                    "Poor memorization of math facts",
+                    "Struggles with sequencing steps in problems",
+                    "Trouble telling time or using money",
+                    "Frequent errors in calculations",
+                    "Reversing numbers (12 vs. 21)",
+                    "Anxiety around math tasks"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Difficulty recognizing numbers", "Trouble counting", "Struggles with basic math concepts"],
+                    elementary: ["Problems with arithmetic facts", "Difficulty with word problems", "Trouble telling time"],
+                    teen: ["Challenges in algebra/geometry", "Difficulty budgeting", "Struggles with measurements"],
+                    adult: ["Trouble managing finances", "Difficulty estimating quantities", "Problems understanding graphs"]
+                },
+                teacherWarningSigns: [
+                    "Consistent errors in math tasks despite effort",
+                    "Difficulty with number line tasks",
+                    "Struggles with mental math",
+                    "Anxiety around math activities",
+                    "Discrepancy between math and other abilities"
+                ],
+                academicChallenges: [
+                    "Difficulty with basic counting and operations",
+                    "Struggles with place value",
+                    "Problems solving word problems",
+                    "Difficulty learning math facts",
+                    "Trouble with spatial reasoning in math"
+                ],
+                socialImpacts: [
+                    "Low self-esteem around math",
+                    "Avoidance of math-related activities",
+                    "Frustration with math tasks",
+                    "May be reluctant to participate in math class"
+                ],
+                dailyStruggles: [
+                    "Difficulty with money management",
+                    "Trouble measuring ingredients",
+                    "Problems estimating time",
+                    "Difficulty judging distances"
+                ],
+                types: [
+                    {
+                        name: "Verbal Dyscalculia",
+                        description: "Difficulty naming numbers/math terms."
+                    },
+                    {
+                        name: "Practognostic Dyscalculia",
+                        description: "Trouble manipulating objects mathematically (e.g., counting blocks)."
+                    },
+                    {
+                        name: "Lexical Dyscalculia",
+                        description: "Challenges reading math symbols/numbers."
+                    },
+                    {
+                        name: "Graphical Dyscalculia",
+                        description: "Inability to write math symbols."
+                    },
+                    {
+                        name: "Ideognostical Dyscalculia",
+                        description: "Poor understanding of math concepts/relationships."
+                    }
+                ],
+                teachingStrategies: [
+                    "Concrete-representational-abstract approach",
+                    "Multisensory math instruction",
+                    "Real-life math applications",
+                    "Step-by-step problem solving",
+                    "Pre-teach math vocabulary"
+                ],
+                classroomAccommodations: [
+                    "Extra time for math tasks",
+                    "Use of calculators",
+                    "Formula sheets",
+                    "Graph paper for alignment",
+                    "Reduced number of problems"
+                ],
+                therapyOptions: [
+                    "Math specialist support",
+                    "One-on-one tutoring",
+                    "Cognitive training for number sense"
+                ],
+                assistiveTech: [
+                    "Math apps (ModMath, Dyscalculator)",
+                    "Talking calculators",
+                    "Graphing software",
+                    "Math fact apps"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Counting with physical objects",
+                        "Number recognition games",
+                        "Simple sorting and classifying"
+                    ],
+                    elementary: [
+                        "Math fact games",
+                        "Real-life math applications (cooking, shopping)",
+                        "Visual aids for word problems"
+                    ],
+                    teen: [
+                        "Budgeting exercises",
+                        "Measurement activities",
+                        "Algebra tiles for equations"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Kinesthetic number line activities",
+                    "Counting with movement",
+                    "Manipulatives for all concepts"
+                ],
+                gamesExercises: [
+                    "Math card games",
+                    "Board games involving money (Monopoly)",
+                    "Online math games",
+                    "Math scavenger hunts"
+                ],
+                identificationChecklist: [
+                    "Persistent difficulties with math concepts",
+                    "Struggles with number sense",
+                    "Anxiety around math",
+                    "Discrepancy between math and other abilities",
+                    "Family history of math difficulties"
+                ],
+                accommodationSuggestions: [
+                    "Extra time on math tests",
+                    "Use of calculators",
+                    "Reduced number of problems",
+                    "Graph paper for alignment",
+                    "Oral testing options"
+                ],
+                resources: [
+                    {
+                        type: "book",
+                        title: "The Dyscalculia Toolkit by Ronit Bird",
+                        link: "#"
+                    },
+                    {
+                        type: "website",
+                        title: "Dyscalculia.org",
+                        link: "https://www.dyscalculia.org"
+                    },
+                    {
+                        type: "app",
+                        title: "ModMath",
+                        link: "#"
+                    },
+                    {
+                        type: "program",
+                        title: "Ronit Bird's Numeracy Program",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "apd",
+                name: "Auditory Processing Disorder (APD)",
+                category: "processing",
+                description: "Difficulty processing auditory information despite normal hearing.",
+                definition: "Auditory Processing Disorder (APD) is a condition where individuals have difficulty processing auditory information despite normal hearing. It affects how the brain interprets sounds, particularly speech.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 3-5% of children" },
+                    { title: "Age Identified", content: "Often in early school years" },
+                    { title: "Co-occurrence", content: "Common with ADHD, dyslexia" },
+                    { title: "Professional Diagnosis", content: "Requires audiologist" }
+                ],
+                learningImpact: "<p>APD primarily affects auditory information processing. Students with APD may struggle with:</p><ul><li>Understanding speech in noisy environments</li><li>Following verbal instructions</li><li>Discriminating between similar sounds</li><li>Remembering auditory information</li></ul>",
+                symptoms: [
+                    "Difficulty understanding speech in noise",
+                    "Frequently asking for repetition",
+                    "Mishearing similar-sounding words",
+                    "Poor listening skills",
+                    "Delayed response to spoken language",
+                    "Struggles with multi-step directions",
+                    "Difficulty remembering spoken information"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Delayed speech", "Poor response to name", "Difficulty with rhymes"],
+                    elementary: ["Academic struggles", "Frequent misunderstandings", "Poor phonemic awareness"],
+                    teen: ["Social difficulties", "Note-taking challenges", "Avoidance of verbal instructions"],
+                    adult: ["Meeting challenges", "Difficulty with phone conversations", "Struggles in noisy environments"]
+                },
+                teacherWarningSigns: [
+                    "Better performance with written than verbal instructions",
+                    "Struggles more in noisy settings",
+                    "Frequently misunderstands questions",
+                    "Strong visual learner",
+                    "May appear inattentive"
+                ],
+                academicChallenges: [
+                    "Difficulty following lectures",
+                    "Struggles with phonics",
+                    "Poor spelling",
+                    "Note-taking difficulties",
+                    "Problems with foreign languages"
+                ],
+                socialImpacts: [
+                    "Misunderstands conversations",
+                    "Difficulty in group settings",
+                    "May appear withdrawn",
+                    "Frustration with communication",
+                    "Low confidence in social situations"
+                ],
+                dailyStruggles: [
+                    "Difficulty with phone conversations",
+                    "Problems in noisy environments",
+                    "Trouble remembering verbal messages",
+                    "May avoid social gatherings"
+                ],
+                types: [
+                    {
+                        name: "Auditory Discrimination Issue",
+                        description: "Trouble distinguishing similar sounds."
+                    },
+                    {
+                        name: "Auditory Figure-Ground Problem",
+                        description: "Difficulty hearing in noise."
+                    },
+                    {
+                        name: "Auditory Memory Deficit",
+                        description: "Struggles to recall spoken information."
+                    },
+                    {
+                        name: "Auditory Sequencing Difficulty",
+                        description: "Mixes up order of sounds/words."
+                    }
+                ],
+                teachingStrategies: [
+                    "Multimodal instruction",
+                    "Pre-teach vocabulary",
+                    "Check for understanding",
+                    "Use visual supports",
+                    "Provide written instructions"
+                ],
+                classroomAccommodations: [
+                    "Preferential seating",
+                    "Use of FM systems",
+                    "Written instructions",
+                    "Reduced background noise",
+                    "Extra processing time"
+                ],
+                therapyOptions: [
+                    "Auditory training programs",
+                    "Speech-language therapy",
+                    "Listening therapy",
+                    "Cognitive training"
+                ],
+                assistiveTech: [
+                    "FM systems",
+                    "Noise-reducing headphones",
+                    "Captioning tools",
+                    "Note-taking apps"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Sound discrimination games",
+                        "Rhyming activities",
+                        "Following simple directions"
+                    ],
+                    elementary: [
+                        "Auditory memory games",
+                        "Listening comprehension exercises",
+                        "Phonemic awareness activities"
+                    ],
+                    teen: [
+                        "Note-taking strategies",
+                        "Active listening exercises",
+                        "Self-advocacy training"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Pair sounds with visual cues",
+                    "Use gestures with verbal instructions",
+                    "Kinesthetic activities with auditory components"
+                ],
+                gamesExercises: [
+                    "Sound matching games",
+                    "Simon Says with complex commands",
+                    "Story recall activities",
+                    "Rhyming games"
+                ],
+                identificationChecklist: [
+                    "Difficulty with verbal instructions",
+                    "Better performance in quiet settings",
+                    "Frequent requests for repetition",
+                    "Struggles with phonics",
+                    "Discrepancy between ability and performance"
+                ],
+                accommodationSuggestions: [
+                    "Preferential seating",
+                    "Written instructions",
+                    "Extra processing time",
+                    "Use of visual aids",
+                    "Quiet testing environment"
+                ],
+                resources: [
+                    {
+                        type: "program",
+                        title: "Fast ForWord",
+                        link: "#"
+                    },
+                    {
+                        type: "website",
+                        title: "American Speech-Language-Hearing Association",
+                        link: "https://www.asha.org"
+                    },
+                    {
+                        type: "book",
+                        title: "When the Brain Can't Hear by Teri James Bellis",
+                        link: "#"
+                    },
+                    {
+                        type: "device",
+                        title: "Personal FM Systems",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "lpd",
+                name: "Language Processing Disorder (LPD)",
+                category: "processing",
+                description: "Difficulty understanding and expressing language.",
+                definition: "Language Processing Disorder (LPD) is a specific type of Auditory Processing Disorder that affects the processing of language. It involves difficulties with understanding and expressing language, both spoken and written.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 5-10% of children" },
+                    { title: "Age Identified", content: "Often in early school years" },
+                    { title: "Co-occurrence", content: "Common with dyslexia, ADHD" },
+                    { title: "Professional Diagnosis", content: "Requires SLP evaluation" }
+                ],
+                learningImpact: "<p>LPD primarily affects language comprehension and expression. Students with LPD may struggle with:</p><ul><li>Understanding spoken/written language</li><li>Expressing thoughts clearly</li><li>Learning vocabulary</li><li>Reading comprehension</li><li>Following conversations</li></ul>",
+                symptoms: [
+                    "Difficulty understanding language",
+                    "Trouble following multi-step instructions",
+                    "Poor vocabulary",
+                    "Word retrieval issues",
+                    "Struggles with reading comprehension",
+                    "Slow processing of verbal information",
+                    "Misinterpreting jokes or sarcasm"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Delayed speech", "Limited vocabulary", "Difficulty following directions"],
+                    elementary: ["Reading comprehension struggles", "Poor written expression", "Social communication difficulties"],
+                    teen: ["Difficulty with complex language", "Essay writing challenges", "Social misunderstandings"],
+                    adult: ["Workplace communication issues", "Meeting comprehension problems", "Social interaction challenges"]
+                },
+                teacherWarningSigns: [
+                    "Struggles to follow instructions",
+                    "Gives vague or off-topic answers",
+                    "Difficulty summarizing stories",
+                    "Poor reading comprehension",
+                    "Discrepancy between verbal and written expression"
+                ],
+                academicChallenges: [
+                    "Poor reading comprehension",
+                    "Difficulty with written expression",
+                    "Struggles with vocabulary",
+                    "Problems with verbal instructions",
+                    "Foreign language difficulties"
+                ],
+                socialImpacts: [
+                    "Miscommunication with peers",
+                    "Difficulty making friends",
+                    "May appear shy or withdrawn",
+                    "Frustration with communication",
+                    "Low self-esteem"
+                ],
+                dailyStruggles: [
+                    "Difficulty following conversations",
+                    "Trouble understanding jokes",
+                    "Problems expressing thoughts",
+                    "Avoidance of social situations"
+                ],
+                types: [
+                    {
+                        name: "Expressive Language Disorder",
+                        description: "Difficulty forming sentences and expressing thoughts."
+                    },
+                    {
+                        name: "Receptive Language Disorder",
+                        description: "Trouble understanding spoken/written language."
+                    },
+                    {
+                        name: "Mixed Receptive-Expressive Disorder",
+                        description: "Struggles with both comprehension and expression."
+                    }
+                ],
+                teachingStrategies: [
+                    "Simplify language",
+                    "Use visual supports",
+                    "Pre-teach vocabulary",
+                    "Provide sentence starters",
+                    "Check for understanding"
+                ],
+                classroomAccommodations: [
+                    "Extra processing time",
+                    "Written instructions",
+                    "Visual aids",
+                    "Modified assignments",
+                    "Alternative assessments"
+                ],
+                therapyOptions: [
+                    "Speech-language therapy",
+                    "Language intervention",
+                    "Social skills training",
+                    "Cognitive-communication therapy"
+                ],
+                assistiveTech: [
+                    "Text-to-speech software",
+                    "Graphic organizer apps",
+                    "Audiobooks",
+                    "Word prediction software"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Vocabulary building games",
+                        "Following simple directions",
+                        "Picture storytelling"
+                    ],
+                    elementary: [
+                        "Reading comprehension strategies",
+                        "Word association games",
+                        "Sentence building activities"
+                    ],
+                    teen: [
+                        "Essay planning exercises",
+                        "Conversation practice",
+                        "Figurative language activities"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Pair words with pictures",
+                    "Act out vocabulary",
+                    "Use objects to teach concepts"
+                ],
+                gamesExercises: [
+                    "Word association games",
+                    "Story sequencing activities",
+                    "Conversation role-playing",
+                    "Scrabble or other word games"
+                ],
+                identificationChecklist: [
+                    "Difficulty following directions",
+                    "Poor reading comprehension",
+                    "Limited vocabulary",
+                    "Word-finding difficulties",
+                    "Discrepancy between ability and performance"
+                ],
+                accommodationSuggestions: [
+                    "Extra processing time",
+                    "Simplified language",
+                    "Visual supports",
+                    "Modified assignments",
+                    "Alternative assessments"
+                ],
+                resources: [
+                    {
+                        type: "website",
+                        title: "American Speech-Language-Hearing Association",
+                        link: "https://www.asha.org"
+                    },
+                    {
+                        type: "book",
+                        title: "Language Processing Problems by Gail Richard",
+                        link: "#"
+                    },
+                    {
+                        type: "program",
+                        title: "Visualizing and Verbalizing",
+                        link: "#"
+                    },
+                    {
+                        type: "app",
+                        title: "Language Therapy for Children",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "nvld",
+                name: "Non-Verbal Learning Disability (NVLD)",
+                category: "processing",
+                description: "Difficulties with visual-spatial tasks and social cues despite strong verbal skills.",
+                definition: "Non-Verbal Learning Disability (NVLD) is characterized by significant difficulties with visual-spatial processing, social skills, and motor coordination, despite strong verbal abilities. It affects how individuals interpret non-verbal information.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Less common than other LDs" },
+                    { title: "Age Identified", content: "Often in elementary years" },
+                    { title: "Gender Ratio", content: "More common in males" },
+                    { title: "Professional Diagnosis", content: "Neuropsychological evaluation" }
+                ],
+                learningImpact: "<p>NVLD primarily affects non-verbal learning. Students with NVLD may struggle with:</p><ul><li>Visual-spatial tasks</li><li>Social interactions</li><li>Motor coordination</li><li>Abstract concepts</li><li>Organization and planning</li></ul>",
+                symptoms: [
+                    "Visual-spatial difficulties",
+                    "Poor coordination",
+                    "Social challenges",
+                    "Literal thinking",
+                    "Executive function issues",
+                    "Strong verbal skills",
+                    "Difficulty with math concepts"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Clumsiness", "Difficulty with puzzles", "Social immaturity"],
+                    elementary: ["Math struggles", "Poor handwriting", "Social difficulties"],
+                    teen: ["Abstract concept challenges", "Organization problems", "Social isolation"],
+                    adult: ["Workplace social challenges", "Driving difficulties", "Organization struggles"]
+                },
+                teacherWarningSigns: [
+                    "Strong verbal abilities but poor math/spatial skills",
+                    "Asks excessive questions due to confusion",
+                    "Struggles with group work",
+                    "Messy handwriting",
+                    "Takes things literally"
+                ],
+                academicChallenges: [
+                    "Math (especially geometry)",
+                    "Reading comprehension (inferences)",
+                    "Written expression",
+                    "Science with spatial components",
+                    "Art and physical education"
+                ],
+                socialImpacts: [
+                    "Difficulty making friends",
+                    "Misreads social cues",
+                    "May appear awkward",
+                    "Struggles with group dynamics",
+                    "Low self-esteem"
+                ],
+                dailyStruggles: [
+                    "Navigating spaces",
+                    "Sports participation",
+                    "Social interactions",
+                    "Time management",
+                    "Organization tasks"
+                ],
+                types: [
+                    {
+                        name: "Visual-Spatial NVLD",
+                        description: "Major difficulties with spatial awareness."
+                    },
+                    {
+                        name: "Social-Emotional NVLD",
+                        description: "Struggles primarily with social interactions."
+                    },
+                    {
+                        name: "Mixed NVLD",
+                        description: "Combination of motor, social, and academic challenges."
+                    }
+                ],
+                teachingStrategies: [
+                    "Verbal explanations for visual concepts",
+                    "Explicit social skills instruction",
+                    "Step-by-step organization support",
+                    "Concrete examples for abstract concepts",
+                    "Modified physical education"
+                ],
+                classroomAccommodations: [
+                    "Verbal descriptions of visual materials",
+                    "Graph paper for math",
+                    "Social skills support",
+                    "Modified art/PE requirements",
+                    "Organization supports"
+                ],
+                therapyOptions: [
+                    "Occupational therapy",
+                    "Social skills training",
+                    "Cognitive behavioral therapy",
+                    "Executive function coaching"
+                ],
+                assistiveTech: [
+                    "Audio descriptions",
+                    "Graphic organizer software",
+                    "Talking calculators",
+                    "Organization apps"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Social stories",
+                        "Fine motor activities",
+                        "Simple spatial games"
+                    ],
+                    elementary: [
+                        "Explicit social skills instruction",
+                        "Graph paper for math",
+                        "Handwriting alternatives"
+                    ],
+                    teen: [
+                        "Organization skill building",
+                        "Social skills groups",
+                        "Career exploration"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Verbal descriptions of visual tasks",
+                    "Hands-on math activities",
+                    "Role-playing social scenarios"
+                ],
+                gamesExercises: [
+                    "Social skills board games",
+                    "Puzzles with verbal guidance",
+                    "Team-building activities",
+                    "Strategy games with coaching"
+                ],
+                identificationChecklist: [
+                    "Strong verbal skills with spatial weaknesses",
+                    "Social difficulties",
+                    "Poor coordination",
+                    "Literal interpretation",
+                    "Discrepancy between verbal and performance skills"
+                ],
+                accommodationSuggestions: [
+                    "Verbal descriptions of visuals",
+                    "Modified PE requirements",
+                    "Social skills support",
+                    "Organization aids",
+                    "Alternative assessments for spatial tasks"
+                ],
+                resources: [
+                    {
+                        type: "website",
+                        title: "NVLD Project",
+                        link: "https://nvld.org"
+                    },
+                    {
+                        type: "book",
+                        title: "Helping a Child with Nonverbal Learning Disorder by Kathryn Stewart",
+                        link: "#"
+                    },
+                    {
+                        type: "program",
+                        title: "Social Thinking Curriculum",
+                        link: "#"
+                    },
+                    {
+                        type: "app",
+                        title: "Social Skills Builder",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "vpd",
+                name: "Visual Processing Disorder",
+                category: "visual",
+                description: "Difficulty interpreting visual information despite normal vision.",
+                definition: "Visual Processing Disorder (VPD) refers to difficulties in interpreting visual information despite normal vision. It affects how the brain processes visual input, leading to challenges with tasks like reading, writing, and spatial awareness.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 5-10% of children" },
+                    { title: "Age Identified", content: "Often in early school years" },
+                    { title: "Professional Diagnosis", content: "Requires vision specialist" },
+                    { title: "Not Corrected by Glasses", content: "Brain-based issue" }
+                ],
+                learningImpact: "<p>VPD primarily affects visual information processing. Students with VPD may struggle with:</p><ul><li>Reading fluency</li><li>Copying from the board</li><li>Hand-eye coordination</li><li>Spatial awareness</li><li>Visual memory</li></ul>",
+                symptoms: [
+                    "Difficulty recognizing shapes/letters",
+                    "Struggles with reading (skipping lines)",
+                    "Poor hand-eye coordination",
+                    "Challenges with spatial awareness",
+                    "Trouble copying from the board",
+                    "Confusion with similar letters",
+                    "Slow visual processing"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Difficulty with puzzles", "Letter reversals", "Avoidance of coloring"],
+                    elementary: ["Reading difficulties", "Poor handwriting", "Math alignment problems"],
+                    teen: ["Note-taking challenges", "Driving difficulties", "Graph interpretation problems"],
+                    adult: ["Workplace visual tasks", "Navigation challenges", "Document processing"]
+                },
+                teacherWarningSigns: [
+                    "Frequent letter reversals beyond age 7",
+                    "Slow reading speed despite knowing words",
+                    "Poor performance in visual tasks",
+                    "Complaints of eye strain",
+                    "Discrepancy between ability and performance"
+                ],
+                academicChallenges: [
+                    "Reading fluency and comprehension",
+                    "Written expression",
+                    "Math (especially geometry)",
+                    "Science with diagrams",
+                    "Art and visual subjects"
+                ],
+                socialImpacts: [
+                    "May appear clumsy",
+                    "Difficulty with sports",
+                    "Low self-esteem",
+                    "Frustration with visual tasks",
+                    "Avoidance of certain activities"
+                ],
+                dailyStruggles: [
+                    "Navigating spaces",
+                    "Driving or bike riding",
+                    "Organizing belongings",
+                    "Following visual instructions",
+                    "Using maps or diagrams"
+                ],
+                types: [
+                    {
+                        name: "Visual Discrimination Issues",
+                        description: "Trouble seeing differences between similar objects."
+                    },
+                    {
+                        name: "Visual Memory Problems",
+                        description: "Difficulty recalling what was seen."
+                    },
+                    {
+                        name: "Visual-Spatial Challenges",
+                        description: "Struggles with judging distance, spacing, or directionality."
+                    },
+                    {
+                        name: "Visual Closure Deficits",
+                        description: "Inability to identify an object when only parts are visible."
+                    },
+                    {
+                        name: "Visual-Motor Processing",
+                        description: "Poor coordination between visual input and physical response."
+                    }
+                ],
+                teachingStrategies: [
+                    "Multisensory approaches",
+                    "Verbal descriptions of visuals",
+                    "Hands-on learning",
+                    "Extra time for visual tasks",
+                    "Pre-teach visual concepts"
+                ],
+                classroomAccommodations: [
+                    "Colored overlays for reading",
+                    "Larger font materials",
+                    "Audiobooks",
+                    "Verbal descriptions of visuals",
+                    "Modified art requirements"
+                ],
+                therapyOptions: [
+                    "Vision therapy",
+                    "Occupational therapy",
+                    "Perceptual training",
+                    "Motor coordination therapy"
+                ],
+                assistiveTech: [
+                    "Text-to-speech software",
+                    "Audiobooks",
+                    "Screen readers",
+                    "Digital magnifiers"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Tactile letter recognition",
+                        "Simple puzzles with guidance",
+                        "Tracking exercises"
+                    ],
+                    elementary: [
+                        "Visual tracking games",
+                        "Memory matching activities",
+                        "Graph paper for math"
+                    ],
+                    teen: [
+                        "Note-taking strategies",
+                        "Visual organization tools",
+                        "Driving preparation"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Tracing letters in sand",
+                    "Kinesthetic spelling activities",
+                    "Verbal descriptions paired with visuals"
+                ],
+                gamesExercises: [
+                    "Memory matching games",
+                    "Puzzles with increasing difficulty",
+                    "Tracking exercises",
+                    "Mazes and visual search activities"
+                ],
+                identificationChecklist: [
+                    "Persistent letter reversals",
+                    "Reading difficulties despite ability",
+                    "Poor copying skills",
+                    "Visual task avoidance",
+                    "Discrepancy between verbal and visual skills"
+                ],
+                accommodationSuggestions: [
+                    "Audiobooks",
+                    "Verbal testing options",
+                    "Extra time for visual tasks",
+                    "Modified art requirements",
+                    "Preferential seating"
+                ],
+                resources: [
+                    {
+                        type: "website",
+                        title: "College of Optometrists in Vision Development",
+                        link: "https://www.covd.org"
+                    },
+                    {
+                        type: "book",
+                        title: "The Out-of-Sync Child by Carol Stock Kranowitz",
+                        link: "#"
+                    },
+                    {
+                        type: "app",
+                        title: "Eye Can Learn",
+                        link: "#"
+                    },
+                    {
+                        type: "tool",
+                        title: "Colored Overlays",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "adhd",
+                name: "ADHD (Attention-Deficit/Hyperactivity Disorder)",
+                category: "attention",
+                description: "Persistent pattern of inattention and/or hyperactivity-impulsivity.",
+                definition: "Attention-Deficit/Hyperactivity Disorder (ADHD) is a neurodevelopmental disorder characterized by a persistent pattern of inattention and/or hyperactivity-impulsivity that interferes with functioning or development. While not strictly a learning disability, it often co-occurs with LDs.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Affects 5-9% of children" },
+                    { title: "Age Identified", content: "Often by age 7" },
+                    { title: "Gender Ratio", content: "More common in males" },
+                    { title: "Lifespan", content: "Often persists into adulthood" }
+                ],
+                learningImpact: "<p>ADHD primarily affects attention and executive functions. Students with ADHD may struggle with:</p><ul><li>Sustaining attention</li><li>Impulse control</li><li>Organization</li><li>Task completion</li><li>Time management</li></ul>",
+                symptoms: [
+                    "Inattention to details",
+                    "Difficulty sustaining attention",
+                    "Poor organization",
+                    "Avoids tasks requiring mental effort",
+                    "Loses things",
+                    "Easily distracted",
+                    "Forgetful",
+                    "Fidgets or squirms",
+                    "Leaves seat when inappropriate",
+                    "Runs or climbs excessively",
+                    "Difficulty playing quietly",
+                    "Talks excessively",
+                    "Blurts out answers",
+                    "Difficulty waiting turn",
+                    "Interrupts or intrudes"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["High activity level", "Impulsivity", "Short attention span"],
+                    elementary: ["Academic struggles", "Social problems", "Disorganization"],
+                    teen: ["Academic underachievement", "Risk-taking", "Time management issues"],
+                    adult: ["Work performance problems", "Relationship difficulties", "Chronic lateness"]
+                },
+                teacherWarningSigns: [
+                    "Frequent daydreaming",
+                    "Inconsistent work completion",
+                    "Disorganized materials",
+                    "Excessive movement",
+                    "Impulsive responses"
+                ],
+                academicChallenges: [
+                    "Following instructions",
+                    "Completing assignments",
+                    "Organization",
+                    "Test-taking",
+                    "Note-taking",
+                    "Time management"
+                ],
+                socialImpacts: [
+                    "Peer relationship difficulties",
+                    "Impulsive behaviors",
+                    "May be perceived as disruptive",
+                    "Low self-esteem",
+                    "Social skill deficits"
+                ],
+                dailyStruggles: [
+                    "Morning/night routines",
+                    "Homework completion",
+                    "Remembering appointments",
+                    "Managing belongings",
+                    "Driving safety"
+                ],
+                types: [
+                    {
+                        name: "Predominantly Inattentive Presentation",
+                        description: "Primary difficulty with attention and focus."
+                    },
+                    {
+                        name: "Predominantly Hyperactive-Impulsive Presentation",
+                        description: "Primary difficulty with impulse control and overactivity."
+                    },
+                    {
+                        name: "Combined Presentation",
+                        description: "Significant symptoms of both inattention and hyperactivity-impulsivity."
+                    }
+                ],
+                teachingStrategies: [
+                    "Clear, concise instructions",
+                    "Frequent check-ins",
+                    "Chunking assignments",
+                    "Movement breaks",
+                    "Immediate feedback"
+                ],
+                classroomAccommodations: [
+                    "Preferential seating",
+                    "Extended time",
+                    "Organizational supports",
+                    "Fidget tools",
+                    "Break opportunities"
+                ],
+                therapyOptions: [
+                    "Behavioral therapy",
+                    "Cognitive behavioral therapy",
+                    "Medication management",
+                    "Parent training",
+                    "Executive function coaching"
+                ],
+                assistiveTech: [
+                    "Focus apps",
+                    "Organization apps",
+                    "Timers and reminders",
+                    "Noise-cancelling headphones"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Short, engaging activities",
+                        "Movement breaks",
+                        "Visual schedules"
+                    ],
+                    elementary: [
+                        "Behavior charts",
+                        "Organization systems",
+                        "Active learning"
+                    ],
+                    teen: [
+                        "Planner use",
+                        "Self-monitoring strategies",
+                        "Study skill instruction"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Hands-on learning",
+                    "Kinesthetic spelling",
+                    "Movement-based math"
+                ],
+                gamesExercises: [
+                    "Focus games",
+                    "Memory matching",
+                    "Timed challenges",
+                    "Yoga or mindfulness"
+                ],
+                identificationChecklist: [
+                    "Persistent inattention",
+                    "Hyperactivity/impulsivity",
+                    "Academic underachievement",
+                    "Disorganization",
+                    "Impairment in multiple settings"
+                ],
+                accommodationSuggestions: [
+                    "Extended time",
+                    "Note-taking assistance",
+                    "Break opportunities",
+                    "Organizational supports",
+                    "Alternative testing environment"
+                ],
+                resources: [
+                    {
+                        type: "website",
+                        title: "CHADD (Children and Adults with ADHD)",
+                        link: "https://chadd.org"
+                    },
+                    {
+                        type: "book",
+                        title: "Driven to Distraction by Edward Hallowell",
+                        link: "#"
+                    },
+                    {
+                        type: "app",
+                        title: "Focus@Will",
+                        link: "#"
+                    },
+                    {
+                        type: "program",
+                        title: "Cogmed Working Memory Training",
+                        link: "#"
+                    }
+                ]
+            },
+            {
+                id: "efd",
+                name: "Executive Function Disorder",
+                category: "executive",
+                description: "Difficulties with planning, organization, and self-regulation.",
+                definition: "Executive Function Disorder (EFD) refers to difficulties with the cognitive processes that help us regulate, control, and manage our thoughts and actions. These include working memory, flexible thinking, and self-control.",
+                quickFacts: [
+                    { title: "Prevalence", content: "Common with ADHD, autism" },
+                    { title: "Age Identified", content: "Often in school years" },
+                    { title: "Core Difficulties", content: "Planning, organization, self-control" },
+                    { title: "Professional Diagnosis", content: "Neuropsychological evaluation" }
+                ],
+                learningImpact: "<p>EFD primarily affects higher-order cognitive skills. Students with EFD may struggle with:</p><ul><li>Planning and organization</li><li>Task initiation and completion</li><li>Time management</li><li>Working memory</li><li>Emotional regulation</li><li>Problem-solving</li></ul>",
+                symptoms: [
+                    "Working memory deficits",
+                    "Poor time management",
+                    "Disorganization",
+                    "Impulsivity",
+                    "Difficulty switching tasks",
+                    "Emotional dysregulation",
+                    "Procrastination",
+                    "Trouble following multi-step directions"
+                ],
+                ageSpecificSymptoms: {
+                    early: ["Difficulty with routines", "Transition problems", "Impulse control issues"],
+                    elementary: ["Homework struggles", "Messy desk", "Forgetting materials"],
+                    teen: ["Poor planning", "Missed deadlines", "Risk-taking behaviors"],
+                    adult: ["Work performance issues", "Financial disorganization", "Relationship challenges"]
+                },
+                teacherWarningSigns: [
+                    "Frequently loses materials",
+                    "Struggles to start tasks",
+                    "Disorganized assignments",
+                    "Emotional outbursts",
+                    "Forgetfulness"
+                ],
+                academicChallenges: [
+                    "Completing assignments",
+                    "Following directions",
+                    "Test preparation",
+                    "Long-term projects",
+                    "Note-taking",
+                    "Time management"
+                ],
+                socialImpacts: [
+                    "Impulsive comments",
+                    "Difficulty with friendships",
+                    "Emotional outbursts",
+                    "Appearing unreliable",
+                    "Low self-esteem"
+                ],
+                dailyStruggles: [
+                    "Morning routines",
+                    "Homework completion",
+                    "Remembering appointments",
+                    "Managing belongings",
+                    "Financial management"
+                ],
+                types: [
+                    {
+                        name: "Inhibition Issues",
+                        description: "Difficulty controlling impulses."
+                    },
+                    {
+                        name: "Working Memory Deficits",
+                        description: "Trouble holding information in mind."
+                    },
+                    {
+                        name: "Cognitive Flexibility",
+                        description: "Difficulty shifting attention or approaches."
+                    },
+                    {
+                        name: "Planning/Prioritization",
+                        description: "Poor time management and organization."
+                    },
+                    {
+                        name: "Self-Monitoring",
+                        description: "Difficulty evaluating one's own performance."
+                    }
+                ],
+                teachingStrategies: [
+                    "Explicit instruction in EF skills",
+                    "Scaffolded support",
+                    "Visual schedules",
+                    "Checklists and rubrics",
+                    "Gradual release of responsibility"
+                ],
+                classroomAccommodations: [
+                    "Extra time for assignments",
+                    "Organizational supports",
+                    "Modified assignments",
+                    "Breakdown of tasks",
+                    "Frequent check-ins"
+                ],
+                therapyOptions: [
+                    "Cognitive behavioral therapy",
+                    "Executive function coaching",
+                    "Occupational therapy",
+                    "Medication (if ADHD present)",
+                    "Mindfulness training"
+                ],
+                assistiveTech: [
+                    "Organization apps",
+                    "Reminder systems",
+                    "Graphic organizer software",
+                    "Time management tools"
+                ],
+                ageSpecificActivities: {
+                    early: [
+                        "Simple routines with visuals",
+                        "Memory games",
+                        "Emotion regulation activities"
+                    ],
+                    elementary: [
+                        "Planner use instruction",
+                        "Organization systems",
+                        "Goal-setting exercises"
+                    ],
+                    teen: [
+                        "Project planning practice",
+                        "Self-monitoring strategies",
+                        "Study skill instruction"
+                    ]
+                },
+                multisensoryIdeas: [
+                    "Hands-on organization activities",
+                    "Color-coded systems",
+                    "Kinesthetic memory games"
+                ],
+                gamesExercises: [
+                    "Memory matching games",
+                    "Planning-based board games",
+                    "Timed organization challenges",
+                    "Problem-solving scenarios"
+                ],
+                identificationChecklist: [
+                    "Persistent organization problems",
+                    "Working memory deficits",
+                    "Time management struggles",
+                    "Impulse control issues",
+                    "Discrepancy between ability and performance"
+                ],
+                accommodationSuggestions: [
+                    "Extended time",
+                    "Organizational supports",
+                    "Modified assignments",
+                    "Checklists and rubrics",
+                    "Frequent feedback"
+                ],
+                resources: [
+                    {
+                        type: "book",
+                        title: "Smart but Scattered by Peg Dawson",
+                        link: "#"
+                    },
+                    {
+                        type: "website",
+                        title: "Understood.org Executive Function Resources",
+                        link: "https://www.understood.org"
+                    },
+                    {
+                        type: "app",
+                        title: "Todoist",
+                        link: "#"
+                    },
+                    {
+                        type: "program",
+                        title: "The Alert Program",
+                        link: "#"
+                    }
+                ]
+            }
+        ];
+
+        // Icons for each disability (using Font Awesome classes)
+        const disabilityIcons = {
+            dyslexia: "fa-book",
+            dysgraphia: "fa-pencil-alt",
+            dyscalculia: "fa-calculator",
+            apd: "fa-assistive-listening-systems",
+            lpd: "fa-comments",
+            nvld: "fa-eye-slash",
+            vpd: "fa-eye",
+            adhd: "fa-bolt",
+            efd: "fa-brain"
+        };
+
+        // Categories for filtering
+        const categories = {
+            reading: "Reading",
+            writing: "Writing",
+            math: "Math",
+            attention: "Attention",
+            processing: "Processing",
+            visual: "Visual",
+            executive: "Executive Function"
+        };
+
+        // Symptom options for the matcher tool
+        const symptomOptions = [
+            "Reading difficulties",
+            "Writing challenges",
+            "Math struggles",
+            "Poor handwriting",
+            "Letter/number reversals",
+            "Slow processing speed",
+            "Difficulty following directions",
+            "Poor memory for sequences",
+            "Avoidance of academic tasks",
+            "Low self-esteem",
+            "Clumsiness/poor coordination",
+            "Social difficulties",
+            "Inattention",
+            "Hyperactivity",
+            "Impulsivity",
+            "Disorganization",
+            "Poor time management",
+            "Difficulty with abstract concepts",
+            "Struggles with visual-spatial tasks",
+            "Anxiety about schoolwork"
+        ];
+
+        // DOM elements
+        const dashboard = document.getElementById("dashboard");
+        const aboutSection = document.getElementById("about-section");
+        const disabilityPage = document.getElementById("disability-page");
+        const dashboardGrid = document.getElementById("dashboard-grid");
+        const disabilitiesDropdown = document.getElementById("disabilities-dropdown");
+        const searchInput = document.getElementById("search-input");
+        const symptomMatcher = document.getElementById("symptom-matcher");
+        const symptomOptionsContainer = document.getElementById("symptom-options");
+        const matchResults = document.getElementById("match-results");
+
+        // Current state
+        let currentDisability = null;
+        let activeAgeFilter = "all";
+        let selectedSymptoms = [];
+
+        // Initialize the dashboard
+        function initDashboard() {
+            renderDisabilityCards();
+            populateDropdown();
+            setupSymptomMatcher();
+            setupEventListeners();
+        }
+
+        // Render disability cards on the dashboard
+        function renderDisabilityCards() {
+            dashboardGrid.innerHTML = "";
+            
+            disabilities.forEach(disability => {
+                // Check age filter if set
+                if (activeAgeFilter !== "all") {
+                    if (!disability.ageSpecificSymptoms[activeAgeFilter]) {
+                        return; // Skip if no symptoms for this age group
+                    }
+                }
+                
+                const card = document.createElement("div");
+                card.className = `card disability-card ${disability.category}`;
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="disability-icon"><i class="fas ${disabilityIcons[disability.id]}"></i></div>
+                        <h3>${disability.name}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>${disability.description}</p>
+                        <span class="tag" style="background-color: var(--${disability.category})">${categories[disability.category]}</span>
+                        <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="showDisability('${disability.id}')">Learn More</button>
+                    </div>
+                `;
+                dashboardGrid.appendChild(card);
+            });
+        }
+
+        // Populate the disabilities dropdown
+        function populateDropdown() {
+            disabilitiesDropdown.innerHTML = "";
+            
+            // Group by category
+            const byCategory = {};
+            disabilities.forEach(disability => {
+                if (!byCategory[disability.category]) {
+                    byCategory[disability.category] = [];
+                }
+                byCategory[disability.category].push(disability);
+            });
+            
+            // Add category sections
+            Object.keys(byCategory).forEach(category => {
+                const categoryHeader = document.createElement("div");
+                categoryHeader.style.padding = "5px 15px";
+                categoryHeader.style.fontWeight = "bold";
+                categoryHeader.style.color = `var(--${category})`;
+                categoryHeader.textContent = categories[category];
+                disabilitiesDropdown.appendChild(categoryHeader);
+                
+                byCategory[category].forEach(disability => {
+                    const link = document.createElement("a");
+                    link.href = "#";
+                    link.textContent = disability.name;
+                    link.onclick = () => showDisability(disability.id);
+                    disabilitiesDropdown.appendChild(link);
+                });
+            });
+        }
+
+        // Set up the symptom matcher tool
+        function setupSymptomMatcher() {
+            symptomOptionsContainer.innerHTML = "";
+            
+            symptomOptions.forEach(symptom => {
+                const option = document.createElement("div");
+                option.className = "symptom-option";
+                option.innerHTML = `
+                    <input type="checkbox" id="symptom-${symptom.replace(/\s+/g, '-').toLowerCase()}" value="${symptom}">
+                    <label for="symptom-${symptom.replace(/\s+/g, '-').toLowerCase()}">${symptom}</label>
+                `;
+                symptomOptionsContainer.appendChild(option);
+            });
+            
+            // Add event listeners to checkboxes
+            document.querySelectorAll('#symptom-options input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectedSymptoms.push(this.value);
+                    } else {
+                        selectedSymptoms = selectedSymptoms.filter(s => s !== this.value);
+                    }
+                });
+            });
+        }
+
+        // Match symptoms to disabilities
+        function matchSymptoms() {
+            if (selectedSymptoms.length === 0) {
+                alert("Please select at least one symptom to match.");
+                return;
+            }
+            
+            // Calculate matches
+            const matches = disabilities.map(disability => {
+                // Count how many symptoms match this disability
+                let matchCount = 0;
+                const allSymptoms = [
+                    ...disability.symptoms,
+                    ...Object.values(disability.ageSpecificSymptoms).flat(),
+                    ...disability.teacherWarningSigns,
+                    ...disability.academicChallenges,
+                    ...disability.socialImpacts,
+                    ...disability.dailyStruggles
+                ];
+                
+                selectedSymptoms.forEach(symptom => {
+                    if (allSymptoms.some(s => s.toLowerCase().includes(symptom.toLowerCase()))) {
+                        matchCount++;
+                    }
+                });
+                
+                return {
+                    disability,
+                    matchCount,
+                    matchScore: Math.round((matchCount / selectedSymptoms.length) * 100)
+                };
+            }).filter(match => match.matchCount > 0)
+              .sort((a, b) => b.matchScore - a.matchScore);
+            
+            // Display results
+            matchResults.innerHTML = "";
+            matchResults.classList.remove("hidden");
+            
+            if (matches.length === 0) {
+                matchResults.innerHTML = "<p>No matching disabilities found for the selected symptoms.</p>";
+                return;
+            }
+            
+            matches.forEach(match => {
+                const resultCard = document.createElement("div");
+                resultCard.className = "result-card";
+                resultCard.innerHTML = `
+                    <h4>${match.disability.name}</h4>
+                    <p>${match.disability.description}</p>
+                    <div class="match-score">Match: ${match.matchScore}%</div>
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="showDisability('${match.disability.id}')">View Details</button>
+                `;
+                matchResults.appendChild(resultCard);
+            });
+        }
+
+        // Show a specific disability page
+        function showDisability(disabilityId) {
+            currentDisability = disabilities.find(d => d.id === disabilityId);
+            if (!currentDisability) return;
+            
+            // Hide other sections and show disability page
+            dashboard.classList.add("hidden");
+            aboutSection.classList.add("hidden");
+            disabilityPage.classList.remove("hidden");
+            
+            // Update page title
+            document.getElementById("disability-name").textContent = currentDisability.name;
+            
+            // Update image (placeholder for now)
+            document.getElementById("disability-image").src = `https://via.placeholder.com/300x200/${getColorHex(currentDisability.category)}/ffffff?text=${encodeURIComponent(currentDisability.name)}`;
+            
+            // Update quick facts
+            const quickFactsContainer = document.getElementById("quick-facts");
+            quickFactsContainer.innerHTML = "";
+            currentDisability.quickFacts.forEach(fact => {
+                const factItem = document.createElement("div");
+                factItem.className = "fact-item";
+                factItem.innerHTML = `
+                    <h4>${fact.title}</h4>
+                    <p>${fact.content}</p>
+                `;
+                quickFactsContainer.appendChild(factItem);
+            });
+            
+            // Update definition and learning impact
+            document.getElementById("disability-definition").innerHTML = currentDisability.definition;
+            document.getElementById("learning-impact").innerHTML = currentDisability.learningImpact;
+            
+            // Update symptoms tab
+            const symptomsList = document.getElementById("symptoms-list");
+            symptomsList.innerHTML = "";
+            currentDisability.symptoms.forEach(symptom => {
+                const li = document.createElement("li");
+                li.textContent = symptom;
+                symptomsList.appendChild(li);
+            });
+            
+            // Update age-specific symptoms
+            const ageSymptomsContainer = document.getElementById("age-specific-symptoms");
+            ageSymptomsContainer.innerHTML = "";
+            for (const [age, symptoms] of Object.entries(currentDisability.ageSpecificSymptoms)) {
+                if (symptoms && symptoms.length > 0) {
+                    const ageGroup = document.createElement("div");
+                    ageGroup.className = "age-group";
+                    ageGroup.innerHTML = `
+                        <h4>${getAgeGroupName(age)}</h4>
+                        <ul>
+                            ${symptoms.map(s => `<li>${s}</li>`).join("")}
+                        </ul>
+                    `;
+                    ageSymptomsContainer.appendChild(ageGroup);
+                }
+            }
+            
+            // Update teacher warning signs
+            const warningSignsList = document.getElementById("teacher-warning-signs");
+            warningSignsList.innerHTML = "";
+            currentDisability.teacherWarningSigns.forEach(sign => {
+                const li = document.createElement("li");
+                li.textContent = sign;
+                warningSignsList.appendChild(li);
+            });
+            
+            // Update difficulties tab
+            document.getElementById("academic-challenges").innerHTML = currentDisability.academicChallenges.map(c => `<li>${c}</li>`).join("");
+            document.getElementById("social-impacts").innerHTML = currentDisability.socialImpacts.map(i => `<li>${i}</li>`).join("");
+            document.getElementById("daily-struggles").innerHTML = currentDisability.dailyStruggles.map(s => `<li>${s}</li>`).join("");
+            
+            // Update types tab
+            const typesContent = document.getElementById("types-content");
+            typesContent.innerHTML = "";
+            if (currentDisability.types && currentDisability.types.length > 0) {
+                currentDisability.types.forEach(type => {
+                    const typeDiv = document.createElement("div");
+                    typeDiv.style.marginBottom = "15px";
+                    typeDiv.innerHTML = `
+                        <h4>${type.name}</h4>
+                        <p>${type.description}</p>
+                    `;
+                    typesContent.appendChild(typeDiv);
+                });
+            } else {
+                typesContent.innerHTML = "<p>No specific subtypes identified for this disability.</p>";
+            }
+            
+            // Update remedies tab
+            document.getElementById("teaching-strategies").innerHTML = currentDisability.teachingStrategies.map(s => `<li>${s}</li>`).join("");
+            document.getElementById("classroom-accommodations").innerHTML = currentDisability.classroomAccommodations.map(a => `<li>${a}</li>`).join("");
+            document.getElementById("therapy-options").innerHTML = currentDisability.therapyOptions.map(t => `<li>${t}</li>`).join("");
+            document.getElementById("assistive-tech").innerHTML = currentDisability.assistiveTech.map(t => `<li>${t}</li>`).join("");
+            
+            // Update activities tab
+            const ageActivitiesContainer = document.getElementById("age-specific-activities");
+            ageActivitiesContainer.innerHTML = "";
+            for (const [age, activities] of Object.entries(currentDisability.ageSpecificActivities)) {
+                if (activities && activities.length > 0) {
+                    const ageGroup = document.createElement("div");
+                    ageGroup.className = "age-group";
+                    ageGroup.innerHTML = `
+                        <h4>${getAgeGroupName(age)}</h4>
+                        <ul>
+                            ${activities.map(a => `<li>${a}</li>`).join("")}
+                        </ul>
+                    `;
+                    ageActivitiesContainer.appendChild(ageGroup);
+                }
+            }
+            
+            document.getElementById("multisensory-ideas").innerHTML = currentDisability.multisensoryIdeas.map(i => `<li>${i}</li>`).join("");
+            document.getElementById("games-exercises").innerHTML = currentDisability.gamesExercises.map(g => `<li>${g}</li>`).join("");
+            
+            // Update teacher tools
+            document.getElementById("identification-checklist").innerHTML = currentDisability.identificationChecklist.map(item => `
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-${item.replace(/\s+/g, '-').toLowerCase()}">
+                    <label for="check-${item.replace(/\s+/g, '-').toLowerCase()}">${item}</label>
+                </div>
+            `).join("");
+            
+            document.getElementById("accommodation-planner").innerHTML = currentDisability.accommodationSuggestions.map(acc => `
+                <div class="checklist-item">
+                    <input type="checkbox" id="acc-${acc.replace(/\s+/g, '-').toLowerCase()}">
+                    <label for="acc-${acc.replace(/\s+/g, '-').toLowerCase()}">${acc}</label>
+                </div>
+            `).join("");
+            
+            const resourceLibrary = document.getElementById("resource-library");
+            resourceLibrary.innerHTML = "";
+            currentDisability.resources.forEach(resource => {
+                const resourceItem = document.createElement("div");
+                resourceItem.className = "resource-item";
+                resourceItem.innerHTML = `
+                    <div class="resource-icon"><i class="fas fa-${resource.type}"></i></div>
+                    <div>
+                        <h4>${resource.title}</h4>
+                        <a href="${resource.link}" target="_blank">Learn more</a>
+                    </div>
+                `;
+                resourceLibrary.appendChild(resourceItem);
+            });
+            
+            // Reset tabs to overview
+            document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            document.getElementById("overview-tab").classList.remove("hidden");
+            document.querySelector('.tab-btn[data-tab="overview"]').classList.add("active");
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Show the dashboard view
+        function showDashboard() {
+            dashboard.classList.remove("hidden");
+            aboutSection.classList.add("hidden");
+            disabilityPage.classList.add("hidden");
+            window.scrollTo(0, 0);
+        }
+
+        // Show the about section
+        function showAbout() {
+            dashboard.classList.add("hidden");
+            aboutSection.classList.remove("hidden");
+            disabilityPage.classList.add("hidden");
+            window.scrollTo(0, 0);
+        }
+
+        // Search disabilities
+        function searchDisabilities() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (searchTerm.length < 2) {
+                renderDisabilityCards();
+                return;
+            }
+            
+            dashboardGrid.innerHTML = "";
+            
+            const matchingDisabilities = disabilities.filter(disability => {
+                // Search in name, description, symptoms, etc.
+                const searchText = `
+                    ${disability.name.toLowerCase()}
+                    ${disability.description.toLowerCase()}
+                    ${disability.symptoms.join(" ").toLowerCase()}
+                    ${Object.values(disability.ageSpecificSymptoms).flat().join(" ").toLowerCase()}
+                `;
+                
+                return searchText.includes(searchTerm);
+            });
+            
+            if (matchingDisabilities.length === 0) {
+                dashboardGrid.innerHTML = `<p>No disabilities found matching "${searchTerm}".</p>`;
+                return;
+            }
+            
+            matchingDisabilities.forEach(disability => {
+                const card = document.createElement("div");
+                card.className = `card disability-card ${disability.category}`;
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="disability-icon"><i class="fas ${disabilityIcons[disability.id]}"></i></div>
+                        <h3>${disability.name}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>${disability.description}</p>
+                        <span class="tag" style="background-color: var(--${disability.category})">${categories[disability.category]}</span>
+                        <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="showDisability('${disability.id}')">Learn More</button>
+                    </div>
+                `;
+                dashboardGrid.appendChild(card);
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const tabId = this.getAttribute("data-tab");
+                    
+                    // Update active tab button
+                    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    
+                    // Show corresponding tab content
+                    document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
+                    document.getElementById(`${tabId}-tab`).classList.remove("hidden");
+                });
+            });
+            
+            // Age filter buttons
+            document.querySelectorAll(".age-filter-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    document.querySelectorAll(".age-filter-btn").forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    activeAgeFilter = this.getAttribute("data-age");
+                    renderDisabilityCards();
+                });
+            });
+        }
+
+        // Helper function to get age group name
+        function getAgeGroupName(ageKey) {
+            const names = {
+                early: "Early Childhood (3-7 years)",
+                elementary: "Elementary School (8-12 years)",
+                teen: "Teenagers (13-18 years)",
+                adult: "Adults"
+            };
+            return names[ageKey] || ageKey;
+        }
+
+        // Helper function to get color hex for placeholder images
+        function getColorHex(category) {
+            const colors = {
+                reading: "4a6fa5",
+                writing: "e67e22",
+                math: "c0392b",
+                attention: "8e44ad",
+                processing: "16a085",
+                visual: "3498db",
+                executive: "d35400"
+            };
+            return colors[category] || "2c3e50";
+        }
+
+        // Make functions available globally
+        window.showDisability = showDisability;
+        window.showDashboard = showDashboard;
+        window.showAbout = showAbout;
+        window.matchSymptoms = matchSymptoms;
+        window.searchDisabilities = searchDisabilities;
+
+        // Initialize when DOM is loaded
+        document.addEventListener("DOMContentLoaded", initDashboard);
+    </script>
+</body>
+</html>

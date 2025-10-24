@@ -1,0 +1,654 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/8627/8627947.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/8627/8627947.png" style="display: none;" width="200" /></a></div>
+
+<html dir="rtl" lang="ur">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1" name="viewport"></meta>
+    <title>Magicrills Urdu Jor Tor (جوڑ توڑ)</title>
+    <style>
+        @font-face {
+            font-family: 'Jameel Noori Nastaleeq';
+            src: url('https://fonts.googleapis.com/earlyaccess/notonastaliqurdu.css');
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Jameel Noori Nastaleeq', 'Nafees Nastaleeq', 'Urdu Naskh Asiatype', sans-serif;
+            background: #f0f8ff;
+            direction: rtl;
+        }
+        #game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            min-height: 90vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4b0082;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .header p {
+            font-size: 1.2em;
+            margin: 5px 0 0;
+        }
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: #e6e6fa;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .dashboard-item {
+            text-align: center;
+            flex: 1;
+        }
+        .dashboard-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #4b0082;
+        }
+        .dashboard-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .game-area {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .letters-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .letter-box {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #9370db, #8a2be2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            user-select: none;
+        }
+        .letter-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .letter-box.selected {
+            background: linear-gradient(145deg, #ff8c00, #ff4500);
+            transform: scale(1.1);
+        }
+        .word-display {
+            min-height: 80px;
+            font-size: 2em;
+            margin: 20px 0;
+            text-align: center;
+            color: #4b0082;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: linear-gradient(145deg, #9370db, #8a2be2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            font-family: 'Jameel Noori Nastaleeq', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .btn:active {
+            transform: translateY(1px);
+        }
+        .btn-check {
+            background: linear-gradient(145deg, #32cd32, #228b22);
+        }
+        .btn-clear {
+            background: linear-gradient(145deg, #ff6347, #ff4500);
+        }
+        .btn-hint {
+            background: linear-gradient(145deg, #ffa500, #ff8c00);
+        }
+        .btn-sound {
+            background: linear-gradient(145deg, #1e90ff, #4169e1);
+        }
+        .level-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .level-btn {
+            background: #e6e6fa;
+            border: 2px solid #9370db;
+            color: #4b0082;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .level-btn.active {
+            background: linear-gradient(145deg, #9370db, #8a2be2);
+            color: white;
+        }
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: modalAppear 0.5s;
+        }
+        .modal-title {
+            font-size: 1.8em;
+            color: #4b0082;
+            margin-bottom: 20px;
+        }
+        .modal-message {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .modal-btn {
+            background: linear-gradient(145deg, #9370db, #8a2be2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        .progress-container {
+            width: 100%;
+            background: #e6e6fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #9370db, #8a2be2);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        /* Animations */
+        @keyframes modalAppear {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            50% { transform: translateY(-50px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        /* Feedback Elements */
+        .balloon {
+            position: absolute;
+            font-size: 3em;
+            animation: floatUp 1.5s forwards;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .thumb-down {
+            position: absolute;
+            font-size: 3em;
+            animation: shake 0.8s forwards;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .correct-animation {
+            animation: bounce 0.5s;
+        }
+        .score-animation {
+            position: absolute;
+            color: #32cd32;
+            font-weight: 700;
+            font-size: 1.5em;
+            animation: scoreRise 2s forwards;
+        }
+        @keyframes scoreRise {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.8em; }
+            .letter-box { width: 50px; height: 50px; font-size: 1.5em; }
+            .word-display { font-size: 1.5em; }
+            .btn { padding: 10px 20px; font-size: 1em; }
+            .dashboard-item { padding: 5px; }
+            .dashboard-value { font-size: 1.2em; }
+            .dashboard-label { font-size: 0.8em; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
+</head>
+<body>
+    <div id="game-container">
+        <div class="header">
+            <h1> Magicrills Urdu Jor Tor (جوڑ توڑ)</h1>
+            <p>حروف کو جوڑ کر الفاظ بنائیں</p>
+        </div>
+        <div class="level-selector">
+            <button class="level-btn active" data-level="easy">آسان</button>
+            <button class="level-btn" data-level="medium">درمیانہ</button>
+            <button class="level-btn" data-level="hard">مشکل</button>
+            <button class="level-btn" data-level="tough">بہت مشکل</button>
+        </div>
+        <div class="dashboard">
+            <div class="dashboard-item">
+                <div class="dashboard-value" id="score">0</div>
+                <div class="dashboard-label">اسکور</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="dashboard-value" id="timer">60</div>
+                <div class="dashboard-label">سیکنڈز</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="dashboard-value" id="level">آسان</div>
+                <div class="dashboard-label">لیول</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="dashboard-value" id="hints">3</div>
+                <div class="dashboard-label">مدد</div>
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="game-area" id="game-area">
+            <div class="word-display" id="word-display"></div>
+            <div class="letters-container" id="letters-container"></div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-check" id="check-btn">چیک کریں</button>
+            <button class="btn btn-clear" id="clear-btn">صاف کریں</button>
+            <button class="btn btn-hint" id="hint-btn">مدد</button>
+            <button class="btn btn-sound" id="sound-btn">آواز</button>
+        </div>
+    </div>
+    <div class="result-modal" id="result-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">مبارک ہو!</div>
+            <div class="modal-message" id="modal-message">آپ نے کامیابی سے یہ لیول مکمل کر لیا!</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="modal-progress"></div>
+            </div>
+            <button class="modal-btn" id="next-level-btn">اگلا لیول</button>
+            <button class="modal-btn" id="restart-btn">دوبارہ کریں</button>
+        </div>
+    </div>
+
+    <script>
+        // Pure Urdu words database
+        const wordsDB = {
+            easy: ["کتاب", "قلم", "میز", "چائے", "پانی", "گھر", "باغ", "کھیل", "دوست", "کام"],
+            medium: ["استاد", "طالب", "سکول", "کاپی", "درخت", "پھول", "کھڑکی", "چھتری", "ریڈیو", "ٹی وی"],
+            hard: ["تعلیم", "صحت", "محنت", "خوشی", "اتحاد", "جماعت", "ترقی", "مشقت", "ہمدردی", "انصاف"],
+            tough: ["آئینہ", "ماحول", "کمپیوٹر", "معلومات", "ٹیکنالوجی", "یونیورسٹی", "انجینئر", "سائنس", "فلسفہ", "ادب"]
+        };
+
+        // Game variables
+        let currentLevel = "easy";
+        let selectedLetters = [];
+        let currentWord = "";
+        let score = 0;
+        let timer = 60;
+        let gameInterval;
+        let hints = 3;
+        let soundEnabled = true;
+
+        // Initialize game
+        function initGame() {
+            clearInterval(gameInterval);
+            
+            document.getElementById("level").textContent = 
+                currentLevel === "easy" ? "آسان" : 
+                currentLevel === "medium" ? "درمیانہ" : 
+                currentLevel === "hard" ? "مشکل" : "بہت مشکل";
+            
+            timer = currentLevel === "easy" ? 60 : 
+                   currentLevel === "medium" ? 45 : 
+                   currentLevel === "hard" ? 30 : 20;
+            
+            document.getElementById("timer").textContent = timer;
+            hints = 3;
+            document.getElementById("hints").textContent = hints;
+            
+            generateNewWord();
+            gameInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Generate new word and letters
+        function generateNewWord() {
+            const words = wordsDB[currentLevel];
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            const lettersContainer = document.getElementById("letters-container");
+            lettersContainer.innerHTML = "";
+            
+            let letters = [];
+            for (let i = 0; i < currentWord.length; i++) {
+                letters.push(currentWord[i]);
+            }
+            
+            // Add 3 random Urdu letters
+            const urduLetters = ['ا','ب','پ','ت','ٹ','ث','ج','چ','ح','خ','د','ڈ','ذ','ر','ڑ','ز','ژ','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ک','گ','ل','م','ن','و','ہ','ء','ی','ے'];
+            for (let i = 0; i < 3; i++) {
+                const randomChar = urduLetters[Math.floor(Math.random() * urduLetters.length)];
+                if (!letters.includes(randomChar)) {
+                    letters.push(randomChar);
+                }
+            }
+            
+            letters = shuffleArray(letters);
+            
+            letters.forEach((letter, index) => {
+                const letterBox = document.createElement("div");
+                letterBox.className = "letter-box";
+                letterBox.textContent = letter;
+                letterBox.dataset.index = index;
+                letterBox.addEventListener("click", () => selectLetter(letterBox, letter));
+                lettersContainer.appendChild(letterBox);
+            });
+            
+            selectedLetters = [];
+            updateWordDisplay();
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Select letter
+        function selectLetter(letterBox, letter) {
+            if (selectedLetters.includes(letterBox)) {
+                const index = selectedLetters.indexOf(letterBox);
+                selectedLetters.splice(index, 1);
+                letterBox.classList.remove("selected");
+            } else {
+                selectedLetters.push(letterBox);
+                letterBox.classList.add("selected");
+            }
+            updateWordDisplay();
+        }
+
+        // Update word display
+        function updateWordDisplay() {
+            const wordDisplay = document.getElementById("word-display");
+            wordDisplay.innerHTML = "";
+            
+            selectedLetters.forEach(letterBox => {
+                const letterSpan = document.createElement("span");
+                letterSpan.textContent = letterBox.textContent;
+                wordDisplay.appendChild(letterSpan);
+            });
+        }
+
+        // Check word
+        function checkWord() {
+            const userWord = selectedLetters.map(letterBox => letterBox.textContent).join("");
+            
+            if (userWord === currentWord) {
+                // Correct answer
+                showFeedback('balloon', '🎈');
+                document.getElementById("word-display").classList.add("correct-animation");
+                
+                score += currentLevel === "easy" ? 10 : 
+                         currentLevel === "medium" ? 20 : 
+                         currentLevel === "hard" ? 30 : 50;
+                
+                document.getElementById("score").textContent = score;
+                
+                setTimeout(() => {
+                    document.getElementById("word-display").classList.remove("correct-animation");
+                    generateNewWord();
+                    selectedLetters = [];
+                    updateWordDisplay();
+                }, 1000);
+                
+                showScoreAnimation();
+            } else {
+                // Wrong answer
+                showFeedback('thumb-down', '👎');
+                selectedLetters.forEach(letterBox => {
+                    letterBox.classList.add("wrong");
+                    setTimeout(() => letterBox.classList.remove("wrong"), 800);
+                });
+            }
+        }
+
+        // Show visual feedback
+        function showFeedback(type, emoji) {
+            const gameArea = document.getElementById("game-area");
+            const feedback = document.createElement("div");
+            feedback.className = type;
+            feedback.textContent = emoji;
+            feedback.style.left = Math.random() * 70 + 15 + '%';
+            gameArea.appendChild(feedback);
+            
+            setTimeout(() => feedback.remove(), 1500);
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedLetters.forEach(letterBox => letterBox.classList.remove("selected"));
+            selectedLetters = [];
+            updateWordDisplay();
+        }
+
+        // Give hint
+        function giveHint() {
+            if (hints <= 0) {
+                alert("آپ کے پاس مزید مدد نہیں ہے!");
+                return;
+            }
+            
+            hints--;
+            document.getElementById("hints").textContent = hints;
+            
+            const missingLetters = [];
+            const currentLetters = selectedLetters.map(l => l.textContent);
+            
+            for (let i = 0; i < currentWord.length; i++) {
+                if (!currentLetters.includes(currentWord[i])) {
+                    missingLetters.push(currentWord[i]);
+                }
+            }
+            
+            if (missingLetters.length > 0) {
+                const hintLetter = missingLetters[0];
+                const allLetterBoxes = document.querySelectorAll(".letter-box");
+                
+                for (let i = 0; i < allLetterBoxes.length; i++) {
+                    if (allLetterBoxes[i].textContent === hintLetter) {
+                        allLetterBoxes[i].classList.add("hint");
+                        setTimeout(() => allLetterBoxes[i].classList.remove("hint"), 1000);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Update timer
+        function updateTimer() {
+            timer--;
+            document.getElementById("timer").textContent = timer;
+            
+            const progressPercent = (timer / (currentLevel === "easy" ? 60 : 
+                                    currentLevel === "medium" ? 45 : 
+                                    currentLevel === "hard" ? 30 : 20)) * 100;
+            document.getElementById("progress-bar").style.width = progressPercent + "%";
+            
+            if (timer <= 0) {
+                endGame(false);
+            }
+        }
+
+        // End game
+        function endGame(success) {
+            clearInterval(gameInterval);
+            
+            const modal = document.getElementById("result-modal");
+            const modalTitle = document.getElementById("modal-title");
+            const modalMessage = document.getElementById("modal-message");
+            const modalProgress = document.getElementById("modal-progress");
+            
+            if (success) {
+                modalTitle.textContent = "مبارک ہو!";
+                modalMessage.textContent = `آپ نے ${currentLevel === "easy" ? "آسان" : 
+                                          currentLevel === "medium" ? "درمیانہ" : 
+                                          currentLevel === "hard" ? "مشکل" : "بہت مشکل"} لیول مکمل کر لیا! آپ کا اسکور: ${score}`;
+                modalProgress.style.width = "100%";
+                modalProgress.style.background = "linear-gradient(90deg, #32cd32, #228b22)";
+            } else {
+                modalTitle.textContent = "وقت ختم!";
+                modalMessage.textContent = `آپ نے ${currentLevel === "easy" ? "آسان" : 
+                                          currentLevel === "medium" ? "درمیانہ" : 
+                                          currentLevel === "hard" ? "مشکل" : "بہت مشکل"} لیول مکمل نہیں کیا۔ آپ کا اسکور: ${score}`;
+                modalProgress.style.width = "0%";
+                modalProgress.style.background = "linear-gradient(90deg, #ff6347, #ff4500)";
+            }
+            
+            modal.style.display = "flex";
+        }
+
+        // Show score animation
+        function showScoreAnimation() {
+            const points = currentLevel === "easy" ? 10 : 
+                          currentLevel === "medium" ? 20 : 
+                          currentLevel === "hard" ? 30 : 50;
+            
+            const scoreElement = document.createElement("div");
+            scoreElement.className = "score-animation";
+            scoreElement.textContent = `+${points}`;
+            scoreElement.style.left = Math.random() * 80 + 10 + "%";
+            
+            document.getElementById("game-area").appendChild(scoreElement);
+            
+            setTimeout(() => scoreElement.remove(), 2000);
+        }
+
+        // Event listeners
+        document.getElementById("check-btn").addEventListener("click", checkWord);
+        document.getElementById("clear-btn").addEventListener("click", clearSelection);
+        document.getElementById("hint-btn").addEventListener("click", giveHint);
+        document.getElementById("sound-btn").addEventListener("click", function() {
+            soundEnabled = !soundEnabled;
+            this.textContent = soundEnabled ? "آواز" : "آواز بند";
+        });
+
+        document.querySelectorAll(".level-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
+                this.classList.add("active");
+                currentLevel = this.dataset.level;
+                score = 0;
+                document.getElementById("score").textContent = score;
+                initGame();
+            });
+        });
+
+        document.getElementById("next-level-btn").addEventListener("click", function() {
+            document.getElementById("result-modal").style.display = "none";
+            
+            if (currentLevel === "easy") {
+                currentLevel = "medium";
+            } else if (currentLevel === "medium") {
+                currentLevel = "hard";
+            } else if (currentLevel === "hard") {
+                currentLevel = "tough";
+            } else {
+                currentLevel = "easy";
+            }
+            
+            document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
+            document.querySelector(`.level-btn[data-level="${currentLevel}"]`).classList.add("active");
+            
+            initGame();
+        });
+
+        document.getElementById("restart-btn").addEventListener("click", function() {
+            document.getElementById("result-modal").style.display = "none";
+            initGame();
+        });
+
+        // Initialize game on load
+        window.addEventListener("load", initGame);
+    </script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/18321/18321488.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/18321/18321488.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensory Play Idea Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <style>
+        :root {
+            --primary-orange: #FF7700;
+            --dark-orange: #E65C00;
+            --light-orange: #FFA34D;
+            --background: #FFF5EB;
+            --card-bg: #FFFFFF;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --accent: #FF5500;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--background);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(230, 92, 0, 0.3);
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-section {
+            flex: 2;
+            min-width: 300px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            color: var(--dark-orange);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-orange);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary-orange);
+            border-radius: 8px;
+            background-color: white;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 92, 0, 0.4);
+        }
+        
+        .btn-generate {
+            width: 100%;
+            margin-top: 10px;
+            padding: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .idea-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary-orange);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .idea-title {
+            color: var(--dark-orange);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .idea-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .meta-item {
+            background: var(--light-orange);
+            color: var(--text-dark);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .idea-content {
+            line-height: 1.6;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+        
+        .materials-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .material-pill {
+            background: var(--primary-orange);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .instructions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--light-orange);
+        }
+        
+        .instructions h4 {
+            color: var(--dark-orange);
+            margin-bottom: 10px;
+        }
+        
+        ol {
+            padding-left: 20px;
+        }
+        
+        ol li {
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+            
+            .export-buttons button {
+                width: 100%;
+            }
+        }
+        
+        /* Animation for generated content */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .theme-item {
+            background: var(--card-bg);
+            border: 2px solid var(--light-orange);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-item:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+        
+        .theme-item.selected {
+            background: var(--primary-orange);
+            color: white;
+            border-color: var(--dark-orange);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sensory Play Idea Generator</h1>
+            <p class="tagline">Create unique sensory bin ideas based on themes and available materials</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="form-section">
+                <h2 class="section-title">Customize Your Idea</h2>
+                
+                <div class="form-group">
+                    <label for="theme">Select Theme:</label>
+                    <select id="theme">
+                        <option value="random">Random Theme</option>
+                        <option value="seasons">Seasons</option>
+                        <option value="colors">Colors</option>
+                        <option value="textures">Textures</option>
+                        <option value="ocean">Ocean</option>
+                        <option value="space">Space</option>
+                        <option value="garden">Garden</option>
+                        <option value="dinosaurs">Dinosaurs</option>
+                        <option value="transportation">Transportation</option>
+                        <option value="weather">Weather</option>
+                        <option value="animals">Animals</option>
+                        <option value="construction">Construction</option>
+                        <option value="arctic">Arctic</option>
+                        <option value="jungle">Jungle</option>
+                        <option value="fantasy">Fantasy</option>
+                        <option value="food">Food</option>
+                        <option value="holidays">Holidays</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Or select from popular themes:</label>
+                    <div class="theme-grid">
+                        <div class="theme-item" data-theme="ocean">Ocean</div>
+                        <div class="theme-item" data-theme="space">Space</div>
+                        <div class="theme-item" data-theme="dinosaurs">Dinosaurs</div>
+                        <div class="theme-item" data-theme="garden">Garden</div>
+                        <div class="theme-item" data-theme="arctic">Arctic</div>
+                        <div class="theme-item" data-theme="jungle">Jungle</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materials">Available Materials (comma separated):</label>
+                    <textarea id="materials" placeholder="e.g., rice, beans, water beads, scoops, figurines..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="age-group">Age Group:</label>
+                    <select id="age-group">
+                        <option value="all">All Ages</option>
+                        <option value="toddler">Toddlers (1-3)</option>
+                        <option value="preschool">Preschool (3-5)</option>
+                        <option value="schoolage">School Age (5-10)</option>
+                    </select>
+                </div>
+                
+                <button class="btn-generate" id="generate-btn">
+                    Generate Sensory Play Idea
+                </button>
+            </div>
+            
+            <div class="result-section">
+                <h2 class="section-title">Your Sensory Play Idea</h2>
+                <div id="idea-output">
+                    <p class="idea-content">Your generated idea will appear here. Select options and click Generate.</p>
+                </div>
+                
+                <div class="export-buttons">
+                    <button id="pdf-btn">Export as PDF</button>
+                    <button id="word-btn">Export as Word</button>
+                    <button id="text-btn">Export as Text</button>
+                    <button id="print-btn">Print Idea</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Sensory Play Idea Generator | Created for Sensory Play Enthusiasts</p>
+        </footer>
+    </div>
+
+    <script>
+        // Theme-based idea components
+        const themeComponents = {
+            seasons: {
+                spring: ["Flower Garden", "Rainy Day", "Bug Hunt", "Easter Egg"],
+                summer: ["Beach Party", "Ice Cream Shop", "Water Play", "Summer Fruits"],
+                fall: ["Apple Orchard", "Pumpkin Patch", "Leaf Pile", "Harvest Festival"],
+                winter: ["Arctic Adventure", "Snowy Day", "Hot Cocoa Stand", "Winter Wonderland"]
+            },
+            colors: {
+                red: ["Fire Station", "Apple Orchard", "Ladybug Garden", "Valentine's Day"],
+                blue: ["Ocean Exploration", "Waterfall", "Space Adventure", "Blueberry Patch"],
+                green: ["Dinosaur Land", "Forest Exploration", "Garden", "Frog Pond"],
+                yellow: ["Sunflower Field", "Lemonade Stand", "Construction Site", "Bee Hive"],
+                rainbow: ["Rainbow Magic", "Color Laboratory", "Prism Play", "Unicorn World"]
+            },
+            textures: {
+                smooth: ["Water Beads", "Ice Cubes", "Slime", "Silk Scarves"],
+                rough: ["Sand Exploration", "Pasta Play", "Seed Sensory", "Bark Chips"],
+                soft: ["Cotton Clouds", "Pompoms", "Fabric Scraps", "Feathers"],
+                crunchy: ["Fall Leaves", "Cereal Sensory", "Packing Peanuts", "Crushed Eggshells"]
+            },
+            ocean: ["Coral Reef", "Deep Sea", "Tide Pools", "Pirate Treasure", "Underwater Adventure"],
+            space: ["Solar System", "Moon Landing", "Alien Planet", "Rocket Launch", "Starry Night"],
+            garden: ["Vegetable Patch", "Flower Garden", "Bug Hunt", "Butterfly Lifecycle", "Worm Farm"],
+            dinosaurs: ["Jurassic Park", "Dinosaur Dig", "Volcano Eruption", "Fossil Excavation"],
+            transportation: ["Construction Site", "Car Wash", "Train Station", "Airport", "Car Racing"],
+            weather: ["Cloud Exploration", "Rainy Day", "Snow Storm", "Windy Day", "Rainbow"],
+            animals: ["Farm Animals", "Zoo", "Jungle Safari", "Pet Shop", "Insect Collection"],
+            construction: ["Building Site", "Tool Box", "Gravel Pit", "Construction Vehicles"],
+            arctic: ["Polar Ice", "Igloo Building", "Arctic Animals", "Ice Fishing"],
+            jungle: ["Rainforest", "Vine Swinging", "Jungle Animals", "Temple Exploration"],
+            fantasy: ["Fairy Garden", "Dragon Lair", "Unicorn World", "Magic Potions"],
+            food: ["Pizza Shop", "Fruit Market", "Bakery", "Vegetable Stand"],
+            holidays: ["Christmas Magic", "Halloween Spooktacular", "E Egg Hunt", "Thanksgiving Feast"]
+        };
+
+        // Activity verbs
+        const verbs = ["Explore", "Discover", "Create", "Build", "Sort", "Match", "Find", "Dig", "Pour", "Scoop"];
+
+        // Educational elements
+        const educationalElements = [
+            "color recognition", "counting practice", "fine motor skills", 
+            "scientific exploration", "sensory discrimination", "language development",
+            "imaginative play", "problem solving", "measurement concepts", "social skills"
+        ];
+
+        // DOM elements
+        const themeSelect = document.getElementById('theme');
+        const materialsInput = document.getElementById('materials');
+        const ageGroupSelect = document.getElementById('age-group');
+        const generateBtn = document.getElementById('generate-btn');
+        const ideaOutput = document.getElementById('idea-output');
+        const pdfBtn = document.getElementById('pdf-btn');
+        const wordBtn = document.getElementById('word-btn');
+        const textBtn = document.getElementById('text-btn');
+        const printBtn = document.getElementById('print-btn');
+        const themeItems = document.querySelectorAll('.theme-item');
+
+        // Generate idea on button click
+        generateBtn.addEventListener('click', generateIdea);
+        
+        // Export functionality
+        pdfBtn.addEventListener('click', exportToPDF);
+        wordBtn.addEventListener('click', exportToWord);
+        textBtn.addEventListener('click', exportToText);
+        printBtn.addEventListener('click', printIdea);
+        
+        // Theme selection
+        themeItems.forEach(item => {
+            item.addEventListener('click', () => {
+                themeItems.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                themeSelect.value = item.dataset.theme;
+            });
+        });
+
+        function generateIdea() {
+            const theme = themeSelect.value;
+            const materials = materialsInput.value.split(',').map(item => item.trim()).filter(item => item);
+            const ageGroup = ageGroupSelect.value;
+            
+            if (materials.length === 0) {
+                alert('Please enter at least one material');
+                return;
+            }
+            
+            const idea = createIdea(theme, materials, ageGroup);
+            displayIdea(idea);
+        }
+
+        function createIdea(theme, materials, ageGroup) {
+            let title, description, instructions;
+            
+            // Determine the specific theme and title
+            if (theme === 'random') {
+                // Select a random theme from all available
+                const themes = Object.keys(themeComponents).filter(t => t !== 'random');
+                theme = themes[Math.floor(Math.random() * themes.length)];
+            }
+            
+            if (theme === 'seasons' || theme === 'colors' || theme === 'textures') {
+                const subThemes = Object.keys(themeComponents[theme]);
+                const subTheme = subThemes[Math.floor(Math.random() * subThemes.length)];
+                const options = themeComponents[theme][subTheme];
+                title = `${options[Math.floor(Math.random() * options.length)]} ${theme.slice(0, -1)} Bin`;
+            } else {
+                const options = themeComponents[theme];
+                title = `${options[Math.floor(Math.random() * options.length)]} Sensory Bin`;
+            }
+            
+            // Create description based on theme and materials
+            const verb = verbs[Math.floor(Math.random() * verbs.length)];
+            const educationalElement = educationalElements[Math.floor(Math.random() * educationalElements.length)];
+            
+            description = `A ${title.toLowerCase()} that encourages children to ${verb} ${materials.slice(0, 3).join(', ')} and more. This activity supports ${educationalElement} through hands-on exploration.`;
+            
+            // Generate instructions based on age group
+            instructions = generateInstructions(ageGroup, materials);
+            
+            return {
+                title,
+                description,
+                materials,
+                instructions,
+                ageGroup,
+                theme: theme.charAt(0).toUpperCase() + theme.slice(1)
+            };
+        }
+
+        function generateInstructions(ageGroup, materials) {
+            const baseInstructions = [
+                `Fill a bin with your base material (${materials[0]})`,
+                `Add supplementary materials (${materials.slice(1, 3).join(', ')})`,
+                `Include tools for scooping, pouring, and manipulating materials`,
+                `Set up a play area with protection for easy cleanup`
+            ];
+            
+            const ageSpecificInstructions = {
+                toddler: [
+                    "Focus on large materials to prevent choking hazards",
+                    "Provide close supervision during play",
+                    "Keep sessions short (15-20 minutes)",
+                    "Use simple language to describe textures and actions"
+                ],
+                preschool: [
+                    "Incorporate sorting by color, size, or type",
+                    "Add letters or numbers for early literacy/math",
+                    "Encourage imaginative play scenarios",
+                    "Ask open-ended questions about the experience"
+                ],
+                schoolage: [
+                    "Incorporate measuring and graphing activities",
+                    "Add writing components for sensory descriptions",
+                    "Create challenges or games within the bin",
+                    "Connect to science concepts being studied"
+                ],
+                all: [
+                    "Adapt complexity based on child's interest and ability",
+                    "Follow the child's lead in exploration",
+                    "Describe what you see the child doing",
+                    "Focus on process rather than end product"
+                ]
+            };
+            
+            return [...baseInstructions, ...ageSpecificInstructions[ageGroup]];
+        }
+
+        function displayIdea(idea) {
+            ideaOutput.innerHTML = `
+                <div class="idea-card fade-in">
+                    <h3 class="idea-title">${idea.title}</h3>
+                    <div class="idea-meta">
+                        <span class="meta-item">Theme: ${idea.theme}</span>
+                        <span class="meta-item">Age: ${idea.ageGroup}</span>
+                    </div>
+                    <p class="idea-content">${idea.description}</p>
+                    
+                    <h4>Materials Needed:</h4>
+                    <div class="materials-list">
+                        ${idea.materials.map(material => `<span class="material-pill">${material}</span>`).join('')}
+                    </div>
+                    
+                    <div class="instructions">
+                        <h4>Setup Instructions:</h4>
+                        <ol>
+                            ${idea.instructions.map(instruction => `<li>${instruction}</li>`).join('')}
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+
+        function exportToPDF() {
+            if (!ideaOutput.querySelector('.idea-card')) {
+                alert('Please generate an idea first');
+                return;
+            }
+            
+            // Simple implementation for PDF export
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const ideaTitle = ideaOutput.querySelector('.idea-title').textContent;
+            const ideaDescription = ideaOutput.querySelector('.idea-content').textContent;
+            const materials = Array.from(ideaOutput.querySelectorAll('.material-pill')).map(item => item.textContent).join(', ');
+            const instructions = Array.from(ideaOutput.querySelectorAll('.instructions li')).map((item, index) => `${index + 1}. ${item.textContent}`).join('\n');
+            
+            doc.setFillColor(255, 119, 0);
+            doc.rect(0, 0, 220, 50, 'F');
+            doc.setFontSize(22);
+            doc.setTextColor(255, 255, 255);
+            doc.text('Sensory Play Idea', 105, 20, { align: 'center' });
+            doc.setFontSize(16);
+            doc.text(ideaTitle, 105, 35, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Description: ${ideaDescription}`, 20, 60);
+            doc.text(`Materials Needed: ${materials}`, 20, 70);
+            doc.text('Instructions:', 20, 80);
+            doc.text(instructions, 20, 90);
+            
+            doc.save('sensory-play-idea.pdf');
+        }
+
+        function exportToWord() {
+            if (!ideaOutput.querySelector('.idea-card')) {
+                alert('Please generate an idea first');
+                return;
+            }
+            
+            // Simple implementation for Word export
+            const ideaTitle = ideaOutput.querySelector('.idea-title').textContent;
+            const ideaDescription = ideaOutput.querySelector('.idea-content').textContent;
+            const materials = Array.from(ideaOutput.querySelectorAll('.material-pill')).map(item => item.textContent).join(', ');
+            const instructions = Array.from(ideaOutput.querySelectorAll('.instructions li')).map((item, index) => `${index + 1}. ${item.textContent}`).join('\n');
+            
+            const content = `
+                Sensory Play Idea
+                =================
+                
+                Title: ${ideaTitle}
+                
+                Description: ${ideaDescription}
+                
+                Materials Needed: ${materials}
+                
+                Instructions:
+                ${instructions}
+                
+                Generated by Sensory Play Idea Generator
+            `;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sensory-play-idea.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportToText() {
+            if (!ideaOutput.querySelector('.idea-card')) {
+                alert('Please generate an idea first');
+                return;
+            }
+            
+            const ideaTitle = ideaOutput.querySelector('.idea-title').textContent;
+            const ideaDescription = ideaOutput.querySelector('.idea-content').textContent;
+            const materials = Array.from(ideaOutput.querySelectorAll('.material-pill')).map(item => item.textContent).join(', ');
+            const instructions = Array.from(ideaOutput.querySelectorAll('.instructions li')).map((item, index) => `${index + 1}. ${item.textContent}`).join('\n');
+            
+            const content = `
+                Sensory Play Idea
+                =================
+                
+                Title: ${ideaTitle}
+                
+                Description: ${ideaDescription}
+                
+                Materials Needed: ${materials}
+                
+                Instructions:
+                ${instructions}
+            `;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sensory-play-idea.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function printIdea() {
+            if (!ideaOutput.querySelector('.idea-card')) {
+                alert('Please generate an idea first');
+                return;
+            }
+            
+            const printContent = ideaOutput.innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+                    <h1 style="text-align: center; color: #FF7700;">Sensory Play Idea</h1>
+                    ${printContent}
+                </div>
+            `;
+            
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+
+        // Initialize with a random idea
+        window.addEventListener('load', () => {
+            materialsInput.value = "rice, beans, water beads, scoops, small toys, containers, spoons";
+            generateIdea();
+        });
+    </script>
+</body>
+</html>

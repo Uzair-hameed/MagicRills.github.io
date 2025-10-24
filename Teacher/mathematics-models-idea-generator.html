@@ -1,0 +1,621 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/14106/14106108.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/14106/14106108.png"style='display:none'/></a></div>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics Models Idea Generator</title>
+    <style>
+        :root {
+            --primary-blue: #e6f2ff;
+            --secondary-blue: #cce5ff;
+            --accent-orange: #ff8c42;
+            --dark-blue: #0066cc;
+            --text-dark: #333;
+            --text-light: #fff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-blue);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--dark-blue);
+            color: var(--text-light);
+            padding: 20px 0;
+            border-radius: 10px 10px 0 0;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            background-color: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-blue);
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--accent-orange);
+            outline: none;
+        }
+
+        .btn {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: #e67e22;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--secondary-blue);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            color: var(--dark-blue);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--accent-orange);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .model-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .model-details h3 {
+            color: var(--dark-blue);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent-orange);
+            padding-bottom: 8px;
+        }
+
+        .model-details p {
+            margin-bottom: 15px;
+        }
+
+        .model-details ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .model-details li {
+            margin-bottom: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--dark-blue);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .export-buttons {
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mathematics Models Idea Generator</h1>
+            <p>Generate creative mathematics models for all education levels</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="form-group">
+                <label for="educationLevel">Education Level</label>
+                <select id="educationLevel">
+                    <option value="">Select Education Level</option>
+                    <option value="primary">Primary Level</option>
+                    <option value="middle">Middle Level</option>
+                    <option value="secondary">Secondary Level</option>
+                    <option value="higher-secondary">Higher Secondary Level</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="mathCategory">Mathematics Category</label>
+                <select id="mathCategory">
+                    <option value="">Select Category</option>
+                    <option value="shapes">Shapes & Geometry</option>
+                    <option value="basic">Basic Mathematics</option>
+                    <option value="algebra">Algebra</option>
+                    <option value="arithmetic">Arithmetic Operations</option>
+                    <option value="measurement">Measurement</option>
+                    <option value="data">Data Handling & Statistics</option>
+                    <option value="patterns">Patterns & Sequences</option>
+                    <option value="fractions">Fractions & Decimals</option>
+                    <option value="probability">Probability</option>
+                    <option value="trigonometry">Trigonometry</option>
+                    <option value="calculus">Calculus</option>
+                    <option value="coordinate">Coordinate Geometry</option>
+                    <option value="number">Number Theory</option>
+                    <option value="sets">Sets & Logic</option>
+                    <option value="functions">Functions</option>
+                    <option value="matrices">Matrices</option>
+                    <option value="vectors">Vectors</option>
+                    <option value="complex">Complex Numbers</option>
+                    <option value="series">Series & Sequences</option>
+                    <option value="limits">Limits & Continuity</option>
+                    <option value="differentiation">Differentiation</option>
+                    <option value="integration">Integration</option>
+                    <option value="differential">Differential Equations</option>
+                    <option value="linear">Linear Algebra</option>
+                    <option value="abstract">Abstract Algebra</option>
+                    <option value="discrete">Discrete Mathematics</option>
+                    <option value="graph">Graph Theory</option>
+                    <option value="topology">Topology</option>
+                    <option value="numerical">Numerical Analysis</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="specificTopic">Specific Topic (Optional)</label>
+                <input type="text" id="specificTopic" placeholder="E.g., Pythagorean Theorem, Quadratic Equations, etc.">
+            </div>
+            
+            <button id="generateBtn" class="btn">
+                <i>🔍</i> Generate Model Ideas
+            </button>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Generating your mathematics model ideas...</p>
+            </div>
+            
+            <div class="result-container" id="resultContainer">
+                <div class="result-header">
+                    <h2 class="result-title">Mathematics Model Ideas</h2>
+                    <div class="export-buttons">
+                        <button id="exportWord" class="btn">
+                            <i>📄</i> Export to Word
+                        </button>
+                        <button id="exportPDF" class="btn">
+                            <i>📊</i> Export to PDF
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="modelResults">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Mathematics Models Idea Generator &copy; 2025 | Designed for Educational Purposes</p>
+        </footer>
+    </div>
+
+    <script>
+        // API configuration
+        const API_KEY = "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";
+        const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+        // DOM elements
+        const educationLevelSelect = document.getElementById('educationLevel');
+        const mathCategorySelect = document.getElementById('mathCategory');
+        const specificTopicInput = document.getElementById('specificTopic');
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultContainer = document.getElementById('resultContainer');
+        const modelResults = document.getElementById('modelResults');
+        const exportWordBtn = document.getElementById('exportWord');
+        const exportPDFBtn = document.getElementById('exportPDF');
+
+        // Event listeners
+        generateBtn.addEventListener('click', generateModelIdeas);
+        exportWordBtn.addEventListener('click', exportToWord);
+        exportPDFBtn.addEventListener('click', exportToPDF);
+
+        // Generate model ideas function
+        async function generateModelIdeas() {
+            const educationLevel = educationLevelSelect.value;
+            const mathCategory = mathCategorySelect.value;
+            const specificTopic = specificTopicInput.value.trim();
+
+            // Validation
+            if (!educationLevel || !mathCategory) {
+                alert('Please select both Education Level and Mathematics Category');
+                return;
+            }
+
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                // Prepare the prompt for the AI
+                const prompt = createPrompt(educationLevel, mathCategory, specificTopic);
+                
+                // Call the API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "model": "deepseek/deepseek-chat-v3.1:free",
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                
+                // Display results
+                displayResults(data.choices[0].message.content);
+                
+            } catch (error) {
+                console.error('Error generating model ideas:', error);
+                loadingIndicator.style.display = 'none';
+                
+                // Fallback to predefined models if API fails
+                displayFallbackResults(educationLevel, mathCategory, specificTopic);
+            }
+        }
+
+        // Create prompt for the AI
+        function createPrompt(educationLevel, mathCategory, specificTopic) {
+            const levelNames = {
+                'primary': 'Primary Level',
+                'middle': 'Middle Level',
+                'secondary': 'Secondary Level',
+                'higher-secondary': 'Higher Secondary Level'
+            };
+            
+            const categoryNames = {
+                'shapes': 'Shapes & Geometry',
+                'basic': 'Basic Mathematics',
+                'algebra': 'Algebra',
+                'arithmetic': 'Arithmetic Operations',
+                'measurement': 'Measurement',
+                'data': 'Data Handling & Statistics',
+                'patterns': 'Patterns & Sequences',
+                'fractions': 'Fractions & Decimals',
+                'probability': 'Probability',
+                'trigonometry': 'Trigonometry',
+                'calculus': 'Calculus',
+                'coordinate': 'Coordinate Geometry',
+                'number': 'Number Theory',
+                'sets': 'Sets & Logic',
+                'functions': 'Functions',
+                'matrices': 'Matrices',
+                'vectors': 'Vectors',
+                'complex': 'Complex Numbers',
+                'series': 'Series & Sequences',
+                'limits': 'Limits & Continuity',
+                'differentiation': 'Differentiation',
+                'integration': 'Integration',
+                'differential': 'Differential Equations',
+                'linear': 'Linear Algebra',
+                'abstract': 'Abstract Algebra',
+                'discrete': 'Discrete Mathematics',
+                'graph': 'Graph Theory',
+                'topology': 'Topology',
+                'numerical': 'Numerical Analysis'
+            };
+            
+            let prompt = `Generate 3 creative mathematics model ideas for ${levelNames[educationLevel]} students focusing on ${categoryNames[mathCategory]}.`;
+            
+            if (specificTopic) {
+                prompt += ` The models should specifically relate to ${specificTopic}.`;
+            }
+            
+            prompt += ` For each model idea, provide:
+            1. A descriptive title
+            2. A brief explanation of the concept
+            3. Step-by-step development guidelines
+            4. Required materials (focus on low-cost or no-cost options)
+            5. Tips for creating an authentic and effective model
+            6. Potential extensions or variations
+            
+            Format the response in clear sections with headings. Make the models practical, engaging, and appropriate for the education level.`;
+            
+            return prompt;
+        }
+
+        // Display results from API
+        function displayResults(content) {
+            modelResults.innerHTML = `
+                <div class="model-details">
+                    ${formatContent(content)}
+                </div>
+            `;
+            resultContainer.style.display = 'block';
+        }
+
+        // Format the content from API response
+        function formatContent(content) {
+            // Convert markdown-like formatting to HTML
+            let formattedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                .replace(/## (.*?)\n/g, '<h3>$1</h3>')
+                .replace(/# (.*?)\n/g, '<h2>$1</h2>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            
+            return `<p>${formattedContent}</p>`;
+        }
+
+        // Fallback results in case API fails
+        function displayFallbackResults(educationLevel, mathCategory, specificTopic) {
+            const fallbackModels = getFallbackModels(educationLevel, mathCategory, specificTopic);
+            
+            let htmlContent = '';
+            fallbackModels.forEach((model, index) => {
+                htmlContent += `
+                    <div class="model-details">
+                        <h3>${model.title}</h3>
+                        <p><strong>Concept:</strong> ${model.concept}</p>
+                        <p><strong>Development Guidelines:</strong></p>
+                        <ol>
+                            ${model.guidelines.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                        <p><strong>Materials Needed:</strong></p>
+                        <ul>
+                            ${model.materials.map(material => `<li>${material}</li>`).join('')}
+                        </ul>
+                        <p><strong>Tips:</strong> ${model.tips}</p>
+                        <p><strong>Extensions:</strong> ${model.extensions}</p>
+                    </div>
+                `;
+            });
+            
+            modelResults.innerHTML = htmlContent;
+            resultContainer.style.display = 'block';
+        }
+
+        // Get fallback models based on selections
+        function getFallbackModels(educationLevel, mathCategory, specificTopic) {
+            // This is a simplified fallback - in a real application, you'd have more comprehensive data
+            const models = {
+                'primary-shapes': [
+                    {
+                        title: '3D Shape Models',
+                        concept: 'Creating physical models of basic 3D shapes to understand their properties',
+                        guidelines: [
+                            'Identify the 3D shapes you want to create (cube, sphere, cylinder, cone, pyramid)',
+                            'Gather materials like cardboard, paper, scissors, and glue',
+                            'Create nets for each shape and cut them out',
+                            'Fold and glue the nets to form the 3D shapes',
+                            'Label each shape with its name and properties'
+                        ],
+                        materials: ['Cardboard or thick paper', 'Scissors', 'Glue or tape', 'Markers for labeling'],
+                        tips: 'Use different colors for different shapes to make them visually distinct. Include real-world examples of each shape.',
+                        extensions: 'Create composite shapes by combining multiple basic shapes, or create a "shape museum" display.'
+                    },
+                    {
+                        title: 'Geometric Pattern Art',
+                        concept: 'Using geometric shapes to create artistic patterns and understanding symmetry',
+                        guidelines: [
+                            'Choose a base shape (square, triangle, hexagon)',
+                            'Create multiple copies of the shape in different colors',
+                            'Arrange the shapes to create repeating patterns',
+                            'Identify lines of symmetry in your patterns',
+                            'Experiment with rotation and reflection of shapes'
+                        ],
+                        materials: ['Colored paper', 'Scissors', 'Glue', 'Large sheet of paper for the base'],
+                        tips: 'Start with simple patterns and gradually increase complexity. Discuss how different cultures use geometric patterns in art and architecture.',
+                        extensions: 'Create tessellations that cover the entire plane without gaps, or explore fractal patterns.'
+                    }
+                ],
+                'middle-algebra': [
+                    {
+                        title: 'Algebra Tile Models',
+                        concept: 'Using physical tiles to represent algebraic expressions and equations',
+                        guidelines: [
+                            'Create tiles to represent positive and negative units, x-terms, and x²-terms',
+                            'Use different colors for positive and negative values',
+                            'Practice building expressions with the tiles',
+                            'Demonstrate equation solving by adding/removing tiles from both sides',
+                            'Explore factoring quadratic expressions using the tiles'
+                        ],
+                        materials: ['Cardboard or foam sheets', 'Scissors', 'Markers in different colors'],
+                        tips: 'Make sure the size relationships between unit tiles, x-tiles, and x²-tiles are proportional (e.g., x-tile is x times longer than unit tile).',
+                        extensions: 'Use the tiles to model polynomial operations or systems of equations.'
+                    },
+                    {
+                        title: 'Function Machine',
+                        concept: 'Creating a physical representation of mathematical functions',
+                        guidelines: [
+                            'Create an input-output machine model using cardboard',
+                            'Choose a specific function to demonstrate (e.g., f(x) = 2x + 3)',
+                            'Create number cards for inputs and outputs',
+                            'Show how the machine transforms inputs into outputs',
+                            'Experiment with different functions and their properties'
+                        ],
+                        materials: ['Cardboard box', 'Paper for number cards', 'Markers', 'Scissors'],
+                        tips: 'Make the machine interactive so students can put in numbers and see the results. Include both numerical and graphical representations.',
+                        extensions: 'Create multiple function machines and explore composition of functions, or create machines for inverse functions.'
+                    }
+                ]
+            };
+            
+            const key = `${educationLevel}-${mathCategory}`;
+            return models[key] || [
+                {
+                    title: 'Mathematical Concept Demonstration',
+                    concept: 'A hands-on model to explore mathematical concepts',
+                    guidelines: [
+                        'Identify the key mathematical concept to demonstrate',
+                        'Design a physical model that illustrates this concept',
+                        'Gather appropriate materials',
+                        'Construct the model step by step',
+                        'Test the model and refine as needed'
+                    ],
+                    materials: ['Low-cost materials like paper, cardboard, string, etc.'],
+                    tips: 'Focus on making the concept visually clear and interactive. Connect the model to real-world applications.',
+                    extensions: 'Vary the parameters of your model to explore different cases or applications.'
+                }
+            ];
+        }
+
+        // Export to Word function
+        function exportToWord() {
+            const content = modelResults.innerHTML;
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Mathematics Models</title></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + content + footer;
+            
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const downloadLink = document.createElement('a');
+            
+            document.body.appendChild(downloadLink);
+            downloadLink.href = source;
+            downloadLink.download = 'mathematics-models.doc';
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Export to PDF function
+        function exportToPDF() {
+            // In a real implementation, you would use a library like jsPDF
+            // This is a simplified version that uses browser print functionality
+            const content = modelResults.innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = content;
+            window.print();
+            document.body.innerHTML = originalContent;
+            
+            // Reload the event listeners
+            generateBtn.addEventListener('click', generateModelIdeas);
+            exportWordBtn.addEventListener('click', exportToWord);
+            exportPDFBtn.addEventListener('click', exportToPDF);
+        }
+    </script>
+</body>
+</html>

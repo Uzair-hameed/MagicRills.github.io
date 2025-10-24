@@ -1,0 +1,964 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/2760/2760417.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/2760/2760417.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Health & Hygiene – ECCE Teacher Idea Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root{--primary:#4CAF50;--secondary:#2196F3;--accent:#FFC107;--light:#f5f5f5;--dark:#333;--text:#424242;--white:#fff}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+        body{background-color:#f9f9f9;color:var(--text);line-height:1.6;padding:20px}
+        .container{max-width:1000px;margin:0 auto;background:var(--white);border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.1);padding:30px}
+        h1{color:var(--primary);text-align:center;margin-bottom:20px;font-size:2.2rem}
+        h2{color:var(--secondary);margin:20px 0 15px;font-size:1.5rem;border-bottom:2px solid var(--accent);padding-bottom:8px}
+        .intro{text-align:center;margin-bottom:30px;color:var(--text);font-size:1.1rem}
+        .tool-section{display:none;margin-bottom:30px}
+        .tool-section.active{display:block}
+        .form-group{margin-bottom:20px}
+        label{display:block;margin-bottom:8px;font-weight:600;color:var(--dark)}
+        select,input,button{width:100%;padding:12px;border:1px solid #ddd;border-radius:5px;font-size:1rem}
+        button{background-color:var(--primary);color:white;border:none;cursor:pointer;font-weight:600;transition:background-color 0.3s;margin-top:10px}
+        button:hover{background-color:#45a049}
+        .btn-secondary{background-color:var(--secondary)}
+        .btn-secondary:hover{background-color:#0d8bf2}
+        .btn-accent{background-color:var(--accent);color:var(--dark)}
+        .btn-accent:hover{background-color:#ffb300}
+        .idea-result{background-color:#f0f8ff;border-left:4px solid var(--secondary);padding:20px;border-radius:0 5px 5px 0;margin-top:20px}
+        .idea-result h3{color:var(--primary);margin-bottom:15px}
+        .idea-section{margin-bottom:15px}
+        .idea-section h4{color:var(--secondary);margin-bottom:8px;display:flex;align-items:center}
+        .idea-section h4 svg{margin-right:8px}
+        .tab-container{display:flex;margin-bottom:20px;border-bottom:1px solid #ddd}
+        .tab{flex:1;text-align:center;padding:12px;cursor:pointer;background-color:#eee;border:none;transition:all 0.3s}
+        .tab:first-child{border-radius:5px 0 0 0}
+        .tab:last-child{border-radius:0 5px 0 0}
+        .tab.active{background-color:var(--primary);color:white;font-weight:600}
+        .hidden{display:none}
+        .export-options{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+        .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:20px}
+        .activity-card{background:white;border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,0.1);padding:20px;transition:transform 0.3s}
+        .activity-card:hover{transform:translateY(-5px)}
+        .activity-card h3{color:var(--primary);margin-bottom:10px}
+        .activity-card p{margin-bottom:8px}
+        .activity-card .materials{font-style:italic;color:#666}
+        .favorite-btn{background:none;border:none;color:#ff5252;font-size:1.5rem;cursor:pointer;padding:0;width:auto;float:right}
+        .favorites-list{margin-top:30px}
+        .song-item{margin-bottom:15px;padding:15px;background-color:#f5f5f5;border-radius:5px}
+        .song-item h4{color:var(--secondary);margin-bottom:8px}
+        .printable-chart{margin:20px 0;padding:15px;border:1px dashed #ccc;background-color:#fff8e1;text-align:center}
+        .visual-cues{display:flex;flex-wrap:wrap;gap:15px;margin:20px 0}
+        .visual-cue{width:80px;text-align:center}
+        .visual-cue img{width:60px;height:60px;object-fit:contain}
+        .visual-cue p{font-size:0.8rem;margin-top:5px}
+        @media(max-width:768px){.container{padding:15px}.activity-grid{grid-template-columns:1fr}.export-options{flex-direction:column}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Health &amp; Hygiene – ECCE Teacher Idea Generator</h1>
+        <p class="intro">Empowering teachers to plan hands-on, developmentally appropriate activities that promote health and hygiene in young children.</p>
+        
+        <div class="tab-container">
+            <button class="tab active" onclick="openTab('generator')">Idea Generator</button>
+            <button class="tab" onclick="openTab('songs')">Songs &amp; Rhymes</button>
+            <button class="tab" onclick="openTab('printables')">Printable Charts</button>
+            <button class="tab" onclick="openTab('visuals')">Visual Cues</button>
+            <button class="tab" onclick="openTab('favorites')">My Favorites</button>
+        </div>
+        
+        <!-- Idea Generator Tab -->
+        <div class="tool-section active" id="generator">
+            <div class="form-group">
+                <label for="topic">Select a Health &amp; Hygiene Topic:</label>
+                <select id="topic">
+                    <option value="">-- Select a Topic --</option>
+                    <option value="daily">🧽 Daily Hygiene (brushing, bathing, handwashing)</option>
+                    <option value="eating">🍎 Healthy Eating</option>
+                    <option value="clothes">🧦 Clean Clothes &amp; Body Awareness</option>
+                    <option value="helpers">🩺 People Who Help Us Stay Healthy</option>
+                    <option value="sickness">🤧 Staying Clean During Sickness</option>
+                    <option value="germs">🧴 Germs &amp; Safety Habits</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="age-group">Age Group:</label>
+                <select id="age-group">
+                    <option value="2-3">2-3 years</option>
+                    <option value="3-4">3-4 years</option>
+                    <option value="4-5">4-5 years</option>
+                    <option value="5-6">5-6 years</option>
+                </select>
+            </div>
+            
+            <button onclick="generateIdea()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Generate Activity Idea</a></button>
+            <button class="btn-accent" onclick="generateRandomIdea()">🌀 Surprise Me!</button>
+            
+            <div class="idea-result hidden" id="idea-result">
+                <button class="favorite-btn" onclick="addToFavorites()">❤️</button>
+                <h3 id="activity-title"></h3>
+                
+                <div class="idea-section">
+                    <h4>🧺 Materials Needed</h4>
+                    <p id="materials"></p>
+                </div>
+                
+                <div class="idea-section">
+                    <h4>👩‍🏫 Teaching Process</h4>
+                    <div id="process"></div>
+                </div>
+                
+                <div class="idea-section">
+                    <h4>🎯 Learning Outcome</h4>
+                    <p id="outcome"></p>
+                </div>
+                
+                <div class="idea-section">
+                    <h4>🖼️ Display/Extension Tip</h4>
+                    <p id="display"></p>
+                </div>
+                
+                <div class="export-options">
+                    <button class="btn-secondary" onclick="exportToPDF()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Export to PDF</a></button>
+                    <button class="btn-secondary" onclick="printActivity()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Print Activity</a></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Songs & Rhymes Tab -->
+        <div class="tool-section" id="songs">
+            <h2>Songs &amp; Rhymes for Health &amp; Hygiene</h2>
+            
+            <div class="song-item">
+                <h4>🪥 Brush Your Teeth</h4>
+                <p>This is the way we brush our teeth,<br />
+                Brush our teeth, brush our teeth.<br />
+                This is the way we brush our teeth,<br />
+                Early in the morning!</p>
+            </div>
+            
+            <div class="song-item">
+                <h4>🧼 Handwashing Song</h4>
+                <p>Tops and bottoms, tops and bottoms,<br />
+                In between, in between.<br />
+                Rub your hands together,<br />
+                Rub your hands together,<br />
+                Now they're clean, now they're clean!</p>
+                <p>(To the tune of "Frère Jacques")</p>
+            </div>
+            
+            <div class="song-item">
+                <h4>🚿 Bath Time Song</h4>
+                <p>Splish, splash, splish, splash,<br />
+                In the tub we take a bath.<br />
+                Wash your hair and wash your toes,<br />
+                Wash your ears and wash your nose!</p>
+            </div>
+            
+            <div class="song-item">
+                <h4>🍎 Healthy Food Song</h4>
+                <p>Apples, bananas, oranges and pears,<br />
+                Fruits are good for us, we declare!<br />
+                Carrots, broccoli, veggies so fine,<br />
+                Help us grow strong and keep us in line!</p>
+            </div>
+            
+            <div class="export-options">
+                <button class="btn-secondary" onclick="exportSongsToPDF()">Export Songs to PDF</button>
+            </div>
+        </div>
+        
+        <!-- Printable Charts Tab -->
+        <div class="tool-section" id="printables">
+            <h2>Printable Hygiene Chart Templates</h2>
+            
+            <div class="printable-chart" id="handwashing-chart">
+                <h3>🧼 Handwashing Steps Chart</h3>
+                <p>1. Wet your hands with clean water</p>
+                <p>2. Apply soap</p>
+                <p>3. Rub hands together (20 seconds)</p>
+                <p>4. Rinse with clean water</p>
+                <p>5. Dry with clean towel</p>
+                <button onclick="printChart('handwashing-chart')">Print This Chart</button>
+            </div>
+            
+            <div class="printable-chart" id="teeth-brushing-chart">
+                <h3>🪥 Teeth Brushing Chart</h3>
+                <p>Morning ☀️: [ ]</p>
+                <p>Night 🌙: [ ]</p>
+                <p>5 stars = A brushing super star!</p>
+                <button onclick="printChart('teeth-brushing-chart')">Print This Chart</button>
+            </div>
+            
+            <div class="printable-chart" id="healthy-plate-chart">
+                <h3>🍽️ My Healthy Plate</h3>
+                <p>Draw or paste pictures of:</p>
+                <p>Fruits 🍎🍌 | Vegetables 🥕🥦</p>
+                <p>Grains 🍞 | Protein 🥚 | Dairy 🥛</p>
+                <button onclick="printChart('healthy-plate-chart')">Print This Chart</button>
+            </div>
+        </div>
+        
+        <!-- Visual Cues Tab -->
+        <div class="tool-section" id="visuals">
+            <h2>Visual Cues Gallery</h2>
+            <p>Use these visual cues to create reminders and learning aids in your classroom.</p>
+            
+            <div class="visual-cues">
+                <div class="visual-cue">
+                    <img alt="Soap" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMjU2IDhDMTE5IDggOCAxMTkgOCAyNTZzMTExIDI0OCAyNDggMjQ4IDI0OC0xMTEgMjQ4LTI0OFMzOTMgOCAyNTYgOHptMCA0NDhjLTExMC41IDAtMjAwLTg5LjUtMjAwLTIwMFMxNDUuNSA1NiAyNTYgNTZzMjAwIDg5LjUgMjAwIDIwMC04OS41IDIwMC0yMDAgMjAwWm0xMDEuOC0yNjEuN2wtMTYuMi0xMy4yYy01LjItNC4yLTYuNy0xMS41LTMuNS0xNy40bDM4LjctODkuNWMzLjItNy44IDEyLjEtMTEuMiAxOS45LTguN2wxMy4yIDUuMmM3LjggMy4yIDExLjIgMTIuMSA4LjcgMTkuOUwzODYuNCAxODVjLTMuMiA3LjgtMTIuMSAxMS4yLTE5LjkgOC43bC0xMy4yLTUuMlpNMjU2IDE2OGMtMjYuNSAwLTQ4IDIxLjUtNDggNDhzMjEuNSA0OCA0OCA0OCA0OC0yMS41IDQ4LTQ4LTIxLjUtNDgtNDgtNDh6bTAgNjRjLTguOCAwLTE2LTcuMi0xNi0xNnM3LjItMTYgMTYtMTYgMTYgNy4yIDE2IDE2LTcuMiAxNi0xNiAxNloiIGZpbGw9IiM0Q0FGNTAiLz48L3N2Zz4=" />
+                    <p>Soap</p>
+                </div>
+                <div class="visual-cue">
+                    <img alt="Toothbrush" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMjU2IDhDMTE5IDggOCAxMTkgOCAyNTZzMTExIDI0OCAyNDggMjQ4IDI0OC0xMTEgMjQ4LTI0OFMzOTMgOCAyNTYgOHptMCA0NDhjLTExMC41IDAtMjAwLTg5LjUtMjAwLTIwMFMxNDUuNSA1NiAyNTYgNTZzMjAwIDg5LjUgMjAwIDIwMC04OS41IDIwMC0yMDAgMjAwWm0xMDEuOC0yNjEuN2wtMTYuMi0xMy4yYy01LjItNC4yLTYuNy0xMS41LTMuNS0xNy40bDM4LjctODkuNWMzLjItNy44IDEyLjEtMTEuMiAxOS45LTguN2wxMy4yIDUuMmM3LjggMy4yIDExLjIgMTIuMSA4LjcgMTkuOUwzODYuNCAxODVjLTMuMiA3LjgtMTIuMSAxMS4yLTE5LjkgOC43bC0xMy4yLTUuMlpNMjU2IDE2OGMtMjYuNSAwLTQ4IDIxLjUtNDggNDhzMjEuNSA0OCA0OCA0OCA0OC0yMS41IDQ4LTQ4LTIxLjUtNDgtNDgtNDh6bTAgNjRjLTguOCAwLTE2LTcuMi0xNi0xNnM3LjItMTYgMTYtMTYgMTYgNy4yIDE2IDE2LTcuMiAxNi0xNiAxNloiIGZpbGw9IiMyMTk2RjMiLz48L3N2Zz4=" />
+                    <p>Toothbrush</p>
+                </div>
+                <div class="visual-cue">
+                    <img alt="Towel" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMjU2IDhDMTE5IDggOCAxMTkgOCAyNTZzMTExIDI0OCAyNDggMjQ4IDI0OC0xMTEgMjQ4LTI0OFMzOTMgOCAyNTYgOHptMCA0NDhjLTExMC41IDAtMjAwLTg5LjUtMjAwLTIwMFMxNDUuNSA1NiAyNTYgNTZzMjAwIDg5LjUgMjAwIDIwMC04OS41IDIwMC0yMDAgMjAwWm0xMDEuOC0yNjEuN2wtMTYuMi0xMy4yYy01LjItNC4yLTYuNy0xMS41LTMuNS0xNy40bDM4LjctODkuNWMzLjItNy44IDEyLjEtMTEuMiAxOS45LTguN2wxMy4yIDUuMmM3LjggMy4yIDExLjIgMTIuMSA4LjcgMTkuOUwzODYuNCAxODVjLTMuMiA3LjgtMTIuMSAxMS4yLTE5LjkgOC43bC0xMy4yLTUuMlpNMjU2IDE2OGMtMjYuNSAwLTQ4IDIxLjUtNDggNDhzMjEuNSA0OCA0OCA0OCA0OC0yMS41IDQ4LTQ4LTIxLjUtNDgtNDgtNDh6bTAgNjRjLTguOCAwLTE2LTcuMi0xNi0xNnM3LjItMTYgMTYtMTYgMTYgNy4yIDE2IDE2LTcuMiAxNi0xNiAxNloiIGZpbGw9IiNGRjVEMjUiLz48L3N2Zz4=" />
+                    <p>Towel</p>
+                </div>
+                <div class="visual-cue">
+                    <img alt="Tissue" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMjU2IDhDMTE5IDggOCAxMTkgOCAyNTZzMTExIDI0OCAyNDggMjQ4IDI0OC0xMTEgMjQ4LTI0OFMzOTMgOCAyNTYgOHptMCA0NDhjLTExMC41IDAtMjAwLTg5LjUtMjAwLTIwMFMxNDUuNSA1NiAyNTYgNTZzMjAwIDg5LjUgMjAwIDIwMC04OS41IDIwMC0yMDAgMjAwWm0xMDEuOC0yNjEuN2wtMTYuMi0xMy4yYy01LjItNC4yLTYuNy0xMS41LTMuNS0xNy40bDM4LjctODkuNWMzLjItNy44IDEyLjEtMTEuMiAxOS45LTguN2wxMy4yIDUuMmM3LjggMy4yIDExLjIgMTIuMSA4LjcgMTkuOUwzODYuNCAxODVjLTMuMiA3LjgtMTIuMSAxMS4yLTE5LjkgOC43bC0xMy4yLTUuMlpNMjU2IDE2OGMtMjYuNSAwLTQ4IDIxLjUtNDggNDhzMjEuNSA0OCA0OCA0OCA0OC0yMS41IDQ4LTQ4LTIxLjUtNDgtNDgtNDh6bTAgNjRjLTguOCAwLTE2LTcuMi0xNi0xNnM3LjItMTYgMTYtMTYgMTYgNy4yIDE2IDE2LTcuMiAxNi0xNiAxNloiIGZpbGw9IiNGRjhDQTAiLz48L3N2Zz4=" />
+                    <p>Tissue</p>
+                </div>
+                <div class="visual-cue">
+                    <img alt="Apple" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMjU2IDhDMTE5IDggOCAxMTkgOCAyNTZzMTExIDI0OCAyNDggMjQ4IDI0OC0xMTEgMjQ4LTI0OFMzOTMgOCAyNTYgOHptMCA0NDhjLTExMC41IDAtMjAwLTg5LjUtMjAwLTIwMFMxNDUuNSA1NiAyNTYgNTZzMjAwIDg5LjUgMjAwIDIwMC04OS41IDIwMC0yMDAgMjAwWm0xMDEuOC0yNjEuN2wtMTYuMi0xMy4yYy01LjItNC4yLTYuNy0xMS41LTMuNS0xNy40bDM4LjctODkuNWMzLjItNy44IDEyLjEtMTEuMiAxOS45LTguN2wxMy4yIDUuMmM3LjggMy4yIDExLjIgMTIuMSA4LjcgMTkuOUwzODYuNCAxODVjLTMuMiA3LjgtMTIuMSAxMS4yLTE5LjkgOC43bC0xMy4yLTUuMlpNMjU2IDE2OGMtMjYuNSAwLTQ4IDIxLjUtNDggNDhzMjEuNSA0OCA0OCA0OCA0OC0yMS41IDQ4LTQ4LTIxLjUtNDgtNDgtNDh6bTAgNjRjLTguOCAwLTE2LTcuMi0xNi0xNnM3LjItMTYgMTYtMTYgMTYgNy4yIDE2IDE2LTcuMiAxNi0xNiAxNloiIGZpbGw9IiNGRjUyNTIiLz48L3N2Zz4=" />
+                    <p>Apple</p>
+                </div>
+                <div class="visual-cue">
+                    <img alt="Water" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNMjU2IDhDMTE5IDggOCAxMTkgOCAyNTZzMTExIDI0OCAyNDggMjQ4IDI0OC0xMTEgMjQ4LTI0OFMzOTMgOCAyNTYgOHptMCA0NDhjLTExMC41IDAtMjAwLTg5LjUtMjAwLTIwMFMxNDUuNSA1NiAyNTYgNTZzMjAwIDg5LjUgMjAwIDIwMC04OS41IDIwMC0yMDAgMjAwWm0xMDEuOC0yNjEuN2wtMTYuMi0xMy4yYy01LjItNC4yLTYuNy0xMS41LTMuNS0xNy40bDM4LjctODkuNWMzLjItNy44IDEyLjEtMTEuMiAxOS45LTguN2wxMy4yIDUuMmM3LjggMy4yIDExLjIgMTIuMSA4LjcgMTkuOUwzODYuNCAxODVjLTMuMiA3LjgtMTIuMSAxMS4yLTE5LjkgOC43bC0xMy4yLTUuMlpNMjU2IDE2OGMtMjYuNSAwLTQ4IDIxLjUtNDggNDhzMjEuNSA0OCA0OCA0OCA0OC0yMS41IDQ4LTQ4LTIxLjUtNDgtNDgtNDh6bTAgNjRjLTguOCAwLTE2LTcuMi0xNi0xNnM3LjItMTYgMTYtMTYgMTYgNy4yIDE2IDE2LTcuMiAxNi0xNiAxNloiIGZpbGw9IiM0Q0FGNTAiLz48L3N2Zz4=" />
+                    <p>Water</p>
+                </div>
+            </div>
+            
+            <div class="export-options">
+                <button class="btn-secondary" onclick="printVisualCues()">Print Visual Cues</button>
+            </div>
+        </div>
+        
+        <!-- Favorites Tab -->
+        <div class="tool-section" id="favorites">
+            <h2>My Favorite Activities</h2>
+            <div class="favorites-list" id="favorites-list">
+                <p>No favorites saved yet. Generate some ideas and click the ❤️ button to save them here!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Activity database
+        const activities = {
+            daily: [
+                {
+                    title: "🧼 Handwash Hero",
+                    materials: "Soap, water bowl or drawing of tap, 5-step handwashing poster, paper, crayons",
+                    process: [
+                        "Show handwashing poster and discuss why we wash hands",
+                        "Demonstrate steps with song: 'Tops and bottoms, tops and bottoms, in between, in between...'",
+                        "Let children practice handwashing motions with pretend soap and water",
+                        "Have children trace their hands and draw/write the steps around them",
+                        "Ask children when we should wash our hands (before eating, after bathroom, etc.)"
+                    ],
+                    outcome: "Children understand when and how to wash hands properly",
+                    display: "Create a 'Our Clean Hands Wall' with the children's hand tracings"
+                },
+                {
+                    title: "🪥 Brush, Brush, Brush!",
+                    materials: "Large tooth model or diagram, toy toothbrush, toothpaste tube, white egg cartons (for teeth), yarn (floss)",
+                    process: [
+                        "Ask: 'Why do we brush our teeth?' Show what happens when we don't (use brown crayon on egg carton 'teeth')",
+                        "Demonstrate proper brushing technique on model (small circles, all surfaces)",
+                        "Children practice on egg carton 'teeth' with dry toothbrushes",
+                        "Sing: 'This is the way we brush our teeth...'",
+                        "Discuss healthy vs. unhealthy foods for teeth"
+                    ],
+                    outcome: "Children can demonstrate proper brushing technique and name good dental habits",
+                    display: "Create a 'Healthy Smiles' collage with pictures of tooth-friendly foods"
+                },
+                {
+                    title: "🚿 Bath Time for Baby Dolls",
+                    materials: "Baby dolls, small tubs or basins, washcloths, toy soap, towels, clean clothes",
+                    process: [
+                        "Discuss why we take baths and what we use",
+                        "Demonstrate washing different body parts (face, arms, legs, etc.)",
+                        "Children give their dolls baths, naming each body part as they wash",
+                        "Practice drying and dressing the dolls",
+                        "Sing bath time songs during the activity"
+                    ],
+                    outcome: "Children understand bathing routines and can name body parts",
+                    display: "Take photos of children bathing dolls to make a 'Clean Kids' sequence chart"
+                }
+            ],
+            eating: [
+                {
+                    title: "🍏 Colorful Plate Game",
+                    materials: "Food pictures or plastic food items, paper plates, crayons, 'My Plate' chart",
+                    process: [
+                        "Show 'My Plate' chart and discuss food groups",
+                        "Have children sort food items/pictures into groups (fruits, veggies, grains, protein, dairy)",
+                        "Children create their own balanced meal on paper plates",
+                        "Discuss why we need variety ('Eating rainbow foods helps us grow strong!')",
+                        "Ask children to name their favorite healthy foods"
+                    ],
+                    outcome: "Children can identify foods from different groups and understand the concept of balanced meals",
+                    display: "Create a 'Healthy Choices' bulletin board with children's plate creations"
+                },
+                {
+                    title: "🥕 Vegetable Stamp Art",
+                    materials: "Cut vegetables (potatoes, carrots, celery, peppers), washable paint, paper, plates for paint",
+                    process: [
+                        "Show and name vegetables, discuss how they help our bodies",
+                        "Demonstrate stamping with different vegetables",
+                        "Children create prints, naming each vegetable they use",
+                        "While prints dry, discuss other ways we eat these veggies",
+                        "Ask: 'Which vegetable would you like to try?'"
+                    ],
+                    outcome: "Children can name common vegetables and understand they are healthy",
+                    display: "Create a 'Garden Gallery' with the prints and label each vegetable used"
+                },
+                {
+                    title: "🥛 Milk to Yogurt Experiment",
+                    materials: "Small containers of milk, yogurt with live cultures, spoons, magnifying glasses, chart paper",
+                    process: [
+                        "Show milk and yogurt, discuss where they come from",
+                        "Add spoonful of yogurt to milk, mix, and let sit (start this at beginning of day)",
+                        "Periodically observe changes (use magnifiers)",
+                        "Discuss how healthy bacteria change milk to yogurt",
+                        "Taste plain yogurt with optional healthy toppings"
+                    ],
+                    outcome: "Children understand some foods change forms and are made with healthy bacteria",
+                    display: "Document the process with photos and children's observations on chart paper"
+                }
+            ],
+            clothes: [
+                {
+                    title: "🧺 Laundry Sorting Fun",
+                    materials: "Assorted clean clothes items (socks, shirts, pants), laundry baskets or boxes labeled with clothing types",
+                    process: [
+                        "Discuss why we wear clean clothes and how they get clean",
+                        "Demonstrate sorting by type, color, or family member",
+                        "Children sort laundry items into appropriate baskets",
+                        "Add fine motor challenge: use clothespins to hang items on string",
+                        "Discuss proper storage of clean clothes"
+                    ],
+                    outcome: "Children can sort clothing items and understand laundry concepts",
+                    display: "Create a 'Laundry Helper' chart with photos of children sorting"
+                },
+                {
+                    title: "👚 Dress for the Weather",
+                    materials: "Seasonal clothing items, paper dolls with clothing options, weather chart",
+                    process: [
+                        "Discuss how weather affects what we wear",
+                        "Show weather symbols (sun, rain, snow) and match appropriate clothing",
+                        "Children dress paper dolls for different weather scenarios",
+                        "Play 'What's Wrong?' with improperly dressed dolls",
+                        "Sing weather-related dressing songs"
+                    ],
+                    outcome: "Children understand how to choose appropriate clothing for weather conditions",
+                    display: "Create a 'Weather Wardrobe' bulletin board with children's dressed dolls"
+                },
+                {
+                    title: "🧦 Sock Matching Race",
+                    materials: "Assorted clean socks (various colors/patterns), baskets, timer",
+                    process: [
+                        "Discuss why we wear clean socks and how to care for them",
+                        "Scatter socks around the room",
+                        "Children race to find and match pairs, then fold them",
+                        "Add variations: sort by color, size, or family member",
+                        "Discuss proper sock storage"
+                    ],
+                    outcome: "Children develop matching skills and understand clothing care",
+                    display: "Take action photos to create a 'Sock Matching Steps' sequence chart"
+                }
+            ],
+            helpers: [
+                {
+                    title: "🩺 Doctor's Office Dramatic Play",
+                    materials: "Doctor play set (stethoscope, bandages, etc.), clipboards, paper, dolls/stuffed animals",
+                    process: [
+                        "Discuss what doctors do to help us stay healthy",
+                        "Set up a pretend doctor's office with different stations",
+                        "Children take turns being doctors, nurses, and patients",
+                        "Focus on healthy habits doctors recommend",
+                        "Create 'prescriptions' for healthy behaviors"
+                    ],
+                    outcome: "Children understand the role of doctors and basic health check-up procedures",
+                    display: "Display photos of real doctors at work alongside children's play"
+                },
+                {
+                    title: "🦷 Dentist Visit Role Play",
+                    materials: "Mirror, tooth model, toothbrush, floss, dentist tools (toy or real), sunglasses (for bright light)",
+                    process: [
+                        "Discuss what dentists do and why visits are important",
+                        "Demonstrate proper dental exam using doll or volunteer",
+                        "Children take turns being dentist and patient",
+                        "Practice counting teeth and identifying healthy vs. unhealthy teeth",
+                        "Sing dental health songs"
+                    ],
+                    outcome: "Children become familiar with dental visits and reinforce brushing habits",
+                    display: "Create a 'Healthy Teeth' display with children's drawings of dentist visits"
+                },
+                {
+                    title: "🚑 Emergency Helpers",
+                    materials: "Toy phones, first aid kit items, emergency vehicle pictures, uniforms (if available)",
+                    process: [
+                        "Discuss different emergency helpers (paramedics, firefighters, police)",
+                        "Practice calling 911 (what information to give)",
+                        "Role play different emergency scenarios",
+                        "Focus on how these helpers keep us healthy/safe",
+                        "Discuss prevention (why we wear helmets, etc.)"
+                    ],
+                    outcome: "Children understand emergency helpers' roles and basic safety practices",
+                    display: "Create a 'Community Helpers' collage with children's drawings"
+                }
+            ],
+            sickness: [
+                {
+                    title: "🤧 Germ Detective",
+                    materials: "Glitter, lotion, small spray bottle with water, black paper, magnifying glasses",
+                    process: [
+                        "Put glitter in lotion to represent germs, have children rub hands",
+                        "Show how glitter spreads to surfaces and other people",
+                        "Use spray bottle to simulate sneezes (show how far droplets travel)",
+                        "Practice proper tissue use and disposal",
+                        "Demonstrate handwashing to remove 'germs'"
+                    ],
+                    outcome: "Children understand how germs spread and importance of containment",
+                    display: "Create 'Germ Detective Rules' poster with children's suggestions"
+                },
+                {
+                    title: "🧻 Tissue Catch Game",
+                    materials: "Tissues, small trash cans, stickers for decoration",
+                    process: [
+                        "Discuss proper sneezing/coughing etiquette (elbow vs. hands)",
+                        "Practice throwing used tissues into trash cans (start close, increase distance)",
+                        "Decorate tissue boxes and trash cans to make them appealing",
+                        "Discuss why we don't reuse tissues",
+                        "Sing a 'Tissue Toss' song during the game"
+                    ],
+                    outcome: "Children develop proper tissue use habits for illness hygiene",
+                    display: "Display decorated tissue boxes around the classroom"
+                },
+                {
+                    title: "😷 Feeling Sick? What to Do",
+                    materials: "Dolls/stuffed animals, thermometer, tissues, water bottle, blanket",
+                    process: [
+                        "Discuss signs of being sick and what helps us feel better",
+                        "Set up a 'sick room' with comfort items",
+                        "Children practice caring for 'sick' dolls (take temperature, give water, etc.)",
+                        "Role play telling an adult when feeling unwell",
+                        "Discuss when to stay home from school"
+                    ],
+                    outcome: "Children recognize illness symptoms and appropriate responses",
+                    display: "Create a 'Get Well Soon' book with children's care suggestions"
+                }
+            ],
+            germs: [
+                {
+                    title: "🦠 Glitter Germ Experiment",
+                    materials: "Glitter, hand lotion, soap, water, towels, black construction paper",
+                    process: [
+                        "Mix glitter with lotion and apply to teacher's hands",
+                        "Shake hands with children, touch objects to show spread",
+                        "Try washing with water only - show glitter remains",
+                        "Demonstrate proper soap and water technique",
+                        "Discuss when we should wash hands"
+                    ],
+                    outcome: "Children understand how germs spread and importance of proper handwashing",
+                    display: "Create a 'Germ Stopper' pledge chart with handprint signatures"
+                },
+                {
+                    title: "🚪 High-Touch Spot Hunt",
+                    materials: "Flashlights, stickers or washable markers, chart paper",
+                    process: [
+                        "Discuss places germs like to hide (doorknobs, toys, tables)",
+                        "Children use flashlights to 'investigate' high-touch areas",
+                        "Mark these spots with stickers to remember to clean them",
+                        "Practice cleaning some spots together",
+                        "Make a classroom cleaning schedule chart"
+                    ],
+                    outcome: "Children identify common germ hotspots and understand regular cleaning",
+                    display: "Post the marked-up cleaning schedule in the classroom"
+                },
+                {
+                    title: "🧴 Safe or Unsafe?",
+                    materials: "Picture cards of safe/unsafe hygiene situations, smiley/frowny face cards",
+                    process: [
+                        "Show various hygiene scenarios (sharing toothbrush, washing hands, etc.)",
+                        "Children hold up smiley or frowny face to judge safety",
+                        "Discuss why each situation is safe or unsafe",
+                        "Act out proper alternatives for unsafe situations",
+                        "Create classroom hygiene rules together"
+                    ],
+                    outcome: "Children can identify safe hygiene practices and potential risks",
+                    display: "Post children's illustrated hygiene rules in the classroom"
+                }
+            ]
+        };
+
+        // Age-appropriate modifications
+        const ageModifications = {
+            "2-3": {
+                process: "Use simple 2-3 word instructions. Demonstrate each step. Focus on sensory exploration.",
+                outcome: "Basic recognition and beginning understanding of concepts.",
+                materials: "Add more sensory items (textured, scented). Use large, easy-to-handle objects."
+            },
+            "3-4": {
+                process: "Give 3-4 step instructions. Include simple questions. Add movement and songs.",
+                outcome: "Developing understanding and ability to follow routines.",
+                materials: "Include items for beginning pretend play. Add simple tools."
+            },
+            "4-5": {
+                process: "Incorporate more discussion questions. Add sequencing activities. Include simple problem-solving.",
+                outcome: "Demonstrate understanding through explanation and application.",
+                materials: "Add writing/drawing materials. Include more complex dramatic play props."
+            },
+            "5-6": {
+                process: "Include prediction questions. Add more complex role-play scenarios. Incorporate simple experiments.",
+                outcome: "Explain concepts and make connections to real-life situations.",
+                materials: "Add literacy elements (labels, simple books). Include measurement tools."
+            }
+        };
+
+        // DOM elements
+        const topicSelect = document.getElementById('topic');
+        const ageGroupSelect = document.getElementById('age-group');
+        const ideaResult = document.getElementById('idea-result');
+        const activityTitle = document.getElementById('activity-title');
+        const materials = document.getElementById('materials');
+        const process = document.getElementById('process');
+        const outcome = document.getElementById('outcome');
+        const display = document.getElementById('display');
+        const favoritesList = document.getElementById('favorites-list');
+
+        // Initialize favorites from localStorage
+        let favorites = JSON.parse(localStorage.getItem('hygieneFavorites')) || [];
+
+        // Tab navigation
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tool-section');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            document.getElementById(tabName).classList.add('active');
+            
+            const tabButtons = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            event.currentTarget.classList.add('active');
+            
+            if (tabName === 'favorites') {
+                displayFavorites();
+            }
+        }
+
+        // Generate activity idea
+        function generateIdea() {
+            const topic = topicSelect.value;
+            const ageGroup = ageGroupSelect.value;
+            
+            if (!topic) {
+                alert('Please select a topic first!');
+                return;
+            }
+            
+            const topicActivities = activities[topic];
+            const randomActivity = topicActivities[Math.floor(Math.random() * topicActivities.length)];
+            const ageMod = ageModifications[ageGroup];
+            
+            displayActivity(randomActivity, ageMod);
+        }
+
+        // Generate random activity from any topic
+        function generateRandomIdea() {
+            const topics = Object.keys(activities);
+            const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+            topicSelect.value = randomTopic;
+            
+            generateIdea();
+        }
+
+        // Display activity
+        function displayActivity(activity, ageMod) {
+            activityTitle.textContent = activity.title;
+            
+            // Combine materials with age modification
+            materials.innerHTML = activity.materials + 
+                `<br><br><strong>Age Adaptation:</strong> ${ageMod.materials}`;
+            
+            // Process steps with age modification
+            process.innerHTML = '';
+            activity.process.forEach(step => {
+                const stepElement = document.createElement('p');
+                stepElement.textContent = step;
+                process.appendChild(stepElement);
+            });
+            
+            const modProcess = document.createElement('p');
+            modProcess.innerHTML = `<strong>Age Adaptation:</strong> ${ageMod.process}`;
+            process.appendChild(modProcess);
+            
+            // Outcome with age modification
+            outcome.innerHTML = activity.outcome + 
+                `<br><br><strong>Age Adaptation:</strong> ${ageMod.outcome}`;
+            
+            display.textContent = activity.display;
+            
+            ideaResult.classList.remove('hidden');
+            ideaResult.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Add to favorites
+        function addToFavorites() {
+            if (ideaResult.classList.contains('hidden')) return;
+            
+            const currentActivity = {
+                title: activityTitle.textContent,
+                materials: materials.textContent,
+                process: process.innerHTML,
+                outcome: outcome.textContent,
+                display: display.textContent,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            // Check if already in favorites
+            const isDuplicate = favorites.some(fav => 
+                fav.title === currentActivity.title && 
+                fav.materials === currentActivity.materials);
+            
+            if (!isDuplicate) {
+                favorites.push(currentActivity);
+                localStorage.setItem('hygieneFavorites', JSON.stringify(favorites));
+                alert('Added to favorites!');
+                
+                if (document.getElementById('favorites').classList.contains('active')) {
+                    displayFavorites();
+                }
+            } else {
+                alert('This activity is already in your favorites!');
+            }
+        }
+
+        // Display favorites
+        function displayFavorites() {
+            if (favorites.length === 0) {
+                favoritesList.innerHTML = '<p>No favorites saved yet. Generate some ideas and click the ❤️ button to save them here!</p>';
+                return;
+            }
+            
+            favoritesList.innerHTML = '<div class="activity-grid"></div>';
+            const grid = favoritesList.querySelector('.activity-grid');
+            
+            favorites.forEach((fav, index) => {
+                const card = document.createElement('div');
+                card.className = 'activity-card';
+                card.innerHTML = `
+                    <h3>${fav.title}</h3>
+                    <p class="materials">${fav.materials.split('\n')[0]}...</p>
+                    <p>${fav.process.split('\n')[0].substring(0, 100)}...</p>
+                    <button onclick="viewFavoriteDetails(${index})">View Details</button>
+                    <button class="btn-accent" onclick="removeFavorite(${index})">Remove</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // View favorite details
+        function viewFavoriteDetails(index) {
+            const fav = favorites[index];
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.padding = '20px';
+            
+            // Modal content
+            modal.innerHTML = `
+                <div style="background:white; padding:30px; border-radius:10px; max-width:800px; max-height:90vh; overflow:auto; position:relative;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:1.5rem; cursor:pointer;">×</button>
+                    <h2>${fav.title}</h2>
+                    <p><strong>Saved:</strong> ${fav.timestamp}</p>
+                    
+                    <div class="idea-section">
+                        <h4>🧺 Materials Needed</h4>
+                        <p>${fav.materials.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    
+                    <div class="idea-section">
+                        <h4>👩‍🏫 Teaching Process</h4>
+                        ${fav.process}
+                    </div>
+                    
+                    <div class="idea-section">
+                        <h4>🎯 Learning Outcome</h4>
+                        <p>${fav.outcome.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    
+                    <div class="idea-section">
+                        <h4>🖼️ Display/Extension Tip</h4>
+                        <p>${fav.display}</p>
+                    </div>
+                    
+                    <div class="export-options" style="margin-top:20px;">
+                        <button class="btn-secondary" onclick="exportFavoriteToPDF(${index})"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Export to PDF</a></button>
+                        <button class="btn-secondary" onclick="printFavorite(${index})"><a href="https://essentialmost.com/AbJdyf">Print Activity</a></button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Add global functions for the modal buttons
+            window.exportFavoriteToPDF = function(index) {
+                const fav = favorites[index];
+                exportToPDF(fav.title, fav.materials, fav.process, fav.outcome, fav.display);
+                modal.remove();
+            };
+            
+            window.printFavorite = function(index) {
+                const fav = favorites[index];
+                printActivity(fav.title, fav.materials, fav.process, fav.outcome, fav.display);
+                modal.remove();
+            };
+        }
+
+        // Remove favorite
+        function removeFavorite(index) {
+            if (confirm('Remove this activity from your favorites?')) {
+                favorites.splice(index, 1);
+                localStorage.setItem('hygieneFavorites', JSON.stringify(favorites));
+                displayFavorites();
+            }
+        }
+
+        // Export to PDF
+        function exportToPDF(title, materials, process, outcome, display) {
+            title = title || activityTitle.textContent;
+            materials = materials || materials.textContent;
+            process = process || process.innerHTML;
+            outcome = outcome || outcome.textContent;
+            display = display || display.textContent;
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.setTextColor(76, 175, 80); // Primary color
+            doc.text(title, 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            
+            // Materials
+            doc.setFontSize(14);
+            doc.setTextColor(33, 150, 243); // Secondary color
+            doc.text('Materials Needed:', 14, 35);
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(materials.replace(/<br><br><strong>Age Adaptation:<\/strong>.*/, ''), 14, 45, { maxWidth: 180 });
+            
+            // Process
+            doc.setFontSize(14);
+            doc.setTextColor(33, 150, 243);
+            doc.text('Teaching Process:', 14, 80);
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            
+            let processText = process.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+            processText = processText.replace(/Age Adaptation:.*/, '');
+            doc.text(processText, 14, 90, { maxWidth: 180 });
+            
+            // Outcome
+            doc.setFontSize(14);
+            doc.setTextColor(33, 150, 243);
+            doc.text('Learning Outcome:', 14, doc.autoTable.previous.finalY + 15);
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(outcome.replace(/<br><br><strong>Age Adaptation:<\/strong>.*/, ''), 14, doc.autoTable.previous.finalY + 25, { maxWidth: 180 });
+            
+            // Display
+            doc.setFontSize(14);
+            doc.setTextColor(33, 150, 243);
+            doc.text('Display/Extension Tip:', 14, doc.autoTable.previous.finalY + 15);
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(display, 14, doc.autoTable.previous.finalY + 25, { maxWidth: 180 });
+            
+            doc.save(`Hygiene Activity - ${title}.pdf`);
+        }
+
+        // Print activity
+        function printActivity(title, materials, process, outcome, display) {
+            title = title || activityTitle.textContent;
+            materials = materials || materials.textContent;
+            process = process || process.innerHTML;
+            outcome = outcome || outcome.textContent;
+            display = display || display.textContent;
+            
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Activity: ${title}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+                        h1 { color: #4CAF50; text-align: center; }
+                        h2 { color: #2196F3; border-bottom: 2px solid #FFC107; padding-bottom: 5px; }
+                        .print-section { margin-bottom: 20px; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>${title}</h1>
+                    
+                    <div class="print-section">
+                        <h2>Materials Needed</h2>
+                        <p>${materials.replace(/<br><br><strong>Age Adaptation:<\/strong>.*/, '')}</p>
+                    </div>
+                    
+                    <div class="print-section">
+                        <h2>Teaching Process</h2>
+                        ${process.replace(/<strong>Age Adaptation:<\/strong>.*/, '')}
+                    </div>
+                    
+                    <div class="print-section">
+                        <h2>Learning Outcome</h2>
+                        <p>${outcome.replace(/<br><br><strong>Age Adaptation:<\/strong>.*/, '')}</p>
+                    </div>
+                    
+                    <div class="print-section">
+                        <h2>Display/Extension Tip</h2>
+                        <p>${display}</p>
+                    </div>
+                    
+                    <button onclick="window.print()">Print</button>
+                    <button onclick="window.close()">Close</button>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // Export songs to PDF
+        function exportSongsToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.setTextColor(76, 175, 80);
+            doc.text('Health & Hygiene Songs & Rhymes', 105, 20, { align: 'center' });
+            
+            const songs = document.querySelectorAll('.song-item');
+            let yPosition = 35;
+            
+            songs.forEach((song, index) => {
+                const title = song.querySelector('h4').textContent;
+                const content = song.querySelector('p').innerHTML.replace(/<br>/g, '\n');
+                
+                if (index > 0 && yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(14);
+                doc.setTextColor(33, 150, 243);
+                doc.text(title, 14, yPosition);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(content, 20, yPosition + 10, { maxWidth: 180 });
+                
+                yPosition += 30 + (content.split('\n').length * 7);
+            });
+            
+            doc.save('Hygiene_Songs_Rhymes.pdf');
+        }
+
+        // Print chart
+        function printChart(chartId) {
+            const chart = document.getElementById(chartId);
+            const printWindow = window.open('', '', 'width=800,height=600');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Chart</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                        .print-chart { background-color: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 80%; }
+                        h3 { color: #4CAF50; margin-bottom: 15px; }
+                        p { margin: 10px 0; line-height: 1.6; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-chart">
+                        ${chart.innerHTML.replace('<button onclick="printChart(\'' + chartId + '\')">Print This Chart</button>', '')}
+                        <button onclick="window.print()">Print</button>
+                        <button onclick="window.close()">Close</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // Print visual cues
+        function printVisualCues() {
+            const cues = document.querySelectorAll('.visual-cue');
+            const printWindow = window.open('', '', 'width=800,height=600');
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px;">';
+            cues.forEach(cue => {
+                html += `
+                    <div style="text-align: center;">
+                        ${cue.querySelector('img').outerHTML}
+                        <p style="margin-top: 10px;">${cue.querySelector('p').textContent}</p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Visual Cues</title>
+                    <style>
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h2 style="text-align: center; color: #4CAF50; margin-bottom: 20px;">Health & Hygiene Visual Cues</h2>
+                    ${html}
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="window.print()">Print</button>
+                        <button onclick="window.close()">Close</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // Initialize
+        displayFavorites();
+    </script>
+</body>
+</html>

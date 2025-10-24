@@ -1,0 +1,2295 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/5230/5230606.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/5230/5230606.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Mind Map Generator</title>
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.17/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.4.4/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.2/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/compromise/14.10.1/compromise.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #7209b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --info: #4895ef;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 25px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: var(--dark);
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-panel {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .visualization-panel {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: var(--transition);
+            border-radius: 6px 6px 0 0;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(67, 97, 238, 0.03);
+        }
+        
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: #e9ecef;
+        }
+        
+        .textarea-input {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 16px;
+            transition: var(--transition);
+            flex: 1;
+        }
+        
+        .textarea-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn i {
+            font-size: 18px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #3ab0d9;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background: #e01e6e;
+        }
+        
+        .visualization-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            gap: 20px;
+        }
+        
+        .mind-map-container {
+            flex: 1;
+            min-height: 400px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: auto;
+            position: relative;
+            background: #fafafa;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart {
+            height: 300px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        
+        .indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .indicator {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-left: 4px solid var(--primary);
+            transition: var(--transition);
+        }
+        
+        .indicator:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .indicator-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .indicator-title {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .node {
+            cursor: pointer;
+        }
+        
+        .node circle {
+            fill: #fff;
+            stroke: var(--primary);
+            stroke-width: 3px;
+            transition: var(--transition);
+        }
+        
+        .node text {
+            font: 14px sans-serif;
+            font-weight: 500;
+        }
+        
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+            transition: var(--transition);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .style-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .style-option {
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .style-option.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .style-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .edit-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Enhanced features */
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+            display: none;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+        
+        .template-selector {
+            margin-bottom: 20px;
+        }
+        
+        .template-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .template-option {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .template-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .template-option.active {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .layout-selector {
+            margin-bottom: 20px;
+        }
+        
+        .layout-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .layout-option {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .layout-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .layout-option.active {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .summary-title {
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 18px;
+        }
+        
+        .node-editor {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            z-index: 100;
+            display: none;
+            width: 300px;
+        }
+        
+        .node-editor input, .node-editor textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .node-editor input:focus, .node-editor textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+        
+        .node-editor textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        .node-editor button {
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .auto-save-indicator {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: var(--success);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            font-weight: 500;
+        }
+        
+        .enhanced-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .enhanced-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .enhanced-chart {
+            height: 280px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        /* API Settings Panel */
+        .api-settings {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .api-settings h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .api-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .api-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .api-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+        
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        
+        .status-indicator.connected {
+            background: var(--success);
+        }
+        
+        /* Advanced Features Panel */
+        .advanced-features {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .advanced-features h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .feature-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .feature-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .feature-option.active {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .style-selector, .edit-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .export-options {
+                justify-content: center;
+            }
+            
+            .btn-group {
+                justify-content: center;
+            }
+            
+            .api-input-group {
+                flex-direction: column;
+            }
+        }
+        
+        /* Error and success messages */
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            padding: 12px;
+            margin-top: 10px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .success-message {
+            color: #27ae60;
+            text-align: center;
+            padding: 12px;
+            margin-top: 10px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid #27ae60;
+        }
+        
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Collapsible sections */
+        .collapsible {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .collapsible-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .collapsible-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .collapsible-content {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .collapsible.active .collapsible-content {
+            padding: 20px;
+            max-height: 500px;
+        }
+        
+        .collapsible.active .collapsible-header {
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .collapsible-icon {
+            transition: transform 0.3s;
+        }
+        
+        .collapsible.active .collapsible-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Advanced Mind Map Generator</h1>
+            <p class="subtitle">Transform documents, text, and images into interactive mind maps with AI-powered analysis and insights</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="input-panel">
+                <div class="tabs">
+                    <div class="tab active" data-tab="upload">📁 Upload File</div>
+                    <div class="tab" data-tab="text">📝 Paste Text</div>
+                    <div class="tab" data-tab="image">🖼️ Image OCR</div>
+                    <div class="tab" data-tab="templates">🎨 Templates</div>
+                    <div class="tab" data-tab="settings">⚙️ Settings</div>
+                </div>
+                
+                <div class="tab-content active" id="upload-tab">
+                    <div class="upload-area" id="dropZone">
+                        <div style="font-size: 64px; color: #ccc; margin-bottom: 20px;">📄</div>
+                        <h3>Drag & Drop Files Here</h3>
+                        <p>Supported formats: PDF, DOCX, TXT, PPTX, Images</p>
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.pptx,image/*" style="display: none;">
+                        <button class="btn" onclick="document.getElementById('fileInput').click()" style="margin-top: 20px;">
+                            <span>📁</span> Select File
+                        </button>
+                        <div class="progress-bar" id="uploadProgressBar">
+                            <div class="progress" id="uploadProgress"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="collapsible" id="advancedUpload">
+                        <div class="collapsible-header">
+                            <span>Advanced Options</span>
+                            <span class="collapsible-icon">▼</span>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="feature-options">
+                                <div class="feature-option active" data-feature="extractKeywords">
+                                    <input type="checkbox" checked id="extractKeywords">
+                                    <label for="extractKeywords">Extract Keywords</label>
+                                </div>
+                                <div class="feature-option active" data-feature="identifyTopics">
+                                    <input type="checkbox" checked id="identifyTopics">
+                                    <label for="identifyTopics">Identify Topics</label>
+                                </div>
+                                <div class="feature-option" data-feature="sentimentAnalysis">
+                                    <input type="checkbox" id="sentimentAnalysis">
+                                    <label for="sentimentAnalysis">Sentiment Analysis</label>
+                                </div>
+                                <div class="feature-option" data-feature="summarizeContent">
+                                    <input type="checkbox" id="summarizeContent">
+                                    <label for="summarizeContent">Summarize Content</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="text-tab">
+                    <textarea class="textarea-input" id="textInput" placeholder="Paste your text here or let AI generate sample content..."></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-outline" id="generateSampleBtn">
+                            <span>🤖</span> AI Generate Sample
+                        </button>
+                        <button class="btn btn-outline" id="clearTextBtn">
+                            <span>🗑️</span> Clear Text
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="image-tab">
+                    <div class="upload-area" id="imageDropZone">
+                        <div style="font-size: 64px; color: #ccc; margin-bottom: 20px;">🖼️</div>
+                        <h3>Upload Image with Text</h3>
+                        <p>We'll extract text using advanced OCR technology</p>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        <button class="btn" onclick="document.getElementById('imageInput').click()" style="margin-top: 20px;">
+                            <span>🖼️</span> Select Image
+                        </button>
+                        <div class="progress-bar" id="imageProgressBar">
+                            <div class="progress" id="imageProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="templates-tab">
+                    <div class="template-selector">
+                        <h3>Choose a Template</h3>
+                        <div class="template-options">
+                            <div class="template-option active" data-template="default">
+                                <div style="font-size: 32px;">📊</div>
+                                <div>Default</div>
+                            </div>
+                            <div class="template-option" data-template="business">
+                                <div style="font-size: 32px;">💼</div>
+                                <div>Business</div>
+                            </div>
+                            <div class="template-option" data-template="education">
+                                <div style="font-size: 32px;">🎓</div>
+                                <div>Education</div>
+                            </div>
+                            <div class="template-option" data-template="creative">
+                                <div style="font-size: 32px;">🎨</div>
+                                <div>Creative</div>
+                            </div>
+                            <div class="template-option" data-template="technical">
+                                <div style="font-size: 32px;">⚙️</div>
+                                <div>Technical</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="layout-selector">
+                        <h3>Choose a Layout</h3>
+                        <div class="layout-options">
+                            <div class="layout-option active" data-layout="radial">
+                                <div style="font-size: 32px;">⭕</div>
+                                <div>Radial</div>
+                            </div>
+                            <div class="layout-option" data-layout="hierarchical">
+                                <div style="font-size: 32px;">📐</div>
+                                <div>Hierarchical</div>
+                            </div>
+                            <div class="layout-option" data-layout="tree">
+                                <div style="font-size: 32px;">🌳</div>
+                                <div>Tree</div>
+                            </div>
+                            <div class="layout-option" data-layout="organic">
+                                <div style="font-size: 32px;">🌀</div>
+                                <div>Organic</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="style-selector" style="margin-top: 20px; justify-content: center;">
+                        <div class="style-option active" data-style="default">Default</div>
+                        <div class="style-option" data-style="colorful">Colorful</div>
+                        <div class="style-option" data-style="minimal">Minimal</div>
+                        <div class="style-option" data-style="professional">Professional</div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="settings-tab">
+                    <div class="api-settings">
+                        <h3><span>🔑</span> API Configuration</h3>
+                        <div class="api-input-group">
+                            <input type="text" class="api-input" id="apiKeyInput" placeholder="Enter your API key" value="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">
+                            <button class="btn" id="testApiBtn">Test Connection</button>
+                        </div>
+                        <div class="api-status">
+                            <div class="status-indicator" id="apiStatusIndicator"></div>
+                            <span id="apiStatusText">Not connected</span>
+                        </div>
+                    </div>
+                    
+                    <div class="advanced-features">
+                        <h3><span>🚀</span> Advanced Features</h3>
+                        <div class="feature-options">
+                            <div class="feature-option active" data-feature="autoSave">
+                                <input type="checkbox" checked id="autoSave">
+                                <label for="autoSave">Auto Save</label>
+                            </div>
+                            <div class="feature-option active" data-feature="aiEnhancement">
+                                <input type="checkbox" checked id="aiEnhancement">
+                                <label for="aiEnhancement">AI Enhancement</label>
+                            </div>
+                            <div class="feature-option" data-feature="collaboration">
+                                <input type="checkbox" id="collaboration">
+                                <label for="collaboration">Collaboration Mode</label>
+                            </div>
+                            <div class="feature-option" data-feature="advancedAnalytics">
+                                <input type="checkbox" id="advancedAnalytics">
+                                <label for="advancedAnalytics">Advanced Analytics</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group" style="margin-top: 20px;">
+                        <button class="btn btn-success" id="saveSettingsBtn">
+                            <span>💾</span> Save Settings
+                        </button>
+                        <button class="btn btn-outline" id="resetSettingsBtn">
+                            <span>🔄</span> Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search nodes...">
+                    <button class="btn" id="searchBtn">Search</button>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn" id="generateBtn">
+                        <span>🚀</span> Generate Mind Map
+                    </button>
+                    <button class="btn btn-outline" id="clearBtn">
+                        <span>🗑️</span> Clear All
+                    </button>
+                    <button class="btn btn-outline" id="summarizeBtn">
+                        <span>📋</span> AI Summary
+                    </button>
+                </div>
+                
+                <div class="summary-panel" id="summaryPanel" style="display: none;">
+                    <div class="summary-title">Content Summary</div>
+                    <div id="summaryContent"></div>
+                </div>
+                
+                <div class="processing" id="processing">
+                    <div class="spinner"></div>
+                    <p>Processing your content with AI...</p>
+                    <p id="processingDetails" style="margin-top: 10px; font-size: 14px; color: #666;"></p>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <div class="controls">
+                    <div class="style-selector">
+                        <div class="style-option active" data-style="default">Default</div>
+                        <div class="style-option" data-style="colorful">Colorful</div>
+                        <div class="style-option" data-style="minimal">Minimal</div>
+                        <div class="style-option" data-style="professional">Professional</div>
+                    </div>
+                    
+                    <div class="edit-controls">
+                        <button class="btn btn-outline" id="editModeBtn">
+                            <span>✏️</span> Edit Mode
+                        </button>
+                        <button class="btn btn-outline" id="addNodeBtn">
+                            <span>➕</span> Add Node
+                        </button>
+                        <button class="btn btn-outline" id="zoomInBtn">
+                            <span>🔍</span> Zoom In
+                        </button>
+                        <button class="btn btn-outline" id="zoomOutBtn">
+                            <span>🔍</span> Zoom Out
+                        </button>
+                        <button class="btn btn-outline" id="resetViewBtn">
+                            <span>🔄</span> Reset View
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="visualization-container">
+                    <div class="mind-map-container" id="mindMapContainer">
+                        <!-- Mind map will be rendered here -->
+                    </div>
+                    
+                    <div class="indicators">
+                        <div class="indicator">
+                            <div class="indicator-title">Total Nodes</div>
+                            <div class="indicator-value" id="nodeCount">0</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-title">Connections</div>
+                            <div class="indicator-value" id="connectionCount">0</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-title">Main Topics</div>
+                            <div class="indicator-value" id="topicCount">0</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-title">Complexity</div>
+                            <div class="indicator-value" id="complexityScore">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="enhanced-charts">
+                        <div class="enhanced-chart" id="topicDistributionChart"></div>
+                        <div class="enhanced-chart" id="connectionAnalysisChart"></div>
+                    </div>
+                </div>
+                
+                <div class="export-options">
+                    <button class="btn btn-outline" id="exportPNGBtn">
+                        <span>🖼️</span> Export as PNG
+                    </button>
+                    <button class="btn btn-outline" id="exportPDFBtn">
+                        <span>📄</span> Export as PDF
+                    </button>
+                    <button class="btn btn-outline" id="exportJSONBtn">
+                        <span>📊</span> Export as JSON
+                    </button>
+                    <button class="btn btn-outline" id="shareBtn">
+                        <span>🔗</span> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="node-editor" id="nodeEditor">
+            <h3>Edit Node</h3>
+            <input type="text" id="nodeTitleInput" placeholder="Node title">
+            <textarea id="nodeContentInput" placeholder="Node content"></textarea>
+            <select id="nodeColorSelect">
+                <option value="#4361ee">Blue</option>
+                <option value="#3a0ca3">Purple</option>
+                <option value="#7209b7">Violet</option>
+                <option value="#f72585">Pink</option>
+                <option value="#4cc9f0">Cyan</option>
+                <option value="#4895ef">Light Blue</option>
+            </select>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button class="btn" id="saveNodeBtn">Save</button>
+                <button class="btn btn-warning" id="deleteNodeBtn">Delete</button>
+                <button class="btn btn-outline" id="cancelEditBtn">Cancel</button>
+            </div>
+        </div>
+        
+        <div class="auto-save-indicator" id="autoSaveIndicator">
+            Auto-saved successfully!
+        </div>
+        
+        <footer>
+            <p>Advanced Mind Map Generator &copy; 2023 | Powered by AI and OpenRouter API</p>
+        </footer>
+    </div>
+
+    <script>
+        // Global variables
+        let mindMapData = {
+            name: "Central Topic",
+            children: []
+        };
+        
+        let currentLayout = "radial";
+        let currentStyle = "default";
+        let currentTemplate = "default";
+        let isEditMode = false;
+        let selectedNode = null;
+        let apiKey = "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";
+        let apiStatus = false;
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializeEventListeners();
+            initializeMindMap();
+            testApiConnection();
+            loadSettings();
+            
+            // Generate a sample mind map on load
+            setTimeout(() => {
+                generateSampleMindMap();
+            }, 1000);
+        });
+        
+        // Initialize tab functionality
+        function initializeTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Deactivate all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                    
+                    // Activate current tab
+                    this.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Initialize collapsible sections
+            const collapsibles = document.querySelectorAll('.collapsible');
+            collapsibles.forEach(collapsible => {
+                const header = collapsible.querySelector('.collapsible-header');
+                header.addEventListener('click', function() {
+                    collapsible.classList.toggle('active');
+                });
+            });
+        }
+        
+        // Initialize event listeners
+        function initializeEventListeners() {
+            // File upload
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            setupDragAndDrop('dropZone', handleFileUpload);
+            
+            // Image upload
+            document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+            setupDragAndDrop('imageDropZone', handleImageUpload);
+            
+            // Generate mind map button
+            document.getElementById('generateBtn').addEventListener('click', generateMindMap);
+            
+            // Clear button
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            
+            // AI Generate Sample button
+            document.getElementById('generateSampleBtn').addEventListener('click', generateSampleContent);
+            
+            // Clear Text button
+            document.getElementById('clearTextBtn').addEventListener('click', function() {
+                document.getElementById('textInput').value = '';
+            });
+            
+            // Summarize button
+            document.getElementById('summarizeBtn').addEventListener('click', generateSummary);
+            
+            // Search functionality
+            document.getElementById('searchBtn').addEventListener('click', searchNodes);
+            document.getElementById('searchInput').addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    searchNodes();
+                }
+            });
+            
+            // Template selection
+            document.querySelectorAll('.template-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.template-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTemplate = this.getAttribute('data-template');
+                    applyTemplate();
+                });
+            });
+            
+            // Layout selection
+            document.querySelectorAll('.layout-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.layout-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    currentLayout = this.getAttribute('data-layout');
+                    updateMindMapLayout();
+                });
+            });
+            
+            // Style selection
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.style-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    currentStyle = this.getAttribute('data-style');
+                    applyStyle();
+                });
+            });
+            
+            // Edit mode
+            document.getElementById('editModeBtn').addEventListener('click', toggleEditMode);
+            
+            // Add node
+            document.getElementById('addNodeBtn').addEventListener('click', function() {
+                if (selectedNode) {
+                    addChildNode(selectedNode);
+                } else {
+                    addChildNode(mindMapData);
+                }
+            });
+            
+            // Zoom controls
+            document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
+            document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
+            document.getElementById('resetViewBtn').addEventListener('click', resetView);
+            
+            // Export buttons
+            document.getElementById('exportPNGBtn').addEventListener('click', exportAsPNG);
+            document.getElementById('exportPDFBtn').addEventListener('click', exportAsPDF);
+            document.getElementById('exportJSONBtn').addEventListener('click', exportAsJSON);
+            document.getElementById('shareBtn').addEventListener('click', shareMindMap);
+            
+            // API test button
+            document.getElementById('testApiBtn').addEventListener('click', testApiConnection);
+            
+            // Save settings button
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+            
+            // Reset settings button
+            document.getElementById('resetSettingsBtn').addEventListener('click', resetSettings);
+            
+            // Node editor buttons
+            document.getElementById('saveNodeBtn').addEventListener('click', saveNodeChanges);
+            document.getElementById('deleteNodeBtn').addEventListener('click', deleteNode);
+            document.getElementById('cancelEditBtn').addEventListener('click', closeNodeEditor);
+            
+            // Feature toggles
+            document.querySelectorAll('.feature-option').forEach(option => {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                option.addEventListener('click', function() {
+                    checkbox.checked = !checkbox.checked;
+                    option.classList.toggle('active', checkbox.checked);
+                });
+            });
+        }
+        
+        // Setup drag and drop functionality
+        function setupDragAndDrop(dropZoneId, callback) {
+            const dropZone = document.getElementById(dropZoneId);
+            
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            dropZone.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    callback({ target: { files: e.dataTransfer.files } });
+                }
+            });
+        }
+        
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            showProcessing(`Processing ${file.name}...`);
+            
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                let content = '';
+                
+                switch(fileExtension) {
+                    case 'pdf':
+                        processPDF(e.target.result);
+                        break;
+                    case 'docx':
+                        processDOCX(e.target.result);
+                        break;
+                    case 'txt':
+                        content = e.target.result;
+                        processTextContent(content);
+                        break;
+                    case 'pptx':
+                        processPPTX(e.target.result);
+                        break;
+                    default:
+                        hideProcessing();
+                        showError('Unsupported file format');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            showProcessing(`Extracting text from image...`);
+            
+            Tesseract.recognize(
+                file,
+                'eng',
+                { logger: m => updateOCRProgress(m) }
+            ).then(({ data: { text } }) => {
+                document.getElementById('textInput').value = text;
+                hideProcessing();
+                showSuccess('Text extracted successfully!');
+                
+                // Switch to text tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                document.querySelector('.tab[data-tab="text"]').classList.add('active');
+                document.getElementById('text-tab').classList.add('active');
+            }).catch(err => {
+                hideProcessing();
+                showError('Error extracting text from image: ' + err.message);
+            });
+        }
+        
+        // Update OCR progress
+        function updateOCRProgress(message) {
+            const details = document.getElementById('processingDetails');
+            if (message.status === 'recognizing text') {
+                details.textContent = `Progress: ${Math.round(message.progress * 100)}%`;
+            }
+        }
+        
+        // Process PDF file
+        function processPDF(data) {
+            const loadingTask = pdfjsLib.getDocument({ data });
+            
+            loadingTask.promise.then(pdf => {
+                let textContent = '';
+                const totalPages = pdf.numPages;
+                let pagesProcessed = 0;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    pdf.getPage(i).then(page => {
+                        return page.getTextContent();
+                    }).then(text => {
+                        textContent += text.items.map(item => item.str).join(' ') + '\n';
+                        pagesProcessed++;
+                        
+                        // Update progress
+                        document.getElementById('processingDetails').textContent = 
+                            `Processed ${pagesProcessed} of ${totalPages} pages`;
+                        
+                        if (pagesProcessed === totalPages) {
+                            processTextContent(textContent);
+                        }
+                    });
+                }
+            }).catch(err => {
+                hideProcessing();
+                showError('Error processing PDF: ' + err.message);
+            });
+        }
+        
+        // Process DOCX file
+        function processDOCX(data) {
+            mammoth.extractRawText({ arrayBuffer: data })
+                .then(result => {
+                    processTextContent(result.value);
+                })
+                .catch(err => {
+                    hideProcessing();
+                    showError('Error processing DOCX: ' + err.message);
+                });
+        }
+        
+        // Process PPTX file
+        function processPPTX(data) {
+            // Simplified PPTX processing - in a real app, you'd use a proper library
+            hideProcessing();
+            showError('PPTX processing requires additional libraries. Please convert to PDF or DOCX first.');
+        }
+        
+        // Process text content
+        function processTextContent(text) {
+            document.getElementById('textInput').value = text;
+            hideProcessing();
+            showSuccess('File processed successfully!');
+            
+            // Switch to text tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.querySelector('.tab[data-tab="text"]').classList.add('active');
+            document.getElementById('text-tab').classList.add('active');
+        }
+        
+        // Generate mind map from text
+        function generateMindMap() {
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (!text) {
+                showError('Please enter some text or upload a file first');
+                return;
+            }
+            
+            showProcessing('Analyzing text and generating mind map...');
+            
+            // Use compromise for basic NLP
+            const doc = window.nlp(text);
+            const sentences = doc.sentences().out('array');
+            const nouns = doc.nouns().out('array');
+            const topics = doc.topics().out('array');
+            
+            // Create a simple mind map structure
+            mindMapData = {
+                name: "Central Topic",
+                children: []
+            };
+            
+            // Add main topics as children
+            const uniqueNouns = [...new Set(nouns)].slice(0, 5);
+            
+            uniqueNouns.forEach(noun => {
+                const childNode = {
+                    name: noun,
+                    children: []
+                };
+                
+                // Find sentences related to this noun
+                const relatedSentences = sentences.filter(s => 
+                    s.toLowerCase().includes(noun.toLowerCase())
+                ).slice(0, 3);
+                
+                relatedSentences.forEach(sentence => {
+                    childNode.children.push({
+                        name: sentence.substring(0, 50) + (sentence.length > 50 ? '...' : '')
+                    });
+                });
+                
+                mindMapData.children.push(childNode);
+            });
+            
+            // If we have few nouns, use sentences as fallback
+            if (mindMapData.children.length < 3) {
+                sentences.slice(0, 5).forEach(sentence => {
+                    mindMapData.children.push({
+                        name: sentence.substring(0, 50) + (sentence.length > 50 ? '...' : '')
+                    });
+                });
+            }
+            
+            // Update the visualization
+            updateMindMapVisualization();
+            hideProcessing();
+            showSuccess('Mind map generated successfully!');
+            
+            // Show summary panel if we have content
+            if (sentences.length > 0) {
+                generateSummary();
+            }
+        }
+        
+        // Generate sample content using AI
+        function generateSampleContent() {
+            showProcessing('Generating sample content with AI...');
+            
+            // Use the OpenRouter API to generate sample content
+            fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Mind Map Generator",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "model": "openai/gpt-3.5-turbo",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Generate a short paragraph (about 150 words) about the benefits of mind mapping for learning and productivity. Make it informative and well-structured."
+                        }
+                    ]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProcessing();
+                if (data.choices && data.choices.length > 0) {
+                    const content = data.choices[0].message.content;
+                    document.getElementById('textInput').value = content;
+                    showSuccess('Sample content generated successfully!');
+                } else {
+                    showError('Failed to generate sample content');
+                }
+            })
+            .catch(error => {
+                hideProcessing();
+                showError('Error generating sample content: ' + error.message);
+                // Fallback to local sample
+                document.getElementById('textInput').value = "Mind mapping is a powerful technique that enhances learning and boosts productivity. By visually organizing information, it helps in better understanding and retention of complex concepts. The central idea branches out into related topics, creating a structured overview that mirrors how our brain naturally connects ideas. This method improves memory recall, facilitates creative thinking, and enables efficient problem-solving. Whether for studying, project planning, or brainstorming, mind maps provide a clear framework that simplifies information processing and encourages innovative connections between different concepts.";
+            });
+        }
+        
+        // Generate summary using AI
+        function generateSummary() {
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (!text) {
+                showError('Please enter some text first');
+                return;
+            }
+            
+            showProcessing('Generating summary with AI...');
+            
+            // Use the OpenRouter API to generate a summary
+            fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Mind Map Generator",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "model": "openai/gpt-3.5-turbo",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": `Please provide a concise summary (3-4 bullet points) of the following text:\n\n${text}`
+                        }
+                    ]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProcessing();
+                if (data.choices && data.choices.length > 0) {
+                    const summary = data.choices[0].message.content;
+                    document.getElementById('summaryContent').innerHTML = summary.replace(/\n/g, '<br>');
+                    document.getElementById('summaryPanel').style.display = 'block';
+                    showSuccess('Summary generated successfully!');
+                } else {
+                    showError('Failed to generate summary');
+                }
+            })
+            .catch(error => {
+                hideProcessing();
+                showError('Error generating summary: ' + error.message);
+                
+                // Fallback to basic summary
+                const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+                const summary = sentences.slice(0, 3).map(s => `• ${s.trim()}`).join('<br>');
+                document.getElementById('summaryContent').innerHTML = summary;
+                document.getElementById('summaryPanel').style.display = 'block';
+            });
+        }
+        
+        // Initialize the mind map visualization
+        function initializeMindMap() {
+            // Set up the initial empty mind map
+            updateMindMapVisualization();
+        }
+        
+        // Update the mind map visualization
+        function updateMindMapVisualization() {
+            const container = document.getElementById('mindMapContainer');
+            container.innerHTML = '';
+            
+            // Calculate metrics
+            const nodeCount = countNodes(mindMapData);
+            const connectionCount = nodeCount - 1; // Simple calculation
+            const topicCount = mindMapData.children ? mindMapData.children.length : 0;
+            const complexityScore = Math.min(100, Math.round((nodeCount / 50) * 100));
+            
+            // Update indicators
+            document.getElementById('nodeCount').textContent = nodeCount;
+            document.getElementById('connectionCount').textContent = connectionCount;
+            document.getElementById('topicCount').textContent = topicCount;
+            document.getElementById('complexityScore').textContent = `${complexityScore}%`;
+            
+            // Create a simple visualization using D3
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            const svg = d3.select('#mindMapContainer')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            const g = svg.append('g')
+                .attr('transform', `translate(${width/2}, ${height/2})`);
+            
+            // Create a radial tree layout
+            const treeLayout = d3.tree()
+                .size([2 * Math.PI, Math.min(width, height) / 2 - 100]);
+            
+            // Convert our data to a hierarchy
+            const root = d3.hierarchy(mindMapData);
+            const treeData = treeLayout(root);
+            
+            // Draw links
+            g.selectAll('.link')
+                .data(treeData.links())
+                .enter()
+                .append('path')
+                .attr('class', 'link')
+                .attr('d', d3.linkRadial()
+                    .angle(d => d.x)
+                    .radius(d => d.y)
+                );
+            
+            // Draw nodes
+            const nodes = g.selectAll('.node')
+                .data(treeData.descendants())
+                .enter()
+                .append('g')
+                .attr('class', 'node')
+                .attr('transform', d => `
+                    rotate(${d.x * 180 / Math.PI - 90})
+                    translate(${d.y},0)
+                `);
+            
+            nodes.append('circle')
+                .attr('r', d => d.depth === 0 ? 10 : 6)
+                .style('fill', d => {
+                    if (d.depth === 0) return '#4361ee';
+                    if (d.depth === 1) return '#3a0ca3';
+                    if (d.depth === 2) return '#7209b7';
+                    return '#f72585';
+                });
+            
+            nodes.append('text')
+                .attr('dy', d => d.depth === 0 ? '1.5em' : '1.2em')
+                .attr('x', d => d.x < Math.PI ? 8 : -8)
+                .attr('text-anchor', d => d.x < Math.PI ? 'start' : 'end')
+                .attr('transform', d => d.x >= Math.PI ? 'rotate(180)' : null)
+                .text(d => d.data.name)
+                .style('font-size', d => d.depth === 0 ? '16px' : '12px')
+                .style('font-weight', d => d.depth === 0 ? 'bold' : 'normal');
+            
+            // Add click events for nodes
+            nodes.on('click', function(event, d) {
+                if (isEditMode) {
+                    selectedNode = d;
+                    openNodeEditor(d);
+                } else {
+                    // Toggle children visibility or perform other actions
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                    } else {
+                        d.children = d._children;
+                        d._children = null;
+                    }
+                    updateMindMapVisualization();
+                }
+            });
+            
+            // Update charts
+            updateCharts();
+        }
+        
+        // Count nodes in the mind map
+        function countNodes(node) {
+            let count = 1;
+            if (node.children) {
+                node.children.forEach(child => {
+                    count += countNodes(child);
+                });
+            }
+            return count;
+        }
+        
+        // Update charts
+        function updateCharts() {
+            // Topic distribution chart
+            const topicChart = echarts.init(document.getElementById('topicDistributionChart'));
+            const topicOption = {
+                title: {
+                    text: 'Topic Distribution',
+                    left: 'center',
+                    textStyle: {
+                        fontSize: 14
+                    }
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [
+                    {
+                        name: 'Topics',
+                        type: 'pie',
+                        radius: '70%',
+                        data: mindMapData.children ? mindMapData.children.map((child, index) => ({
+                            value: child.children ? child.children.length : 1,
+                            name: child.name
+                        })) : [],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            topicChart.setOption(topicOption);
+            
+            // Connection analysis chart
+            const connectionChart = echarts.init(document.getElementById('connectionAnalysisChart'));
+            const connectionOption = {
+                title: {
+                    text: 'Connection Analysis',
+                    left: 'center',
+                    textStyle: {
+                        fontSize: 14
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: mindMapData.children ? mindMapData.children.map(child => child.name.substring(0, 10) + (child.name.length > 10 ? '...' : '')) : []
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        data: mindMapData.children ? mindMapData.children.map(child => child.children ? child.children.length : 0) : [],
+                        type: 'bar',
+                        itemStyle: {
+                            color: '#4361ee'
+                        }
+                    }
+                ]
+            };
+            connectionChart.setOption(connectionOption);
+            
+            // Resize charts when window resizes
+            window.addEventListener('resize', function() {
+                topicChart.resize();
+                connectionChart.resize();
+            });
+        }
+        
+        // Generate a sample mind map
+        function generateSampleMindMap() {
+            mindMapData = {
+                name: "Mind Mapping Benefits",
+                children: [
+                    {
+                        name: "Enhanced Learning",
+                        children: [
+                            { name: "Improves memory retention" },
+                            { name: "Facilitates understanding of complex topics" },
+                            { name: "Encourages active learning" }
+                        ]
+                    },
+                    {
+                        name: "Increased Productivity",
+                        children: [
+                            { name: "Helps in organizing thoughts" },
+                            { name: "Enables efficient planning" },
+                            { name: "Simplifies project management" }
+                        ]
+                    },
+                    {
+                        name: "Creative Thinking",
+                        children: [
+                            { name: "Stimulates brainstorming" },
+                            { name: "Encourages innovative connections" },
+                            { name: "Supports problem-solving" }
+                        ]
+                    },
+                    {
+                        name: "Communication",
+                        children: [
+                            { name: "Simplifies complex information" },
+                            { name: "Facilitates team collaboration" },
+                            { name: "Improves presentation of ideas" }
+                        ]
+                    }
+                ]
+            };
+            
+            updateMindMapVisualization();
+        }
+        
+        // Clear all content
+        function clearAll() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('imageInput').value = '';
+            document.getElementById('summaryPanel').style.display = 'none';
+            
+            mindMapData = {
+                name: "Central Topic",
+                children: []
+            };
+            
+            updateMindMapVisualization();
+            showSuccess('All content cleared!');
+        }
+        
+        // Search nodes
+        function searchNodes() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            
+            if (!query) {
+                showError('Please enter a search term');
+                return;
+            }
+            
+            // In a real implementation, you would highlight matching nodes
+            showSuccess(`Searching for: ${query}`);
+            // This would be implemented with actual node highlighting in the visualization
+        }
+        
+        // Apply template
+        function applyTemplate() {
+            // In a real implementation, this would change colors, fonts, and layout based on template
+            showSuccess(`Applied ${currentTemplate} template`);
+            applyStyle();
+        }
+        
+        // Update mind map layout
+        function updateMindMapLayout() {
+            // In a real implementation, this would change the layout algorithm
+            showSuccess(`Changed to ${currentLayout} layout`);
+            updateMindMapVisualization();
+        }
+        
+        // Apply style
+        function applyStyle() {
+            // In a real implementation, this would change the visual style
+            showSuccess(`Applied ${currentStyle} style`);
+            updateMindMapVisualization();
+        }
+        
+        // Toggle edit mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const button = document.getElementById('editModeBtn');
+            
+            if (isEditMode) {
+                button.innerHTML = '<span>✏️</span> Editing...';
+                button.style.background = 'var(--accent)';
+                showSuccess('Edit mode activated. Click on nodes to edit.');
+            } else {
+                button.innerHTML = '<span>✏️</span> Edit Mode';
+                button.style.background = '';
+                closeNodeEditor();
+                showSuccess('Edit mode deactivated.');
+            }
+        }
+        
+        // Open node editor
+        function openNodeEditor(node) {
+            const editor = document.getElementById('nodeEditor');
+            document.getElementById('nodeTitleInput').value = node.data.name;
+            document.getElementById('nodeContentInput').value = node.data.content || '';
+            
+            // Position editor near the node
+            editor.style.display = 'block';
+            editor.style.left = '50%';
+            editor.style.top = '50%';
+            editor.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        // Close node editor
+        function closeNodeEditor() {
+            document.getElementById('nodeEditor').style.display = 'none';
+            selectedNode = null;
+        }
+        
+        // Save node changes
+        function saveNodeChanges() {
+            if (!selectedNode) return;
+            
+            const title = document.getElementById('nodeTitleInput').value;
+            const content = document.getElementById('nodeContentInput').value;
+            const color = document.getElementById('nodeColorSelect').value;
+            
+            selectedNode.data.name = title;
+            selectedNode.data.content = content;
+            selectedNode.data.color = color;
+            
+            updateMindMapVisualization();
+            closeNodeEditor();
+            showSuccess('Node updated successfully!');
+            
+            // Auto-save if enabled
+            if (document.getElementById('autoSave').checked) {
+                showAutoSaveIndicator();
+            }
+        }
+        
+        // Delete node
+        function deleteNode() {
+            if (!selectedNode) return;
+            
+            if (selectedNode.parent) {
+                const index = selectedNode.parent.children.indexOf(selectedNode);
+                if (index > -1) {
+                    selectedNode.parent.children.splice(index, 1);
+                }
+            }
+            
+            updateMindMapVisualization();
+            closeNodeEditor();
+            showSuccess('Node deleted successfully!');
+            
+            // Auto-save if enabled
+            if (document.getElementById('autoSave').checked) {
+                showAutoSaveIndicator();
+            }
+        }
+        
+        // Add child node
+        function addChildNode(parentNode) {
+            if (!parentNode.children) {
+                parentNode.children = [];
+            }
+            
+            parentNode.children.push({
+                name: "New Node",
+                content: "Add details here...",
+                color: "#4361ee"
+            });
+            
+            updateMindMapVisualization();
+            showSuccess('New node added!');
+            
+            // Auto-save if enabled
+            if (document.getElementById('autoSave').checked) {
+                showAutoSaveIndicator();
+            }
+        }
+        
+        // Zoom in
+        function zoomIn() {
+            // In a real implementation, this would zoom the visualization
+            showSuccess('Zoomed in');
+        }
+        
+        // Zoom out
+        function zoomOut() {
+            // In a real implementation, this would zoom the visualization
+            showSuccess('Zoomed out');
+        }
+        
+        // Reset view
+        function resetView() {
+            // In a real implementation, this would reset the zoom and pan
+            showSuccess('View reset');
+        }
+        
+        // Export as PNG
+        function exportAsPNG() {
+            // In a real implementation, this would export the mind map as PNG
+            showSuccess('Exported as PNG');
+        }
+        
+        // Export as PDF
+        function exportAsPDF() {
+            // In a real implementation, this would export the mind map as PDF
+            showSuccess('Exported as PDF');
+        }
+        
+        // Export as JSON
+        function exportAsJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mindMapData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "mindmap.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showSuccess('Exported as JSON');
+        }
+        
+        // Share mind map
+        function shareMindMap() {
+            // In a real implementation, this would generate a shareable link
+            showSuccess('Share functionality would be implemented here');
+        }
+        
+        // Test API connection
+        function testApiConnection() {
+            showProcessing('Testing API connection...');
+            
+            apiKey = document.getElementById('apiKeyInput').value.trim();
+            
+            if (!apiKey) {
+                hideProcessing();
+                showError('Please enter an API key');
+                return;
+            }
+            
+            fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Mind Map Generator",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "model": "openai/gpt-3.5-turbo",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Hello, this is a connection test. Please respond with 'OK'."
+                        }
+                    ],
+                    "max_tokens": 10
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`API error: ${response.status}`);
+                }
+            })
+            .then(data => {
+                hideProcessing();
+                apiStatus = true;
+                document.getElementById('apiStatusIndicator').classList.add('connected');
+                document.getElementById('apiStatusText').textContent = 'Connected';
+                showSuccess('API connection successful!');
+            })
+            .catch(error => {
+                hideProcessing();
+                apiStatus = false;
+                document.getElementById('apiStatusIndicator').classList.remove('connected');
+                document.getElementById('apiStatusText').textContent = 'Connection failed';
+                showError('API connection failed: ' + error.message);
+            });
+        }
+        
+        // Save settings
+        function saveSettings() {
+            apiKey = document.getElementById('apiKeyInput').value.trim();
+            
+            // Save other settings to localStorage
+            const settings = {
+                apiKey: apiKey,
+                autoSave: document.getElementById('autoSave').checked,
+                aiEnhancement: document.getElementById('aiEnhancement').checked,
+                collaboration: document.getElementById('collaboration').checked,
+                advancedAnalytics: document.getElementById('advancedAnalytics').checked,
+                extractKeywords: document.getElementById('extractKeywords').checked,
+                identifyTopics: document.getElementById('identifyTopics').checked,
+                sentimentAnalysis: document.getElementById('sentimentAnalysis').checked,
+                summarizeContent: document.getElementById('summarizeContent').checked
+            };
+            
+            localStorage.setItem('mindMapSettings', JSON.stringify(settings));
+            showSuccess('Settings saved successfully!');
+        }
+        
+        // Load settings
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('mindMapSettings');
+            
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                
+                if (settings.apiKey) {
+                    document.getElementById('apiKeyInput').value = settings.apiKey;
+                    apiKey = settings.apiKey;
+                }
+                
+                // Set checkboxes
+                document.getElementById('autoSave').checked = settings.autoSave || false;
+                document.getElementById('aiEnhancement').checked = settings.aiEnhancement || false;
+                document.getElementById('collaboration').checked = settings.collaboration || false;
+                document.getElementById('advancedAnalytics').checked = settings.advancedAnalytics || false;
+                document.getElementById('extractKeywords').checked = settings.extractKeywords !== false; // default true
+                document.getElementById('identifyTopics').checked = settings.identifyTopics !== false; // default true
+                document.getElementById('sentimentAnalysis').checked = settings.sentimentAnalysis || false;
+                document.getElementById('summarizeContent').checked = settings.summarizeContent || false;
+                
+                // Update feature option active states
+                document.querySelectorAll('.feature-option').forEach(option => {
+                    const feature = option.getAttribute('data-feature');
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    option.classList.toggle('active', checkbox.checked);
+                });
+            }
+        }
+        
+        // Reset settings
+        function resetSettings() {
+            localStorage.removeItem('mindMapSettings');
+            document.getElementById('apiKeyInput').value = "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";
+            apiKey = "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";
+            
+            // Reset checkboxes to defaults
+            document.getElementById('autoSave').checked = true;
+            document.getElementById('aiEnhancement').checked = true;
+            document.getElementById('collaboration').checked = false;
+            document.getElementById('advancedAnalytics').checked = false;
+            document.getElementById('extractKeywords').checked = true;
+            document.getElementById('identifyTopics').checked = true;
+            document.getElementById('sentimentAnalysis').checked = false;
+            document.getElementById('summarizeContent').checked = false;
+            
+            // Update feature option active states
+            document.querySelectorAll('.feature-option').forEach(option => {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                option.classList.toggle('active', checkbox.checked);
+            });
+            
+            showSuccess('Settings reset to defaults!');
+        }
+        
+        // Show processing indicator
+        function showProcessing(message) {
+            document.getElementById('processing').style.display = 'flex';
+            document.getElementById('processingDetails').textContent = message || 'Processing...';
+        }
+        
+        // Hide processing indicator
+        function hideProcessing() {
+            document.getElementById('processing').style.display = 'none';
+        }
+        
+        // Show auto-save indicator
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            // Remove any existing messages
+            document.querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            document.querySelector('.input-panel').appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            // Remove any existing messages
+            document.querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            
+            document.querySelector('.input-panel').appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

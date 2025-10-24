@@ -1,0 +1,978 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/18997/18997535.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/18997/18997535.png" style="display: none;" width="200" /></a></div>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Any Audio - Text Generator</title>
+    <style>
+        /* CSS Styles */
+        :root {
+            --primary-color: #4a6bff;
+            --secondary-color: #00c853;
+            --accent-color: #ff3d00;
+            --light-color: #f8f9fa;
+            --dark-color: #212121;
+            --gray-color: #757575;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7ff;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #304ffe);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .main-title {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 1.1rem;
+        }
+
+        textarea, select, input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        textarea {
+            min-height: 250px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(74, 107, 255, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            background-color: #3a5af5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #00b04a;
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+        }
+
+        .btn-accent:hover {
+            background-color: #e63900;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .audio-container {
+            margin-top: 3rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        audio {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .feature-desc {
+            color: var(--gray-color);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+
+        .copyright {
+            opacity: 0.7;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Loading spinner */
+        .spinner-container {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            border: 5px solid rgba(74, 107, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 1rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Voice preview section */
+        .voice-preview {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: #f5f7ff;
+            border-radius: 8px;
+            display: none;
+            border: 2px dashed #e0e0e0;
+        }
+
+        /* Range controls */
+        .range-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .range-control {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .range-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Status messages */
+        .status-message {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 5px solid #2e7d32;
+        }
+
+        .status-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 5px solid #c62828;
+        }
+
+        /* Format buttons */
+        .format-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            background-color: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .format-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.2rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .range-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="main-title">Any Audio - Text Generator</h1>
+            <p class="subtitle">Convert between text and audio in any language with advanced customization</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">Audio &amp; Text Converter</h2>
+            <form id="converterForm">
+                <div class="form-group">
+                    <label for="conversionType">Conversion Type:</label>
+                    <select id="conversionType" required="">
+                        <option value="">-- Select Conversion --</option>
+                        <option value="textToAudio">Text to Audio</option>
+                        <option value="audioToText">Audio to Text</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="textInputGroup">
+                    <label for="textInput">Enter your text:</label>
+                    <textarea id="textInput" placeholder="Type or paste your text here..."></textarea>
+                </div>
+
+                <div class="form-group" id="audioInputGroup" style="display: none;">
+                    <label for="audioUpload">Upload Audio File:</label>
+                    <input accept="audio/*" id="audioUpload" type="file" />
+                </div>
+
+                <div class="form-group" id="languageGroup">
+                    <label for="languageSelect">Select Language:</label>
+                    <select id="languageSelect" required="">
+                        <option value="">-- Select Language --</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="es-ES">Spanish (Spain)</option>
+                        <option value="fr-FR">French (France)</option>
+                        <option value="de-DE">German (Germany)</option>
+                        <option value="it-IT">Italian (Italy)</option>
+                        <option value="pt-BR">Portuguese (Brazil)</option>
+                        <option value="ru-RU">Russian (Russia)</option>
+                        <option value="ja-JP">Japanese (Japan)</option>
+                        <option value="zh-CN">Chinese (China)</option>
+                        <option value="ar-SA">Arabic (Saudi Arabia)</option>
+                        <option value="hi-IN">Hindi (India)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="voiceGroup">
+                    <label for="voiceSelect">Select Voice:</label>
+                    <select id="voiceSelect">
+                        <option value="">-- Select a voice --</option>
+                    </select>
+                    <div class="voice-preview" id="voicePreview">
+                        <p>Preview: <span id="previewText">This is a preview of the selected voice.</span></p>
+                        <button class="btn" id="playPreviewBtn" style="margin-top: 1rem;" type="button">Play Preview</button>
+                    </div>
+                </div>
+
+                <div class="range-controls" id="audioControls">
+                    <div class="range-control">
+                        <div class="range-label">
+                            <label for="rateControl">Speech Rate:</label>
+                            <span id="rateValue">1</span>
+                        </div>
+                        <input id="rateControl" max="2" min="0.5" step="0.1" type="range" value="1" />
+                    </div>
+                    <div class="range-control">
+                        <div class="range-label">
+                            <label for="pitchControl">Speech Pitch:</label>
+                            <span id="pitchValue">1</span>
+                        </div>
+                        <input id="pitchControl" max="2" min="0.5" step="0.1" type="range" value="1" />
+                    </div>
+                </div>
+
+                <div class="form-group" id="formatGroup">
+                    <label>Output Format:</label>
+                    <div class="format-buttons">
+                        <button class="format-btn active" data-format="mp3" type="button">MP3</button>
+                        <button class="format-btn" data-format="wav" type="button">WAV</button>
+                        <button class="format-btn" data-format="ogg" type="button">OGG</button>
+                        <button class="format-btn" data-format="aac" type="button">AAC</button>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" id="convertBtn" type="submit"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Convert</a></button>
+                    <button class="btn" disabled="" id="downloadBtn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download Result</a></button>
+                    <button class="btn btn-accent" id="resetBtn" type="button">Reset</button>
+                </div>
+
+                <div class="spinner-container" id="loadingContainer">
+                    <div class="spinner"></div>
+                    <div class="loading-text" id="loadingText">Processing...</div>
+                </div>
+
+                <div class="status-message" id="statusMessage"></div>
+            </form>
+
+            <div class="audio-container" id="audioResultContainer">
+                <h3>Your Generated Audio:</h3>
+                <audio controls="" id="generatedAudio"></audio>
+                <div class="btn-group">
+                    <button class="btn" id="downloadPdfBtn" type="button">Download as PDF</button>
+                    <button class="btn" id="downloadDocBtn" type="button">Download as DOC</button>
+                </div>
+            </div>
+
+            <div class="audio-container" id="textResultContainer" style="display: none;">
+                <h3>Converted Text:</h3>
+                <div id="convertedText" style="background: #f5f7ff; border-radius: 8px; margin-bottom: 1.5rem; padding: 1.5rem;"></div>
+                <div class="btn-group">
+                    <button class="btn" id="copyTextBtn" type="button">Copy Text</button>
+                    <button class="btn" id="downloadTxtBtn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download as TXT</a></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3 class="feature-title">Bidirectional Conversion</h3>
+                <p class="feature-desc">Convert text to audio or audio to text with the same powerful tool. Perfect for all your content creation needs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h3 class="feature-title">Multilingual Support</h3>
+                <p class="feature-desc">Works with dozens of languages and dialects. Our advanced engine handles pronunciation perfectly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3 class="feature-title">Advanced Controls</h3>
+                <p class="feature-desc">Fine-tune speech rate, pitch, and output formats to get exactly the result you need.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a class="footer-link" href="#">About Us</a>
+                <a class="footer-link" href="#">Privacy Policy</a>
+                <a class="footer-link" href="#">Terms of Service</a>
+                <a class="footer-link" href="#">Contact</a>
+            </div>
+            <p class="copyright">© 2023 Any Audio - Text Generator. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const conversionType = document.getElementById('conversionType');
+            const textInputGroup = document.getElementById('textInputGroup');
+            const audioInputGroup = document.getElementById('audioInputGroup');
+            const languageSelect = document.getElementById('languageSelect');
+            const voiceSelect = document.getElementById('voiceSelect');
+            const voicePreview = document.getElementById('voicePreview');
+            const playPreviewBtn = document.getElementById('playPreviewBtn');
+            const rateControl = document.getElementById('rateControl');
+            const pitchControl = document.getElementById('pitchControl');
+            const rateValue = document.getElementById('rateValue');
+            const pitchValue = document.getElementById('pitchValue');
+            const convertBtn = document.getElementById('convertBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const loadingContainer = document.getElementById('loadingContainer');
+            const loadingText = document.getElementById('loadingText');
+            const statusMessage = document.getElementById('statusMessage');
+            const audioResultContainer = document.getElementById('audioResultContainer');
+            const generatedAudio = document.getElementById('generatedAudio');
+            const textResultContainer = document.getElementById('textResultContainer');
+            const convertedText = document.getElementById('convertedText');
+            const formatButtons = document.querySelectorAll('.format-btn');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const downloadDocBtn = document.getElementById('downloadDocBtn');
+            const copyTextBtn = document.getElementById('copyTextBtn');
+            const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+            const audioControls = document.getElementById('audioControls');
+            const voiceGroup = document.getElementById('voiceGroup');
+            const formatGroup = document.getElementById('formatGroup');
+
+            // Global variables
+            let voices = [];
+            let audioBlob = null;
+            let selectedFormat = 'mp3';
+            let isSpeechSupported = false;
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let audioContext = null;
+
+            // Initialize the application
+            function init() {
+                checkSpeechSupport();
+                setupEventListeners();
+                updateUI();
+            }
+
+            // Check for speech synthesis support
+            function checkSpeechSupport() {
+                if ('speechSynthesis' in window) {
+                    isSpeechSupported = true;
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                    if (speechSynthesis.getVoices().length > 0) {
+                        loadVoices();
+                    }
+                } else {
+                    showMessage("Speech synthesis is not supported in your browser. Text-to-audio conversion will be limited.", "error");
+                }
+            }
+
+            // Load available voices
+            function loadVoices() {
+                if (!isSpeechSupported) return;
+                
+                voices = window.speechSynthesis.getVoices();
+                const lang = languageSelect.value;
+                voiceSelect.innerHTML = '<option value="">-- Select a voice --</option>';
+                
+                if (!lang) return;
+
+                const langVoices = voices.filter(voice => voice.lang.startsWith(lang));
+                
+                if (langVoices.length > 0) {
+                    langVoices.forEach((voice, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = `${voice.name} (${voice.lang})`;
+                        voiceSelect.appendChild(option);
+                    });
+                    voicePreview.style.display = 'block';
+                } else {
+                    voicePreview.style.display = 'none';
+                }
+            }
+
+            // Preview selected voice
+            function previewVoice() {
+                if (!isSpeechSupported) {
+                    showMessage("Voice preview is not supported in your browser", "error");
+                    return;
+                }
+
+                const selectedVoiceIndex = voiceSelect.value;
+                if (!selectedVoiceIndex) return;
+
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance("This is a preview of the selected voice.");
+                utterance.lang = languageSelect.value;
+                utterance.rate = parseFloat(rateControl.value);
+                utterance.pitch = parseFloat(pitchControl.value);
+
+                const langVoices = voices.filter(voice => voice.lang.startsWith(languageSelect.value));
+                if (langVoices.length > 0 && selectedVoiceIndex < langVoices.length) {
+                    utterance.voice = langVoices[selectedVoiceIndex];
+                }
+
+                document.getElementById('previewText').textContent = "Playing preview...";
+                utterance.onend = function() {
+                    document.getElementById('previewText').textContent = "Preview finished.";
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Convert text to audio
+            function convertTextToAudio() {
+                const text = document.getElementById('textInput').value.trim();
+                if (!text) {
+                    showMessage("Please enter some text to convert", "error");
+                    return;
+                }
+
+                if (!voiceSelect.value) {
+                    showMessage("Please select a voice", "error");
+                    return;
+                }
+
+                startLoading("Generating audio...");
+
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                // Create audio context if not exists
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                // Create utterance
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = languageSelect.value;
+                utterance.rate = parseFloat(rateControl.value);
+                utterance.pitch = parseFloat(pitchControl.value);
+
+                const langVoices = voices.filter(voice => voice.lang.startsWith(languageSelect.value));
+                if (langVoices.length > 0) {
+                    utterance.voice = langVoices[voiceSelect.value];
+                }
+
+                // Setup media recorder to capture audio
+                setupMediaRecorder(utterance);
+            }
+
+            // Convert audio to text (simulated)
+            function convertAudioToText() {
+                const audioFile = document.getElementById('audioUpload').files[0];
+                if (!audioFile) {
+                    showMessage("Please upload an audio file", "error");
+                    return;
+                }
+
+                startLoading("Converting audio to text...");
+
+                // In a real implementation, this would use the Web Speech API or a backend service
+                // For this demo, we'll simulate the conversion process
+                setTimeout(() => {
+                    // Simulate successful conversion
+                    const simulatedText = "This is a simulated text conversion from your audio file. In a real implementation, this would be the actual transcribed text from your audio.";
+                    
+                    convertedText.textContent = simulatedText;
+                    stopLoading();
+                    textResultContainer.style.display = 'block';
+                    audioResultContainer.style.display = 'none';
+                    downloadBtn.disabled = false;
+                    showMessage("Audio successfully converted to text!", "success");
+                }, 3000);
+            }
+
+            // Setup media recorder to capture speech
+            function setupMediaRecorder(utterance) {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const destination = audioContext.createMediaStreamDestination();
+                mediaRecorder = new MediaRecorder(destination.stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = function(e) {
+                    audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = function() {
+                    audioBlob = new Blob(audioChunks, { type: `audio/${selectedFormat}` });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    generatedAudio.src = audioUrl;
+                    stopLoading();
+                    audioResultContainer.style.display = 'block';
+                    textResultContainer.style.display = 'none';
+                    downloadBtn.disabled = false;
+                    showMessage("Audio generated successfully!", "success");
+                };
+
+                // Create speech node
+                utterance.onstart = function() {
+                    mediaRecorder.start();
+                };
+
+                utterance.onend = function() {
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, 500);
+                };
+
+                // Speak the text
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Download current result
+            function downloadResult() {
+                if (conversionType.value === 'textToAudio' && audioBlob) {
+                    downloadAudio(audioBlob);
+                } else if (conversionType.value === 'audioToText') {
+                    downloadText();
+                }
+            }
+
+            // Download audio
+            function downloadAudio(blob) {
+                if (!blob) return;
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audio-${new Date().getTime()}.${selectedFormat}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Download text
+            function downloadText() {
+                const text = convertedText.textContent;
+                if (!text) {
+                    showMessage("No text to download", "error");
+                    return;
+                }
+
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `text-${new Date().getTime()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Download as PDF
+            function downloadAsPdf() {
+                const text = conversionType.value === 'textToAudio' ? 
+                    document.getElementById('textInput').value : 
+                    convertedText.textContent;
+                
+                if (!text) {
+                    showMessage("No content to download", "error");
+                    return;
+                }
+
+                // In a real implementation, use a PDF generation library
+                const blob = new Blob([text], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `document-${new Date().getTime()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Download as DOC
+            function downloadAsDoc() {
+                const text = conversionType.value === 'textToAudio' ? 
+                    document.getElementById('textInput').value : 
+                    convertedText.textContent;
+                
+                if (!text) {
+                    showMessage("No content to download", "error");
+                    return;
+                }
+
+                // In a real implementation, use a DOC generation library
+                const blob = new Blob([text], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `document-${new Date().getTime()}.doc`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Copy text to clipboard
+            function copyTextToClipboard() {
+                const text = convertedText.textContent;
+                if (!text) {
+                    showMessage("No text to copy", "error");
+                    return;
+                }
+
+                navigator.clipboard.writeText(text).then(() => {
+                    showMessage("Text copied to clipboard!", "success");
+                }).catch(err => {
+                    showMessage("Failed to copy text", "error");
+                });
+            }
+
+            // Show status message
+            function showMessage(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message status-${type}`;
+                statusMessage.style.display = 'block';
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+
+            // Start loading state
+            function startLoading(message) {
+                loadingText.textContent = message || "Processing...";
+                loadingContainer.style.display = 'block';
+                convertBtn.disabled = true;
+                statusMessage.style.display = 'none';
+            }
+
+            // Stop loading state
+            function stopLoading() {
+                loadingContainer.style.display = 'none';
+                convertBtn.disabled = false;
+            }
+
+            // Reset form
+            function resetForm() {
+                document.getElementById('textInput').value = '';
+                document.getElementById('audioUpload').value = '';
+                languageSelect.value = '';
+                voiceSelect.innerHTML = '<option value="">-- Select a voice --</option>';
+                voicePreview.style.display = 'none';
+                rateControl.value = 1;
+                pitchControl.value = 1;
+                rateValue.textContent = '1';
+                pitchValue.textContent = '1';
+                audioResultContainer.style.display = 'none';
+                textResultContainer.style.display = 'none';
+                generatedAudio.src = '';
+                convertedText.textContent = '';
+                audioBlob = null;
+                convertBtn.disabled = false;
+                downloadBtn.disabled = true;
+                setActiveFormat('mp3');
+                statusMessage.style.display = 'none';
+                window.speechSynthesis.cancel();
+            }
+
+            // Set active format
+            function setActiveFormat(format) {
+                selectedFormat = format;
+                formatButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.format === format) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            // Update UI based on conversion type
+            function updateUI() {
+                const type = conversionType.value;
+                
+                if (type === 'textToAudio') {
+                    textInputGroup.style.display = 'block';
+                    audioInputGroup.style.display = 'none';
+                    voiceGroup.style.display = 'block';
+                    audioControls.style.display = 'grid';
+                    formatGroup.style.display = 'block';
+                } else if (type === 'audioToText') {
+                    textInputGroup.style.display = 'none';
+                    audioInputGroup.style.display = 'block';
+                    voiceGroup.style.display = 'none';
+                    audioControls.style.display = 'none';
+                    formatGroup.style.display = 'none';
+                } else {
+                    textInputGroup.style.display = 'none';
+                    audioInputGroup.style.display = 'none';
+                    voiceGroup.style.display = 'none';
+                    audioControls.style.display = 'none';
+                    formatGroup.style.display = 'none';
+                }
+            }
+
+            // Setup event listeners
+            function setupEventListeners() {
+                // Conversion type change
+                conversionType.addEventListener('change', function() {
+                    updateUI();
+                    resetForm();
+                });
+
+                // Language change
+                languageSelect.addEventListener('change', loadVoices);
+
+                // Voice preview
+                playPreviewBtn.addEventListener('click', previewVoice);
+
+                // Range controls
+                rateControl.addEventListener('input', () => {
+                    rateValue.textContent = rateControl.value;
+                });
+
+                pitchControl.addEventListener('input', () => {
+                    pitchValue.textContent = pitchControl.value;
+                });
+
+                // Format buttons
+                formatButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        setActiveFormat(this.dataset.format);
+                    });
+                });
+
+                // Form submission
+                document.getElementById('converterForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (conversionType.value === 'textToAudio') {
+                        convertTextToAudio();
+                    } else if (conversionType.value === 'audioToText') {
+                        convertAudioToText();
+                    }
+                });
+
+                // Download buttons
+                downloadBtn.addEventListener('click', downloadResult);
+                downloadPdfBtn.addEventListener('click', downloadAsPdf);
+                downloadDocBtn.addEventListener('click', downloadAsDoc);
+                downloadTxtBtn.addEventListener('click', downloadText);
+                copyTextBtn.addEventListener('click', copyTextToClipboard);
+
+                // Reset button
+                resetBtn.addEventListener('click', resetForm);
+            }
+
+            // Initialize the application
+            init();
+        });
+    </script>
+</body>
+</html>

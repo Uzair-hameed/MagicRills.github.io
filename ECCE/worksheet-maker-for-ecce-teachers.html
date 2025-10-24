@@ -1,0 +1,1872 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/9746/9746243.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/9746/9746243.png" style="display: none;" width="200" /></a></div>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>ECCE Worksheet Maker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #ff9e80;
+            --accent-color: #64b5f6;
+            --light-color: #f5f5f5;
+            --dark-color: #333;
+            --success-color: #66bb6a;
+            --warning-color: #ffa726;
+            --error-color: #ef5350;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .creator-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .controls-panel {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-panel {
+            flex: 2;
+            min-width: 400px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.2);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3a5a80;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #ff7043;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .question-type {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .question-type-btn {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .question-type-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .question-type-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .worksheet-preview {
+            flex-grow: 1;
+            border: 1px dashed #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+            min-height: 500px;
+            overflow-y: auto;
+        }
+
+        .worksheet-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        .question-item {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .options-container {
+            margin-left: 20px;
+        }
+
+        .option-item {
+            margin-bottom: 8px;
+        }
+
+        .matching-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .matching-pair {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tracing-area {
+            background-color: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+
+        .drawing-area {
+            height: 200px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            background-color: white;
+        }
+
+        .color-shape-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .color-shape-item {
+            width: 60px;
+            text-align: center;
+        }
+
+        .color-box {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 5px;
+            border: 1px solid #ddd;
+        }
+
+        .shape-box {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 5px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .math-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .math-symbol {
+            font-size: 24px;
+        }
+
+        .image-question {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .image-option {
+            width: 80px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .image-option img {
+            width: 100%;
+            height: auto;
+            border: 2px solid transparent;
+            border-radius: 4px;
+        }
+
+        .image-option.selected img {
+            border-color: var(--primary-color);
+        }
+
+        .drag-drop-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .drag-drop-area:hover {
+            border-color: var(--accent-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tab-container {
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab-content {
+            padding: 20px 0;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .sample-questions {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .sample-question {
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sample-question:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .creator-container {
+                flex-direction: column;
+            }
+            
+            .controls-panel, .preview-panel {
+                min-width: 100%;
+            }
+            
+            .question-type {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-item {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>ECCE Worksheet Maker</h1>
+            <p class="subtitle">Create engaging worksheets for early childhood education</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="creator-container">
+            <div class="controls-panel">
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="setup">Setup</button>
+                        <button class="tab-btn" data-tab="questions">Questions</button>
+                        <button class="tab-btn" data-tab="design">Design</button>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="setup-tab">
+                            <div class="form-group">
+                                <label for="worksheet-title">Worksheet Title</label>
+                                <input id="worksheet-title" placeholder="My Awesome Worksheet" type="text" />
+                            </div>
+                            <div class="form-group">
+                                <label for="age-group">Age Group</label>
+                                <select id="age-group">
+                                    <option value="3">3 years</option>
+                                    <option value="4">4 years</option>
+                                    <option value="5">5 years</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <select id="subject">
+                                    <option value="english">English</option>
+                                    <option value="math">Math</option>
+                                    <option value="urdu">Urdu</option>
+                                    <option value="sindhi">Sindhi</option>
+                                    <option value="general">General Knowledge</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="difficulty">Difficulty Level</label>
+                                <select id="difficulty">
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="num-questions">Number of Questions</label>
+                                <input id="num-questions" max="20" min="1" type="number" value="5" />
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="questions-tab">
+                            <div class="form-group">
+                                <label>Question Types</label>
+                                <div class="question-type">
+                                    <div class="question-type-btn active" data-type="multiple-choice">Multiple Choice</div>
+                                    <div class="question-type-btn" data-type="fill-blank">Fill in Blank</div>
+                                    <div class="question-type-btn" data-type="matching">Matching</div>
+                                    <div class="question-type-btn" data-type="picture">Picture Based</div>
+                                    <div class="question-type-btn" data-type="tracing">Tracing</div>
+                                    <div class="question-type-btn" data-type="color-shape">Color/Shape</div>
+                                    <div class="question-type-btn" data-type="math">Simple Math</div>
+                                    <div class="question-type-btn" data-type="drawing">Drawing</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="question-text">Question Text</label>
+                                <textarea id="question-text" placeholder="Enter your question here" rows="3"></textarea>
+                            </div>
+
+                            <div id="options-container">
+                                <!-- Options will be added here based on question type -->
+                                <div class="form-group multiple-choice-options">
+                                    <label>Options (Add at least 2)</label>
+                                    <div class="options-list">
+                                        <div class="option-item">
+                                            <input class="option-input" placeholder="Option 1" type="text" />
+                                            <input name="correct-option" type="radio" value="0" /> Correct
+                                        </div>
+                                        <div class="option-item">
+                                            <input class="option-input" placeholder="Option 2" type="text" />
+                                            <input name="correct-option" type="radio" value="1" /> Correct
+                                        </div>
+                                    </div>
+                                    <button class="add-option-btn" type="button">Add Option</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <button id="add-question-btn" type="button">Add Question</button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Sample Questions <span class="tooltip">ℹ️<span class="tooltiptext">Click to add sample questions to your worksheet</span></span></label>
+                                <div class="sample-questions">
+                                    <div class="sample-question" data-sample="match-animals">Match the animals to their sounds</div>
+                                    <div class="sample-question" data-sample="letter-after-a">Circle the letter that comes after "A"</div>
+                                    <div class="sample-question" data-sample="count-apples">Count and color 5 apples</div>
+                                    <div class="sample-question" data-sample="correct-shape">Draw a line to the correct shape</div>
+                                    <div class="sample-question" data-sample="trace-b">Trace the letter "B"</div>
+                                    <div class="sample-question" data-sample="color-red">Color all red objects</div>
+                                    <div class="sample-question" data-sample="add-numbers">Add the numbers: 2 + 3</div>
+                                    <div class="sample-question" data-sample="draw-house">Draw a house</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="design-tab">
+                            <div class="form-group">
+                                <label for="theme-color">Theme Color</label>
+                                <select id="theme-color">
+                                    <option value="#4a6fa5">Blue</option>
+                                    <option value="#66bb6a">Green</option>
+                                    <option value="#ff7043">Orange</option>
+                                    <option value="#ba68c8">Purple</option>
+                                    <option value="#ef5350">Red</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="font-size">Font Size</label>
+                                <select id="font-size">
+                                    <option value="14px">Small</option>
+                                    <option selected="" value="16px">Medium</option>
+                                    <option value="18px">Large</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="worksheet-layout">Layout</label>
+                                <select id="worksheet-layout">
+                                    <option value="portrait">Portrait</option>
+                                    <option value="landscape">Landscape</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Add Header Image</label>
+                                <div class="drag-drop-area" id="header-image-upload">
+                                    <p>Drag &amp; drop header image here or click to browse</p>
+                                    <input accept="image/*" id="header-image-input" style="display: none;" type="file" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Add Footer Note</label>
+                                <textarea id="footer-note" placeholder="Enter footer text (e.g., © Your School Name)" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-secondary" id="prev-tab-btn" type="button">Previous</button>
+                    <button id="next-tab-btn" type="button">Next</button>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <h2>Worksheet Preview</h2>
+                <div class="worksheet-preview" id="worksheet-preview">
+                    <h3 class="worksheet-title" id="preview-title">My Awesome Worksheet</h3>
+                    <div id="questions-preview">
+                        <!-- Questions will be added here -->
+                        <div class="question-item">
+                            <div class="question-text">1. What comes after the letter "A"?</div>
+                            <div class="options-container">
+                                <div class="option-item">A) A</div>
+                                <div class="option-item">B) B</div>
+                                <div class="option-item">C) C</div>
+                                <div class="option-item">D) D</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-secondary" id="preview-btn" type="button">Refresh Preview</button>
+                    <button id="download-pdf-btn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download PDF</a></button>
+                    <button class="btn-secondary" id="download-word-btn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download Word</a></button>
+                    <button id="print-btn" type="button"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Print</a></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'setup';
+        let questions = [];
+        let selectedQuestionType = 'multiple-choice';
+        
+        // DOM elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        const prevTabBtn = document.getElementById('prev-tab-btn');
+        const nextTabBtn = document.getElementById('next-tab-btn');
+        const questionTypeBtns = document.querySelectorAll('.question-type-btn');
+        const addQuestionBtn = document.getElementById('add-question-btn');
+        const questionsPreview = document.getElementById('questions-preview');
+        const worksheetTitle = document.getElementById('worksheet-title');
+        const previewTitle = document.getElementById('preview-title');
+        const optionsContainer = document.getElementById('options-container');
+        const questionText = document.getElementById('question-text');
+        const sampleQuestions = document.querySelectorAll('.sample-question');
+        const previewBtn = document.getElementById('preview-btn');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+        const downloadWordBtn = document.getElementById('download-word-btn');
+        const printBtn = document.getElementById('print-btn');
+        const progressBar = document.getElementById('progressBar');
+        const headerImageUpload = document.getElementById('header-image-upload');
+        const headerImageInput = document.getElementById('header-image-input');
+        
+        // Initialize the app
+        function init() {
+            setupEventListeners();
+            updateProgressBar();
+            showQuestionOptions(selectedQuestionType);
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            prevTabBtn.addEventListener('click', goToPreviousTab);
+            nextTabBtn.addEventListener('click', goToNextTab);
+            
+            // Question type selection
+            questionTypeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    questionTypeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedQuestionType = btn.getAttribute('data-type');
+                    showQuestionOptions(selectedQuestionType);
+                });
+            });
+            
+            // Add question button
+            addQuestionBtn.addEventListener('click', addQuestion);
+            
+            // Worksheet title change
+            worksheetTitle.addEventListener('input', () => {
+                previewTitle.textContent = worksheetTitle.value || 'My Awesome Worksheet';
+            });
+            
+            // Sample questions
+            sampleQuestions.forEach(question => {
+                question.addEventListener('click', () => {
+                    addSampleQuestion(question.getAttribute('data-sample'));
+                });
+            });
+            
+            // Preview and download buttons
+            previewBtn.addEventListener('click', refreshPreview);
+            downloadPdfBtn.addEventListener('click', downloadAsPDF);
+            downloadWordBtn.addEventListener('click', downloadAsWord);
+            printBtn.addEventListener('click', printWorksheet);
+            
+            // Header image upload
+            headerImageUpload.addEventListener('click', () => {
+                headerImageInput.click();
+            });
+            
+            headerImageInput.addEventListener('change', handleHeaderImageUpload);
+        }
+        
+        // Tab navigation functions
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Update active tab button
+            tabBtns.forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update active tab pane
+            tabPanes.forEach(pane => {
+                if (pane.id === `${tabId}-tab`) {
+                    pane.classList.add('active');
+                } else {
+                    pane.classList.remove('active');
+                }
+            });
+            
+            updateProgressBar();
+        }
+        
+        function goToPreviousTab() {
+            const tabs = ['setup', 'questions', 'design'];
+            const currentIndex = tabs.indexOf(currentTab);
+            if (currentIndex > 0) {
+                switchTab(tabs[currentIndex - 1]);
+            }
+        }
+        
+        function goToNextTab() {
+            const tabs = ['setup', 'questions', 'design'];
+            const currentIndex = tabs.indexOf(currentTab);
+            if (currentIndex < tabs.length - 1) {
+                switchTab(tabs[currentIndex + 1]);
+            }
+        }
+        
+        // Update progress bar
+        function updateProgressBar() {
+            let progress = 0;
+            switch(currentTab) {
+                case 'setup':
+                    progress = 33;
+                    break;
+                case 'questions':
+                    progress = 66;
+                    break;
+                case 'design':
+                    progress = 100;
+                    break;
+            }
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Show appropriate options based on question type
+        function showQuestionOptions(type) {
+            // Clear existing options
+            optionsContainer.innerHTML = '';
+            
+            switch(type) {
+                case 'multiple-choice':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group multiple-choice-options">
+                            <label>Options (Add at least 2)</label>
+                            <div class="options-list">
+                                <div class="option-item">
+                                    <input type="text" class="option-input" placeholder="Option 1">
+                                    <input type="radio" name="correct-option" value="0"> Correct
+                                </div>
+                                <div class="option-item">
+                                    <input type="text" class="option-input" placeholder="Option 2">
+                                    <input type="radio" name="correct-option" value="1"> Correct
+                                </div>
+                            </div>
+                            <button type="button" class="add-option-btn">Add Option</button>
+                        </div>
+                    `;
+                    
+                    // Add event listener for add option button
+                    document.querySelector('.add-option-btn').addEventListener('click', addMultipleChoiceOption);
+                    break;
+                    
+                case 'fill-blank':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Answer</label>
+                            <input type="text" id="fill-blank-answer" placeholder="Correct answer">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'matching':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Matching Pairs (Add at least 2 pairs)</label>
+                            <div class="matching-pairs-list">
+                                <div class="matching-pair">
+                                    <input type="text" class="matching-left" placeholder="Left item">
+                                    <span>→</span>
+                                    <input type="text" class="matching-right" placeholder="Right item">
+                                    <button type="button" class="remove-pair-btn">×</button>
+                                </div>
+                                <div class="matching-pair">
+                                    <input type="text" class="matching-left" placeholder="Left item">
+                                    <span>→</span>
+                                    <input type="text" class="matching-right" placeholder="Right item">
+                                    <button type="button" class="remove-pair-btn">×</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-pair-btn">Add Pair</button>
+                        </div>
+                    `;
+                    
+                    // Add event listeners
+                    document.querySelector('.add-pair-btn').addEventListener('click', addMatchingPair);
+                    document.querySelectorAll('.remove-pair-btn').forEach(btn => {
+                        btn.addEventListener('click', removeMatchingPair);
+                    });
+                    break;
+                    
+                case 'picture':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Picture Options (Add at least 2)</label>
+                            <div class="picture-options-list">
+                                <div class="picture-option-item">
+                                    <input type="text" class="picture-option-label" placeholder="Option label">
+                                    <input type="file" class="picture-option-file" accept="image/*">
+                                    <input type="radio" name="correct-picture" value="0"> Correct
+                                </div>
+                                <div class="picture-option-item">
+                                    <input type="text" class="picture-option-label" placeholder="Option label">
+                                    <input type="file" class="picture-option-file" accept="image/*">
+                                    <input type="radio" name="correct-picture" value="1"> Correct
+                                </div>
+                            </div>
+                            <button type="button" class="add-picture-option-btn">Add Option</button>
+                        </div>
+                    `;
+                    
+                    document.querySelector('.add-picture-option-btn').addEventListener('click', addPictureOption);
+                    break;
+                    
+                case 'tracing':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Content to Trace</label>
+                            <input type="text" id="tracing-content" placeholder="e.g., Aa Bb Cc or 1 2 3">
+                        </div>
+                        <div class="form-group">
+                            <label>Tracing Style</label>
+                            <select id="tracing-style">
+                                <option value="dotted">Dotted</option>
+                                <option value="dashed">Dashed</option>
+                                <option value="solid">Solid</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'color-shape':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Activity Type</label>
+                            <select id="color-shape-type">
+                                <option value="color">Color Identification</option>
+                                <option value="shape">Shape Identification</option>
+                                <option value="both">Both Colors and Shapes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Instruction</label>
+                            <input type="text" id="color-shape-instruction" placeholder="e.g., Circle all red objects">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'math':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Math Type</label>
+                            <select id="math-type">
+                                <option value="counting">Counting</option>
+                                <option value="addition">Addition</option>
+                                <option value="subtraction">Subtraction</option>
+                                <option value="comparison">Comparison</option>
+                            </select>
+                        </div>
+                        <div class="form-group math-numbers-container">
+                            <label>Numbers</label>
+                            <div class="math-container">
+                                <input type="number" class="math-number" min="1" max="10" value="2">
+                                <span class="math-symbol">+</span>
+                                <input type="number" class="math-number" min="1" max="10" value="3">
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('math-type').addEventListener('change', updateMathOptions);
+                    break;
+                    
+                case 'drawing':
+                    optionsContainer.innerHTML = `
+                        <div class="form-group">
+                            <label>Drawing Prompt</label>
+                            <input type="text" id="drawing-prompt" placeholder="e.g., Draw your favorite animal">
+                        </div>
+                    `;
+                    break;
+            }
+        }
+        
+        // Add multiple choice option
+        function addMultipleChoiceOption() {
+            const optionsList = document.querySelector('.options-list');
+            const optionCount = optionsList.children.length;
+            
+            const optionItem = document.createElement('div');
+            optionItem.className = 'option-item';
+            optionItem.innerHTML = `
+                <input type="text" class="option-input" placeholder="Option ${optionCount + 1}">
+                <input type="radio" name="correct-option" value="${optionCount}"> Correct
+            `;
+            
+            optionsList.appendChild(optionItem);
+        }
+        
+        // Add matching pair
+        function addMatchingPair() {
+            const pairsList = document.querySelector('.matching-pairs-list');
+            const pairItem = document.createElement('div');
+            pairItem.className = 'matching-pair';
+            pairItem.innerHTML = `
+                <input type="text" class="matching-left" placeholder="Left item">
+                <span>→</span>
+                <input type="text" class="matching-right" placeholder="Right item">
+                <button type="button" class="remove-pair-btn">×</button>
+            `;
+            
+            pairsList.appendChild(pairItem);
+            pairItem.querySelector('.remove-pair-btn').addEventListener('click', removeMatchingPair);
+        }
+        
+        // Remove matching pair
+        function removeMatchingPair(e) {
+            if (document.querySelectorAll('.matching-pair').length > 2) {
+                e.target.parentElement.remove();
+            } else {
+                alert('You need at least 2 matching pairs.');
+            }
+        }
+        
+        // Add picture option
+        function addPictureOption() {
+            const optionsList = document.querySelector('.picture-options-list');
+            const optionCount = optionsList.children.length;
+            
+            const optionItem = document.createElement('div');
+            optionItem.className = 'picture-option-item';
+            optionItem.innerHTML = `
+                <input type="text" class="picture-option-label" placeholder="Option ${optionCount + 1}">
+                <input type="file" class="picture-option-file" accept="image/*">
+                <input type="radio" name="correct-picture" value="${optionCount}"> Correct
+            `;
+            
+            optionsList.appendChild(optionItem);
+        }
+        
+        // Update math options based on selected math type
+        function updateMathOptions() {
+            const mathType = document.getElementById('math-type').value;
+            const mathContainer = document.querySelector('.math-numbers-container');
+            
+            switch(mathType) {
+                case 'counting':
+                    mathContainer.innerHTML = `
+                        <label>Count up to</label>
+                        <div class="math-container">
+                            <input type="number" class="math-number" min="1" max="20" value="5">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'addition':
+                    mathContainer.innerHTML = `
+                        <label>Numbers</label>
+                        <div class="math-container">
+                            <input type="number" class="math-number" min="1" max="10" value="2">
+                            <span class="math-symbol">+</span>
+                            <input type="number" class="math-number" min="1" max="10" value="3">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'subtraction':
+                    mathContainer.innerHTML = `
+                        <label>Numbers</label>
+                        <div class="math-container">
+                            <input type="number" class="math-number" min="1" max="10" value="5">
+                            <span class="math-symbol">-</span>
+                            <input type="number" class="math-number" min="1" max="10" value="2">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'comparison':
+                    mathContainer.innerHTML = `
+                        <label>Numbers</label>
+                        <div class="math-container">
+                            <input type="number" class="math-number" min="1" max="10" value="5">
+                            <span class="math-symbol">and</span>
+                            <input type="number" class="math-number" min="1" max="10" value="3">
+                        </div>
+                    `;
+                    break;
+            }
+        }
+        
+        // Add question to worksheet
+        function addQuestion() {
+            const text = questionText.value.trim();
+            if (!text) {
+                alert('Please enter question text');
+                return;
+            }
+            
+            const question = {
+                type: selectedQuestionType,
+                text: text,
+                options: []
+            };
+            
+            // Get options based on question type
+            switch(selectedQuestionType) {
+                case 'multiple-choice':
+                    const optionInputs = document.querySelectorAll('.option-input');
+                    const correctOption = document.querySelector('input[name="correct-option"]:checked');
+                    
+                    if (optionInputs.length < 2) {
+                        alert('Please add at least 2 options');
+                        return;
+                    }
+                    
+                    if (!correctOption) {
+                        alert('Please select the correct option');
+                        return;
+                    }
+                    
+                    optionInputs.forEach((input, index) => {
+                        if (input.value.trim()) {
+                            question.options.push({
+                                text: input.value.trim(),
+                                correct: index === parseInt(correctOption.value)
+                            });
+                        }
+                    });
+                    
+                    if (question.options.length < 2) {
+                        alert('Please provide at least 2 valid options');
+                        return;
+                    }
+                    break;
+                    
+                case 'fill-blank':
+                    const answer = document.getElementById('fill-blank-answer').value.trim();
+                    if (!answer) {
+                        alert('Please provide the correct answer');
+                        return;
+                    }
+                    question.answer = answer;
+                    break;
+                    
+                case 'matching':
+                    const leftItems = document.querySelectorAll('.matching-left');
+                    const rightItems = document.querySelectorAll('.matching-right');
+                    
+                    if (leftItems.length < 2) {
+                        alert('Please add at least 2 matching pairs');
+                        return;
+                    }
+                    
+                    for (let i = 0; i < leftItems.length; i++) {
+                        if (leftItems[i].value.trim() && rightItems[i].value.trim()) {
+                            question.options.push({
+                                left: leftItems[i].value.trim(),
+                                right: rightItems[i].value.trim()
+                            });
+                        }
+                    }
+                    
+                    if (question.options.length < 2) {
+                        alert('Please provide at least 2 valid matching pairs');
+                        return;
+                    }
+                    break;
+                    
+                case 'picture':
+                    const pictureLabels = document.querySelectorAll('.picture-option-label');
+                    const pictureFiles = document.querySelectorAll('.picture-option-file');
+                    const correctPicture = document.querySelector('input[name="correct-picture"]:checked');
+                    
+                    if (pictureLabels.length < 2) {
+                        alert('Please add at least 2 picture options');
+                        return;
+                    }
+                    
+                    if (!correctPicture) {
+                        alert('Please select the correct picture option');
+                        return;
+                    }
+                    
+                    for (let i = 0; i < pictureLabels.length; i++) {
+                        if (pictureLabels[i].value.trim() && pictureFiles[i].files.length > 0) {
+                            question.options.push({
+                                label: pictureLabels[i].value.trim(),
+                                file: pictureFiles[i].files[0],
+                                correct: i === parseInt(correctPicture.value)
+                            });
+                        }
+                    }
+                    
+                    if (question.options.length < 2) {
+                        alert('Please provide at least 2 valid picture options');
+                        return;
+                    }
+                    break;
+                    
+                case 'tracing':
+                    const content = document.getElementById('tracing-content').value.trim();
+                    if (!content) {
+                        alert('Please provide content to trace');
+                        return;
+                    }
+                    question.content = content;
+                    question.style = document.getElementById('tracing-style').value;
+                    break;
+                    
+                case 'color-shape':
+                    question.activityType = document.getElementById('color-shape-type').value;
+                    question.instruction = document.getElementById('color-shape-instruction').value.trim() || 
+                        (question.activityType === 'color' ? 'Identify the colors' : 
+                         question.activityType === 'shape' ? 'Identify the shapes' : 'Identify the colors and shapes');
+                    break;
+                    
+                case 'math':
+                    question.mathType = document.getElementById('math-type').value;
+                    const numbers = document.querySelectorAll('.math-number');
+                    
+                    if (question.mathType === 'counting') {
+                        question.number = parseInt(numbers[0].value);
+                    } else {
+                        question.number1 = parseInt(numbers[0].value);
+                        question.number2 = parseInt(numbers[1].value);
+                    }
+                    break;
+                    
+                case 'drawing':
+                    const prompt = document.getElementById('drawing-prompt').value.trim();
+                    if (!prompt) {
+                        alert('Please provide a drawing prompt');
+                        return;
+                    }
+                    question.prompt = prompt;
+                    break;
+            }
+            
+            questions.push(question);
+            refreshPreview();
+            questionText.value = '';
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.textContent = 'Question added successfully!';
+            successMsg.style.color = 'green';
+            successMsg.style.marginTop = '10px';
+            successMsg.style.fontWeight = 'bold';
+            
+            const addQuestionContainer = addQuestionBtn.parentElement;
+            addQuestionContainer.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.remove();
+            }, 2000);
+        }
+        
+        // Add sample question
+        function addSampleQuestion(sampleId) {
+            let question;
+            
+            switch(sampleId) {
+                case 'match-animals':
+                    question = {
+                        type: 'matching',
+                        text: 'Match the animals to their sounds',
+                        options: [
+                            { left: '🐶 Dog', right: 'Bark' },
+                            { left: '🐱 Cat', right: 'Meow' },
+                            { left: '🐮 Cow', right: 'Moo' },
+                            { left: '🦁 Lion', right: 'Roar' }
+                        ]
+                    };
+                    break;
+                    
+                case 'letter-after-a':
+                    question = {
+                        type: 'multiple-choice',
+                        text: 'Circle the letter that comes after "A"',
+                        options: [
+                            { text: 'A', correct: false },
+                            { text: 'B', correct: true },
+                            { text: 'C', correct: false },
+                            { text: 'D', correct: false }
+                        ]
+                    };
+                    break;
+                    
+                case 'count-apples':
+                    question = {
+                        type: 'math',
+                        text: 'Count and color 5 apples',
+                        mathType: 'counting',
+                        number: 5
+                    };
+                    break;
+                    
+                case 'correct-shape':
+                    question = {
+                        type: 'picture',
+                        text: 'Draw a line to the correct shape',
+                        options: [
+                            { label: 'Circle', correct: false },
+                            { label: 'Square', correct: true },
+                            { label: 'Triangle', correct: false }
+                        ]
+                    };
+                    break;
+                    
+                case 'trace-b':
+                    question = {
+                        type: 'tracing',
+                        text: 'Trace the letter "B"',
+                        content: 'B b B b',
+                        style: 'dotted'
+                    };
+                    break;
+                    
+                case 'color-red':
+                    question = {
+                        type: 'color-shape',
+                        text: 'Color all red objects',
+                        activityType: 'color',
+                        instruction: 'Color all red objects'
+                    };
+                    break;
+                    
+                case 'add-numbers':
+                    question = {
+                        type: 'math',
+                        text: 'Add the numbers:',
+                        mathType: 'addition',
+                        number1: 2,
+                        number2: 3
+                    };
+                    break;
+                    
+                case 'draw-house':
+                    question = {
+                        type: 'drawing',
+                        text: 'Draw a house',
+                        prompt: 'Draw a house with a door and two windows'
+                    };
+                    break;
+            }
+            
+            questions.push(question);
+            refreshPreview();
+        }
+        
+        // Refresh preview
+        function refreshPreview() {
+            questionsPreview.innerHTML = '';
+            
+            if (questions.length === 0) {
+                questionsPreview.innerHTML = '<p>No questions added yet. Add some questions to see them here.</p>';
+                return;
+            }
+            
+            questions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question-text';
+                questionText.textContent = `${index + 1}. ${question.text}`;
+                questionItem.appendChild(questionText);
+                
+                switch(question.type) {
+                    case 'multiple-choice':
+                        const optionsContainer = document.createElement('div');
+                        optionsContainer.className = 'options-container';
+                        
+                        question.options.forEach((option, optIndex) => {
+                            const optionItem = document.createElement('div');
+                            optionItem.className = 'option-item';
+                            optionItem.textContent = `${String.fromCharCode(65 + optIndex)}) ${option.text}`;
+                            if (option.correct) {
+                                optionItem.style.fontWeight = 'bold';
+                                optionItem.style.color = 'green';
+                            }
+                            optionsContainer.appendChild(optionItem);
+                        });
+                        
+                        questionItem.appendChild(optionsContainer);
+                        break;
+                        
+                    case 'fill-blank':
+                        const blankLine = document.createElement('div');
+                        blankLine.style.borderBottom = '1px solid black';
+                        blankLine.style.width = '200px';
+                        blankLine.style.margin = '10px 0';
+                        blankLine.style.height = '20px';
+                        questionItem.appendChild(blankLine);
+                        
+                        const answerNote = document.createElement('div');
+                        answerNote.style.fontSize = '0.8rem';
+                        answerNote.style.color = '#666';
+                        answerNote.textContent = `(Answer: ${question.answer})`;
+                        questionItem.appendChild(answerNote);
+                        break;
+                        
+                    case 'matching':
+                        const matchingContainer = document.createElement('div');
+                        matchingContainer.className = 'matching-container';
+                        
+                        question.options.forEach(pair => {
+                            const pairDiv = document.createElement('div');
+                            pairDiv.className = 'matching-pair';
+                            pairDiv.innerHTML = `
+                                <span>${pair.left}</span>
+                                <span>→</span>
+                                <span>${pair.right}</span>
+                            `;
+                            matchingContainer.appendChild(pairDiv);
+                        });
+                        
+                        questionItem.appendChild(matchingContainer);
+                        break;
+                        
+                    case 'picture':
+                        const imageContainer = document.createElement('div');
+                        imageContainer.className = 'image-question';
+                        
+                        question.options.forEach(option => {
+                            const imageOption = document.createElement('div');
+                            imageOption.className = 'image-option';
+                            if (option.correct) {
+                                imageOption.classList.add('selected');
+                            }
+                            
+                            if (option.file) {
+                                // For actual uploaded images (would need more handling for real implementation)
+                                const img = document.createElement('img');
+                                img.src = URL.createObjectURL(option.file);
+                                img.alt = option.label;
+                                imageOption.appendChild(img);
+                            } else {
+                                // For sample questions
+                                const placeholder = document.createElement('div');
+                                placeholder.style.width = '80px';
+                                placeholder.style.height = '80px';
+                                placeholder.style.backgroundColor = '#eee';
+                                placeholder.style.display = 'flex';
+                                placeholder.style.alignItems = 'center';
+                                placeholder.style.justifyContent = 'center';
+                                placeholder.textContent = option.label;
+                                imageOption.appendChild(placeholder);
+                            }
+                            
+                            imageContainer.appendChild(imageOption);
+                        });
+                        
+                        questionItem.appendChild(imageContainer);
+                        break;
+                        
+                    case 'tracing':
+                        const tracingArea = document.createElement('div');
+                        tracingArea.className = 'tracing-area';
+                        
+                        const letters = question.content.split('');
+                        letters.forEach(char => {
+                            const charSpan = document.createElement('span');
+                            charSpan.textContent = char;
+                            charSpan.style.display = 'inline-block';
+                            charSpan.style.width = '30px';
+                            charSpan.style.height = '40px';
+                            charSpan.style.textAlign = 'center';
+                            charSpan.style.fontSize = '24px';
+                            
+                            if (char.trim()) {
+                                charSpan.style.borderBottom = question.style === 'dotted' ? '2px dotted black' : 
+                                                           question.style === 'dashed' ? '2px dashed black' : '2px solid black';
+                            }
+                            
+                            tracingArea.appendChild(charSpan);
+                        });
+                        
+                        questionItem.appendChild(tracingArea);
+                        break;
+                        
+                    case 'color-shape':
+                        const colorShapeDiv = document.createElement('div');
+                        colorShapeDiv.className = 'color-shape-container';
+                        
+                        if (question.activityType === 'color' || question.activityType === 'both') {
+                            const colors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
+                            colors.forEach(color => {
+                                const colorItem = document.createElement('div');
+                                colorItem.className = 'color-shape-item';
+                                
+                                const colorBox = document.createElement('div');
+                                colorBox.className = 'color-box';
+                                colorBox.style.backgroundColor = color;
+                                
+                                const colorLabel = document.createElement('div');
+                                colorLabel.textContent = color;
+                                
+                                colorItem.appendChild(colorBox);
+                                colorItem.appendChild(colorLabel);
+                                colorShapeDiv.appendChild(colorItem);
+                            });
+                        }
+                        
+                        if (question.activityType === 'shape' || question.activityType === 'both') {
+                            const shapes = ['○', '□', '△', '◇', '☆', '♥'];
+                            shapes.forEach(shape => {
+                                const shapeItem = document.createElement('div');
+                                shapeItem.className = 'color-shape-item';
+                                
+                                const shapeBox = document.createElement('div');
+                                shapeBox.className = 'shape-box';
+                                shapeBox.textContent = shape;
+                                
+                                const shapeLabel = document.createElement('div');
+                                shapeLabel.textContent = 'Shape';
+                                
+                                shapeItem.appendChild(shapeBox);
+                                shapeItem.appendChild(shapeLabel);
+                                colorShapeDiv.appendChild(shapeItem);
+                            });
+                        }
+                        
+                        questionItem.appendChild(colorShapeDiv);
+                        break;
+                        
+                    case 'math':
+                        const mathDiv = document.createElement('div');
+                        mathDiv.className = 'math-container';
+                        
+                        if (question.mathType === 'counting') {
+                            mathDiv.innerHTML = `
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                    ${Array(question.number).fill().map((_, i) => 
+                                        `<div style="width: 30px; height: 30px; border: 1px solid black;"></div>`
+                                    ).join('')}
+                                </div>
+                                <p>Count the boxes and write the number:</p>
+                                <div style="border-bottom: 1px solid black; width: 50px; height: 20px; margin: 10px 0;"></div>
+                            `;
+                        } else if (question.mathType === 'addition') {
+                            mathDiv.innerHTML = `
+                                <div style="font-size: 24px;">
+                                    ${question.number1} + ${question.number2} = 
+                                    <span style="border-bottom: 1px solid black; width: 30px; display: inline-block;"></span>
+                                </div>
+                            `;
+                        } else if (question.mathType === 'subtraction') {
+                            mathDiv.innerHTML = `
+                                <div style="font-size: 24px;">
+                                    ${question.number1} - ${question.number2} = 
+                                    <span style="border-bottom: 1px solid black; width: 30px; display: inline-block;"></span>
+                                </div>
+                            `;
+                        } else if (question.mathType === 'comparison') {
+                            mathDiv.innerHTML = `
+                                <div style="font-size: 24px;">
+                                    ${question.number1} 
+                                    <select style="font-size: 16px;">
+                                        <option>?</option>
+                                        <option><</option>
+                                        <option>=</option>
+                                        <option>></option>
+                                    </select>
+                                    ${question.number2}
+                                </div>
+                            `;
+                        }
+                        
+                        questionItem.appendChild(mathDiv);
+                        break;
+                        
+                    case 'drawing':
+                        const drawingDiv = document.createElement('div');
+                        drawingDiv.className = 'drawing-area';
+                        drawingDiv.innerHTML = `
+                            <p>${question.prompt}</p>
+                            <div style="border: 1px dashed #ccc; height: 150px; margin-top: 10px;"></div>
+                        `;
+                        questionItem.appendChild(drawingDiv);
+                        break;
+                }
+                
+                questionsPreview.appendChild(questionItem);
+            });
+        }
+        
+        // Handle header image upload
+        function handleHeaderImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Create image preview
+                    const imgPreview = document.createElement('img');
+                    imgPreview.src = event.target.result;
+                    imgPreview.style.maxWidth = '100%';
+                    imgPreview.style.maxHeight = '100px';
+                    imgPreview.style.marginTop = '10px';
+                    
+                    // Clear previous content and add new image
+                    headerImageUpload.innerHTML = '';
+                    headerImageUpload.appendChild(imgPreview);
+                    
+                    // Add change image button
+                    const changeBtn = document.createElement('button');
+                    changeBtn.textContent = 'Change Image';
+                    changeBtn.type = 'button';
+                    changeBtn.style.marginTop = '10px';
+                    changeBtn.addEventListener('click', () => {
+                        headerImageInput.click();
+                    });
+                    
+                    headerImageUpload.appendChild(changeBtn);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Download as PDF
+        function downloadAsPDF() {
+            if (questions.length === 0) {
+                alert('Please add at least one question before downloading');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text(worksheetTitle.value || 'My Awesome Worksheet', 105, 20, { align: 'center' });
+            
+            // Add questions
+            doc.setFontSize(12);
+            let yPosition = 40;
+            
+            questions.forEach((question, index) => {
+                // Add question text
+                doc.text(`${index + 1}. ${question.text}`, 20, yPosition);
+                yPosition += 10;
+                
+                // Add question content based on type
+                switch(question.type) {
+                    case 'multiple-choice':
+                        question.options.forEach((option, optIndex) => {
+                            doc.text(`${String.fromCharCode(65 + optIndex)}) ${option.text}`, 30, yPosition);
+                            yPosition += 7;
+                        });
+                        yPosition += 5;
+                        break;
+                        
+                    case 'fill-blank':
+                        doc.text('________________________', 30, yPosition);
+                        yPosition += 15;
+                        break;
+                        
+                    case 'matching':
+                        question.options.forEach(pair => {
+                            doc.text(`${pair.left} → ${pair.right}`, 30, yPosition);
+                            yPosition += 7;
+                        });
+                        yPosition += 5;
+                        break;
+                        
+                    case 'tracing':
+                        doc.text(question.content, 30, yPosition);
+                        yPosition += 15;
+                        break;
+                        
+                    case 'math':
+                        if (question.mathType === 'counting') {
+                            // Draw boxes for counting
+                            for (let i = 0; i < Math.min(question.number, 10); i++) {
+                                doc.rect(30 + (i * 15), yPosition, 10, 10);
+                            }
+                            yPosition += 20;
+                            doc.text('Count: _____', 30, yPosition);
+                            yPosition += 10;
+                        } else if (question.mathType === 'addition') {
+                            doc.text(`${question.number1} + ${question.number2} = _____`, 30, yPosition);
+                            yPosition += 15;
+                        } else if (question.mathType === 'subtraction') {
+                            doc.text(`${question.number1} - ${question.number2} = _____`, 30, yPosition);
+                            yPosition += 15;
+                        } else if (question.mathType === 'comparison') {
+                            doc.text(`${question.number1} _____ ${question.number2}`, 30, yPosition);
+                            yPosition += 15;
+                        }
+                        break;
+                        
+                    default:
+                        yPosition += 15;
+                }
+                
+                // Add page break if needed
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+            });
+            
+            // Save the PDF
+            doc.save('worksheet.pdf');
+        }
+        
+        // Download as Word (simplified version)
+        function downloadAsWord() {
+            if (questions.length === 0) {
+                alert('Please add at least one question before downloading');
+                return;
+            }
+            
+            // Create HTML content
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${worksheetTitle.value || 'My Awesome Worksheet'}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        h1 { text-align: center; }
+                        .question { margin-bottom: 20px; }
+                        .options { margin-left: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${worksheetTitle.value || 'My Awesome Worksheet'}</h1>
+            `;
+            
+            questions.forEach((question, index) => {
+                htmlContent += `<div class="question"><p><strong>${index + 1}. ${question.text}</strong></p>`;
+                
+                switch(question.type) {
+                    case 'multiple-choice':
+                        htmlContent += '<div class="options">';
+                        question.options.forEach((option, optIndex) => {
+                            htmlContent += `<p>${String.fromCharCode(65 + optIndex)}) ${option.text}</p>`;
+                        });
+                        htmlContent += '</div>';
+                        break;
+                        
+                    case 'fill-blank':
+                        htmlContent += '<p>________________________</p>';
+                        break;
+                        
+                    case 'matching':
+                        htmlContent += '<div class="options">';
+                        question.options.forEach(pair => {
+                            htmlContent += `<p>${pair.left} → ${pair.right}</p>`;
+                        });
+                        htmlContent += '</div>';
+                        break;
+                        
+                    case 'tracing':
+                        htmlContent += `<p style="font-size: 24px; letter-spacing: 10px;">${question.content}</p>`;
+                        break;
+                        
+                    case 'math':
+                        if (question.mathType === 'counting') {
+                            htmlContent += '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">';
+                            for (let i = 0; i < Math.min(question.number, 10); i++) {
+                                htmlContent += '<div style="width: 30px; height: 30px; border: 1px solid black;"></div>';
+                            }
+                            htmlContent += '</div>';
+                            htmlContent += '<p>Count: _____</p>';
+                        } else if (question.mathType === 'addition') {
+                            htmlContent += `<p>${question.number1} + ${question.number2} = _____</p>`;
+                        } else if (question.mathType === 'subtraction') {
+                            htmlContent += `<p>${question.number1} - ${question.number2} = _____</p>`;
+                        } else if (question.mathType === 'comparison') {
+                            htmlContent += `<p>${question.number1} _____ ${question.number2}</p>`;
+                        }
+                        break;
+                }
+                
+                htmlContent += '</div>';
+            });
+            
+            htmlContent += '</body></html>';
+            
+            // Create Blob and download
+            const blob = new Blob([htmlContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'worksheet.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Print worksheet
+        function printWorksheet() {
+            if (questions.length === 0) {
+                alert('Please add at least one question before printing');
+                return;
+            }
+            
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Worksheet</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { text-align: center; }
+                        .question { margin-bottom: 30px; }
+                        .options { margin-left: 20px; }
+                        @media print {
+                            body { padding: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>${worksheetTitle.value || 'My Awesome Worksheet'}</h1>
+            `);
+            
+            questions.forEach((question, index) => {
+                printWindow.document.write(`
+                    <div class="question">
+                        <div class="question-text"><strong>${index + 1}. ${question.text}</strong></div>
+                `);
+                
+                switch(question.type) {
+                    case 'multiple-choice':
+                        printWindow.document.write('<div class="options">');
+                        question.options.forEach((option, optIndex) => {
+                            printWindow.document.write(`
+                                <div class="option-item">${String.fromCharCode(65 + optIndex)}) ${option.text}</div>
+                            `);
+                        });
+                        printWindow.document.write('</div>');
+                        break;
+                        
+                    case 'fill-blank':
+                        printWindow.document.write(`
+                            <div style="border-bottom: 1px solid black; width: 200px; margin: 10px 0;"></div>
+                        `);
+                        break;
+                        
+                    case 'matching':
+                        printWindow.document.write('<div style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0;">');
+                        question.options.forEach(pair => {
+                            printWindow.document.write(`
+                                <div>${pair.left} → ____________</div>
+                            `);
+                        });
+                        printWindow.document.write('</div>');
+                        break;
+                        
+                    case 'tracing':
+                        printWindow.document.write(`
+                            <div style="font-size: 24px; letter-spacing: 10px; margin: 10px 0;">
+                                ${question.content}
+                            </div>
+                        `);
+                        break;
+                        
+                    case 'math':
+                        if (question.mathType === 'counting') {
+                            printWindow.document.write(`
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">
+                                    ${Array(question.number).fill().map(() => 
+                                        '<div style="width: 30px; height: 30px; border: 1px solid black;"></div>'
+                                    ).join('')}
+                                </div>
+                                <div>Count: _____</div>
+                            `);
+                        } else if (question.mathType === 'addition') {
+                            printWindow.document.write(`
+                                <div style="font-size: 24px; margin: 10px 0;">
+                                    ${question.number1} + ${question.number2} = _____
+                                </div>
+                            `);
+                        } else if (question.mathType === 'subtraction') {
+                            printWindow.document.write(`
+                                <div style="font-size: 24px; margin: 10px 0;">
+                                    ${question.number1} - ${question.number2} = _____
+                                </div>
+                            `);
+                        } else if (question.mathType === 'comparison') {
+                            printWindow.document.write(`
+                                <div style="font-size: 24px; margin: 10px 0;">
+                                    ${question.number1} _____ ${question.number2}
+                                </div>
+                            `);
+                        }
+                        break;
+                        
+                    case 'drawing':
+                        printWindow.document.write(`
+                            <div style="border: 1px dashed #ccc; height: 200px; margin: 10px 0;"></div>
+                        `);
+                        break;
+                }
+                
+                printWindow.document.write('</div>');
+            });
+            
+            printWindow.document.write(`
+                <div class="no-print" style="margin-top: 30px; text-align: center;">
+                    <button onclick="window.print()">Print Worksheet</button>
+                    <button onclick="window.close()">Close</button>
+                </div>
+            `);
+            
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

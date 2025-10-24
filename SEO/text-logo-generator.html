@@ -1,0 +1,1440 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/3541/3541232.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/3541/3541232.png" style="display: none;" width="200" /></a></div>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Text Logo Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --warning: #f9c74f;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gradient-start: #4361ee;
+            --gradient-end: #3a0ca3;
+            --card-bg: #ffffff;
+            --sidebar-bg: #f8f9fa;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --radius: 16px;
+        }
+
+        .dark-mode {
+            --primary: #4cc9f0;
+            --secondary: #4895ef;
+            --accent: #f72585;
+            --success: #90e0ef;
+            --warning: #f9c74f;
+            --light: #121212;
+            --dark: #f8f9fa;
+            --gradient-start: #4cc9f0;
+            --gradient-end: #3a0ca3;
+            --card-bg: #1e1e1e;
+            --sidebar-bg: #2d2d2d;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .generator-container {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 600px;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 350px;
+            max-height: 800px;
+            overflow-y: auto;
+            padding: 25px;
+            background: var(--sidebar-bg);
+        }
+
+        .preview {
+            flex: 1.5;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: var(--card-bg);
+            position: relative;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input[type="text"], input[type="color"], input[type="range"], select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: var(--card-bg);
+            color: var(--dark);
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 8px;
+            border-radius: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f3f5;
+            padding: 8px 15px;
+            border-radius: 30px;
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .color-picker-container input[type="color"] {
+            width: 60px;
+            height: 50px;
+            padding: 2px;
+            margin-bottom: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .color-picker-container input[type="text"] {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+        }
+
+        .slider-container span {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .advanced-options {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #e9ecef;
+        }
+
+        .toggle-advanced {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .toggle-advanced:hover {
+            color: var(--secondary);
+        }
+
+        .shape-options, .texture-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .shape-option, .texture-option {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .shape-option:hover, .texture-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .shape-option.selected, .texture-option.selected {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.2);
+        }
+
+        .shape-preview {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+        }
+
+        .texture-preview {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            border-radius: 8px;
+        }
+
+        #logoCanvas {
+            max-width: 100%;
+            max-height: 400px;
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .download-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .secondary-btn {
+            background: linear-gradient(to right, #6c757d, #5a6268);
+        }
+
+        .secondary-btn:hover {
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .presets {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 15px;
+            border: 2px solid var(--primary);
+            border-radius: 30px;
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 992px) {
+            .generator-container {
+                flex-direction: column;
+            }
+            .controls, .preview {
+                width: 100%;
+            }
+            .preview {
+                min-height: 500px;
+            }
+        }
+
+        /* Animation for the preview */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Badge for new features */
+        .badge {
+            background: var(--accent);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ultimate Text Logo Generator</h1>
+            <p class="description">Create stunning custom logos with advanced design options - no design skills required!</p>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+        
+        <div class="generator-container">
+            <div class="controls">
+                <div class="tab-container">
+                    <button class="tab active" data-tab="basic"><i class="fas fa-font"></i> Text</button>
+                    <button class="tab" data-tab="style"><i class="fas fa-paint-brush"></i> Style</button>
+                    <button class="tab" data-tab="effects"><i class="fas fa-magic"></i> Effects</button>
+                    <button class="tab" data-tab="shape"><i class="fas fa-square"></i> Shape</button>
+                </div>
+
+                <div class="tab-content active" id="basic-tab">
+                    <div class="control-group">
+                        <h3>Text Content</h3>
+                        <label for="logoText">Logo Text:</label>
+                        <input id="logoText" placeholder="Enter your logo text" type="text" value="MyLogo">
+                        
+                        <label for="sloganText">Slogan (Optional):</label>
+                        <input id="sloganText" placeholder="Enter slogan text" type="text">
+                        
+                        <label for="customLetters">Custom Letter Styling (Advanced):</label>
+                        <textarea id="customLetters" placeholder='Format: {"A":"color:#ff0000;scale:1.2", "B":"rotate:15"}'></textarea>
+                        <small>Enter JSON to style individual letters (color, scale, rotate, etc.)</small>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Font & Typography</h3>
+                        <label for="fontFamily">Font Family:</label>
+                        <select id="fontFamily">
+                            <option value="Arial, sans-serif">Arial</option>
+                            <option value="Verdana, sans-serif">Verdana</option>
+                            <option value="Helvetica, sans-serif">Helvetica</option>
+                            <option value="Tahoma, sans-serif">Tahoma</option>
+                            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Garamond, serif">Garamond</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="'Brush Script MT', cursive">Brush Script</option>
+                            <option value="'Comic Sans MS', cursive">Comic Sans</option>
+                            <option value="Impact, sans-serif">Impact</option>
+                            <option value="'Arial Black', sans-serif">Arial Black</option>
+                            <option value="'Palatino Linotype', serif">Palatino</option>
+                            <option value="'Franklin Gothic Medium', sans-serif">Franklin Gothic</option>
+                            <option value="'Gill Sans', sans-serif">Gill Sans</option>
+                            <option value="'Lucida Sans', sans-serif">Lucida Sans</option>
+                        </select>
+                        
+                        <div class="slider-container">
+                            <label for="fontSize">Font Size:</label>
+                            <input id="fontSize" max="150" min="20" type="range" value="80">
+                            <span id="fontSizeValue">80</span>
+                        </div>
+                        
+                        <label for="fontWeight">Font Weight:</label>
+                        <select id="fontWeight">
+                            <option value="normal">Normal</option>
+                            <option value="bold">Bold</option>
+                            <option value="bolder">Bolder</option>
+                            <option value="lighter">Lighter</option>
+                            <option value="100">100 (Thin)</option>
+                            <option value="300">300 (Light)</option>
+                            <option value="500">500 (Medium)</option>
+                            <option value="700">700 (Bold)</option>
+                            <option value="900">900 (Black)</option>
+                        </select>
+                        
+                        <label for="fontStyle">Font Style:</label>
+                        <select id="fontStyle">
+                            <option value="normal">Normal</option>
+                            <option value="italic">Italic</option>
+                            <option value="oblique">Oblique</option>
+                        </select>
+                        
+                        <label for="textTransform">Text Transform:</label>
+                        <select id="textTransform">
+                            <option value="none">None</option>
+                            <option value="uppercase">UPPERCASE</option>
+                            <option value="lowercase">lowercase</option>
+                            <option value="capitalize">Capitalize</option>
+                        </select>
+                        
+                        <div class="slider-container">
+                            <label for="letterSpacing">Letter Spacing:</label>
+                            <input id="letterSpacing" max="20" min="-5" type="range" value="0">
+                            <span id="letterSpacingValue">0</span>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="lineHeight">Line Height:</label>
+                            <input id="lineHeight" max="2" min="0.5" step="0.1" type="range" value="1">
+                            <span id="lineHeightValue">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="style-tab">
+                    <div class="control-group">
+                        <h3>Colors & Textures</h3>
+                        <div class="color-picker-container">
+                            <label for="textColor">Text Color:</label>
+                            <input id="textColor" type="color" value="#333333">
+                            <input id="textColorHex" maxlength="7" type="text" value="#333333">
+                        </div>
+                        
+                        <div class="color-picker-container">
+                            <label for="sloganColor">Slogan Color:</label>
+                            <input id="sloganColor" type="color" value="#666666">
+                            <input id="sloganColorHex" maxlength="7" type="text" value="#666666">
+                        </div>
+                        
+                        <div class="color-picker-container">
+                            <label for="bgColor">Background Color:</label>
+                            <input id="bgColor" type="color" value="#ffffff">
+                            <input id="bgColorHex" maxlength="7" type="text" value="#ffffff">
+                        </div>
+                        
+                        <div class="color-picker-container">
+                            <label for="gradientColor">Gradient Color:</label>
+                            <input id="gradientColor" type="color" value="#4285f4">
+                            <input id="gradientColorHex" maxlength="7" type="text" value="#4285f4">
+                        </div>
+                        
+                        <label>Background Texture:</label>
+                        <div class="texture-options">
+                            <div class="texture-option selected" data-texture="none">
+                                <div class="texture-preview" style="background: #ffffff;"></div>
+                            </div>
+                            <div class="texture-option" data-texture="grid">
+                                <div class="texture-preview" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\'><rect width=\'20\' height=\'20\' fill=\'%23ffffff\'/><path d=\'M0 0 L20 0 L20 20 L0 20 Z M0 0 L0 20 M10 0 L10 20 M20 0 L20 20 M0 10 L20 10 M0 0 L20 0 M0 20 L20 20\' stroke=\'%23eeeeee\'/></svg>');"></div>
+                            </div>
+                            <div class="texture-option" data-texture="dots">
+                                <div class="texture-preview" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\'><rect width=\'20\' height=\'20\' fill=\'%23ffffff\'/><circle cx=\'5\' cy=\'5\' r=\'1\' fill=\'%23eeeeee\'/><circle cx=\'15\' cy=\'5\' r=\'1\' fill=\'%23eeeeee\'/><circle cx=\'5\' cy=\'15\' r=\'1\' fill=\'%23eeeeee\'/><circle cx=\'15\' cy=\'15\' r=\'1\' fill=\'%23eeeeee\'/></svg>');"></div>
+                            </div>
+                            <div class="texture-option" data-texture="noise">
+                                <div class="texture-preview" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><filter id=\'noise\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'0.6\' numOctaves=\'1\' stitchTiles=\'stitch\'/></filter><rect width=\'100\' height=\'100\' filter=\'url(%23noise)\' opacity=\'0.2\' fill=\'%23ffffff\'/></svg>');"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="effects-tab">
+                    <div class="control-group">
+                        <h3>Effects & Styling</h3>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input checked id="gradientEffect" type="checkbox">
+                                <label for="gradientEffect">Gradient Text</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input checked id="shadowEffect" type="checkbox">
+                                <label for="shadowEffect">Text Shadow</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input id="outlineEffect" type="checkbox">
+                                <label for="outlineEffect">Text Outline</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input id="rotateEffect" type="checkbox">
+                                <label for="rotateEffect">Rotate Text</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input id="textureEffect" type="checkbox">
+                                <label for="textureEffect">Text Texture</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input id="letter3dEffect" type="checkbox">
+                                <label for="letter3dEffect">3D Letters</label>
+                            </div>
+                        </div>
+                        
+                        <button class="toggle-advanced" id="toggleAdvanced">
+                            <span>▼</span> Advanced Options
+                        </button>
+                        
+                        <div class="advanced-options" id="advancedOptions">
+                            <div class="slider-container">
+                                <label for="shadowBlur">Shadow Blur:</label>
+                                <input id="shadowBlur" max="20" min="0" type="range" value="5">
+                                <span id="shadowBlurValue">5</span>
+                            </div>
+                            
+                            <div class="slider-container">
+                                <label for="shadowOffsetX">Shadow Offset X:</label>
+                                <input id="shadowOffsetX" max="20" min="-20" type="range" value="3">
+                                <span id="shadowOffsetXValue">3</span>
+                            </div>
+                            
+                            <div class="slider-container">
+                                <label for="shadowOffsetY">Shadow Offset Y:</label>
+                                <input id="shadowOffsetY" max="20" min="-20" type="range" value="3">
+                                <span id="shadowOffsetYValue">3</span>
+                            </div>
+                            
+                            <div class="slider-container">
+                                <label for="outlineWidth">Outline Width:</label>
+                                <input id="outlineWidth" max="10" min="1" type="range" value="2">
+                                <span id="outlineWidthValue">2</span>
+                            </div>
+                            
+                            <div class="slider-container">
+                                <label for="rotateAngle">Rotation Angle:</label>
+                                <input id="rotateAngle" max="45" min="-45" type="range" value="0">
+                                <span id="rotateAngleValue">0</span>
+                            </div>
+                            
+                            <div class="slider-container">
+                                <label for="textureOpacity">Texture Opacity:</label>
+                                <input id="textureOpacity" max="100" min="0" type="range" value="30">
+                                <span id="textureOpacityValue">30</span>
+                            </div>
+                            
+                            <div class="slider-container">
+                                <label for="letter3dDepth">3D Depth:</label>
+                                <input id="letter3dDepth" max="20" min="1" type="range" value="5">
+                                <span id="letter3dDepthValue">5</span>
+                            </div>
+                            
+                            <div class="color-picker-container">
+                                <label for="outlineColor">Outline Color:</label>
+                                <input id="outlineColor" type="color" value="#000000">
+                                <input id="outlineColorHex" maxlength="7" type="text" value="#000000">
+                            </div>
+                            
+                            <div class="color-picker-container">
+                                <label for="shadowColor">Shadow Color:</label>
+                                <input id="shadowColor" type="color" value="#888888">
+                                <input id="shadowColorHex" maxlength="7" type="text" value="#888888">
+                            </div>
+                            
+                            <div class="color-picker-container">
+                                <label for="textureColor">Texture Color:</label>
+                                <input id="textureColor" type="color" value="#cccccc">
+                                <input id="textureColorHex" maxlength="7" type="text" value="#cccccc">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="shape-tab">
+                    <div class="control-group">
+                        <h3>Logo Shape & Container</h3>
+                        <label>Shape Style:</label>
+                        <div class="shape-options">
+                            <div class="shape-option selected" data-shape="none">
+                                <div class="shape-preview" style="background: transparent; border: 2px solid #ddd;"></div>
+                            </div>
+                            <div class="shape-option" data-shape="circle">
+                                <div class="shape-preview" style="border-radius: 50%;"></div>
+                            </div>
+                            <div class="shape-option" data-shape="rounded">
+                                <div class="shape-preview" style="border-radius: 15px;"></div>
+                            </div>
+                            <div class="shape-option" data-shape="diamond">
+                                <div class="shape-preview" style="transform: rotate(45deg);"></div>
+                            </div>
+                            <div class="shape-option" data-shape="hexagon">
+                                <div class="shape-preview" style="clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);"></div>
+                            </div>
+                            <div class="shape-option" data-shape="badge">
+                                <div class="shape-preview" style="clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="color-picker-container">
+                            <label for="shapeColor">Shape Color:</label>
+                            <input id="shapeColor" type="color" value="#4285f4">
+                            <input id="shapeColorHex" maxlength="7" type="text" value="#4285f4">
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="shapePadding">Shape Padding:</label>
+                            <input id="shapePadding" max="100" min="0" type="range" value="20">
+                            <span id="shapePaddingValue">20</span>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="shapeOpacity">Shape Opacity:</label>
+                            <input id="shapeOpacity" max="100" min="0" type="range" value="100">
+                            <span id="shapeOpacityValue">100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Quick Presets <span class="badge">NEW</span></h3>
+                    <div class="presets">
+                        <button class="preset-btn" data-preset="minimal">Minimal</button>
+                        <button class="preset-btn" data-preset="gradient">Gradient</button>
+                        <button class="preset-btn" data-preset="outline">Outline</button>
+                        <button class="preset-btn" data-preset="shadow">Shadow</button>
+                        <button class="preset-btn" data-preset="vintage">Vintage</button>
+                        <button class="preset-btn" data-preset="modern">Modern</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview">
+                <canvas height="400" id="logoCanvas" width="600"></canvas>
+                <div class="btn-group">
+                    <button class="download-btn" id="downloadPng">
+                        <i class="fas fa-download"></i> Download PNG
+                    </button>
+                    <button class="download-btn secondary-btn" id="downloadJpg">
+                        <i class="fas fa-download"></i> Download JPG
+                    </button>
+                    <button class="download-btn secondary-btn" id="downloadSvg">
+                        <i class="fas fa-download"></i> Download SVG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const canvas = document.getElementById('logoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Input elements
+            const logoTextInput = document.getElementById('logoText');
+            const sloganTextInput = document.getElementById('sloganText');
+            const customLettersInput = document.getElementById('customLetters');
+            const fontFamilySelect = document.getElementById('fontFamily');
+            const fontSizeInput = document.getElementById('fontSize');
+            const fontSizeValue = document.getElementById('fontSizeValue');
+            const fontWeightSelect = document.getElementById('fontWeight');
+            const fontStyleSelect = document.getElementById('fontStyle');
+            const textTransformSelect = document.getElementById('textTransform');
+            const letterSpacingInput = document.getElementById('letterSpacing');
+            const letterSpacingValue = document.getElementById('letterSpacingValue');
+            const lineHeightInput = document.getElementById('lineHeight');
+            const lineHeightValue = document.getElementById('lineHeightValue');
+            const textColorInput = document.getElementById('textColor');
+            const textColorHex = document.getElementById('textColorHex');
+            const sloganColorInput = document.getElementById('sloganColor');
+            const sloganColorHex = document.getElementById('sloganColorHex');
+            const bgColorInput = document.getElementById('bgColor');
+            const bgColorHex = document.getElementById('bgColorHex');
+            const gradientColorInput = document.getElementById('gradientColor');
+            const gradientColorHex = document.getElementById('gradientColorHex');
+            const gradientEffectCheckbox = document.getElementById('gradientEffect');
+            const shadowEffectCheckbox = document.getElementById('shadowEffect');
+            const outlineEffectCheckbox = document.getElementById('outlineEffect');
+            const rotateEffectCheckbox = document.getElementById('rotateEffect');
+            const textureEffectCheckbox = document.getElementById('textureEffect');
+            const letter3dEffectCheckbox = document.getElementById('letter3dEffect');
+            const shadowBlurInput = document.getElementById('shadowBlur');
+            const shadowBlurValue = document.getElementById('shadowBlurValue');
+            const shadowOffsetXInput = document.getElementById('shadowOffsetX');
+            const shadowOffsetXValue = document.getElementById('shadowOffsetXValue');
+            const shadowOffsetYInput = document.getElementById('shadowOffsetY');
+            const shadowOffsetYValue = document.getElementById('shadowOffsetYValue');
+            const outlineWidthInput = document.getElementById('outlineWidth');
+            const outlineWidthValue = document.getElementById('outlineWidthValue');
+            const rotateAngleInput = document.getElementById('rotateAngle');
+            const rotateAngleValue = document.getElementById('rotateAngleValue');
+            const textureOpacityInput = document.getElementById('textureOpacity');
+            const textureOpacityValue = document.getElementById('textureOpacityValue');
+            const letter3dDepthInput = document.getElementById('letter3dDepth');
+            const letter3dDepthValue = document.getElementById('letter3dDepthValue');
+            const outlineColorInput = document.getElementById('outlineColor');
+            const outlineColorHex = document.getElementById('outlineColorHex');
+            const shadowColorInput = document.getElementById('shadowColor');
+            const shadowColorHex = document.getElementById('shadowColorHex');
+            const textureColorInput = document.getElementById('textureColor');
+            const textureColorHex = document.getElementById('textureColorHex');
+            const shapeOptions = document.querySelectorAll('.shape-option');
+            const shapeColorInput = document.getElementById('shapeColor');
+            const shapeColorHex = document.getElementById('shapeColorHex');
+            const shapePaddingInput = document.getElementById('shapePadding');
+            const shapePaddingValue = document.getElementById('shapePaddingValue');
+            const shapeOpacityInput = document.getElementById('shapeOpacity');
+            const shapeOpacityValue = document.getElementById('shapeOpacityValue');
+            const downloadPngBtn = document.getElementById('downloadPng');
+            const downloadJpgBtn = document.getElementById('downloadJpg');
+            const downloadSvgBtn = document.getElementById('downloadSvg');
+            const toggleAdvancedBtn = document.getElementById('toggleAdvanced');
+            const advancedOptions = document.getElementById('advancedOptions');
+            const textureOptions = document.querySelectorAll('.texture-option');
+            const themeToggle = document.getElementById('themeToggle');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const presetButtons = document.querySelectorAll('.preset-btn');
+            
+            // Default values
+            let canvasWidth = 600;
+            let canvasHeight = 400;
+            let selectedShape = 'none';
+            let selectedTexture = 'none';
+            
+            // Initialize canvas
+            function initCanvas() {
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                renderLogo();
+            }
+            
+            // Update slider values
+            function updateSliderValue(slider, valueElement) {
+                valueElement.textContent = slider.value;
+            }
+            
+            // Update color hex inputs
+            function updateColorHex(colorInput, hexInput) {
+                hexInput.value = colorInput.value;
+            }
+            
+            // Update color inputs from hex
+            function updateColorFromHex(hexInput, colorInput) {
+                if (/^#([0-9A-F]{3}){1,2}$/i.test(hexInput.value)) {
+                    colorInput.value = hexInput.value;
+                }
+            }
+            
+            // Render the logo
+            function renderLogo() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw background
+                ctx.fillStyle = bgColorInput.value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw shape if selected
+                if (selectedShape !== 'none') {
+                    ctx.save();
+                    ctx.globalAlpha = parseInt(shapeOpacityInput.value) / 100;
+                    ctx.fillStyle = shapeColorInput.value;
+                    
+                    const padding = parseInt(shapePaddingInput.value);
+                    const shapeWidth = canvas.width - padding * 2;
+                    const shapeHeight = canvas.height - padding * 2;
+                    
+                    switch (selectedShape) {
+                        case 'circle':
+                            ctx.beginPath();
+                            ctx.arc(canvas.width / 2, canvas.height / 2, Math.min(shapeWidth, shapeHeight) / 2, 0, Math.PI * 2);
+                            ctx.fill();
+                            break;
+                        case 'rounded':
+                            ctx.beginPath();
+                            const radius = 20;
+                            ctx.moveTo(padding + radius, padding);
+                            ctx.lineTo(padding + shapeWidth - radius, padding);
+                            ctx.quadraticCurveTo(padding + shapeWidth, padding, padding + shapeWidth, padding + radius);
+                            ctx.lineTo(padding + shapeWidth, padding + shapeHeight - radius);
+                            ctx.quadraticCurveTo(padding + shapeWidth, padding + shapeHeight, padding + shapeWidth - radius, padding + shapeHeight);
+                            ctx.lineTo(padding + radius, padding + shapeHeight);
+                            ctx.quadraticCurveTo(padding, padding + shapeHeight, padding, padding + shapeHeight - radius);
+                            ctx.lineTo(padding, padding + radius);
+                            ctx.quadraticCurveTo(padding, padding, padding + radius, padding);
+                            ctx.closePath();
+                            ctx.fill();
+                            break;
+                        case 'diamond':
+                            ctx.save();
+                            ctx.translate(canvas.width / 2, canvas.height / 2);
+                            ctx.rotate(45 * Math.PI / 180);
+                            ctx.fillRect(-shapeWidth / 2, -shapeHeight / 2, shapeWidth, shapeHeight);
+                            ctx.restore();
+                            break;
+                        case 'hexagon':
+                            ctx.beginPath();
+                            ctx.moveTo(canvas.width / 2, padding);
+                            ctx.lineTo(padding + shapeWidth * 0.75, padding + shapeHeight / 4);
+                            ctx.lineTo(padding + shapeWidth * 0.75, padding + shapeHeight * 0.75);
+                            ctx.lineTo(canvas.width / 2, padding + shapeHeight);
+                            ctx.lineTo(padding + shapeWidth * 0.25, padding + shapeHeight * 0.75);
+                            ctx.lineTo(padding + shapeWidth * 0.25, padding + shapeHeight / 4);
+                            ctx.closePath();
+                            ctx.fill();
+                            break;
+                        case 'badge':
+                            ctx.beginPath();
+                            ctx.moveTo(padding, padding + shapeHeight * 0.25);
+                            ctx.lineTo(padding, padding + shapeHeight * 0.75);
+                            ctx.lineTo(padding + shapeWidth * 0.5, padding + shapeHeight);
+                            ctx.lineTo(padding + shapeWidth, padding + shapeHeight * 0.75);
+                            ctx.lineTo(padding + shapeWidth, padding + shapeHeight * 0.25);
+                            ctx.lineTo(padding + shapeWidth * 0.5, padding);
+                            ctx.closePath();
+                            ctx.fill();
+                            break;
+                    }
+                    ctx.restore();
+                }
+                
+                // Draw text
+                const fontSize = parseInt(fontSizeInput.value);
+                const letterSpacing = parseInt(letterSpacingInput.value);
+                const lineHeight = parseFloat(lineHeightInput.value);
+                const text = logoTextInput.value || 'MyLogo';
+                const slogan = sloganTextInput.value || '';
+                
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                
+                // Main text styling
+                let fontStyle = `${fontStyleSelect.value} ${fontWeightSelect.value} ${fontSize}px ${fontFamilySelect.value}`;
+                ctx.font = fontStyle;
+                
+                // Apply text transform
+                let transformedText = text;
+                switch (textTransformSelect.value) {
+                    case 'uppercase': transformedText = text.toUpperCase(); break;
+                    case 'lowercase': transformedText = text.toLowerCase(); break;
+                    case 'capitalize': transformedText = text.replace(/\b\w/g, l => l.toUpperCase()); break;
+                }
+                
+                // Calculate text width with letter spacing
+                const textMetrics = ctx.measureText(transformedText);
+                const textWidth = textMetrics.width + (letterSpacing * (transformedText.length - 1));
+                
+                // Position text in center
+                const textX = canvas.width / 2;
+                const textY = slogan ? canvas.height / 2 - fontSize * lineHeight / 2 : canvas.height / 2;
+                
+                // Draw each letter individually for advanced effects
+                let currentX = textX - textWidth / 2;
+                
+                for (let i = 0; i < transformedText.length; i++) {
+                    const letter = transformedText[i];
+                    const letterWidth = ctx.measureText(letter).width;
+                    
+                    ctx.save();
+                    
+                    // Apply rotation effect if enabled
+                    if (rotateEffectCheckbox.checked) {
+                        const angle = parseInt(rotateAngleInput.value);
+                        ctx.translate(currentX + letterWidth / 2, textY);
+                        ctx.rotate(angle * Math.PI / 180);
+                        ctx.translate(-(currentX + letterWidth / 2), -textY);
+                    }
+                    
+                    // Apply gradient if enabled
+                    if (gradientEffectCheckbox.checked) {
+                        const gradient = ctx.createLinearGradient(
+                            currentX, textY - fontSize,
+                            currentX + letterWidth, textY + fontSize
+                        );
+                        gradient.addColorStop(0, textColorInput.value);
+                        gradient.addColorStop(1, gradientColorInput.value);
+                        ctx.fillStyle = gradient;
+                    } else {
+                        ctx.fillStyle = textColorInput.value;
+                    }
+                    
+                    // Apply shadow if enabled
+                    if (shadowEffectCheckbox.checked) {
+                        ctx.shadowColor = shadowColorInput.value;
+                        ctx.shadowBlur = parseInt(shadowBlurInput.value);
+                        ctx.shadowOffsetX = parseInt(shadowOffsetXInput.value);
+                        ctx.shadowOffsetY = parseInt(shadowOffsetYInput.value);
+                    } else {
+                        ctx.shadowColor = 'transparent';
+                        ctx.shadowBlur = 0;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                    }
+                    
+                    // Draw outline if enabled
+                    if (outlineEffectCheckbox.checked) {
+                        ctx.strokeStyle = outlineColorInput.value;
+                        ctx.lineWidth = parseInt(outlineWidthInput.value);
+                        ctx.strokeText(letter, currentX + letterWidth / 2, textY);
+                    }
+                    
+                    // Draw 3D effect if enabled
+                    if (letter3dEffectCheckbox.checked) {
+                        const depth = parseInt(letter3dDepthInput.value);
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                        for (let d = depth; d > 0; d--) {
+                            ctx.fillText(letter, currentX + letterWidth / 2 + d, textY + d);
+                        }
+                        ctx.restore();
+                    }
+                    
+                    // Draw the letter
+                    ctx.fillText(letter, currentX + letterWidth / 2, textY);
+                    
+                    ctx.restore();
+                    
+                    currentX += letterWidth + letterSpacing;
+                }
+                
+                // Draw slogan if exists
+                if (slogan) {
+                    ctx.save();
+                    
+                    const sloganFontSize = fontSize * 0.4;
+                    ctx.font = `normal normal ${sloganFontSize}px ${fontFamilySelect.value}`;
+                    ctx.fillStyle = sloganColorInput.value;
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'center';
+                    
+                    const sloganY = textY + fontSize * lineHeight;
+                    ctx.fillText(slogan, canvas.width / 2, sloganY);
+                    
+                    ctx.restore();
+                }
+            }
+            
+            // Download logo as image
+            function downloadLogo(format) {
+                const link = document.createElement('a');
+                let mimeType, extension;
+                
+                switch (format) {
+                    case 'png':
+                        mimeType = 'image/png';
+                        extension = '.png';
+                        break;
+                    case 'jpg':
+                        mimeType = 'image/jpeg';
+                        extension = '.jpg';
+                        break;
+                    case 'svg':
+                        // For SVG, we would need to generate SVG markup
+                        // This is a simplified version for demonstration
+                        alert('SVG export is not fully implemented in this demo. Please use PNG or JPG.');
+                        return;
+                    default:
+                        mimeType = 'image/png';
+                        extension = '.png';
+                }
+                
+                link.download = `logo${extension}`;
+                link.href = canvas.toDataURL(mimeType);
+                link.click();
+            }
+            
+            // Apply preset
+            function applyPreset(preset) {
+                switch (preset) {
+                    case 'minimal':
+                        fontFamilySelect.value = 'Helvetica, sans-serif';
+                        fontSizeInput.value = 70;
+                        updateSliderValue(fontSizeInput, fontSizeValue);
+                        textColorInput.value = '#000000';
+                        updateColorHex(textColorInput, textColorHex);
+                        bgColorInput.value = '#ffffff';
+                        updateColorHex(bgColorInput, bgColorHex);
+                        gradientEffectCheckbox.checked = false;
+                        shadowEffectCheckbox.checked = false;
+                        outlineEffectCheckbox.checked = false;
+                        selectedShape = 'none';
+                        document.querySelector('.shape-option.selected').classList.remove('selected');
+                        document.querySelector('.shape-option[data-shape="none"]').classList.add('selected');
+                        break;
+                    case 'gradient':
+                        gradientEffectCheckbox.checked = true;
+                        textColorInput.value = '#4361ee';
+                        updateColorHex(textColorInput, textColorHex);
+                        gradientColorInput.value = '#f72585';
+                        updateColorHex(gradientColorInput, gradientColorHex);
+                        bgColorInput.value = '#f8f9fa';
+                        updateColorHex(bgColorInput, bgColorHex);
+                        shadowEffectCheckbox.checked = true;
+                        shadowColorInput.value = '#cccccc';
+                        updateColorHex(shadowColorInput, shadowColorHex);
+                        break;
+                    case 'outline':
+                        outlineEffectCheckbox.checked = true;
+                        textColorInput.value = '#ffffff';
+                        updateColorHex(textColorInput, textColorHex);
+                        outlineColorInput.value = '#000000';
+                        updateColorHex(outlineColorInput, outlineColorHex);
+                        outlineWidthInput.value = 2;
+                        updateSliderValue(outlineWidthInput, outlineWidthValue);
+                        bgColorInput.value = '#4cc9f0';
+                        updateColorHex(bgColorInput, bgColorHex);
+                        break;
+                    case 'shadow':
+                        shadowEffectCheckbox.checked = true;
+                        shadowBlurInput.value = 10;
+                        updateSliderValue(shadowBlurInput, shadowBlurValue);
+                        shadowOffsetXInput.value = 5;
+                        updateSliderValue(shadowOffsetXInput, shadowOffsetXValue);
+                        shadowOffsetYInput.value = 5;
+                        updateSliderValue(shadowOffsetYInput, shadowOffsetYValue);
+                        shadowColorInput.value = '#333333';
+                        updateColorHex(shadowColorInput, shadowColorHex);
+                        break;
+                    case 'vintage':
+                        fontFamilySelect.value = "'Times New Roman', serif";
+                        textColorInput.value = '#8b4513';
+                        updateColorHex(textColorInput, textColorHex);
+                        bgColorInput.value = '#f5f5dc';
+                        updateColorHex(bgColorInput, bgColorHex);
+                        selectedTexture = 'noise';
+                        document.querySelector('.texture-option.selected').classList.remove('selected');
+                        document.querySelector('.texture-option[data-texture="noise"]').classList.add('selected');
+                        break;
+                    case 'modern':
+                        fontFamilySelect.value = "'Arial Black', sans-serif";
+                        textColorInput.value = '#ffffff';
+                        updateColorHex(textColorInput, textColorHex);
+                        bgColorInput.value = '#212529';
+                        updateColorHex(bgColorInput, bgColorHex);
+                        selectedShape = 'circle';
+                        document.querySelector('.shape-option.selected').classList.remove('selected');
+                        document.querySelector('.shape-option[data-shape="circle"]').classList.add('selected');
+                        shapeColorInput.value = '#3a0ca3';
+                        updateColorHex(shapeColorInput, shapeColorHex);
+                        break;
+                }
+                renderLogo();
+            }
+            
+            // Event Listeners
+            logoTextInput.addEventListener('input', renderLogo);
+            sloganTextInput.addEventListener('input', renderLogo);
+            fontFamilySelect.addEventListener('change', renderLogo);
+            fontSizeInput.addEventListener('input', function() {
+                updateSliderValue(fontSizeInput, fontSizeValue);
+                renderLogo();
+            });
+            fontWeightSelect.addEventListener('change', renderLogo);
+            fontStyleSelect.addEventListener('change', renderLogo);
+            textTransformSelect.addEventListener('change', renderLogo);
+            letterSpacingInput.addEventListener('input', function() {
+                updateSliderValue(letterSpacingInput, letterSpacingValue);
+                renderLogo();
+            });
+            lineHeightInput.addEventListener('input', function() {
+                updateSliderValue(lineHeightInput, lineHeightValue);
+                renderLogo();
+            });
+            
+            textColorInput.addEventListener('input', function() {
+                updateColorHex(textColorInput, textColorHex);
+                renderLogo();
+            });
+            textColorHex.addEventListener('input', function() {
+                updateColorFromHex(textColorHex, textColorInput);
+                renderLogo();
+            });
+            
+            sloganColorInput.addEventListener('input', function() {
+                updateColorHex(sloganColorInput, sloganColorHex);
+                renderLogo();
+            });
+            sloganColorHex.addEventListener('input', function() {
+                updateColorFromHex(sloganColorHex, sloganColorInput);
+                renderLogo();
+            });
+            
+            bgColorInput.addEventListener('input', function() {
+                updateColorHex(bgColorInput, bgColorHex);
+                renderLogo();
+            });
+            bgColorHex.addEventListener('input', function() {
+                updateColorFromHex(bgColorHex, bgColorInput);
+                renderLogo();
+            });
+            
+            gradientColorInput.addEventListener('input', function() {
+                updateColorHex(gradientColorInput, gradientColorHex);
+                renderLogo();
+            });
+            gradientColorHex.addEventListener('input', function() {
+                updateColorFromHex(gradientColorHex, gradientColorInput);
+                renderLogo();
+            });
+            
+            // Effect toggles
+            gradientEffectCheckbox.addEventListener('change', renderLogo);
+            shadowEffectCheckbox.addEventListener('change', renderLogo);
+            outlineEffectCheckbox.addEventListener('change', renderLogo);
+            rotateEffectCheckbox.addEventListener('change', renderLogo);
+            textureEffectCheckbox.addEventListener('change', renderLogo);
+            letter3dEffectCheckbox.addEventListener('change', renderLogo);
+            
+            // Advanced effect sliders
+            shadowBlurInput.addEventListener('input', function() {
+                updateSliderValue(shadowBlurInput, shadowBlurValue);
+                renderLogo();
+            });
+            shadowOffsetXInput.addEventListener('input', function() {
+                updateSliderValue(shadowOffsetXInput, shadowOffsetXValue);
+                renderLogo();
+            });
+            shadowOffsetYInput.addEventListener('input', function() {
+                updateSliderValue(shadowOffsetYInput, shadowOffsetYValue);
+                renderLogo();
+            });
+            outlineWidthInput.addEventListener('input', function() {
+                updateSliderValue(outlineWidthInput, outlineWidthValue);
+                renderLogo();
+            });
+            rotateAngleInput.addEventListener('input', function() {
+                updateSliderValue(rotateAngleInput, rotateAngleValue);
+                renderLogo();
+            });
+            textureOpacityInput.addEventListener('input', function() {
+                updateSliderValue(textureOpacityInput, textureOpacityValue);
+                renderLogo();
+            });
+            letter3dDepthInput.addEventListener('input', function() {
+                updateSliderValue(letter3dDepthInput, letter3dDepthValue);
+                renderLogo();
+            });
+            
+            outlineColorInput.addEventListener('input', function() {
+                updateColorHex(outlineColorInput, outlineColorHex);
+                renderLogo();
+            });
+            outlineColorHex.addEventListener('input', function() {
+                updateColorFromHex(outlineColorHex, outlineColorInput);
+                renderLogo();
+            });
+            
+            shadowColorInput.addEventListener('input', function() {
+                updateColorHex(shadowColorInput, shadowColorHex);
+                renderLogo();
+            });
+            shadowColorHex.addEventListener('input', function() {
+                updateColorFromHex(shadowColorHex, shadowColorInput);
+                renderLogo();
+            });
+            
+            textureColorInput.addEventListener('input', function() {
+                updateColorHex(textureColorInput, textureColorHex);
+                renderLogo();
+            });
+            textureColorHex.addEventListener('input', function() {
+                updateColorFromHex(textureColorHex, textureColorInput);
+                renderLogo();
+            });
+            
+            // Shape options
+            shapeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelector('.shape-option.selected').classList.remove('selected');
+                    this.classList.add('selected');
+                    selectedShape = this.getAttribute('data-shape');
+                    renderLogo();
+                });
+            });
+            
+            shapeColorInput.addEventListener('input', function() {
+                updateColorHex(shapeColorInput, shapeColorHex);
+                renderLogo();
+            });
+            shapeColorHex.addEventListener('input', function() {
+                updateColorFromHex(shapeColorHex, shapeColorInput);
+                renderLogo();
+            });
+            
+            shapePaddingInput.addEventListener('input', function() {
+                updateSliderValue(shapePaddingInput, shapePaddingValue);
+                renderLogo();
+            });
+            
+            shapeOpacityInput.addEventListener('input', function() {
+                updateSliderValue(shapeOpacityInput, shapeOpacityValue);
+                renderLogo();
+            });
+            
+            // Texture options
+            textureOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelector('.texture-option.selected').classList.remove('selected');
+                    this.classList.add('selected');
+                    selectedTexture = this.getAttribute('data-texture');
+                    renderLogo();
+                });
+            });
+            
+            // Download buttons
+            downloadPngBtn.addEventListener('click', () => downloadLogo('png'));
+            downloadJpgBtn.addEventListener('click', () => downloadLogo('jpg'));
+            downloadSvgBtn.addEventListener('click', () => downloadLogo('svg'));
+            
+            // Toggle advanced options
+            toggleAdvancedBtn.addEventListener('click', function() {
+                const isVisible = advancedOptions.style.display === 'block';
+                advancedOptions.style.display = isVisible ? 'none' : 'block';
+                this.querySelector('span').textContent = isVisible ? '▼' : '▲';
+            });
+            
+            // Theme toggle
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const icon = this.querySelector('i');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabName}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Preset buttons
+            presetButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const preset = this.getAttribute('data-preset');
+                    applyPreset(preset);
+                });
+            });
+            
+            // Initialize
+            initCanvas();
+            
+            // Update all slider values initially
+            updateSliderValue(fontSizeInput, fontSizeValue);
+            updateSliderValue(letterSpacingInput, letterSpacingValue);
+            updateSliderValue(lineHeightInput, lineHeightValue);
+            updateSliderValue(shadowBlurInput, shadowBlurValue);
+            updateSliderValue(shadowOffsetXInput, shadowOffsetXValue);
+            updateSliderValue(shadowOffsetYInput, shadowOffsetYValue);
+            updateSliderValue(outlineWidthInput, outlineWidthValue);
+            updateSliderValue(rotateAngleInput, rotateAngleValue);
+            updateSliderValue(textureOpacityInput, textureOpacityValue);
+            updateSliderValue(letter3dDepthInput, letter3dDepthValue);
+            updateSliderValue(shapePaddingInput, shapePaddingValue);
+            updateSliderValue(shapeOpacityInput, shapeOpacityValue);
+            
+            // Update color hex inputs initially
+            updateColorHex(textColorInput, textColorHex);
+            updateColorHex(sloganColorInput, sloganColorHex);
+            updateColorHex(bgColorInput, bgColorHex);
+            updateColorHex(gradientColorInput, gradientColorHex);
+            updateColorHex(outlineColorInput, outlineColorHex);
+            updateColorHex(shadowColorInput, shadowColorHex);
+            updateColorHex(textureColorInput, textureColorHex);
+            updateColorHex(shapeColorInput, shapeColorHex);
+        });
+    </script>
+</body>
+</html>

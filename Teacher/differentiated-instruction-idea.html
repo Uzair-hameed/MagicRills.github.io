@@ -1,0 +1,737 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/10657/10657307.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/10657/10657307.png"style='display:none'/></a></div>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Differentiated Instruction Idea Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent1: #f72585;
+            --accent2: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4bb543;
+            --warning: #ffcc00;
+            --danger: #dc3545;
+            --beginner: #6cbf6c;
+            --intermediate: #f9a54d;
+            --advanced: #e85555;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .input-section {
+            padding: 30px;
+            background: var(--light);
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .skill-levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .skill-level {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, var(--accent1), var(--accent2));
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .generate-btn {
+            display: block;
+            margin: 30px auto 10px;
+            width: 200px;
+        }
+        
+        .results-section {
+            padding: 30px;
+            display: none;
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--secondary);
+        }
+        
+        .activity-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            border-top: 5px solid var(--primary);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-beginner {
+            border-top-color: var(--beginner);
+        }
+        
+        .card-intermediate {
+            border-top-color: var(--intermediate);
+        }
+        
+        .card-advanced {
+            border-top-color: var(--advanced);
+        }
+        
+        .card-header {
+            padding: 15px 20px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-beginner .card-header {
+            background: var(--beginner);
+        }
+        
+        .card-intermediate .card-header {
+            background: var(--intermediate);
+        }
+        
+        .card-advanced .card-header {
+            background: var(--advanced);
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .activity-idea {
+            margin-bottom: 15px;
+            line-height: 1.5;
+            padding: 10px;
+            border-left: 3px solid #ddd;
+            transition: all 0.3s;
+        }
+        
+        .activity-idea:hover {
+            border-left-color: var(--primary);
+            background-color: #f9f9f9;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid #ddd;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .skill-levels {
+                flex-direction: column;
+            }
+            
+            .activity-cards {
+                flex-direction: column;
+            }
+            
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: var(--success);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(200%);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Differentiated Instruction Idea Generator</h1>
+            <p class="subtitle">Create tailored learning activities for diverse student skill levels</p>
+        </header>
+        
+        <section class="input-section">
+            <div class="form-group">
+                <label for="topic">Topic or Subject</label>
+                <input type="text" id="topic" placeholder="e.g., Fractions, World War II, Photosynthesis..." autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label>Student Skill Levels</label>
+                <div class="skill-levels">
+                    <div class="skill-level">
+                        <label for="beginner">Beginner</label>
+                        <select id="beginner">
+                            <option value="struggling">Struggling</option>
+                            <option value="basic" selected>Basic Understanding</option>
+                            <option value="emerging">Emerging Skills</option>
+                        </select>
+                    </div>
+                    
+                    <div class="skill-level">
+                        <label for="intermediate">Intermediate</label>
+                        <select id="intermediate">
+                            <option value="developing">Developing</option>
+                            <option value="proficient" selected>Proficient</option>
+                            <option value="capable">Capable</option>
+                        </select>
+                    </div>
+                    
+                    <div class="skill-level">
+                        <label for="advanced">Advanced</label>
+                        <select id="advanced">
+                            <option value="skilled">Skilled</option>
+                            <option value="mastery">Mastery</option>
+                            <option value="exemplary" selected>Exemplary</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="generate-btn" class="btn generate-btn">
+                <i class="fas fa-magic"></i> Generate Ideas
+            </button>
+        </section>
+        
+        <section id="results-section" class="results-section">
+            <h2 class="results-header">Differentiated Activity Ideas for <span id="topic-result"></span></h2>
+            
+            <div class="activity-cards">
+                <div class="card card-beginner">
+                    <div class="card-header">
+                        <span>Beginner Activities</span>
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="card-body">
+                        <div id="beginner-ideas"></div>
+                    </div>
+                </div>
+                
+                <div class="card card-intermediate">
+                    <div class="card-header">
+                        <span>Intermediate Activities</span>
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <div class="card-body">
+                        <div id="intermediate-ideas"></div>
+                    </div>
+                </div>
+                
+                <div class="card card-advanced">
+                    <div class="card-header">
+                        <span>Advanced Activities</span>
+                        <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="card-body">
+                        <div id="advanced-ideas"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="export-options">
+                <button id="export-word" class="btn btn-success">
+                    <i class="fas fa-file-word"></i> Export to Word
+                </button>
+                <button id="export-pdf" class="btn btn-warning">
+                    <i class="fas fa-file-pdf"></i> Export to PDF
+                </button>
+                <button id="export-print" class="btn">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+            
+            <div class="actions">
+                <button id="new-idea-btn" class="btn btn-secondary">
+                    <i class="fas fa-sync"></i> Generate New Ideas
+                </button>
+                <button id="reset-btn" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Start Over
+                </button>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <p>Differentiated Instruction Idea Generator - Created for Educators</p>
+    </footer>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const topicInput = document.getElementById('topic');
+            const beginnerSelect = document.getElementById('beginner');
+            const intermediateSelect = document.getElementById('intermediate');
+            const advancedSelect = document.getElementById('advanced');
+            const generateBtn = document.getElementById('generate-btn');
+            const resultsSection = document.getElementById('results-section');
+            const topicResult = document.getElementById('topic-result');
+            const beginnerIdeas = document.getElementById('beginner-ideas');
+            const intermediateIdeas = document.getElementById('intermediate-ideas');
+            const advancedIdeas = document.getElementById('advanced-ideas');
+            const newIdeaBtn = document.getElementById('new-idea-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const exportWordBtn = document.getElementById('export-word');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportPrintBtn = document.getElementById('export-print');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            // Activity idea templates
+            const activityTemplates = {
+                beginner: [
+                    "Create a hands-on manipulative activity for {topic} using common classroom materials.",
+                    "Develop a matching game where students pair key terms with simple definitions or images related to {topic}.",
+                    "Design a visual flowchart or diagram that breaks down {topic} into simple, sequential steps.",
+                    "Create a fill-in-the-blank worksheet with word bank for basic {topic} concepts.",
+                    "Develop a sorting activity where students categorize elements of {topic} into simple groups.",
+                    "Design a simple role-play activity that demonstrates basic concepts of {topic}.",
+                    "Create a picture-based worksheet where students identify components of {topic} visually."
+                ],
+                intermediate: [
+                    "Design a guided inquiry activity where students explore {topic} through structured questions.",
+                    "Create a jigsaw activity where small groups become experts on different aspects of {topic} and teach their peers.",
+                    "Develop a case study relevant to students' lives that illustrates applications of {topic}.",
+                    "Design a structured debate where students argue different perspectives on {topic}.",
+                    "Create a problem-based learning scenario related to {topic} with multiple solution paths.",
+                    "Develop a concept mapping activity where students visually connect ideas within {topic}.",
+                    "Design a station rotation activity with different tasks exploring various facets of {topic}."
+                ],
+                advanced: [
+                    "Design an open-ended inquiry project where students formulate their own research questions about {topic}.",
+                    "Create a real-world application challenge where students apply {topic} to solve an authentic problem.",
+                    "Develop a Socratic seminar discussion focusing on complex questions and ethical dimensions of {topic}.",
+                    "Design a project where students create their own models or simulations to demonstrate advanced understanding of {topic}.",
+                    "Create a critical analysis activity where students evaluate different perspectives or solutions related to {topic}.",
+                    "Develop a design thinking challenge where students prototype innovative solutions connected to {topic}.",
+                    "Design a mentorship activity where advanced students teach concepts of {topic} to younger peers."
+                ]
+            };
+            
+            // Additional details for each activity type
+            const activityDetails = {
+                beginner: [
+                    "Provide sentence starters and graphic organizers to support completion.",
+                    "Include visual supports and limit text-heavy instructions.",
+                    "Allow students to work in pairs and use hands-on materials.",
+                    "Incorporate multimedia resources to introduce the concept.",
+                    "Use realia or concrete examples to make abstract concepts tangible."
+                ],
+                intermediate: [
+                    "Incorporate peer feedback loops and revision opportunities.",
+                    "Provide choice in how students demonstrate understanding.",
+                    "Use guiding questions to promote deeper thinking without providing answers.",
+                    "Include both collaborative and independent work components.",
+                    "Connect to real-world applications that are relevant to students."
+                ],
+                advanced: [
+                    "Encourage students to make interdisciplinary connections.",
+                    "Incorporate authentic audiences for student work beyond the classroom.",
+                    "Provide opportunities for publication or presentation of findings.",
+                    "Include self-assessment and reflection components.",
+                    "Challenge students to consider ethical implications and multiple perspectives."
+                ]
+            };
+            
+            // Show notification
+            function showNotification(message, duration = 3000) {
+                notificationText.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, duration);
+            }
+            
+            // Generate random ideas
+            function generateIdeas() {
+                const topic = topicInput.value.trim();
+                
+                if (!topic) {
+                    alert("Please enter a topic first!");
+                    topicInput.focus();
+                    return;
+                }
+                
+                // Update topic in results
+                topicResult.textContent = topic;
+                
+                // Clear previous ideas
+                beginnerIdeas.innerHTML = '';
+                intermediateIdeas.innerHTML = '';
+                advancedIdeas.innerHTML = '';
+                
+                // Generate 3 ideas for each level
+                for (let i = 0; i < 3; i++) {
+                    // Beginner ideas
+                    const beginnerIndex = Math.floor(Math.random() * activityTemplates.beginner.length);
+                    let beginnerIdea = activityTemplates.beginner[beginnerIndex].replace(/{topic}/g, topic);
+                    const beginnerDetail = activityDetails.beginner[Math.floor(Math.random() * activityDetails.beginner.length)];
+                    
+                    const beginnerDiv = document.createElement('div');
+                    beginnerDiv.className = 'activity-idea';
+                    beginnerDiv.innerHTML = `<strong>${beginnerIdea}</strong><br><em>${beginnerDetail}</em>`;
+                    beginnerIdeas.appendChild(beginnerDiv);
+                    
+                    // Intermediate ideas
+                    const intermediateIndex = Math.floor(Math.random() * activityTemplates.intermediate.length);
+                    let intermediateIdea = activityTemplates.intermediate[intermediateIndex].replace(/{topic}/g, topic);
+                    const intermediateDetail = activityDetails.intermediate[Math.floor(Math.random() * activityDetails.intermediate.length)];
+                    
+                    const intermediateDiv = document.createElement('div');
+                    intermediateDiv.className = 'activity-idea';
+                    intermediateDiv.innerHTML = `<strong>${intermediateIdea}</strong><br><em>${intermediateDetail}</em>`;
+                    intermediateIdeas.appendChild(intermediateDiv);
+                    
+                    // Advanced ideas
+                    const advancedIndex = Math.floor(Math.random() * activityTemplates.advanced.length);
+                    let advancedIdea = activityTemplates.advanced[advancedIndex].replace(/{topic}/g, topic);
+                    const advancedDetail = activityDetails.advanced[Math.floor(Math.random() * activityDetails.advanced.length)];
+                    
+                    const advancedDiv = document.createElement('div');
+                    advancedDiv.className = 'activity-idea';
+                    advancedDiv.innerHTML = `<strong>${advancedIdea}</strong><br><em>${advancedDetail}</em>`;
+                    advancedIdeas.appendChild(advancedDiv);
+                }
+                
+                // Show results section
+                resultsSection.style.display = 'block';
+                
+                // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Reset form
+            function resetForm() {
+                topicInput.value = '';
+                beginnerSelect.value = 'basic';
+                intermediateSelect.value = 'proficient';
+                advancedSelect.value = 'exemplary';
+                resultsSection.style.display = 'none';
+                topicInput.focus();
+            }
+            
+            // Export to Word
+            function exportToWord() {
+                const topic = topicInput.value.trim();
+                if (!topic) {
+                    alert("Please generate ideas first!");
+                    return;
+                }
+                
+                let htmlContent = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Differentiated Instruction Ideas for ${topic}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            h1 { color: #4361ee; }
+                            .card { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+                            .beginner { border-left: 5px solid #6cbf6c; }
+                            .intermediate { border-left: 5px solid #f9a54d; }
+                            .advanced { border-left: 5px solid #e85555; }
+                            .idea { margin: 10px 0; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Differentiated Instruction Ideas for ${topic}</h1>
+                        <p>Generated on ${new Date().toLocaleDateString()}</p>
+                `;
+                
+                // Add beginner ideas
+                htmlContent += '<h2>Beginner Activities</h2>';
+                document.querySelectorAll('#beginner-ideas .activity-idea').forEach(idea => {
+                    htmlContent += `<div class="card beginner"><div class="idea">${idea.innerHTML}</div></div>`;
+                });
+                
+                // Add intermediate ideas
+                htmlContent += '<h2>Intermediate Activities</h2>';
+                document.querySelectorAll('#intermediate-ideas .activity-idea').forEach(idea => {
+                    htmlContent += `<div class="card intermediate"><div class="idea">${idea.innerHTML}</div></div>`;
+                });
+                
+                // Add advanced ideas
+                htmlContent += '<h2>Advanced Activities</h2>';
+                document.querySelectorAll('#advanced-ideas .activity-idea').forEach(idea => {
+                    htmlContent += `<div class="card advanced"><div class="idea">${idea.innerHTML}</div></div>`;
+                });
+                
+                htmlContent += '</body></html>';
+                
+                const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(htmlContent);
+                const downloadLink = document.createElement('a');
+                document.body.appendChild(downloadLink);
+                
+                downloadLink.href = source;
+                downloadLink.download = `Differentiated_Activities_${topic.replace(/\s+/g, '_')}.doc`;
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                showNotification('Exported to Word successfully!');
+            }
+            
+            // Export to PDF (simulated)
+            function exportToPdf() {
+                const topic = topicInput.value.trim();
+                if (!topic) {
+                    alert("Please generate ideas first!");
+                    return;
+                }
+                
+                showNotification('PDF export would require a server-side library. Word export is available.');
+            }
+            
+            // Print function
+            function printIdeas() {
+                const topic = topicInput.value.trim();
+                if (!topic) {
+                    alert("Please generate ideas first!");
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Differentiated Instruction Ideas for ${topic}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; }
+                            h1 { color: #4361ee; }
+                            .card { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+                            .beginner { border-left: 5px solid #6cbf6c; }
+                            .intermediate { border-left: 5px solid #f9a54d; }
+                            .advanced { border-left: 5px solid #e85555; }
+                            .idea { margin: 10px 0; }
+                            @media print {
+                                body { padding: 0; margin: 0; }
+                                .card { page-break-inside: avoid; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Differentiated Instruction Ideas for ${topic}</h1>
+                        <p>Generated on ${new Date().toLocaleDateString()}</p>
+                `);
+                
+                // Add beginner ideas
+                printWindow.document.write('<h2>Beginner Activities</h2>');
+                document.querySelectorAll('#beginner-ideas .activity-idea').forEach(idea => {
+                    printWindow.document.write(`<div class="card beginner"><div class="idea">${idea.innerHTML}</div></div>`);
+                });
+                
+                // Add intermediate ideas
+                printWindow.document.write('<h2>Intermediate Activities</h2>');
+                document.querySelectorAll('#intermediate-ideas .activity-idea').forEach(idea => {
+                    printWindow.document.write(`<div class="card intermediate"><div class="idea">${idea.innerHTML}</div></div>`);
+                });
+                
+                // Add advanced ideas
+                printWindow.document.write('<h2>Advanced Activities</h2>');
+                document.querySelectorAll('#advanced-ideas .activity-idea').forEach(idea => {
+                    printWindow.document.write(`<div class="card advanced"><div class="idea">${idea.innerHTML}</div></div>`);
+                });
+                
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 250);
+            }
+            
+            // Event listeners
+            generateBtn.addEventListener('click', generateIdeas);
+            
+            newIdeaBtn.addEventListener('click', function() {
+                generateIdeas();
+                // Scroll to results again
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            resetBtn.addEventListener('click', resetForm);
+            
+            exportWordBtn.addEventListener('click', exportToWord);
+            
+            exportPdfBtn.addEventListener('click', exportToPdf);
+            
+            exportPrintBtn.addEventListener('click', printIdeas);
+            
+            // Allow Enter key to generate ideas
+            topicInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    generateIdeas();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/15577/15577566.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/15577/15577566.png" style="display: none;" width="320" /></a></div>
+
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Group Formation Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --accent1: #ff7e5f;
+            --accent2: #feb47b;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .input-section, .output-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            background: linear-gradient(to right, var(--accent1), var(--accent2));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .export-btn {
+            background: linear-gradient(to right, var(--success), #20c997);
+        }
+
+        .reset-btn {
+            background: linear-gradient(to right, var(--danger), #e83e8c);
+        }
+
+        .group {
+            margin-bottom: 25px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .group-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 15px;
+            font-weight: 600;
+        }
+
+        .group-members {
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .member {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .member-skill {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .skill-distribution {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .bar {
+            height: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            background: linear-gradient(to right, var(--accent1), var(--accent2));
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #e9ecef;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Group Formation Tool</h1>
+            <div class="subtitle">Create balanced or targeted groups for classroom projects</div>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Input Parameters</h2>
+                <div class="form-group">
+                    <label for="students">Student List (Name, Skill Level, Social Dynamics):</label>
+                    <textarea id="students" placeholder="Enter each student on a new line in format: Name, Skill (1-10), Social (1-10)
+Example:
+John Doe, 7, 8
+Jane Smith, 5, 6
+Michael Johnson, 9, 7">John Doe, 7, 8
+Jane Smith, 5, 6
+Michael Johnson, 9, 7
+Sarah Williams, 6, 9
+David Brown, 8, 5
+Emily Jones, 4, 7
+Robert Miller, 7, 6
+Lisa Davis, 9, 8
+James Wilson, 5, 5
+Jessica Taylor, 6, 7
+Daniel Anderson, 8, 6
+Jennifer Thomas, 7, 8</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="groupType">Group Formation Type:</label>
+                    <select id="groupType">
+                        <option value="balanced">Balanced Groups (mix of skills)</option>
+                        <option value="targeted">Targeted Groups (similar skills)</option>
+                        <option value="social">Social Dynamics Based</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="groupSize">Group Size:</label>
+                    <input id="groupSize" max="10" min="2" type="number" value="4" />
+                </div>
+
+                <button id="generateBtn">Generate Groups</button>
+                <button class="reset-btn" id="resetBtn">Reset</button>
+            </div>
+
+            <div class="output-section">
+                <h2>Generated Groups</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="groups">Groups View</div>
+                    <div class="tab" data-tab="stats">Statistics</div>
+                </div>
+                
+                <div class="tab-content active" id="groupsTab">
+                    <div id="groupsContainer">
+                        <p>Groups will be generated here. Click "Generate Groups" to start.</p>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="statsTab">
+                    <div class="stats">
+                        <div class="stat-box" style="background: linear-gradient(to right, var(--primary), var(--secondary));">
+                            <div class="stat-value" id="totalStudents">0</div>
+                            <div class="stat-label">Total Students</div>
+                        </div>
+                        <div class="stat-box" style="background: linear-gradient(to right, var(--accent1), var(--accent2));">
+                            <div class="stat-value" id="totalGroups">0</div>
+                            <div class="stat-label">Total Groups</div>
+                        </div>
+                        <div class="stat-box" style="background: linear-gradient(to right, var(--success), #20c997);">
+                            <div class="stat-value" id="avgSkill">0</div>
+                            <div class="stat-label">Avg. Skill</div>
+                        </div>
+                        <div class="stat-box" style="background: linear-gradient(to right, var(--info), #17a2b8);">
+                            <div class="stat-value" id="avgSocial">0</div>
+                            <div class="stat-label">Avg. Social</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-distribution">
+                        <h3>Skill Level Distribution</h3>
+                        <div class="bar" id="skillBar"></div>
+                        
+                        <h3>Social Dynamics Distribution</h3>
+                        <div class="bar" id="socialBar"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="export-btn" id="exportPdfBtn">Export as PDF</button>
+                    <button class="export-btn" id="exportWordBtn">Export as Word</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Group Formation Tool © 2025 | Created for Educators</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const generateBtn = document.getElementById('generateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            const exportWordBtn = document.getElementById('exportWordBtn');
+            const studentsTextarea = document.getElementById('students');
+            const groupTypeSelect = document.getElementById('groupType');
+            const groupSizeInput = document.getElementById('groupSize');
+            const groupsContainer = document.getElementById('groupsContainer');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Stats elements
+            const totalStudentsEl = document.getElementById('totalStudents');
+            const totalGroupsEl = document.getElementById('totalGroups');
+            const avgSkillEl = document.getElementById('avgSkill');
+            const avgSocialEl = document.getElementById('avgSocial');
+            const skillBarEl = document.getElementById('skillBar');
+            const socialBarEl = document.getElementById('socialBar');
+            
+            // Sample data for demonstration
+            const sampleStudents = [
+                { name: "John Doe", skill: 7, social: 8 },
+                { name: "Jane Smith", skill: 5, social: 6 },
+                { name: "Michael Johnson", skill: 9, social: 7 },
+                { name: "Sarah Williams", skill: 6, social: 9 },
+                { name: "David Brown", skill: 8, social: 5 },
+                { name: "Emily Jones", skill: 4, social: 7 },
+                { name: "Robert Miller", skill: 7, social: 6 },
+                { name: "Lisa Davis", skill: 9, social: 8 },
+                { name: "James Wilson", skill: 5, social: 5 },
+                { name: "Jessica Taylor", skill: 6, social: 7 },
+                { name: "Daniel Anderson", skill: 8, social: 6 },
+                { name: "Jennifer Thomas", skill: 7, social: 8 }
+            ];
+            
+            // Initialize with sample data
+            let students = [...sampleStudents];
+            let groups = [];
+            
+            // Tab functionality
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Deactivate all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Activate current tab
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}Tab`).classList.add('active');
+                });
+            });
+            
+            // Parse student data from textarea
+            function parseStudents() {
+                const text = studentsTextarea.value;
+                const lines = text.split('\n');
+                students = [];
+                
+                for (const line of lines) {
+                    if (line.trim() === '') continue;
+                    
+                    const parts = line.split(',');
+                    if (parts.length >= 3) {
+                        const name = parts[0].trim();
+                        const skill = parseInt(parts[1].trim());
+                        const social = parseInt(parts[2].trim());
+                        
+                        if (name && !isNaN(skill) && !isNaN(social)) {
+                            students.push({ name, skill, social });
+                        }
+                    }
+                }
+                
+                return students;
+            }
+            
+            // Generate groups based on selected algorithm
+            function generateGroups() {
+                parseStudents();
+                const groupSize = parseInt(groupSizeInput.value);
+                const groupType = groupTypeSelect.value;
+                
+                if (students.length === 0) {
+                    alert('Please enter valid student data.');
+                    return;
+                }
+                
+                if (isNaN(groupSize) || groupSize < 2 || groupSize > 10) {
+                    alert('Group size must be between 2 and 10.');
+                    return;
+                }
+                
+                // Clear previous groups
+                groups = [];
+                
+                // Copy students array for manipulation
+                let remainingStudents = [...students];
+                
+                // Different algorithms based on group type
+                if (groupType === 'balanced') {
+                    // Sort by skill (high to low) for balanced distribution
+                    remainingStudents.sort((a, b) => b.skill - a.skill);
+                } else if (groupType === 'targeted') {
+                    // Sort by skill (low to high) for similar groups
+                    remainingStudents.sort((a, b) => a.skill - b.skill);
+                } else if (groupType === 'social') {
+                    // Sort by social dynamics (high to low)
+                    remainingStudents.sort((a, b) => b.social - a.social);
+                }
+                
+                // Calculate number of groups needed
+                const numGroups = Math.ceil(remainingStudents.length / groupSize);
+                
+                // Create empty groups
+                for (let i = 0; i < numGroups; i++) {
+                    groups.push([]);
+                }
+                
+                // Distribute students to groups
+                if (groupType === 'balanced') {
+                    // Distribute high-skilled students first to balance groups
+                    for (let i = 0; i < remainingStudents.length; i++) {
+                        const groupIndex = i % numGroups;
+                        groups[groupIndex].push(remainingStudents[i]);
+                    }
+                } else {
+                    // For targeted and social, fill groups sequentially
+                    for (let i = 0; i < remainingStudents.length; i++) {
+                        const groupIndex = Math.floor(i / groupSize);
+                        if (groupIndex < groups.length) {
+                            groups[groupIndex].push(remainingStudents[i]);
+                        }
+                    }
+                }
+                
+                // Display groups
+                displayGroups();
+                
+                // Update statistics
+                updateStatistics();
+            }
+            
+            // Display groups in the UI
+            function displayGroups() {
+                groupsContainer.innerHTML = '';
+                
+                if (groups.length === 0) {
+                    groupsContainer.innerHTML = '<p>No groups generated yet.</p>';
+                    return;
+                }
+                
+                groups.forEach((group, index) => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'group';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'group-header';
+                    header.textContent = `Group ${index + 1} (${group.length} members)`;
+                    
+                    const membersDiv = document.createElement('div');
+                    membersDiv.className = 'group-members';
+                    
+                    // Calculate average skill and social for this group
+                    let totalSkill = 0;
+                    let totalSocial = 0;
+                    
+                    group.forEach(student => {
+                        totalSkill += student.skill;
+                        totalSocial += student.social;
+                        
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'member';
+                        
+                        memberDiv.innerHTML = `
+                            <div>${student.name}</div>
+                            <div>
+                                <span class="member-skill">Skill: ${student.skill}</span>
+                                <span> | </span>
+                                <span>Social: ${student.social}</span>
+                            </div>
+                        `;
+                        
+                        membersDiv.appendChild(memberDiv);
+                    });
+                    
+                    const avgGroupSkill = (totalSkill / group.length).toFixed(1);
+                    const avgGroupSocial = (totalSocial / group.length).toFixed(1);
+                    
+                    const statsDiv = document.createElement('div');
+                    statsDiv.style.padding = '10px';
+                    statsDiv.style.background = '#e9ecef';
+                    statsDiv.style.fontSize = '0.9rem';
+                    statsDiv.innerHTML = `Avg. Skill: <strong>${avgGroupSkill}</strong> | Avg. Social: <strong>${avgGroupSocial}</strong>`;
+                    
+                    groupDiv.appendChild(header);
+                    groupDiv.appendChild(membersDiv);
+                    groupDiv.appendChild(statsDiv);
+                    
+                    groupsContainer.appendChild(groupDiv);
+                });
+            }
+            
+            // Update statistics
+            function updateStatistics() {
+                if (students.length === 0) return;
+                
+                // Calculate totals
+                totalStudentsEl.textContent = students.length;
+                totalGroupsEl.textContent = groups.length;
+                
+                // Calculate averages
+                const totalSkill = students.reduce((sum, student) => sum + student.skill, 0);
+                const totalSocial = students.reduce((sum, student) => sum + student.social, 0);
+                
+                const avgSkill = (totalSkill / students.length).toFixed(1);
+                const avgSocial = (totalSocial / students.length).toFixed(1);
+                
+                avgSkillEl.textContent = avgSkill;
+                avgSocialEl.textContent = avgSocial;
+                
+                // Update skill distribution bars (simplified)
+                skillBarEl.style.width = `${avgSkill * 10}%`;
+                socialBarEl.style.width = `${avgSocial * 10}%`;
+            }
+            
+            // Export as PDF
+            function exportAsPdf() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Title
+                doc.setFontSize(20);
+                doc.setTextColor(78, 84, 200);
+                doc.text('Group Formation Report', 105, 15, { align: 'center' });
+                
+                // Summary
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Total Students: ${students.length}`, 20, 25);
+                doc.text(`Total Groups: ${groups.length}`, 20, 32);
+                
+                const totalSkill = students.reduce((sum, student) => sum + student.skill, 0);
+                const totalSocial = students.reduce((sum, student) => sum + student.social, 0);
+                const avgSkill = (totalSkill / students.length).toFixed(1);
+                const avgSocial = (totalSocial / students.length).toFixed(1);
+                
+                doc.text(`Average Skill Level: ${avgSkill}`, 20, 39);
+                doc.text(`Average Social Dynamics: ${avgSocial}`, 20, 46);
+                
+                // Groups
+                let y = 60;
+                groups.forEach((group, index) => {
+                    if (y > 240) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    doc.setFontSize(14);
+                    doc.setTextColor(78, 84, 200);
+                    doc.text(`Group ${index + 1} (${group.length} members)`, 20, y);
+                    y += 10;
+                    
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    // Calculate averages for this group
+                    let groupSkill = 0;
+                    let groupSocial = 0;
+                    
+                    group.forEach(student => {
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        
+                        doc.text(`${student.name} - Skill: ${student.skill}, Social: ${student.social}`, 25, y);
+                        y += 7;
+                        
+                        groupSkill += student.skill;
+                        groupSocial += student.social;
+                    });
+                    
+                    const avgGroupSkill = (groupSkill / group.length).toFixed(1);
+                    const avgGroupSocial = (groupSocial / group.length).toFixed(1);
+                    
+                    doc.setFontSize(10);
+                    doc.setTextColor(128, 0, 0);
+                    doc.text(`Group Averages - Skill: ${avgGroupSkill}, Social: ${avgGroupSocial}`, 25, y);
+                    y += 15;
+                });
+                
+                // Save the PDF
+                doc.save('group-formation-report.pdf');
+            }
+            
+            // Export as Word (simulated with a data URI)
+            function exportAsWord() {
+                // Create HTML content for the Word document
+                let htmlContent = `
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Group Formation Report</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            h1 { color: #4e54c8; }
+                            h2 { color: #4e54c8; }
+                            table { border-collapse: collapse; width: 100%; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                            th { background-color: #f2f2f2; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Group Formation Report</h1>
+                        <p><strong>Total Students:</strong> ${students.length}</p>
+                        <p><strong>Total Groups:</strong> ${groups.length}</p>
+                `;
+                
+                const totalSkill = students.reduce((sum, student) => sum + student.skill, 0);
+                const totalSocial = students.reduce((sum, student) => sum + student.social, 0);
+                const avgSkill = (totalSkill / students.length).toFixed(1);
+                const avgSocial = (totalSocial / students.length).toFixed(1);
+                
+                htmlContent += `
+                    <p><strong>Average Skill Level:</strong> ${avgSkill}</p>
+                    <p><strong>Average Social Dynamics:</strong> ${avgSocial}</p>
+                `;
+                
+                groups.forEach((group, index) => {
+                    htmlContent += `<h2>Group ${index + 1} (${group.length} members)</h2>`;
+                    htmlContent += `<table>
+                        <tr>
+                            <th>Name</th>
+                            <th>Skill Level</th>
+                            <th>Social Dynamics</th>
+                        </tr>`;
+                    
+                    let groupSkill = 0;
+                    let groupSocial = 0;
+                    
+                    group.forEach(student => {
+                        htmlContent += `
+                            <tr>
+                                <td>${student.name}</td>
+                                <td>${student.skill}</td>
+                                <td>${student.social}</td>
+                            </tr>`;
+                        
+                        groupSkill += student.skill;
+                        groupSocial += student.social;
+                    });
+                    
+                    const avgGroupSkill = (groupSkill / group.length).toFixed(1);
+                    const avgGroupSocial = (groupSocial / group.length).toFixed(1);
+                    
+                    htmlContent += `
+                        <tr>
+                            <td><strong>Group Averages</strong></td>
+                            <td><strong>${avgGroupSkill}</strong></td>
+                            <td><strong>${avgGroupSocial}</strong></td>
+                        </tr>
+                    </table>`;
+                });
+                
+                htmlContent += `</body></html>`;
+                
+                // Create a Blob and download link
+                const blob = new Blob([htmlContent], { type: 'application/msword' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'group-formation-report.doc';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            // Reset form
+            function resetForm() {
+                studentsTextarea.value = studentsTextarea.defaultValue;
+                groupTypeSelect.value = 'balanced';
+                groupSizeInput.value = '4';
+                groupsContainer.innerHTML = '<p>Groups will be generated here. Click "Generate Groups" to start.</p>';
+                
+                // Reset statistics
+                totalStudentsEl.textContent = '0';
+                totalGroupsEl.textContent = '0';
+                avgSkillEl.textContent = '0';
+                avgSocialEl.textContent = '0';
+                skillBarEl.style.width = '0%';
+                socialBarEl.style.width = '0%';
+            }
+            
+            // Event listeners
+            generateBtn.addEventListener('click', generateGroups);
+            resetBtn.addEventListener('click', resetForm);
+            exportPdfBtn.addEventListener('click', exportAsPdf);
+            exportWordBtn.addEventListener('click', exportAsWord);
+            
+            // Initialize with sample data
+            displayGroups();
+            updateStatistics();
+        });
+    </script>
+</body>
+</html>
