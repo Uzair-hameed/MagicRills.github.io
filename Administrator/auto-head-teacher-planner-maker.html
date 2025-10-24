@@ -1,0 +1,149 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/4345/4345498.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/4345/4345498.png" style="display: none;" width="200" /></a></div>
+
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Head Teacher Weekly Planner</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+    th, td { border: 1px solid #333; padding: 6px; text-align: center; }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 4px;
+    }
+    textarea { width: 100%; margin-top: 10px; }
+    .controls input, .controls button, textarea {
+      margin: 5px 0;
+      padding: 6px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📘 Auto Head Teacher Weekly Planner</h2>
+
+<div class="controls">
+  <input id="schoolName" placeholder="School Name" type="text">
+  <input id="headName" placeholder="Head Teacher Name" type="text">
+  <input id="dateRange" placeholder="Date From - To" type="text">
+  <textarea id="remarks" placeholder="Remarks..." rows="2"></textarea>
+  <button onclick="generatePlanner()">Generate Planner</button>
+  <button onclick="exportToDoc()"><a href="https://essentialmost.com/AbJdyf">Export to Word (DOC)</a></button>
+</div>
+
+<div id="plannerPreview"></div>
+
+<script>
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const periods = 8;
+const activities = [
+  "", "Morning Assembly", "Staff Meeting", "Official Visit", "Classroom Observation",
+  "Copy Checking Task", "Parent Interaction", "Report Writing", "Administrative Work",
+  "Class Visit", "Break/Free Slot", "Custom Task"
+];
+
+function createDropdown(id) {
+  let html = `<select id="${id}" onchange="toggleCustom(this)">`;
+  for (let act of activities) {
+    html += `<option value="${act}">${act}</option>`;
+  }
+  html += `</select><input type="text" id="${id}_custom" style="display:none;" placeholder="Custom Task">`;
+  return html;
+}
+
+function toggleCustom(sel) {
+  const customInput = document.getElementById(sel.id + "_custom");
+  customInput.style.display = sel.value === "Custom Task" ? "block" : "none";
+}
+
+function generatePlanner() {
+  let table = `<table><thead><tr><th>Day</th>`;
+  for (let i = 1; i <= periods; i++) {
+    table += `<th>Period ${i}</th>`;
+  }
+  table += `</tr></thead><tbody>`;
+
+  for (let day of days) {
+    table += `<tr><td><b>${day}</b></td>`;
+    for (let i = 1; i <= periods; i++) {
+      const id = `${day}_P${i}`;
+      table += `<td>${createDropdown(id)}</td>`;
+    }
+    table += `</tr>`;
+  }
+
+  table += `</tbody></table>`;
+  document.getElementById("plannerPreview").innerHTML = table;
+}
+
+function exportToDoc() {
+  const schoolName = document.getElementById("schoolName").value || "Untitled School";
+  const headName = document.getElementById("headName").value || "Head Teacher";
+  const dateRange = document.getElementById("dateRange").value || "Week of " + new Date().toLocaleDateString();
+  const remarks = document.getElementById("remarks").value || "No remarks";
+
+  // Create table with only selected values
+  let tableHTML = `<table><thead><tr><th>Day</th>`;
+  for (let i = 1; i <= periods; i++) {
+    tableHTML += `<th>Period ${i}</th>`;
+  }
+  tableHTML += `</tr></thead><tbody>`;
+
+  for (let day of days) {
+    tableHTML += `<tr><td><b>${day}</b></td>`;
+    for (let i = 1; i <= periods; i++) {
+      const id = `${day}_P${i}`;
+      const select = document.getElementById(id);
+      const customInput = document.getElementById(id + "_custom");
+      
+      let selectedValue = select ? select.value : "";
+      if (selectedValue === "Custom Task" && customInput) {
+        selectedValue = customInput.value || "Custom Task";
+      }
+      
+      // Only show cell if there's a selected value
+      tableHTML += `<td>${selectedValue || "-"}</td>`;
+    }
+    tableHTML += `</tr>`;
+  }
+
+  tableHTML += `</tbody></table>`;
+
+  const htmlContent = `
+    <h2>${schoolName} - Weekly Planner</h2>
+    <p><b>Head Teacher:</b> ${headName}<br>
+    <b>Date:</b> ${dateRange}</p>
+    ${tableHTML}
+    <p><b>Remarks:</b><br>${remarks}</p>
+  `;
+
+  const blob = new Blob([`
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+          th { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>${htmlContent}</body>
+    </html>
+  `], { type: 'application/msword' });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${schoolName.replace(/[^a-z0-9]/gi, '_')}_Weekly_Planner.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>
+
+</body>
+</html>

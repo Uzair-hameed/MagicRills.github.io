@@ -1,0 +1,936 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/13635/13635835.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/13635/13635835.png" style="display: none;" width="200" /></a></div>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Auto School Attendance Sheet Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --text-color: #333;
+            --bg-color: #fff;
+            --card-bg: #f8f9fa;
+            --border-color: #ddd;
+        }
+
+        .dark-mode {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #27ae60;
+            --danger-color: #c0392b;
+            --warning-color: #d35400;
+            --light-color: #34495e;
+            --dark-color: #ecf0f1;
+            --text-color: #ecf0f1;
+            --bg-color: #2c3e50;
+            --card-bg: #34495e;
+            --border-color: #4a6278;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-color);
+        }
+
+        .logo-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .card .value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card .label {
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        select, input, button {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+
+        .btn-warning:hover {
+            background-color: #d35400;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .attendance-table th, .attendance-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .attendance-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .attendance-table tr:nth-child(even) {
+            background-color: var(--card-bg);
+        }
+
+        .attendance-table tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .present {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .absent {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .leave {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+
+        .editable {
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        .editable:hover {
+            background-color: rgba(52, 152, 219, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-view, .print-view * {
+                visibility: visible;
+            }
+            .print-view {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+            .attendance-table {
+                box-shadow: none;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img alt="School Logo" class="logo-preview" id="logo-preview" src="https://via.placeholder.com/80" />
+                <div class="logo-upload">
+                    <input accept="image/*" id="logo-upload" type="file" />
+                    <button onclick="uploadLogo()">Upload School Logo</button>
+                </div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+        </header>
+
+        <h1>Auto School Attendance Sheet Generator</h1>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Total Strength</h3>
+                <div class="value" id="total-strength">0</div>
+                <div class="label">All Students</div>
+            </div>
+            <div class="card">
+                <h3>Today's Attendance</h3>
+                <div class="value" id="attendance-percentage">0%</div>
+                <div class="label" id="attendance-count">0/0 Present</div>
+            </div>
+            <div class="card">
+                <h3>Absent Today</h3>
+                <div class="value" id="absent-count">0</div>
+                <div class="label">Students</div>
+            </div>
+            <div class="card">
+                <h3>On Leave</h3>
+                <div class="value" id="leave-count">0</div>
+                <div class="label">Students</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="grade-select">Grade</label>
+                <select id="grade-select" onchange="updateClassOptions()">
+                    <option value="PG">Pre-Kindergarten (PG)</option>
+                    <option value="KG">Kindergarten (KG)</option>
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="class-select">Class</label>
+                <select id="class-select">
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                    <option value="C">Section C</option>
+                    <option value="D">Section D</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="date-picker">Date</label>
+                <input id="date-picker" type="date" />
+            </div>
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button onclick="loadClassData()">Load Class</button>
+            </div>
+            <div class="control-group">
+                <label for="student-name">Add Student</label>
+                <div style="display: flex; gap: 5px;">
+                    <input id="student-name" placeholder="Student Name" type="text" />
+                    <button onclick="addStudent()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input id="search-input" oninput="filterStudents()" placeholder="Search by student name or class..." type="text" />
+        </div>
+
+        <div class="table-responsive">
+            <table class="attendance-table" id="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Roll No.</th>
+                        <th>Student Name</th>
+                        <th>Grade</th>
+                        <th>Class</th>
+                        <th>Status</th>
+                        <th class="no-print">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="student-list">
+                    <!-- Student data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="action-buttons">
+            <button onclick="saveAttendance()">💾 <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Save Attendance</a></button>
+            <button onclick="exportToPDF()">📄 <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Export to PDF</a></button>
+            <button onclick="exportToExcel()">📊 <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Export to Excel</a></button>
+            <button onclick="generateMonthlyReport()">📅 <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Generate Monthly Report</a></button>
+            <button onclick="window.print()">🖨️ <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Print Attendance</a></button>
+            <button class="btn-danger" onclick="clearData()">🗑️ Clear Data</button>
+        </div>
+
+        <!-- Print View (hidden until printing) -->
+        <div class="print-view hidden">
+            <h2 style="margin-bottom: 20px; text-align: center;">School Attendance Sheet</h2>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div>
+                    <strong>Date:</strong> <span id="print-date"></span><br />
+                    <strong>Grade:</strong> <span id="print-grade"></span><br />
+                    <strong>Class:</strong> <span id="print-class"></span>
+                </div>
+                <div style="text-align: right;">
+                    <img alt="School Logo" id="print-logo" src="" style="height: 60px;" />
+                </div>
+            </div>
+            <table style="border-collapse: collapse; margin-bottom: 30px; width: 100%;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 10px;">Roll No.</th>
+                        <th style="border: 1px solid #ddd; padding: 10px;">Student Name</th>
+                        <th style="border: 1px solid #ddd; padding: 10px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="print-student-list">
+                    <!-- Print student data will be inserted here -->
+                </tbody>
+            </table>
+            <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                <div>
+                    <strong>Class Teacher:</strong> _____________________
+                </div>
+                <div>
+                    <strong>Principal:</strong> _____________________
+                </div>
+            </div>
+            <div style="font-size: 12px; margin-top: 20px; text-align: center;">
+                <p>Generated by Auto School Attendance Sheet Generator</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let students = [];
+        let schoolLogo = null;
+        let isDarkMode = false;
+        const { jsPDF } = window.jspdf;
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date-picker').value = today;
+            
+            // Load any saved data from localStorage
+            loadFromLocalStorage();
+            
+            // Update summary cards
+            updateSummaryCards();
+        });
+
+        // Toggle between light and dark theme
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            document.querySelector('.theme-toggle').textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        // Upload school logo
+        function uploadLogo() {
+            const fileInput = document.getElementById('logo-upload');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    schoolLogo = e.target.result;
+                    document.getElementById('logo-preview').src = schoolLogo;
+                    localStorage.setItem('schoolLogo', schoolLogo);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Update class options based on selected grade
+        function updateClassOptions() {
+            const grade = document.getElementById('grade-select').value;
+            const classSelect = document.getElementById('class-select');
+            
+            // For higher grades, we might have more sections
+            if (['PG', 'KG'].includes(grade)) {
+                classSelect.innerHTML = `
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                `;
+            } else {
+                classSelect.innerHTML = `
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                    <option value="C">Section C</option>
+                    <option value="D">Section D</option>
+                `;
+            }
+        }
+
+        // Add a new student
+        function addStudent() {
+            const nameInput = document.getElementById('student-name');
+            const name = nameInput.value.trim();
+            const grade = document.getElementById('grade-select').value;
+            const classSection = document.getElementById('class-select').value;
+            
+            if (!name) {
+                alert('Please enter a student name');
+                return;
+            }
+            
+            // Generate roll number (last roll no + 1 or start from 1)
+            const classStudents = students.filter(s => s.grade === grade && s.class === classSection);
+            const rollNo = classStudents.length > 0 ? Math.max(...classStudents.map(s => s.rollNo)) + 1 : 1;
+            
+            const newStudent = {
+                id: Date.now().toString(),
+                rollNo,
+                name,
+                grade,
+                class: classSection,
+                attendance: {}
+            };
+            
+            students.push(newStudent);
+            saveToLocalStorage();
+            loadClassData();
+            nameInput.value = '';
+            updateSummaryCards();
+        }
+
+        // Load class data based on selected grade and class
+        function loadClassData() {
+            const grade = document.getElementById('grade-select').value;
+            const classSection = document.getElementById('class-select').value;
+            const date = document.getElementById('date-picker').value;
+            
+            const classStudents = students.filter(s => s.grade === grade && s.class === classSection)
+                                        .sort((a, b) => a.rollNo - b.rollNo);
+            
+            const tableBody = document.getElementById('student-list');
+            tableBody.innerHTML = '';
+            
+            classStudents.forEach(student => {
+                const status = student.attendance[date] || '';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.rollNo}</td>
+                    <td>${student.name}</td>
+                    <td>${student.grade}</td>
+                    <td>${student.class}</td>
+                    <td class="editable ${status.toLowerCase()}" onclick="changeStatus(this, '${student.id}', '${date}')">${status || 'Click to set'}</td>
+                    <td class="no-print">
+                        <button class="btn-danger" onclick="deleteStudent('${student.id}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Update print view info
+            document.getElementById('print-date').textContent = formatDateForPrint(date);
+            document.getElementById('print-grade').textContent = `Grade ${grade}`;
+            document.getElementById('print-class').textContent = `Section ${classSection}`;
+            document.getElementById('print-logo').src = schoolLogo || '';
+            
+            // Update print student list
+            const printStudentList = document.getElementById('print-student-list');
+            printStudentList.innerHTML = '';
+            
+            classStudents.forEach(student => {
+                const status = student.attendance[date] || 'Not Marked';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="padding: 8px; border: 1px solid #ddd;">${student.rollNo}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${student.name}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${status}</td>
+                `;
+                printStudentList.appendChild(row);
+            });
+            
+            updateSummaryCards();
+        }
+
+        // Change attendance status
+        function changeStatus(cell, studentId, date) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const currentStatus = student.attendance[date] || '';
+            let newStatus;
+            
+            if (!currentStatus || currentStatus === 'Absent') {
+                newStatus = 'Present';
+            } else if (currentStatus === 'Present') {
+                newStatus = 'Leave';
+            } else {
+                newStatus = 'Absent';
+            }
+            
+            student.attendance[date] = newStatus;
+            saveToLocalStorage();
+            
+            // Update cell appearance
+            cell.className = `editable ${newStatus.toLowerCase()}`;
+            cell.textContent = newStatus;
+            
+            updateSummaryCards();
+        }
+
+        // Delete a student
+        function deleteStudent(studentId) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                students = students.filter(s => s.id !== studentId);
+                saveToLocalStorage();
+                loadClassData();
+                updateSummaryCards();
+            }
+        }
+
+        // Filter students by search term
+        function filterStudents() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const rows = document.querySelectorAll('#student-list tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[1].textContent.toLowerCase();
+                const grade = row.cells[2].textContent.toLowerCase();
+                const classSection = row.cells[3].textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || grade.includes(searchTerm) || classSection.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Update summary cards
+        function updateSummaryCards() {
+            const grade = document.getElementById('grade-select').value;
+            const classSection = document.getElementById('class-select').value;
+            const date = document.getElementById('date-picker').value;
+            
+            // Total strength
+            const totalStrength = students.length;
+            document.getElementById('total-strength').textContent = totalStrength;
+            
+            // Class strength
+            const classStrength = students.filter(s => s.grade === grade && s.class === classSection).length;
+            
+            // Attendance stats
+            const classStudents = students.filter(s => s.grade === grade && s.class === classSection);
+            const presentCount = classStudents.filter(s => s.attendance[date] === 'Present').length;
+            const absentCount = classStudents.filter(s => s.attendance[date] === 'Absent').length;
+            const leaveCount = classStudents.filter(s => s.attendance[date] === 'Leave').length;
+            
+            const attendancePercentage = classStrength > 0 ? Math.round((presentCount / classStrength) * 100) : 0;
+            
+            document.getElementById('attendance-percentage').textContent = `${attendancePercentage}%`;
+            document.getElementById('attendance-count').textContent = `${presentCount}/${classStrength} Present`;
+            document.getElementById('absent-count').textContent = absentCount;
+            document.getElementById('leave-count').textContent = leaveCount;
+        }
+
+        // Save attendance data to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('attendanceData', JSON.stringify(students));
+        }
+
+        // Load attendance data from localStorage
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('attendanceData');
+            if (savedData) {
+                students = JSON.parse(savedData);
+            }
+            
+            const savedLogo = localStorage.getItem('schoolLogo');
+            if (savedLogo) {
+                schoolLogo = savedLogo;
+                document.getElementById('logo-preview').src = schoolLogo;
+            }
+        }
+
+        // Save attendance (simulated - in a real app, this would send to server)
+        function saveAttendance() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="spinner"></span> Saving...';
+            
+            setTimeout(() => {
+                saveToLocalStorage();
+                button.textContent = '💾 Saved Successfully!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }, 1000);
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            const grade = document.getElementById('grade-select').value;
+            const classSection = document.getElementById('class-select').value;
+            const date = document.getElementById('date-picker').value;
+            
+            const classStudents = students.filter(s => s.grade === grade && s.class === classSection)
+                                        .sort((a, b) => a.rollNo - b.rollNo);
+            
+            const doc = new jsPDF();
+            
+            // Add school logo if available
+            if (schoolLogo) {
+                doc.addImage(schoolLogo, 'JPEG', 10, 10, 30, 30);
+            }
+            
+            // Add title and information
+            doc.setFontSize(18);
+            doc.text('School Attendance Sheet', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.text(`Grade: ${grade}`, 15, 45);
+            doc.text(`Class: ${classSection}`, 15, 55);
+            doc.text(`Date: ${formatDateForPrint(date)}`, 15, 65);
+            
+            // Create table headers
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Roll No.', 20, 80);
+            doc.text('Student Name', 50, 80);
+            doc.text('Status', 150, 80);
+            
+            // Add table rows
+            doc.setFont(undefined, 'normal');
+            let y = 90;
+            
+            classStudents.forEach(student => {
+                const status = student.attendance[date] || 'Not Marked';
+                
+                doc.text(student.rollNo.toString(), 20, y);
+                doc.text(student.name, 50, y);
+                
+                // Color code status
+                if (status === 'Present') {
+                    doc.setTextColor(46, 204, 113); // Green
+                } else if (status === 'Absent') {
+                    doc.setTextColor(231, 76, 60); // Red
+                } else if (status === 'Leave') {
+                    doc.setTextColor(243, 156, 18); // Orange
+                }
+                
+                doc.text(status, 150, y);
+                doc.setTextColor(0, 0, 0); // Reset to black
+                
+                y += 10;
+                if (y > 270) { // Add new page if running out of space
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            
+            // Add footer
+            doc.setFontSize(10);
+            doc.text('Generated by Auto School Attendance Sheet Generator', 105, 285, { align: 'center' });
+            
+            // Save the PDF
+            doc.save(`Attendance_${grade}_${classSection}_${date}.pdf`);
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            const grade = document.getElementById('grade-select').value;
+            const classSection = document.getElementById('class-select').value;
+            const date = document.getElementById('date-picker').value;
+            
+            const classStudents = students.filter(s => s.grade === grade && s.class === classSection)
+                                        .sort((a, b) => a.rollNo - b.rollNo);
+            
+            // Prepare data for Excel
+            const excelData = [
+                ['Roll No.', 'Student Name', 'Grade', 'Class', 'Status', 'Remarks']
+            ];
+            
+            classStudents.forEach(student => {
+                const status = student.attendance[date] || 'Not Marked';
+                excelData.push([
+                    student.rollNo,
+                    student.name,
+                    student.grade,
+                    student.class,
+                    status,
+                    ''
+                ]);
+            });
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+            
+            // Export to file
+            XLSX.writeFile(wb, `Attendance_${grade}_${classSection}_${date}.xlsx`);
+        }
+
+        // Generate monthly report
+        function generateMonthlyReport() {
+            const grade = document.getElementById('grade-select').value;
+            const classSection = document.getElementById('class-select').value;
+            const monthYear = prompt('Enter month and year (MM/YYYY):', new Date().toLocaleDateString('en-US', {month: '2-digit', year: 'numeric'}));
+            
+            if (!monthYear) return;
+            
+            const [month, year] = monthYear.split('/');
+            const classStudents = students.filter(s => s.grade === grade && s.class === classSection)
+                                        .sort((a, b) => a.rollNo - b.rollNo);
+            
+            // Get all dates in the month
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const dates = [];
+            for (let i = 1; i <= daysInMonth; i++) {
+                dates.push(`${year}-${month.padStart(2, '0')}-${i.toString().padStart(2, '0')}`);
+            }
+            
+            // Prepare data for Excel
+            const excelData = [
+                ['Roll No.', 'Student Name', ...dates.map(d => formatDateForPrint(d)), 'Present Days', 'Absent Days', 'Leave Days', 'Attendance %']
+            ];
+            
+            classStudents.forEach(student => {
+                const row = [student.rollNo, student.name];
+                let presentDays = 0;
+                let absentDays = 0;
+                let leaveDays = 0;
+                
+                dates.forEach(date => {
+                    const status = student.attendance[date] || '';
+                    row.push(status);
+                    
+                    if (status === 'Present') presentDays++;
+                    else if (status === 'Absent') absentDays++;
+                    else if (status === 'Leave') leaveDays++;
+                });
+                
+                const totalMarkedDays = presentDays + absentDays + leaveDays;
+                const attendancePercentage = totalMarkedDays > 0 ? Math.round((presentDays / totalMarkedDays) * 100) : 0;
+                
+                row.push(presentDays, absentDays, leaveDays, `${attendancePercentage}%`);
+                excelData.push(row);
+            });
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Monthly Report');
+            
+            // Export to file
+            XLSX.writeFile(wb, `Monthly_Report_${grade}_${classSection}_${month}_${year}.xlsx`);
+        }
+
+        // Clear all data
+        function clearData() {
+            if (confirm('Are you sure you want to clear ALL data? This cannot be undone.')) {
+                localStorage.clear();
+                students = [];
+                schoolLogo = null;
+                document.getElementById('logo-preview').src = 'https://via.placeholder.com/80';
+                loadClassData();
+                updateSummaryCards();
+            }
+        }
+
+        // Helper function to format date for display
+        function formatDateForPrint(dateString) {
+            if (!dateString) return '';
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+    </script>
+</body>
+</html>

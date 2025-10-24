@@ -1,0 +1,223 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/7253/7253130.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/7253/7253130.png" style="display: none;" width="200" /></a></div>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8"></meta>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+  <title>Auto Job Ad Maker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+    }
+    h2, h3 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    label {
+      font-weight: bold;
+      color: #34495e;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    #adPreview {
+      margin-top: 20px;
+      padding: 20px;
+      border: 2px dashed #ccc;
+      background-color: #fdfdfd;
+    }
+    #previewImage {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .formatting-tools {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .formatting-tools button {
+      flex: 1;
+      background-color: #95a5a6;
+    }
+    .formatting-tools button:hover {
+      background-color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Auto Job Ad Maker Tool</h2>
+
+    <label>Upload Logo</label>
+    <input accept="image/*" id="logoInput" type="file" />
+
+    <label>Name of Organization</label>
+    <input id="orgName" type="text" />
+
+    <label>Post Announcement</label>
+    <select id="post" onchange="applyTheme()">
+      <option>Principal</option>
+      <option>Head Teacher</option>
+      <option>Teacher</option>
+      <option>Coordinator</option>
+      <option>Admin</option>
+      <option>Assistant Teacher</option>
+      <option>IT Specialist</option>
+      <option>Librarian</option>
+      <option>HR Manager</option>
+      <option>Receptionist</option>
+      <option>Accountant</option>
+      <option>Other</option>
+    </select>
+
+    <label>Qualification Required</label>
+    <select id="qualification">
+      <option>Matric</option>
+      <option>Intermediate</option>
+      <option>Graduation</option>
+      <option>Master</option>
+      <option>Post Master</option>
+    </select>
+
+    <label>Experience Required</label>
+    <select id="experience">
+      <option>1 year</option>
+      <option>2 years</option>
+      <option>3 years</option>
+      <option>4 years</option>
+      <option>5 years</option>
+    </select>
+
+    <label>Computer Experience</label>
+    <div class="formatting-tools">
+      <button onclick="formatText('bold')">Bold</button>
+      <button onclick="formatText('italic')">Italic</button>
+      <button onclick="formatText('underline')">Underline</button>
+    </div>
+    <div contenteditable="true" id="computerExp" style="border-radius: 8px; border: 1px solid #ccc; min-height: 100px; padding: 10px;"></div>
+
+    <button onclick="generateAd()">Generate Ad</button>
+    <button onclick="downloadAd()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download Ad</a> (PDF)</button>
+    <button onclick="downloadDoc()"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Download Ad </a>(DOC)</button>
+
+    <div id="adPreview">
+      <h3>Ad Preview</h3>
+      <img alt="Logo Preview" id="logoPreview" src="" style="display: none; max-width: 100px;" />
+      <div id="imageArea"></div>
+      <div id="generatedAd"></div>
+    </div>
+  </div>
+
+  <script>
+    const imageMap = {
+      'Principal': ['#ffe5e5', 'https://via.placeholder.com/600x200/ffcccb/333333?text=Principal+Job+Ad'],
+      'Head Teacher': ['#d4f1f9', 'https://via.placeholder.com/600x200/b0e0e6/333333?text=Head+Teacher+Ad'],
+      'Teacher': ['#eaffea', 'https://via.placeholder.com/600x200/98fb98/333333?text=Teacher+Ad'],
+      'Coordinator': ['#f5e6ff', 'https://via.placeholder.com/600x200/dda0dd/333333?text=Coordinator+Ad'],
+      'Admin': ['#fffacc', 'https://via.placeholder.com/600x200/f0e68c/333333?text=Admin+Job+Ad'],
+      'Assistant Teacher': ['#ffffcc', 'https://via.placeholder.com/600x200/ffd700/333333?text=Assistant+Teacher+Ad'],
+      'IT Specialist': ['#e6f7ff', 'https://via.placeholder.com/600x200/add8e6/333333?text=IT+Specialist+Ad'],
+      'Librarian': ['#fff2cc', 'https://via.placeholder.com/600x200/f5deb3/333333?text=Librarian+Ad'],
+      'HR Manager': ['#ffe6f0', 'https://via.placeholder.com/600x200/ffb6c1/333333?text=HR+Manager+Ad'],
+      'Receptionist': ['#e6ffff', 'https://via.placeholder.com/600x200/e0ffff/333333?text=Receptionist+Ad'],
+      'Accountant': ['#f0fff0', 'https://via.placeholder.com/600x200/90ee90/333333?text=Accountant+Ad'],
+      'Other': ['#f0f0f0', 'https://via.placeholder.com/600x200/d3d3d3/333333?text=General+Job+Ad']
+    };
+
+    document.getElementById("logoInput").addEventListener("change", function(e) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        document.getElementById("logoPreview").src = reader.result;
+        document.getElementById("logoPreview").style.display = 'block';
+      }
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function formatText(command) {
+      document.execCommand(command, false, null);
+    }
+
+    function applyTheme() {
+      const post = document.getElementById("post").value;
+      const color = imageMap[post][0];
+      document.getElementById("adPreview").style.backgroundColor = color;
+    }
+
+    function generateAd() {
+      const orgName = document.getElementById("orgName").value;
+      const post = document.getElementById("post").value;
+      const qualification = document.getElementById("qualification").value;
+      const experience = document.getElementById("experience").value;
+      const computerExp = document.getElementById("computerExp").innerHTML;
+
+      const adText = `
+        <h2 style="text-align:center">${orgName}</h2>
+        <h3 style="text-align:center">We Are Hiring: ${post}</h3>
+        <p><strong>Qualification Required:</strong> ${qualification}</p>
+        <p><strong>Experience Required:</strong> ${experience}</p>
+        <p><strong>Computer Experience:</strong><br>${computerExp}</p>
+      `;
+
+      document.getElementById("generatedAd").innerHTML = adText;
+      document.getElementById("imageArea").innerHTML = `<img id='previewImage' src='${imageMap[post][1]}' alt='Job Image'>`;
+      applyTheme();
+    }
+
+    function downloadAd() {
+      const adContent = document.getElementById("adPreview").innerHTML;
+      const win = window.open('', '', 'height=842,width=595');
+      win.document.write('<html><head><title>Job Ad</title></head><body>');
+      win.document.write(adContent);
+      win.document.write('</body></html>');
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+
+    function downloadDoc() {
+      const adHtml = document.getElementById("adPreview").innerHTML;
+      const blob = new Blob([`<html><head><meta charset='utf-8'></head><body>${adHtml}</body></html>`], {
+        type: 'application/msword'
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'job_ad.doc';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
