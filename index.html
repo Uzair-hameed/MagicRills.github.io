@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magicrills - Where Education Meets AI Brilliance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c63ff;
+            --secondary: #ff6584;
+            --accent: #42b883;
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --light: #f5f5f5;
+            --card-bg: rgba(30, 30, 40, 0.7);
+            --header-height: 70px;
+            --footer-height: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(108, 99, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 101, 132, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(66, 184, 131, 0.05) 0%, transparent 30%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Animated Background */
+        #animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        .floating-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 5%;
+            animation-duration: 25s;
+        }
+
+        .floating-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            left: 80%;
+            background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+            animation-duration: 20s;
+            animation-direction: reverse;
+        }
+
+        .floating-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 20%;
+            left: 70%;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+            animation-duration: 15s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(30px, -50px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(10px);
+            height: var(--header-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(108, 99, 255, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo img {
+            height: 40px;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .category-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        .category-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 40px 5%;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: textGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes textGlow {
+            0% {
+                text-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+            }
+            100% {
+                text-shadow: 0 0 20px rgba(255, 101, 132, 0.5), 0 0 30px rgba(108, 99, 255, 0.3);
+            }
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            color: #ccc;
+        }
+
+        .tagline {
+            font-style: italic;
+            color: var(--accent) !important;
+            font-weight: 500;
+        }
+
+        /* Categories Section */
+        .categories {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--light);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(108, 99, 255, 0.3);
+        }
+
+        .category-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tools-list {
+            list-style-type: none;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .tools-list li {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 5px;
+        }
+
+        .tools-list li:before {
+            content: '▸';
+            color: var(--accent);
+        }
+
+        .tools-list li:hover {
+            background-color: rgba(108, 99, 255, 0.1);
+            padding-left: 15px;
+        }
+
+        /* Featured Tools */
+        .featured-tools {
+            margin-bottom: 60px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .tool-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--light);
+        }
+
+        .tool-card p {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--darker);
+            padding: 40px 5% 20px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--secondary);
+        }
+
+        .footer-section ul {
+            list-style-type: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-section a:hover {
+            color: var(--secondary);
+        }
+
+        .visitor-counter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(108, 99, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .counter-number {
+            font-weight: bold;
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 0 20px;
+            }
+            
+            .logo h1 {
+                font-size: 1.2rem;
+            }
+            
+            .category-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h2 {
+                font-size: 1.7rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .section-title {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="animated-bg">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+    </div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo">
+            <i class="fas fa-magic" style="color: var(--primary); font-size: 1.8rem;"></i>
+            <h1>Magicrills</h1>
+        </div>
+        <button class="category-btn">
+            <i class="fas fa-th-large"></i>
+            Categories
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h2>Where Education Meets AI Brilliance</h2>
+            <p>Magicrills: AI-powered educational tools that make learning smarter, faster, and magical for everyone.</p>
+            <p class="tagline">Simplifying complex tasks, boosting productivity, and fostering creativity</p>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories">
+            <h2 class="section-title">All Categories</h2>
+            <div class="category-grid">
+                <!-- Teacher Tools -->
+                <div class="category-card">
+                    <h3><i class="fas fa-chalkboard-teacher"></i> Teacher Tools</h3>
+                    <ul class="tools-list">
+                        <li>Science Paper Generator</li>
+                        <li>Mathematics Paper Generator</li>
+                        <li>Mind Map Generator</li>
+                        <li>Research Proposal Generator</li>
+                        <li>Professional Case Study Generator</li>
+                        <li>Q Bloom Builder</li>
+                        <li>Group Formation Tool</li>
+                        <li>Differentiated Instruction Idea Generator</li>
+                        <li>Chapter to Outline Generator</li>
+                        <li>Learning Disabilities Dashboard</li>
+                        <li>STEAM PBL Project Generator</li>
+                        <li>English Paper Generator</li>
+                        <li>Urdu Paper Generator</li>
+                        <li>Urdu language PDF-Word Converter</li>
+                        <li>Plagiarism & Paraphrasing Tool</li>
+                        <li>Quotation Poster Generator Tool</li>
+                        <li>Advance MCQ Maker Tool Development</li>
+                        <li>Advanced lesson Plan Tool</li>
+                        <li>Advanced Notebook checking Tool</li>
+                    </ul>
+                </div>
+                
+                <!-- Administrator Tools -->
+                <div class="category-card">
+                    <h3><i class="fas fa-user-tie"></i> Administrator Tools</h3>
+                    <ul class="tools-list">
+                        <li>Marking Scheme Dashboard</li>
+                        <li>Certificate Generator</li>
+                        <li>Morning Assembly Roster Generator</li>
+                        <li>Staff Duty Roster Generator</li>
+                        <li>Civil Servant leave Rules 1986</li>
+                        <li>Reading Dashboard for Registers</li>
+                        <li>Table of Specifications</li>
+                        <li>Multigrades Time Table Generator</li>
+                        <li>Time Table Generator VI-VIII</li>
+                        <li>Teacher Classroom Observation Tool</li>
+                        <li>Performance Evaluation Report (PER)</li>
+                        <li>School Development Plan Generator</li>
+                        <li>School Improvement Plan Generator</li>
+                        <li>School Staff Meeting Agenda Generator</li>
+                        <li>School Circular Generator</li>
+                        <li>Multi Rules Generator</li>
+                        <li>Advanced Auto Time Table Generator</li>
+                        <li>Auto Head Teacher Planner Maker</li>
+                        <li>School Attendance Sheet Generator</li>
+                        <li>Auto ID Card Generator Tool</li>
+                        <li>Auto Job Ad Maker Tool</li>
+                    </ul>
+                </div>
+                
+                <!-- Student Tools -->
+                <div class="category-card">
+                    <h3><i class="fas fa-user-graduate"></i> Student Tools</h3>
+                    <ul class="tools-list">
+                        <li>Classroom Weekly Roster Generator</li>
+                        <li>Story & Poetry Generator For Creative Writing</li>
+                        <li>Speech to Notes Converter</li>
+                        <li>Auto Resume Maker</li>
+                        <li>Auto Translation Tool</li>
+                        <li>Audio -- Text Converter</li>
+                        <li>Text- Audio Converter</li>
+                        <li>Auto Speech Generator Tool For Student</li>
+                        <li>Advanced Grammar Checking Tool</li>
+                    </ul>
+                </div>
+                
+                <!-- ECCE Teacher Tools -->
+                <div class="category-card">
+                    <h3><i class="fas fa-child"></i> ECCE Teacher Tools</h3>
+                    <ul class="tools-list">
+                        <li>Circle Time Song Generator</li>
+                        <li>Fine Motor Skills Activity Planner</li>
+                        <li>Sensory Play Idea Generator</li>
+                        <li>Social & Emotional Development Idea Generator</li>
+                        <li>Health & Hygiene Idea Generator</li>
+                        <li>Creative Art Idea Generator</li>
+                        <li>The World Around Us Idea Generator</li>
+                        <li>Auto Time Table Generator for ECCE</li>
+                        <li>ECCE Observation Tool Development</li>
+                        <li>Worksheet Maker for ECCE Teachers</li>
+                    </ul>
+                </div>
+                
+                <!-- SEO Tools -->
+                <div class="category-card">
+                    <h3><i class="fas fa-search"></i> SEO Tools</h3>
+                    <ul class="tools-list">
+                        <li>Magicrills Image Resizer Tool</li>
+                        <li>Image to Text Converter</li>
+                        <li>Advanced Traffic Booster Tool kit</li>
+                        <li>Image Caption Tool</li>
+                        <li>Advanced Image Merger</li>
+                        <li>Favicon Generator</li>
+                        <li>Text logo Generator</li>
+                        <li>Image Filter Tool</li>
+                        <li>Blog Post to Ad converter</li>
+                        <li>Urdu Key Word Generator for Urdu blogger</li>
+                        <li>Image Converter</li>
+                        <li>Advanced Auto Traffic Generator</li>
+                        <li>Advanced Website Ping Tool</li>
+                    </ul>
+                </div>
+                
+                <!-- Kids Games -->
+                <div class="category-card">
+                    <h3><i class="fas fa-gamepad"></i> Kids Games</h3>
+                    <ul class="tools-list">
+                        <li>Magicrills urdu alphabet Stories</li>
+                        <li>Magicrills Akhlaqi Stories</li>
+                        <li>Magicrills Urdu Tracing App</li>
+                        <li>Magicrills Urdu Jor Tor</li>
+                        <li>Magicrills Sentence Builder</li>
+                        <li>Magicrills Synonyms & Antonyms</li>
+                        <li>Magicrills Spelling Bee</li>
+                        <li>Magicrills Word Search Puzzle</li>
+                        <li>Magicrills Basic Arithmetic Quiz</li>
+                        <li>Magicrills Graction Matching</li>
+                        <li>Magicrills Math Bingo</li>
+                        <li>Magicrills Counting Game</li>
+                        <li>Magic Numbers comparison Game</li>
+                        <li>GK fun Quiz</li>
+                        <li>Urdu Alpha fun</li>
+                        <li>Number Fun Game</li>
+                        <li>Alpha Fun</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Games -->
+                <div class="category-card">
+                    <h3><i class="fas fa-question-circle"></i> Quiz Games</h3>
+                    <ul class="tools-list">
+                        <li>Islamic Studies Quiz Challenge</li>
+                        <li>Computer Quiz challenge</li>
+                        <li>Advanced Science Quiz Challenge</li>
+                        <li>Science Quiz Challenge</li>
+                        <li>History, Geography & GK Quiz Challenge</li>
+                        <li>English Language Quiz Challenge</li>
+                        <li>Urdu Quiz Challenge</li>
+                        <li>Math Quiz Challenge</li>
+                    </ul>
+                </div>
+                
+                <!-- Mixed Tools -->
+                <div class="category-card">
+                    <h3><i class="fas fa-tools"></i> Mixed Tools</h3>
+                    <ul class="tools-list">
+                        <li>School Event Calculator</li>
+                        <li>Magicrills Income Tax Calculator</li>
+                        <li>Magicrills PDF to Excel/CSV Converter</li>
+                        <li>Car Loan Calculator</li>
+                        <li>Car Age Calculator Pakistan</li>
+                        <li>Advance Percentage Calculator</li>
+                        <li>Auto Age Calculator Tool</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Tools Section -->
+        <section class="featured-tools">
+            <h2 class="section-title">Featured Tools</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <h4>Marking Scheme Dashboard</h4>
+                    <p>Clarity in Every Check</p>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h4>School Event Report Generator</h4>
+                    <p>Snap, style, share—your one-page school event report ready in 60 seconds!</p>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <h4>Civil Servant Leave Rules 1986 Dashboard</h4>
+                    <p>Master Civil Servant Leave Rules 1986 – At a Glance!</p>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <h4>Certificate Generator</h4>
+                    <p>Your Achievement, Certified</p>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h4>Science Paper Generator</h4>
+                    <p>Generate science papers with AI</p>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h4>Mathematics Paper Generator</h4>
+                    <p>Create math papers instantly</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Visitor Counter</h3>
+                <div class="visitor-counter">
+                    <i class="fas fa-eye"></i>
+                    <span>Live Visitors: <span class="counter-number" id="visitorCount">1,247</span></span>
+                </div>
+                <p>Join thousands of educators using Magicrills to transform education with AI.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-th-large"></i> All Tools</a></li>
+                    <li><a href="#"><i class="fas fa-gamepad"></i> Kids Games</a></li>
+                    <li><a href="#"><i class="fas fa-search"></i> SEO Tools</a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> Help Center</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Pages</h3>
+                <ul>
+                    <li><a href="#"><i class="fas fa-info-circle"></i> About Us</a></li>
+                    <li><a href="#"><i class="fas fa-envelope"></i> Contact Us</a></li>
+                    <li><a href="#"><i class="fas fa-shield-alt"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="fas fa-file-contract"></i> Terms of Service</a></li>
+                    <li><a href="#"><i class="fas fa-blog"></i> Blog</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <ul>
+                    <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+                    <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
+                    <li><a href="#"><i class="fab fa-linkedin"></i> LinkedIn</a></li>
+                    <li><a href="#"><i class="fab fa-github"></i> GitHub</a></li>
+                    <li><a href="#"><i class="fab fa-youtube"></i> YouTube</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2023 Magicrills.com - Where Education Meets AI Brilliance. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple visitor counter animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate the visitor counter
+            const counterElement = document.getElementById('visitorCount');
+            let count = 1247;
+            let targetCount = 1247 + Math.floor(Math.random() * 50);
+            
+            const interval = setInterval(() => {
+                count++;
+                counterElement.textContent = count.toLocaleString();
+                
+                if (count >= targetCount) {
+                    clearInterval(interval);
+                }
+            }, 100);
+            
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.category-card, .tool-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = this.classList.contains('category-card') 
+                        ? 'translateY(-10px)' 
+                        : 'translateY(-5px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Category button functionality
+            const categoryBtn = document.querySelector('.category-btn');
+            categoryBtn.addEventListener('click', function() {
+                document.querySelector('.categories').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            });
+        });
+    </script>
+</body>
+</html>
