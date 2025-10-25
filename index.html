@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicRills - AI Powered Educational Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --secondary: #10B981;
+            --secondary-dark: #059669;
+            --accent: #F59E0B;
+            --accent-dark: #D97706;
+            --dark: #0F172A;
+            --darker: #0A0F1C;
+            --darkest: #050914;
+            --light: #F8FAFC;
+            --gray: #94A3B8;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            --gradient-dark: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            --gradient-accent: linear-gradient(135deg, var(--accent) 0%, #EF4444 100%);
+            --gradient-header: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            --gradient-footer: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            --shadow: 0 25px 50px rgba(0,0,0,0.25);
+            --card-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            --glow: 0 0 30px rgba(99, 102, 241, 0.5);
+            --glow-green: 0 0 30px rgba(16, 185, 129, 0.5);
+            --transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        body {
+            background: linear-gradient(135deg, var(--darkest) 0%, var(--darker) 50%, var(--dark) 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Matrix Background Animation */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.03;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+        }
+
+        .matrix-code {
+            position: absolute;
+            color: rgba(16, 185, 129, 0.7);
+            font-family: monospace;
+            font-size: 18px;
+            animation: fall linear infinite;
+            text-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        /* Floating Shapes */
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary);
+            filter: blur(60px);
+            opacity: 0.1;
+            animation: floatShape 15s ease-in-out infinite;
+        }
+
+        .shape-1 { width: 500px; height: 500px; top: 5%; left: 5%; background: var(--primary); animation-delay: 0s; }
+        .shape-2 { width: 400px; height: 400px; top: 60%; right: 8%; background: var(--secondary); animation-delay: 3s; }
+        .shape-3 { width: 300px; height: 300px; bottom: 15%; left: 15%; background: var(--accent); animation-delay: 6s; }
+        .shape-4 { width: 350px; height: 350px; top: 20%; right: 20%; background: #8B5CF6; animation-delay: 9s; }
+        .shape-5 { width: 250px; height: 250px; bottom: 30%; right: 30%; background: #EC4899; animation-delay: 12s; }
+
+        @keyframes floatShape {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            20% { transform: translate(50px, -50px) rotate(90deg) scale(1.1); }
+            40% { transform: translate(-30px, 60px) rotate(180deg) scale(0.9); }
+            60% { transform: translate(70px, 30px) rotate(270deg) scale(1.05); }
+            80% { transform: translate(-40px, -60px) rotate(360deg) scale(0.95); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* New Header Design */
+        header {
+            background: var(--gradient-header);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            border-radius: 30px;
+            margin-bottom: 60px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(16, 185, 129, 0.2) 0%, transparent 40%);
+            animation: headerPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes headerPulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            font-size: 5rem;
+            margin-bottom: 30px;
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 35px;
+            border-radius: 50%;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.2);
+            animation: logoFloat 4s ease-in-out infinite;
+            box-shadow: 
+                0 0 0 0 rgba(255,255,255,0.4),
+                inset 0 0 30px rgba(255,255,255,0.1);
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg); 
+                box-shadow: 
+                    0 0 0 0 rgba(255,255,255,0.4),
+                    inset 0 0 30px rgba(255,255,255,0.1);
+            }
+            50% { 
+                transform: translateY(-20px) rotate(5deg); 
+                box-shadow: 
+                    0 0 0 15px rgba(255,255,255,0),
+                    inset 0 0 40px rgba(255,255,255,0.2);
+            }
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+            background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: var(--gradient);
+            border-radius: 3px;
+            transform: scaleX(0);
+            animation: titleLine 2s ease-in-out 1s forwards;
+        }
+
+        @keyframes titleLine {
+            to { transform: scaleX(1); }
+        }
+
+        .subtitle {
+            font-size: 1.6rem;
+            opacity: 0.9;
+            font-weight: 300;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+            color: #E2E8F0;
+            position: relative;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.08);
+            padding: 30px 40px;
+            border-radius: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .stat-item:hover::before {
+            left: 100%;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--glow);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .stat-number {
+            font-size: 3.2rem;
+            font-weight: 900;
+            display: block;
+            background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #E2E8F0;
+            font-weight: 500;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: rgba(255,255,255,0.05);
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 60px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.6s ease;
+        }
+
+        .search-section:hover::before {
+            transform: scaleX(1);
+        }
+
+        .search-section:hover {
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.3);
+            transform: translateY(-8px);
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 25px 80px 25px 40px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 70px;
+            font-size: 18px;
+            outline: none;
+            transition: var(--transition);
+            background: rgba(255,255,255,0.08);
+            color: white;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+
+        #searchInput::placeholder {
+            color: #94A3B8;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.3), 0 20px 50px rgba(0,0,0,0.4);
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.12);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.6rem;
+            transition: var(--transition);
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #searchInput:focus + .search-icon {
+            transform: translateY(-50%) scale(1.3);
+            animation: searchSpin 1.5s infinite;
+        }
+
+        @keyframes searchSpin {
+            0%, 100% { transform: translateY(-50%) scale(1.3) rotate(0deg); }
+            50% { transform: translateY(-50%) scale(1.4) rotate(180deg); }
+        }
+
+        /* Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .category-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 30px;
+            padding: 0;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.6s ease;
+        }
+
+        .category-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .category-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+            color: white;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 5s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% { transform: rotate(45deg) translateX(-100%); }
+            50% { transform: rotate(45deg) translateX(100%); }
+        }
+
+        .category-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 30px;
+            border-radius: 25px;
+            backdrop-filter: blur(20px);
+            animation: iconBounce 4s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-15px) rotate(8deg); }
+            75% { transform: translateY(-8px) rotate(-8deg); }
+        }
+
+        .category-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .category-count {
+            background: rgba(255,255,255,0.25);
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: inline-block;
+            backdrop-filter: blur(20px);
+        }
+
+        .tools-container {
+            padding: 35px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .tools-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .tool-card {
+            background: rgba(255,255,255,0.08);
+            padding: 25px;
+            border-radius: 22px;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.15), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        .tool-card:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: var(--primary);
+            transform: translateX(12px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+        }
+
+        .tool-card a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .tool-icon {
+            width: 55px;
+            height: 55px;
+            background: var(--gradient);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+
+        .tool-card:hover .tool-icon {
+            background: var(--gradient-accent);
+            transform: scale(1.2) rotate(10deg);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.35);
+        }
+
+        .tool-info {
+            flex: 1;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #F8FAFC;
+            font-size: 1.2rem;
+            line-height: 1.4;
+        }
+
+        .tool-category {
+            font-size: 0.95rem;
+            color: var(--primary);
+            font-weight: 500;
+            background: rgba(99, 102, 241, 0.15);
+            padding: 7px 14px;
+            border-radius: 16px;
+            display: inline-block;
+            transition: var(--transition);
+        }
+
+        .tool-card:hover .tool-category {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+        }
+
+        /* New Footer Design */
+        footer {
+            background: var(--gradient-footer);
+            color: white;
+            text-align: center;
+            padding: 70px 20px;
+            border-radius: 30px;
+            margin-top: 80px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 75% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 40%);
+            animation: footerPulse 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes footerPulse {
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-logo {
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            display: inline-block;
+            background: var(--gradient);
+            padding: 25px;
+            border-radius: 50%;
+            animation: logoRotate 8s linear infinite;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        @keyframes logoRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .footer-text {
+            opacity: 0.9;
+            line-height: 1.8;
+            margin-bottom: 35px;
+            font-size: 1.3rem;
+        }
+
+        .ai-badge {
+            background: var(--gradient);
+            padding: 18px 35px;
+            border-radius: 35px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 25px;
+            box-shadow: var(--glow);
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .ai-badge:hover::before {
+            left: 100%;
+        }
+
+        .ai-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(99, 102, 241, 0.7);
+        }
+
+        .footer-bottom {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        /* Scrollbar Styling */
+        .tools-container::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .tools-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+        }
+
+        .tools-container::-webkit-scrollbar-thumb {
+            background: var(--gradient);
+            border-radius: 6px;
+        }
+
+        .tools-container::-webkit-scrollbar-thumb:hover {
+            background: var(--gradient-accent);
+        }
+
+        /* Particle Animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 50%;
+            animation: floatParticle 12s ease-in-out infinite;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            50% { transform: translate(200px, -200px) rotate(180deg) scale(1.3); }
+            90% { opacity: 1; }
+        }
+
+        /* Loading Animation */
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: loading 3s ease-in-out;
+            z-index: 1000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        @keyframes loading {
+            0% { transform: scaleX(0); }
+            50% { transform: scaleX(1); }
+            100% { transform: scaleX(0); opacity: 0; }
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            background: var(--gradient);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(30px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--glow);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .categories-grid {
+                grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 3.2rem;
+            }
+            
+            .stat-item {
+                padding: 25px 30px;
+                min-width: 140px;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            
+            .logo {
+                font-size: 4rem;
+                padding: 30px;
+            }
+            
+            .search-section {
+                padding: 40px 30px;
+            }
+            
+            #searchInput {
+                padding: 20px 70px 20px 30px;
+            }
+            
+            .back-to-top {
+                width: 60px;
+                height: 60px;
+                bottom: 30px;
+                right: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header {
+                padding: 60px 20px;
+                border-radius: 25px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.3rem;
+            }
+            
+            .search-section {
+                padding: 35px 25px;
+                border-radius: 25px;
+            }
+            
+            .stats {
+                gap: 25px;
+            }
+            
+            .stat-item {
+                padding: 20px 25px;
+                min-width: 120px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .category-card {
+                border-radius: 25px;
+            }
+            
+            .category-header {
+                padding: 30px;
+            }
+            
+            .tools-container {
+                padding: 25px;
+            }
+            
+            footer {
+                padding: 50px 20px;
+                border-radius: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-bar"></div>
+    
+    <!-- Matrix Background -->
+    <div class="matrix-bg" id="matrixBg"></div>
+    
+    <!-- Floating Shapes -->
+    <div class="floating-shapes">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+        <div class="floating-shape shape-4"></div>
+        <div class="floating-shape shape-5"></div>
+    </div>
+
+    <div class="particles" id="particles"></div>
+
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-bg"></div>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h1>MagicRills AI</h1>
+                <p class="subtitle">Next-Generation Educational Intelligence Platform - Powered by Advanced AI Algorithms</p>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">110+</span>
+                        <span class="stat-label">AI Tools</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">8</span>
+                        <span class="stat-label">Categories</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">AI</span>
+                        <span class="stat-label">Powered</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Explore 110+ AI tools... Start typing to discover intelligent solutions">
+                <div class="search-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </section>
+
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- Categories will be loaded here by JavaScript -->
+        </div>
+
+        <footer>
+            <div class="footer-bg"></div>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <p class="footer-text">
+                    Revolutionizing education through cutting-edge artificial intelligence. 
+                    Our platform empowers educators with intelligent tools that adapt, learn, and evolve.
+                </p>
+                <div class="ai-badge">
+                    <i class="fas fa-robot"></i> &nbsp; AI-DRIVEN EDUCATIONAL INNOVATION
+                </div>
+                <div class="footer-bottom">
+                    MagicRills AI Platform © 2024 | Building the Future of Education
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // All your tools data
+        const toolsData = [
+            {
+                category: "Teacher Tools",
+                icon: "👨‍🏫",
+                count: 22,
+                color: "#6366F1",
+                tools: [
+                    { name: "Mathematics Models Idea Generator", url: "Teacher/mathematics-models-idea-generator.html", category: "Math Intelligence" },
+                    { name: "Science Models Idea Generator", url: "Teacher/science-models-idea-generator.html", category: "Science AI" },
+                    { name: "Science Paper Generator", url: "Teacher/science-paper-generator.html", category: "Content Creation" },
+                    { name: "Mathematics Paper Generator", url: "Teacher/mathematics-paper-generator.html", category: "Math AI" },
+                    { name: "Mind Map Generator", url: "Teacher/mind-map-generator.html", category: "Visual Thinking" },
+                    { name: "Research Proposal Generator", url: "Teacher/research-proposal-generator.html", category: "Research AI" },
+                    { name: "Professional Case Study Generator", url: "Teacher/professional-case-study-generator.html", category: "Case Analysis" },
+                    { name: "Q Bloom Builder", url: "Teacher/q-bloom-builder.html", category: "Assessment AI" },
+                    { name: "Group Formation Tool", url: "Teacher/group-formation-tool.html", category: "Classroom AI" },
+                    { name: "Differentiated Instruction Idea", url: "Teacher/differentiated-instruction-idea.html", category: "Strategy AI" },
+                    { name: "Chapter To Outline Generator", url: "Teacher/chapter-to-outline-generator.html", category: "Planning AI" },
+                    { name: "Learning Disabilities Dashboard", url: "Teacher/learning-disabilities-dashboard.html", category: "Special Ed AI" },
+                    { name: "STEAM PBL Project Generator", url: "Teacher/steam-pbl-project-generator.html", category: "STEAM Innovation" },
+                    { name: "English Paper Generator", url: "Teacher/english-paper-generator.html", category: "Language AI" },
+                    { name: "Urdu Paper Generator", url: "Teacher/urdu-paper-generator.html", category: "Language AI" },
+                    { name: "Urdu Language PDF Word Converter", url: "Teacher/urdu-language-pdf-word-converter.html", category: "Language Tech" },
+                    { name: "Plagiarism Paraphrasing Tool", url: "Teacher/plagiarism-paraphrasing-tool.html", category: "Writing AI" },
+                    { name: "Teacher Resource Finder", url: "Teacher/teacher-resource-finder.html", category: "Resource AI" },
+                    { name: "Advanced MCQ Maker Tool", url: "Teacher/advanced-mcq-maker-tool.html", category: "Assessment AI" },
+                    { name: "Advanced Lesson Plan Tool", url: "Teacher/advanced-lesson-plan-tool.html", category: "Planning AI" },
+                    { name: "Advanced Notebook Checking Tool", url: "Teacher/advanced-notebook-checking-tool.html", category: "Grading AI" }
+                ]
+            },
+            {
+                category: "ECCE Tools", 
+                icon: "👶",
+                count: 12,
+                color: "#10B981",
+                tools: [
+                    { name: "Developmental Milestone Checker", url: "ECCE/developmental-milestone-checker.html", category: "Child Development" },
+                    { name: "Circle Time Story Generator", url: "ECCE/circle-time-story-generator.html", category: "Creative AI" },
+                    { name: "Circle Time Song Generator", url: "ECCE/circle-time-song-generator.html", category: "Music AI" },
+                    { name: "Fine Motor Skills Activity Planner", url: "ECCE/fine-motor-skills-activity-planner.html", category: "Skills Development" },
+                    { name: "Sensory Play Idea Generator", url: "ECCE/sensory-play-idea-generator.html", category: "Sensory AI" },
+                    { name: "Social Emotional Development", url: "ECCE/social-emotional-development-ecce.html", category: "Emotional AI" },
+                    { name: "Health Hygiene ECCE Teacher Idea", url: "ECCE/health-hygiene-ecce-teacher-idea.html", category: "Health Education" },
+                    { name: "Creative Art ECCE Teacher Idea", url: "ECCE/creative-art-ecce-teacher-idea.html", category: "Art AI" },
+                    { name: "The World Around Us Teacher Idea", url: "ECCE/the-world-around-us-teacher-idea.html", category: "Science AI" },
+                    { name: "Auto Time Table Generator For ECCE", url: "ECCE/auto-time-table-generator-for-ecce.html", category: "Scheduling AI" },
+                    { name: "ECCE Observation Tool", url: "ECCE/ecce-observation-tool.html", category: "Assessment AI" },
+                    { name: "Worksheet Maker For ECCE Teachers", url: "ECCE/worksheet-maker-for-ecce-teachers.html", category: "Resource AI" }
+                ]
+            },
+            {
+                category: "Student Tools",
+                icon: "🎓",
+                count: 10,
+                color: "#F59E0B",
+                tools: [
+                    { name: "Study Planner Pomodoro Technique", url: "Student/study-planner-pomodoro-technique.html", category: "Productivity AI" },
+                    { name: "Classroom Weekly Roster Generator", url: "Student/classroom-weekly-roster-generator.html", category: "Organization AI" },
+                    { name: "Story Poetry Generator", url: "Student/story-poetry-generator-for-creative.html", category: "Creative AI" },
+                    { name: "Speech To Notes Converter", url: "Student/speech-to-notes-converter.html", category: "Voice AI" },
+                    { name: "Auto Resume Maker", url: "Student/auto-resume-maker.html", category: "Career AI" },
+                    { name: "Auto Translation Tool", url: "Student/auto-translation-tool.html", category: "Language AI" },
+                    { name: "Audio Text Converter", url: "Student/audio-text-converter.html", category: "Audio AI" },
+                    { name: "Text Audio Converter", url: "Student/text-audio-converter.html", category: "Text-to-Speech" },
+                    { name: "Auto Speech Generator Tool", url: "Student/auto-speech-generator-tool-for-student.html", category: "Presentation AI" },
+                    { name: "Advanced Grammar Checking Tool", url: "Student/advanced-grammar-checking-tool.html", category: "Writing AI" }
+                ]
+            },
+            {
+                category: "Administrator Tools",
+                icon: "🏫",
+                count: 22,
+                color: "#8B5CF6",
+                tools: [
+                    { name: "Marking Scheme Dashboard", url: "Administrator/marking-scheme-dashboard.html", category: "Analytics AI" },
+                    { name: "School Event Report Generator", url: "Administrator/school-event-report-generator.html", category: "Reporting AI" },
+                    { name: "Certificate Generator", url: "Administrator/certificate-generator.html", category: "Document AI" },
+                    { name: "School Policy Generator", url: "Administrator/school-policy-generator.html", category: "Policy AI" },
+                    { name: "School Budget Planner", url: "Administrator/school-budget-planner.html", category: "Finance AI" },
+                    { name: "School Calendar Generator", url: "Administrator/school-calendar-generator.html", category: "Scheduling AI" },
+                    { name: "School Newsletter Generator", url: "Administrator/school-newsletter-generator.html", category: "Communication AI" },
+                    { name: "School Improvement Plan", url: "Administrator/school-improvement-plan.html", category: "Strategy AI" },
+                    { name: "School Data Dashboard", url: "Administrator/school-data-dashboard.html", category: "Analytics AI" },
+                    { name: "School Safety Plan", url: "Administrator/school-safety-plan.html", category: "Safety AI" },
+                    { name: "School Climate Survey", url: "Administrator/school-climate-survey.html", category: "Assessment AI" },
+                    { name: "School Grant Proposal", url: "Administrator/school-grant-proposal.html", category: "Funding AI" },
+                    { name: "School Staff Evaluation", url: "Administrator/school-staff-evaluation.html", category: "HR AI" },
+                    { name: "School Parent Communication", url: "Administrator/school-parent-communication.html", category: "Communication AI" },
+                    { name: "School Curriculum Mapping", url: "Administrator/school-curriculum-mapping.html", category: "Curriculum AI" },
+                    { name: "School Professional Development", url: "Administrator/school-professional-development.html", category: "Training AI" },
+                    { name: "School Facilities Management", url: "Administrator/school-facilities-management.html", category: "Operations AI" },
+                    { name: "School Student Enrollment", url: "Administrator/school-student-enrollment.html", category: "Admissions AI" },
+                    { name: "School Transportation Management", url: "Administrator/school-transportation-management.html", category: "Logistics AI" },
+                    { name: "School Food Service Management", url: "Administrator/school-food-service-management.html", category: "Catering AI" },
+                    { name: "School Technology Management", url: "Administrator/school-technology-management.html", category: "IT AI" },
+                    { name: "School Library Management", url: "Administrator/school-library-management.html", category: "Library AI" }
+                ]
+            },
+            {
+                category: "Parent Tools",
+                icon: "👨‍👩‍👧‍👦",
+                count: 10,
+                color: "#EF4444",
+                tools: [
+                    { name: "Parent Teacher Meeting Dashboard", url: "Parent/parent-teacher-meeting-dashboard.html", category: "Communication AI" },
+                    { name: "Child Progress Tracker", url: "Parent/child-progress-tracker.html", category: "Analytics AI" },
+                    { name: "Homework Helper", url: "Parent/homework-helper.html", category: "Learning AI" },
+                    { name: "Behavior Management Tool", url: "Parent/behavior-management-tool.html", category: "Behavior AI" },
+                    { name: "Parenting Resource Finder", url: "Parent/parenting-resource-finder.html", category: "Resource AI" },
+                    { name: "Family Activity Planner", url: "Parent/family-activity-planner.html", category: "Planning AI" },
+                    { name: "Child Safety Monitor", url: "Parent/child-safety-monitor.html", category: "Safety AI" },
+                    { name: "Educational Game Finder", url: "Parent/educational-game-finder.html", category: "Gaming AI" },
+                    { name: "Parent Support Network", url: "Parent/parent-support-network.html", category: "Community AI" },
+                    { name: "College Planning Assistant", url: "Parent/college-planning-assistant.html", category: "Future Planning" }
+                ]
+            },
+            {
+                category: "Special Education Tools",
+                icon: "♿",
+                count: 10,
+                color: "#06B6D4",
+                tools: [
+                    { name: "IEP Goal Generator", url: "Special-Education/iep-goal-generator.html", category: "Planning AI" },
+                    { name: "Accommodation Idea Generator", url: "Special-Education/accommodation-idea-generator.html", category: "Support AI" },
+                    { name: "Behavior Intervention Plan", url: "Special-Education/behavior-intervention-plan.html", category: "Behavior AI" },
+                    { name: "Sensory Diet Planner", url: "Special-Education/sensory-diet-planner.html", category: "Sensory AI" },
+                    { name: "Communication Board Creator", url: "Special-Education/communication-board-creator.html", category: "Communication AI" },
+                    { name: "Social Story Generator", url: "Special-Education/social-story-generator.html", category: "Social AI" },
+                    { name: "Visual Schedule Maker", url: "Special-Education/visual-schedule-maker.html", category: "Organization AI" },
+                    { name: "Transition Plan Generator", url: "Special-Education/transition-plan-generator.html", category: "Future Planning" },
+                    { name: "Data Collection Tool", url: "Special-Education/data-collection-tool.html", category: "Analytics AI" },
+                    { name: "Progress Monitoring Tool", url: "Special-Education/progress-monitoring-tool.html", category: "Assessment AI" }
+                ]
+            },
+            {
+                category: "Professional Development Tools",
+                icon: "📚",
+                count: 10,
+                color: "#8B5CF6",
+                tools: [
+                    { name: "Professional Learning Plan", url: "Professional-Development/professional-learning-plan.html", category: "Planning AI" },
+                    { name: "Workshop Idea Generator", url: "Professional-Development/workshop-idea-generator.html", category: "Training AI" },
+                    { name: "Conference Proposal Generator", url: "Professional-Development/conference-proposal-generator.html", category: "Presentation AI" },
+                    { name: "Research Paper Generator", url: "Professional-Development/research-paper-generator.html", category: "Research AI" },
+                    { name: "Book Study Guide Generator", url: "Professional-Development/book-study-guide-generator.html", category: "Resource AI" },
+                    { name: "Mentoring Program Planner", url: "Professional-Development/mentoring-program-planner.html", category: "Mentoring AI" },
+                    { name: "Career Pathway Planner", url: "Professional-Development/career-pathway-planner.html", category: "Career AI" },
+                    { name: "Portfolio Builder", url: "Professional-Development/portfolio-builder.html", category: "Documentation AI" },
+                    { name: "Presentation Skill Builder", url: "Professional-Development/presentation-skill-builder.html", category: "Presentation AI" },
+                    { name: "Networking Strategy Planner", url: "Professional-Development/networking-strategy-planner.html", category: "Networking AI" }
+                ]
+            },
+            {
+                category: "Assessment Tools",
+                icon: "📊",
+                count: 14,
+                color: "#10B981",
+                tools: [
+                    { name: "Rubric Generator", url: "Assessment/rubric-generator.html", category: "Grading AI" },
+                    { name: "Quiz Generator", url: "Assessment/quiz-generator.html", category: "Testing AI" },
+                    { name: "Test Generator", url: "Assessment/test-generator.html", category: "Testing AI" },
+                    { name: "Survey Generator", url: "Assessment/survey-generator.html", category: "Feedback AI" },
+                    { name: "Portfolio Assessment Tool", url: "Assessment/portfolio-assessment-tool.html", category: "Documentation AI" },
+                    { name: "Performance Assessment Tool", url: "Assessment/performance-assessment-tool.html", category: "Analytics AI" },
+                    { name: "Self-Assessment Tool", url: "Assessment/self-assessment-tool.html", category: "Reflection AI" },
+                    { name: "Peer Assessment Tool", url: "Assessment/peer-assessment-tool.html", category: "Collaboration AI" },
+                    { name: "Diagnostic Assessment Tool", url: "Assessment/diagnostic-assessment-tool.html", category: "Analytics AI" },
+                    { name: "Formative Assessment Tool", url: "Assessment/formative-assessment-tool.html", category: "Progress AI" },
+                    { name: "Summative Assessment Tool", url: "Assessment/summative-assessment-tool.html", category: "Evaluation AI" },
+                    { name: "Adaptive Assessment Tool", url: "Assessment/adaptive-assessment-tool.html", category: "Personalization AI" },
+                    { name: "Competency Assessment Tool", url: "Assessment/competency-assessment-tool.html", category: "Skills AI" },
+                    { name: "Standardized Test Prep Tool", url: "Assessment/standardized-test-prep-tool.html", category: "Test Prep AI" }
+                ]
+            }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generate categories and tools
+            generateCategories();
+            
+            // Create matrix background
+            createMatrixBackground();
+            
+            // Create floating particles
+            createParticles();
+            
+            // Initialize search functionality
+            initializeSearch();
+            
+            // Initialize back to top button
+            initializeBackToTop();
+            
+            // Add loading animation
+            setTimeout(() => {
+                document.querySelector('.loading-bar').style.opacity = '0';
+            }, 3000);
+        });
+
+        // Generate categories and tools
+        function generateCategories() {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            
+            toolsData.forEach(category => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                
+                const toolsHTML = category.tools.map(tool => `
+                    <div class="tool-card">
+                        <a href="${tool.url}">
+                            <div class="tool-icon">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="tool-info">
+                                <div class="tool-name">${tool.name}</div>
+                                <div class="tool-category">${tool.category}</div>
+                            </div>
+                        </a>
+                    </div>
+                `).join('');
+                
+                categoryCard.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-icon">${category.icon}</div>
+                        <h2 class="category-title">${category.category}</h2>
+                        <div class="category-count">${category.count} Tools</div>
+                    </div>
+                    <div class="tools-container">
+                        <div class="tools-grid">
+                            ${toolsHTML}
+                        </div>
+                    </div>
+                `;
+                
+                categoriesGrid.appendChild(categoryCard);
+            });
+        }
+
+        // Create matrix background
+        function createMatrixBackground() {
+            const matrixBg = document.getElementById('matrixBg');
+            const chars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            
+            for (let i = 0; i < 50; i++) {
+                const code = document.createElement('div');
+                code.className = 'matrix-code';
+                code.textContent = chars.charAt(Math.floor(Math.random() * chars.length));
+                code.style.left = Math.random() * 100 + '%';
+                code.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                code.style.animationDelay = (Math.random() * 5) + 's';
+                matrixBg.appendChild(code);
+            }
+        }
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 40;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random properties
+                const size = Math.random() * 8 + 2;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const delay = Math.random() * 12;
+                const duration = Math.random() * 15 + 15;
+                const opacity = Math.random() * 0.6 + 0.1;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}%`;
+                particle.style.top = `${top}%`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.opacity = opacity;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize search functionality
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                if (searchTerm.length < 2) {
+                    // Show all tools if search term is too short
+                    document.querySelectorAll('.tool-card').forEach(card => {
+                        card.style.display = 'block';
+                    });
+                    return;
+                }
+                
+                // Search through all tools
+                document.querySelectorAll('.tool-card').forEach(card => {
+                    const toolName = card.querySelector('.tool-name').textContent.toLowerCase();
+                    const toolCategory = card.querySelector('.tool-category').textContent.toLowerCase();
+                    
+                    if (toolName.includes(searchTerm) || toolCategory.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Initialize back to top button
+        function initializeBackToTop() {
+            const backToTopButton = document.getElementById('backToTop');
+            
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('show');
+                } else {
+                    backToTopButton.classList.remove('show');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+    </script>
+</body>
+</html>
