@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magicrills - AI Tools & Resources</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --secondary: #ff6584;
+            --accent: #42e6a4;
+            --dark: #0f0f23;
+            --darker: #080814;
+            --text: #ffffff;
+            --text-secondary: #b0b0d0;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--text);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .space-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(125deg, var(--darker) 0%, var(--dark) 100%);
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+                radial-gradient(1px 1px at 90px 40px, #ddd, transparent),
+                radial-gradient(1px 1px at 130px 80px, #fff, transparent),
+                radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: stars 60s linear infinite;
+        }
+
+        @keyframes stars {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100px); }
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .moving-headline {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            flex-grow: 1;
+            margin: 0 2rem;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .moving-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-text 20s linear infinite;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        @keyframes scroll-text {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            width: 300px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            width: 100%;
+            padding: 0.5rem;
+        }
+
+        .search-bar i {
+            color: var(--text-secondary);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        /* Tool Cards */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(108, 99, 255, 0.2);
+            border-color: rgba(108, 99, 255, 0.5);
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .tool-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .tool-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tool-link:hover {
+            gap: 12px;
+            color: var(--primary);
+        }
+
+        /* Category Sections */
+        .category-section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--darker);
+            padding: 4rem 2rem 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .social-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            min-width: 100px;
+        }
+
+        .stat i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Category Navigation */
+        .category-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            justify-content: center;
+        }
+
+        .category-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            color: var(--text);
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .moving-headline {
+                margin: 0;
+                width: 100%;
+            }
+            
+            .search-bar {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .category-nav {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="space-bg">
+        <div class="stars"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-magic"></i>
+                <h1>Magicrills</h1>
+            </div>
+            <div class="moving-headline">
+                <div class="moving-text">
+                    ✨ Discover 60+ AI Tools for Teachers, Students & Professionals ✨ Boost Productivity with Magicrills ✨
+                </div>
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for tools..." id="searchInput">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Category Navigation -->
+        <div class="category-nav">
+            <button class="category-btn active" data-category="all">All Tools</button>
+            <button class="category-btn" data-category="teacher">Teacher</button>
+            <button class="category-btn" data-category="ecce">ECCE</button>
+            <button class="category-btn" data-category="student">Student</button>
+            <button class="category-btn" data-category="administrator">Administrator</button>
+            <button class="category-btn" data-category="seo">SEO</button>
+            <button class="category-btn" data-category="kids-games">Kids Games</button>
+            <button class="category-btn" data-category="quiz-games">Quiz Games</button>
+            <button class="category-btn" data-category="mixed-tools">Mixed Tools</button>
+        </div>
+
+        <!-- Featured Tools Section -->
+        <section>
+            <h2 class="section-title">Featured Tools</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #6c63ff, #3a34a0);">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI Lesson Plan Tool</h3>
+                    <p>Generate comprehensive lesson plans in minutes with our advanced AI technology.</p>
+                    <a href="https://magicrills.com/Teacher/advanced-lesson-plan-tool.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #ff6584, #b3425c);">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Science Paper Generator</h3>
+                    <p>Create customized science exam papers with varying difficulty levels automatically.</p>
+                    <a href="https://magicrills.com/Teacher/science-paper-generator.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #42e6a4, #2a9c6c);">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <h3>Auto ID Card Generator</h3>
+                    <p>Design professional ID cards for your institution with customizable templates.</p>
+                    <a href="https://magicrills.com/Administrator/auto-id-card-generator-tool.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Tools Section -->
+        <section>
+            <h2 class="section-title">Popular Tools</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #ff9a3d, #c56d1c);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3>Income Tax Calculator</h3>
+                    <p>Calculate your income tax with our easy-to-use calculator tailored for your region.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/magicrills-income-tax-calculator.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #6a5af9, #3d30b3);">
+                        <i class="fas fa-map"></i>
+                    </div>
+                    <h3>Mind Map Generator</h3>
+                    <p>Visualize your ideas and concepts with automatically generated mind maps.</p>
+                    <a href="https://magicrills.com/Teacher/mind-map-generator.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #ff5e7d, #b3425c);">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Research Proposal Generator</h3>
+                    <p>Create compelling research proposals with structured templates and guidance.</p>
+                    <a href="https://magicrills.com/Teacher/research-proposal-generator.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recently Added Tools Section -->
+        <section>
+            <h2 class="section-title">Recently Added</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #36d1dc, #2193b0);">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <h3>Auto Translation Tool</h3>
+                    <p>Translate text between multiple languages with high accuracy and speed.</p>
+                    <a href="https://magicrills.com/Student/auto-translation-tool.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #ff9a3d, #c56d1c);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Traffic Booster Toolkit</h3>
+                    <p>Boost your website traffic with our advanced SEO and marketing tools.</p>
+                    <a href="https://magicrills.com/SEO/advanced-traffic-booster-toolkit.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon" style="background: linear-gradient(135deg, #6c63ff, #3a34a0);">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </div>
+                    <h3>Word Search Puzzle</h3>
+                    <p>Create engaging word search puzzles for educational purposes or entertainment.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-word-search-puzzle.html" class="tool-link">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Teacher Tools Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(58, 52, 160, 0.1)); border-color: rgba(108, 99, 255, 0.3);" data-category="teacher">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #6c63ff, #3a34a0);">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h2>Teacher Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Mathematics Models Idea Generator</h3>
+                    <p>Generate creative ideas for mathematics models and projects.</p>
+                    <a href="https://magicrills.com/Teacher/mathematics-models-idea-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Science Model Idea Generator</h3>
+                    <p>Get innovative ideas for science models and experiments.</p>
+                    <a href="https://magicrills.com/Teacher/science-models-idea-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Science Paper Generator</h3>
+                    <p>Create customized science exam papers with varying difficulty levels.</p>
+                    <a href="https://magicrills.com/Teacher/science-paper-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Mathematics Paper Generator</h3>
+                    <p>Generate math exam papers tailored to your curriculum needs.</p>
+                    <a href="https://magicrills.com/Teacher/mathematics-paper-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Mind Map Generator</h3>
+                    <p>Visualize concepts and ideas with automatically generated mind maps.</p>
+                    <a href="https://magicrills.com/Teacher/mind-map-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Research Proposal Generator</h3>
+                    <p>Create structured research proposals with guided templates.</p>
+                    <a href="https://magicrills.com/Teacher/research-proposal-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Professional Case Study Generator</h3>
+                    <p>Develop professional case studies for educational purposes.</p>
+                    <a href="https://magicrills.com/Teacher/professional-case-study-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Q Bloom Builder</h3>
+                    <p>Create questions based on Bloom's taxonomy for effective assessment.</p>
+                    <a href="https://magicrills.com/Teacher/q-bloom-builder.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Group Formation Tool</h3>
+                    <p>Easily create balanced student groups for collaborative activities.</p>
+                    <a href="https://magicrills.com/Teacher/group-formation-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Differentiated Instruction Idea</h3>
+                    <p>Generate ideas for differentiated instruction to meet diverse learning needs.</p>
+                    <a href="https://magicrills.com/Teacher/differentiated-instruction-idea.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Chapter To Outline Generator</h3>
+                    <p>Convert textbook chapters into structured outlines for better comprehension.</p>
+                    <a href="https://magicrills.com/Teacher/chapter-to-outline-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Learning Disabilities Dashboard</h3>
+                    <p>Monitor and support students with learning disabilities effectively.</p>
+                    <a href="https://magicrills.com/Teacher/learning-disabilities-dashboard.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Steam PBL Project Generator</h3>
+                    <p>Create engaging STEAM project-based learning activities.</p>
+                    <a href="https://magicrills.com/Teacher/steam-pbl-project-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>English Paper Generator</h3>
+                    <p>Generate English language exam papers with varied question types.</p>
+                    <a href="https://magicrills.com/Teacher/english-paper-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Urdu Paper Generator</h3>
+                    <p>Create Urdu language exam papers tailored to your curriculum.</p>
+                    <a href="https://magicrills.com/Teacher/urdu-paper-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Urdu Language PDF Word Converter</h3>
+                    <p>Convert Urdu documents between PDF and Word formats.</p>
+                    <a href="https://magicrills.com/Teacher/urdu-language-pdf-word-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Plagiarism Paraphrasing Tool</h3>
+                    <p>Check for plagiarism and paraphrase content effectively.</p>
+                    <a href="https://magicrills.com/Teacher/plagiarism-paraphrasing-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Teacher Resource Finder</h3>
+                    <p>Discover relevant teaching resources for your subjects and grade levels.</p>
+                    <a href="https://magicrills.com/Teacher/teacher-resource-finder.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced MCQ Maker Tool</h3>
+                    <p>Create multiple-choice questions with automated difficulty levels.</p>
+                    <a href="https://magicrills.com/Teacher/advanced-mcq-maker-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Lesson Plan Tool</h3>
+                    <p>Generate comprehensive lesson plans with AI assistance.</p>
+                    <a href="https://magicrills.com/Teacher/advanced-lesson-plan-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Notebook Checking Tool</h3>
+                    <p>Streamline the process of checking and evaluating student notebooks.</p>
+                    <a href="https://magicrills.com/Teacher/advanced-notebook-checking-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ECCE Tools Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(255, 101, 132, 0.1), rgba(179, 66, 92, 0.1)); border-color: rgba(255, 101, 132, 0.3);" data-category="ecce">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #ff6584, #b3425c);">
+                    <i class="fas fa-child"></i>
+                </div>
+                <h2>ECCE Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Development Milestone Checker</h3>
+                    <p>Track and monitor child development milestones effectively.</p>
+                    <a href="https://magicrills.com/ECCE/developmental-milestone-checker.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Circle Time Story Generator</h3>
+                    <p>Create engaging stories for circle time activities.</p>
+                    <a href="https://magicrills.com/ECCE/circle-time-story-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Circle Time Song Generator</h3>
+                    <p>Generate fun and educational songs for circle time.</p>
+                    <a href="https://magicrills.com/ECCE/circle-time-song-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Fine Motor Skills Activity Planner</h3>
+                    <p>Plan activities to develop fine motor skills in young children.</p>
+                    <a href="https://magicrills.com/ECCE/fine-motor-skills-activity-planner.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Sensory Play Idea Generator</h3>
+                    <p>Generate creative sensory play activities for young children.</p>
+                    <a href="https://magicrills.com/ECCE/sensory-play-idea-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Social Emotional Development ECCE</h3>
+                    <p>Support social-emotional development in early childhood.</p>
+                    <a href="https://magicrills.com/ECCE/social-emotional-development-ecce.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Health Hygiene ECCE Teacher Idea</h3>
+                    <p>Generate ideas for teaching health and hygiene to young children.</p>
+                    <a href="https://magicrills.com/ECCE/health-hygiene-ecce-teacher-idea.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Creative Art ECCE Teacher Idea</h3>
+                    <p>Discover creative art activities for early childhood education.</p>
+                    <a href="https://magicrills.com/ECCE/creative-art-ecce-teacher-idea.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>The World Around Us Teacher Idea</h3>
+                    <p>Generate ideas for teaching about the world to young children.</p>
+                    <a href="https://magicrills.com/ECCE/the-world-around-us-teacher-idea.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Time Table Generator For ECCE</h3>
+                    <p>Create balanced timetables for early childhood education centers.</p>
+                    <a href="https://magicrills.com/ECCE/auto-time-table-generator-for-ecce.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>ECCE Observation Tool</h3>
+                    <p>Systematically observe and document child development progress.</p>
+                    <a href="https://magicrills.com/ECCE/ecce-observation-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Worksheet Maker For ECCE Teachers</h3>
+                    <p>Create engaging worksheets for early childhood education.</p>
+                    <a href="https://magicrills.com/ECCE/worksheet-maker-for-ecce-teachers.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Student Tools Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(66, 230, 164, 0.1), rgba(42, 156, 108, 0.1)); border-color: rgba(66, 230, 164, 0.3);" data-category="student">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #42e6a4, #2a9c6c);">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h2>Student Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Study Planner Pomodoro Technique</h3>
+                    <p>Optimize your study sessions with the Pomodoro technique.</p>
+                    <a href="https://magicrills.com/Student/study-planner-pomodoro-technique.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Classroom Weekly Roster Generator</h3>
+                    <p>Generate weekly classroom rosters for efficient scheduling.</p>
+                    <a href="https://magicrills.com/Student/classroom-weekly-roster-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Story Poetry Generator For Creative</h3>
+                    <p>Create engaging stories and poems for creative writing.</p>
+                    <a href="https://magicrills.com/Student/story-poetry-generator-for-creative.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Speech To Notes Converter</h3>
+                    <p>Convert your speech into organized notes automatically.</p>
+                    <a href="https://magicrills.com/Student/speech-to-notes-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Resume Maker</h3>
+                    <p>Create professional resumes with customizable templates.</p>
+                    <a href="https://magicrills.com/Student/auto-resume-maker.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Translation Tool</h3>
+                    <p>Translate text between multiple languages with high accuracy.</p>
+                    <a href="https://magicrills.com/Student/auto-translation-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Audio Text Converter</h3>
+                    <p>Convert audio files to text for easy note-taking.</p>
+                    <a href="https://magicrills.com/Student/audio-text-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Text Audio Converter</h3>
+                    <p>Convert text to audio for listening on the go.</p>
+                    <a href="https://magicrills.com/Student/text-audio-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Speech Generator Tool For Student</h3>
+                    <p>Generate speeches for presentations and public speaking.</p>
+                    <a href="https://magicrills.com/Student/auto-speech-generator-tool-for-student.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Grammar Checking Tool</h3>
+                    <p>Check and improve grammar in your writing assignments.</p>
+                    <a href="https://magicrills.com/Student/advanced-grammar-checking-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Administrator Tools Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(255, 154, 61, 0.1), rgba(197, 109, 28, 0.1)); border-color: rgba(255, 154, 61, 0.3);" data-category="administrator">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #ff9a3d, #c56d1c);">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h2>Administrator Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Marking Scheme Dashboard</h3>
+                    <p>Manage and visualize marking schemes for assessments.</p>
+                    <a href="https://magicrills.com/Administrator/marking-scheme-dashboard.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>School Event Report Generator</h3>
+                    <p>Generate comprehensive reports for school events and activities.</p>
+                    <a href="https://magicrills.com/Administrator/school-event-report-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Certificate Generator</h3>
+                    <p>Create professional certificates for students and staff.</p>
+                    <a href="https://magicrills.com/Administrator/certificate-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Morning Assembly Roster Generator</h3>
+                    <p>Generate rosters for morning assembly duties.</p>
+                    <a href="https://magicrills.com/Administrator/morning-assembly-roster-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Staff Duty Roster Generator</h3>
+                    <p>Create balanced duty rosters for school staff.</p>
+                    <a href="https://magicrills.com/Administrator/staff-duty-roster-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Civil Servant Leave Rules Dashboard</h3>
+                    <p>Manage and track leave rules for civil servants.</p>
+                    <a href="https://magicrills.com/Administrator/civil-servant-leave-rules-1986-dashboard.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Reading Dashboard For Registers</h3>
+                    <p>Monitor and analyze reading progress through register data.</p>
+                    <a href="https://magicrills.com/Administrator/reading-dashboard-for-registers.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Table Of Specifications</h3>
+                    <p>Create tables of specifications for assessments and exams.</p>
+                    <a href="https://magicrills.com/Administrator/table-of-specifications.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Multigrades Time Table Generator</h3>
+                    <p>Generate timetables for multigrade classrooms.</p>
+                    <a href="https://magicrills.com/Administrator/multigrades-time-table-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Time Table Generator VI-VIII</h3>
+                    <p>Create timetables for grades 6 to 8.</p>
+                    <a href="https://magicrills.com/Administrator/time-table-generator-vi-viii.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Teacher Classroom Observation Tool</h3>
+                    <p>Systematically observe and evaluate teacher classroom performance.</p>
+                    <a href="https://magicrills.com/Administrator/teacher-classroom-observation-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Performance Evaluation Report PER</h3>
+                    <p>Generate performance evaluation reports for staff.</p>
+                    <a href="https://magicrills.com/Administrator/performance-evaluation-report-per.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>School Development Plan Generator</h3>
+                    <p>Create comprehensive school development plans.</p>
+                    <a href="https://magicrills.com/Administrator/school-development-plan-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>School Improvement Plan Generator</h3>
+                    <p>Generate school improvement plans with actionable steps.</p>
+                    <a href="https://magicrills.com/Administrator/school-improvement-plan-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>School Staff Meeting Agenda Generator</h3>
+                    <p>Create structured agendas for school staff meetings.</p>
+                    <a href="https://magicrills.com/Administrator/school-staff-meeting-agenda-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>School Circular Generator</h3>
+                    <p>Generate professional circulars for school communications.</p>
+                    <a href="https://magicrills.com/Administrator/school-circular-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Multi Rules Generator</h3>
+                    <p>Create multiple rules and regulations for school governance.</p>
+                    <a href="https://magicrills.com/Administrator/multi-rules-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Head Teacher Planner Maker</h3>
+                    <p>Generate comprehensive planners for head teachers.</p>
+                    <a href="https://magicrills.com/Administrator/auto-head-teacher-planner-maker.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>School Attendance Sheet Generator</h3>
+                    <p>Create attendance sheets for tracking student presence.</p>
+                    <a href="https://magicrills.com/Administrator/school-attendance-sheet-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto ID Card Generator Tool</h3>
+                    <p>Design professional ID cards for students and staff.</p>
+                    <a href="https://magicrills.com/Administrator/auto-id-card-generator-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Job Ad Maker Tool</h3>
+                    <p>Create professional job advertisements for school positions.</p>
+                    <a href="https://magicrills.com/Administrator/auto-job-ad-maker-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Auto Time Table Generator Tool</h3>
+                    <p>Generate optimized timetables with advanced algorithms.</p>
+                    <a href="https://magicrills.com/Administrator/advanced-auto-time-table-generator-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEO Tools Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(106, 90, 249, 0.1), rgba(61, 48, 179, 0.1)); border-color: rgba(106, 90, 249, 0.3);" data-category="seo">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #6a5af9, #3d30b3);">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h2>SEO Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Magicrills Image Resizer Tool</h3>
+                    <p>Resize images for optimal web performance and SEO.</p>
+                    <a href="https://magicrills.com/SEO/magicrills-image-resizer-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Image To Text Converter</h3>
+                    <p>Extract text from images for SEO optimization.</p>
+                    <a href="https://magicrills.com/SEO/image-to-text-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Traffic Booster Toolkit</h3>
+                    <p>Boost your website traffic with advanced SEO techniques.</p>
+                    <a href="https://magicrills.com/SEO/advanced-traffic-booster-toolkit.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Image Caption Tool</h3>
+                    <p>Generate SEO-friendly captions for images.</p>
+                    <a href="https://magicrills.com/SEO/image-caption-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Image Merger</h3>
+                    <p>Merge multiple images for web optimization.</p>
+                    <a href="https://magicrills.com/SEO/advanced-image-merger.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Favicon Generator</h3>
+                    <p>Create custom favicons for website branding.</p>
+                    <a href="https://magicrills.com/SEO/favicon-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Text Logo Generator</h3>
+                    <p>Generate text-based logos for websites and branding.</p>
+                    <a href="https://magicrills.com/SEO/text-logo-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Image Filter Tool</h3>
+                    <p>Apply filters to images for enhanced visual appeal.</p>
+                    <a href="https://magicrills.com/SEO/image-filter-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Blog Post To Ad Converter</h3>
+                    <p>Convert blog posts into engaging advertisements.</p>
+                    <a href="https://magicrills.com/SEO/blog-post-to-ad-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Urdu Key Word Generator For Urdu</h3>
+                    <p>Generate Urdu keywords for SEO optimization.</p>
+                    <a href="https://magicrills.com/SEO/urdu-key-word-generator-for-urdu.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Image Converter</h3>
+                    <p>Convert images between different formats for web use.</p>
+                    <a href="https://magicrills.com/SEO/image-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Website Ping Tool</h3>
+                    <p>Ping websites to improve search engine indexing.</p>
+                    <a href="https://magicrills.com/SEO/advanced-website-ping-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Auto Traffic Generator</h3>
+                    <p>Generate targeted traffic to your website automatically.</p>
+                    <a href="https://magicrills.com/SEO/advanced-auto-traffic-generator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kids Games Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(255, 94, 125, 0.1), rgba(179, 66, 92, 0.1)); border-color: rgba(255, 94, 125, 0.3);" data-category="kids-games">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #ff5e7d, #b3425c);">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <h2>Kids Games</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Magicrills Urdu Alphabet Stories</h3>
+                    <p>Engaging stories to help children learn Urdu alphabet.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-urdu-alphabet-stories.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Akhlaqi Stories</h3>
+                    <p>Moral stories to teach children good character and ethics.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-akhlaqi-stories.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Urdu Tracing App</h3>
+                    <p>Interactive app for children to practice Urdu writing.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-urdu-tracing-app.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Urdu Jor Tor</h3>
+                    <p>Fun game to learn Urdu word formation and breaking.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-urdu-jor-tor.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Sentence Builder</h3>
+                    <p>Build sentences and improve language skills.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-sentence-builder.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Synonyms Antonyms Match</h3>
+                    <p>Match synonyms and antonyms to expand vocabulary.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-synonyms-antonyms-match.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Spelling Bee</h3>
+                    <p>Practice spelling with fun bee-themed games.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-spelling-bee.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Word Search Puzzle</h3>
+                    <p>Find hidden words in engaging puzzle games.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-word-search-puzzle.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Basic Arithmetic Quiz</h3>
+                    <p>Practice basic math skills with interactive quizzes.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-basic-arithmetic-quiz.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Fraction Matching</h3>
+                    <p>Learn fractions through matching games.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-fraction-matching.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Math Bingo</h3>
+                    <p>Play bingo while practicing math skills.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-math-bingo.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Counting Game</h3>
+                    <p>Fun counting games for young children.</p>
+                    <a href="https://magicrills.com/Kids-Games/magicrills-counting-game.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magic Numbers Comparison Game</h3>
+                    <p>Learn number comparison through interactive games.</p>
+                    <a href="https://magicrills.com/Kids-Games/magic-numbers-comparison-game.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>GK Fun Quiz</h3>
+                    <p>Test general knowledge with fun quizzes.</p>
+                    <a href="https://magicrills.com/Kids-Games/gk-fun-quiz.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Urdu Alpha Fun</h3>
+                    <p>Fun activities to learn Urdu alphabet.</p>
+                    <a href="https://magicrills.com/Kids-Games/urdu-alpha-fun.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Number Fun Game</h3>
+                    <p>Engaging games to learn numbers and counting.</p>
+                    <a href="https://magicrills.com/Kids-Games/number-fun-game.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Alpha Fun</h3>
+                    <p>Fun activities to learn English alphabet.</p>
+                    <a href="https://magicrills.com/Kids-Games/alpha-fun.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quiz Games Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(54, 209, 220, 0.1), rgba(33, 147, 176, 0.1)); border-color: rgba(54, 209, 220, 0.3);" data-category="quiz-games">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #36d1dc, #2193b0);">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <h2>Quiz Games</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Islamic Studies Quiz Challenge</h3>
+                    <p>Test knowledge of Islamic studies with challenging quizzes.</p>
+                    <a href="https://magicrills.com/Quiz-Games/islamic-studies-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Computer Quiz Challenge</h3>
+                    <p>Challenge your computer knowledge with interactive quizzes.</p>
+                    <a href="https://magicrills.com/Quiz-Games/computer-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Science Quiz Challenge</h3>
+                    <p>Advanced level science quizzes for knowledgeable students.</p>
+                    <a href="https://magicrills.com/Quiz-Games/advanced-science-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Science Quiz Challenge</h3>
+                    <p>General science quizzes for all knowledge levels.</p>
+                    <a href="https://magicrills.com/Quiz-Games/science-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>History Geography GK Quiz Challenge</h3>
+                    <p>Test knowledge of history, geography and general knowledge.</p>
+                    <a href="https://magicrills.com/Quiz-Games/history-geography-gk-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>English Language Quiz Challenge</h3>
+                    <p>Challenge your English language skills with quizzes.</p>
+                    <a href="https://magicrills.com/Quiz-Games/english-language-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Urdu Quiz Challenge</h3>
+                    <p>Test your Urdu language knowledge with interactive quizzes.</p>
+                    <a href="https://magicrills.com/Quiz-Games/urdu-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Math Quiz Challenge</h3>
+                    <p>Challenge your math skills with various quiz levels.</p>
+                    <a href="https://magicrills.com/Quiz-Games/math-quiz-challenge.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mixed Tools Section -->
+        <section class="category-section" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(205, 173, 0, 0.1)); border-color: rgba(255, 215, 0, 0.3);" data-category="mixed-tools">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #ffd700, #cda500);">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h2>Mixed Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>School Event Calculator</h3>
+                    <p>Calculate resources and budgets for school events.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/school-event-calculator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Magicrills Income Tax Calculator</h3>
+                    <p>Calculate income tax with region-specific parameters.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/magicrills-income-tax-calculator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>PDF To Excel/CSV Converter</h3>
+                    <p>Convert PDF documents to Excel or CSV formats.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/pdf-to-excelcsv-converter.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Car Loan Calculator</h3>
+                    <p>Calculate car loan payments and interest.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/car-loan-calculator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Car Age Calculator Pakistan</h3>
+                    <p>Calculate car age according to Pakistani regulations.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/car-age-calculator-pakistan.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Advanced Percentage Calculator</h3>
+                    <p>Calculate percentages with advanced options.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/advanced-percentage-calculator.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3>Auto Age Calculator Tool</h3>
+                    <p>Calculate age automatically from birth date.</p>
+                    <a href="https://magicrills.com/Mixed-Tools/auto-age-calculator-tool.html" class="tool-link">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="#" data-category="teacher"><i class="fas fa-arrow-right"></i> Teacher Tools</a></li>
+                    <li><a href="#" data-category="ecce"><i class="fas fa-arrow-right"></i> ECCE Tools</a></li>
+                    <li><a href="#" data-category="student"><i class="fas fa-arrow-right"></i> Student Tools</a></li>
+                    <li><a href="#" data-category="administrator"><i class="fas fa-arrow-right"></i> Administrator Tools</a></li>
+                    <li><a href="#" data-category="seo"><i class="fas fa-arrow-right"></i> SEO Tools</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Pages</h3>
+                <ul class="footer-links">
+                    <li><a href="https://magicrills.com/p/about-us.html"><i class="fas fa-arrow-right"></i> About Us</a></li>
+                    <li><a href="https://magicrills.com/p/contact-us.html"><i class="fas fa-arrow-right"></i> Contact Us</a></li>
+                    <li><a href="https://magicrills.com/p/privacy-policy_51.html"><i class="fas fa-arrow-right"></i> Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Follow Us</h3>
+                <div class="social-stats">
+                    <div class="stat">
+                        <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
+                        <div class="stat-value">15K</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                    <div class="stat">
+                        <i class="fab fa-twitter" style="color: #1da1f2;"></i>
+                        <div class="stat-value">12K</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                    <div class="stat">
+                        <i class="fab fa-instagram" style="color: #e4405f;"></i>
+                        <div class="stat-value">18K</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-users" style="color: var(--accent);"></i>
+                        <div class="stat-value">50+</div>
+                        <div class="stat-label">Team Members</div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Visitor Counter</h3>
+                <div class="stat" style="min-width: 200px;">
+                    <i class="fas fa-eye" style="color: var(--primary);"></i>
+                    <div class="stat-value">387,542</div>
+                    <div class="stat-label">Total Visitors</div>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 Magicrills. All rights reserved. | AI Tools & Resources for Education and Productivity</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple animation for tool cards on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const toolCards = document.querySelectorAll('.tool-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            toolCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                observer.observe(card);
+            });
+            
+            // Update visitor counter with a slight animation
+            const visitorCounter = document.querySelector('.stat-value');
+            let count = 300000;
+            const targetCount = 387542;
+            const increment = Math.ceil((targetCount - count) / 100);
+            
+            const updateCounter = () => {
+                count += increment;
+                if (count >= targetCount) {
+                    count = targetCount;
+                    clearInterval(counterInterval);
+                }
+                visitorCounter.textContent = count.toLocaleString();
+            };
+            
+            const counterInterval = setInterval(updateCounter, 20);
+            
+            // Category filtering functionality
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            const categorySections = document.querySelectorAll('.category-section');
+            
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const category = this.getAttribute('data-category');
+                    
+                    // Show/hide sections based on category
+                    categorySections.forEach(section => {
+                        if (category === 'all' || section.getAttribute('data-category') === category) {
+                            section.style.display = 'block';
+                        } else {
+                            section.style.display = 'none';
+                        }
+                    });
+                    
+                    // Scroll to the first visible section
+                    const firstVisibleSection = document.querySelector('.category-section[style="display: block;"]');
+                    if (firstVisibleSection && category !== 'all') {
+                        firstVisibleSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+            
+            // Footer quick links category navigation
+            const footerLinks = document.querySelectorAll('.footer-links a[data-category]');
+            footerLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const category = this.getAttribute('data-category');
+                    
+                    // Find and click the corresponding category button
+                    const correspondingBtn = document.querySelector(`.category-btn[data-category="${category}"]`);
+                    if (correspondingBtn) {
+                        correspondingBtn.click();
+                    }
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                if (searchTerm.length < 2) {
+                    // Show all tools if search term is too short
+                    document.querySelectorAll('.tool-card').forEach(card => {
+                        card.style.display = 'block';
+                    });
+                    return;
+                }
+                
+                // Filter tools based on search term
+                document.querySelectorAll('.tool-card').forEach(card => {
+                    const toolName = card.querySelector('h3').textContent.toLowerCase();
+                    const toolDescription = card.querySelector('p').textContent.toLowerCase();
+                    
+                    if (toolName.includes(searchTerm) || toolDescription.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
