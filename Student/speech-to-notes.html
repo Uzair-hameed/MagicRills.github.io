@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Speech-to-Notes Converter | MagicRills AI #47</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="speech-to-notes.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1>Speech-to-Notes Converter</h1>
+      <p>بولو، AI نوٹس بنائے، PDF/DOCX ایکسپورٹ کرو!</p>
+      <div class="brand">
+        by <strong>MagicRills</strong> — <a href="https://magicrills.com" target="_blank">magicrills.com</a>
+      </div>
+      <div class="brand-badge">AI Tool #47</div>
+    </header>
+
+    <!-- API Key -->
+    <section class="api-section" id="apiSection">
+      <h3>Secure OpenRouter API Key</h3>
+      <div class="api-input">
+        <input type="password" id="apiKey" placeholder="Enter your OpenRouter API Key" />
+        <button class="btn btn-primary" onclick="saveKey()">Save Securely</button>
+      </div>
+      <p id="apiStatus" class="status">Key will be stored securely.</p>
+    </section>
+
+    <!-- Recording -->
+    <section class="recording-dashboard">
+      <div class="status-bar" id="statusBar">Ready to record</div>
+      <textarea id="transcription" class="transcription-box" placeholder="Transcribed text appears here..."></textarea>
+      <div class="controls">
+        <button class="btn btn-record" id="recordBtn" onclick="toggleRecording()">Start</button>
+        <button class="btn btn-stop" id="stopBtn" onclick="stopRecording()" disabled>Stop</button>
+        <button class="btn btn-ai" id="summaryBtn" onclick="generateSummary()" disabled>AI Summary</button>
+        <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+        <label class="btn btn-upload">
+          Upload
+          <input type="file" id="audioUpload" accept="audio/*" onchange="handleUpload(event)" />
+        </label>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary-dashboard" id="summarySection" style="display: none;">
+      <h2>AI-Generated Notes</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="wordCount">0</div>
+          <span class="stat-label">Words</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="keyPointCount">0</div>
+          <span class="stat-label">Key Points</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="duration">0:00</div>
+          <span class="stat-label">Duration</span>
+        </div>
+      </div>
+      <div class="summary-content" id="summaryContent"></div>
+      <div class="export-controls">
+        <button class="btn btn-success" onclick="exportPDF()">PDF</button>
+        <button class="btn btn-success" onclick="exportDOCX()">DOCX</button>
+        <button class="btn btn-copy" onclick="copySummary()">Copy</button>
+      </div>
+      <footer class="export-footer">
+        Powered by MagicRills – <a href="https://magicrills.com">magicrills.com</a>
+      </footer>
+    </section>
+  </div>
+
+  <!-- CDNs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script src="speech-to-notes.js"></script>
+  <script src="speech-to-notes-export.js"></script>
+</body>
+</html>
