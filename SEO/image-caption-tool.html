@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image Caption Tool | MagicRills</title>
+    <link rel="stylesheet" href="image-caption-tool.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="theme-switch" class="theme-btn">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+    
+    <div class="tool-container">
+        <div class="header">
+            <h1><i class="fas fa-camera"></i> Advanced Image Caption Tool</h1>
+            <p class="subtitle">Add beautiful captions to your images with AI assistance</p>
+        </div>
+        
+        <div class="dashboard">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-upload"></i>
+                </div>
+                <h3>Upload Image</h3>
+                <p>Drag & drop or click to upload</p>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <h3>Edit Caption</h3>
+                <p>Customize text with rich editor</p>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>AI Assistant</h3>
+                <p>Generate captions automatically</p>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-download"></i>
+                </div>
+                <h3>Download</h3>
+                <p>Save your final creation</p>
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <div class="section-title">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Image
+            </div>
+            <div class="upload-area" id="upload-area">
+                <div class="upload-content">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to upload or drag & drop image</p>
+                    <span class="file-types">JPG, PNG, GIF up to 5MB</span>
+                </div>
+                <input type="file" id="file-input" accept="image/*" style="display: none;">
+            </div>
+            <img class="hidden" id="image-preview">
+        </div>
+        
+        <div class="tool-section">
+            <div class="section-title">
+                <i class="fas fa-font"></i> Caption Text
+            </div>
+            <div class="ai-assistant">
+                <button class="ai-btn" id="generate-ai-caption">
+                    <i class="fas fa-robot"></i> Generate AI Caption
+                </button>
+                <div class="ai-loading hidden" id="ai-loading">
+                    <i class="fas fa-spinner fa-spin"></i> AI is thinking...
+                </div>
+            </div>
+            <div contenteditable="true" id="caption-editor" class="caption-editor">
+                Start typing your caption here...
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <div class="section-title">
+                <i class="fas fa-paint-brush"></i> Text Formatting
+            </div>
+            <div class="formatting-tools">
+                <button class="format-btn" onclick="formatText('bold')" title="Bold">
+                    <i class="fas fa-bold"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('italic')" title="Italic">
+                    <i class="fas fa-italic"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('underline')" title="Underline">
+                    <i class="fas fa-underline"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('insertHTML','<ul><li></li></ul>')" title="Bullet List">
+                    <i class="fas fa-list-ul"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('insertHTML','<ol><li></li></ol>')" title="Numbered List">
+                    <i class="fas fa-list-ol"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('insertHTML','<blockquote></blockquote>')" title="Quote">
+                    <i class="fas fa-quote-right"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('justifyLeft')" title="Align Left">
+                    <i class="fas fa-align-left"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('justifyCenter')" title="Align Center">
+                    <i class="fas fa-align-center"></i>
+                </button>
+                <button class="format-btn" onclick="formatText('justifyRight')" title="Align Right">
+                    <i class="fas fa-align-right"></i>
+                </button>
+                <input class="color-picker" onchange="formatText('foreColor',this.value)" title="Text Color" type="color" value="#000000">
+                <input class="color-picker" onchange="formatText('hiliteColor',this.value)" title="Background Color" type="color" value="#ffffff">
+                <select class="font-selector" onchange="formatText('fontName',this.value)">
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier</option>
+                    <option value="Times New Roman">Times</option>
+                </select>
+                <select class="font-size-selector" onchange="formatText('fontSize',this.value)">
+                    <option value="1">8px</option>
+                    <option value="2">10px</option>
+                    <option value="3">12px</option>
+                    <option value="4">14px</option>
+                    <option value="5">18px</option>
+                    <option value="6">24px</option>
+                    <option value="7">36px</option>
+                </select>
+                <select class="caption-style-selector" id="caption-style">
+                    <option value="none">Caption Style</option>
+                    <option value="modern">Modern</option>
+                    <option value="vintage">Vintage</option>
+                    <option value="elegant">Elegant</option>
+                    <option value="bold">Bold</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="fun">Fun</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <div class="action-btns">
+                <button class="action-btn primary" onclick="generateOutput()">
+                    <i class="fas fa-magic"></i> Generate Caption
+                </button>
+                <button class="action-btn secondary" onclick="clearAll()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+                <button class="action-btn success" id="download-btn" onclick="downloadImage()" disabled>
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
+        </div>
+        
+        <div class="tool-section output-container hidden" id="output-section">
+            <div class="output-title">
+                <i class="fas fa-image"></i> Your Captioned Image
+            </div>
+            <div class="output-content" id="output-content"></div>
+        </div>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="image-caption-tool.js"></script>
+</body>
+</html>
