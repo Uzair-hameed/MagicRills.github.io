@@ -1,31 +1,19 @@
-# Magicrills Image Resizer Tool
+# Advanced Blog to Ad Converter Pro
 
-A powerful, modern, and user-friendly image resizing tool built with pure HTML, CSS, and JavaScript.
+A powerful AI-powered tool that transforms blog posts into stunning social media ads and visual content.
 
 ## Features
 
-✨ **Advanced Image Processing**
-- Multiple resize modes (Percentage, Dimensions, Fit to Width/Height)
-- Maintain aspect ratio option
-- Batch processing support
-- High-quality image scaling
+- 🚀 **AI-Powered Conversion**: Smart content analysis and optimization
+- 🎨 **110+ Templates**: Professional designs for every platform
+- 📱 **Multi-Platform Support**: Facebook, Instagram, Twitter, LinkedIn, and more
+- 🎯 **Smart Formatting**: Automatic text formatting and enhancement
+- 🌙 **Dark/Light Theme**: Customizable interface
+- 📊 **Analytics Dashboard**: Track performance and engagement
+- 💾 **Multiple Export Formats**: PNG, JPG, PDF, and clipboard support
 
-🎨 **Modern Interface**
-- Dark/Light theme support
-- Responsive design
-- Animated transitions
-- Colorful dashboard with hover effects
+## Installation
 
-⚡ **Advanced Options**
-- Multiple output formats (JPEG, PNG, WebP, Original)
-- Quality control settings
-- Watermarking capabilities
-- Real-time previews
-
-📊 **Smart Features**
-- File size optimization
-- Compression statistics
-- Before/after comparison
-- Download all processed images
-
-## File Structure
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/blog-post-to-ad-converter.git
