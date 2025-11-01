@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magicrills Image Resizer - Advanced Tool</title>
+    <link rel="stylesheet" href="magicrills-image-resizer-styles.css">
+</head>
+<body>
+    <div class="magicrills-container">
+        <!-- Animated Header -->
+        <header class="magicrills-header">
+            <div class="magicrills-logo">
+                <div class="magicrills-logo-icon">🖼️</div>
+                <h1>Magicrills Image Resizer</h1>
+            </div>
+            <p class="magicrills-tagline">Resize, Compress & Optimize Images Like Magic!</p>
+            <div class="theme-toggle">
+                <button id="magicrills-theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <div class="magicrills-dashboard">
+            <!-- Upload Section -->
+            <div class="magicrills-upload-section">
+                <div class="section-header">
+                    <h2>📁 Upload Images</h2>
+                    <div class="file-counter" id="magicrills-file-counter">0 files</div>
+                </div>
+                
+                <div class="magicrills-drag-area" id="magicrills-drag-area">
+                    <div class="drag-content">
+                        <div class="upload-icon">📤</div>
+                        <h3>Drag & Drop Your Images</h3>
+                        <p>Supports JPG, PNG, WebP, GIF</p>
+                        <button class="magicrills-btn magicrills-btn-primary" id="magicrills-browse-btn">
+                            Browse Files
+                        </button>
+                        <input type="file" id="magicrills-file-input" multiple accept="image/*" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="magicrills-file-list" id="magicrills-file-list">
+                    <!-- Files will appear here -->
+                </div>
+            </div>
+
+            <!-- Resize Options Section -->
+            <div class="magicrills-options-section">
+                <div class="section-header">
+                    <h2>⚙️ Resize Options</h2>
+                    <button class="magicrills-btn magicrills-btn-outline" id="magicrills-reset-btn">Reset</button>
+                </div>
+
+                <!-- Resize Mode Selection -->
+                <div class="magicrills-option-group">
+                    <label class="magicrills-label">Resize Mode</label>
+                    <div class="magicrills-radio-group">
+                        <label class="magicrills-radio">
+                            <input type="radio" name="resize-mode" value="percentage" checked>
+                            <span class="radio-custom"></span>
+                            Percentage Scale
+                        </label>
+                        <label class="magicrills-radio">
+                            <input type="radio" name="resize-mode" value="dimensions">
+                            <span class="radio-custom"></span>
+                            Custom Dimensions
+                        </label>
+                        <label class="magicrills-radio">
+                            <input type="radio" name="resize-mode" value="width">
+                            <span class="radio-custom"></span>
+                            Fit to Width
+                        </label>
+                        <label class="magicrills-radio">
+                            <input type="radio" name="resize-mode" value="height">
+                            <span class="radio-custom"></span>
+                            Fit to Height
+                        </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Percentage Scale -->
+                <div class="magicrills-option-group" id="magicrills-percentage-group">
+                    <label class="magicrills-label">
+                        Scale: <span id="magicrills-percentage-value">100%</span>
+                    </label>
+                    <div class="magicrills-range-container">
+                        <input type="range" id="magicrills-percentage" min="1" max="200" value="100" class="magicrills-range">
+                        <div class="range-ticks">
+                            <span>1%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                            <span>150%</span>
+                            <span>200%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Dimensions -->
+                <div class="magicrills-option-group" id="magicrills-dimensions-group" style="display: none;">
+                    <label class="magicrills-label">Custom Dimensions (px)</label>
+                    <div class="dimensions-inputs">
+                        <div class="input-group">
+                            <label>Width</label>
+                            <input type="number" id="magicrills-width" min="1" placeholder="Auto" class="magicrills-input">
+                        </div>
+                        <div class="input-group">
+                            <label>Height</label>
+                            <input type="number" id="magicrills-height" min="1" placeholder="Auto" class="magicrills-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fit to Width/Height -->
+                <div class="magicrills-option-group" id="magicrills-width-group" style="display: none;">
+                    <label class="magicrills-label">Target Width (px)</label>
+                    <input type="number" id="magicrills-target-width" min="1" class="magicrills-input">
+                </div>
+
+                <div class="magicrills-option-group" id="magicrills-height-group" style="display: none;">
+                    <label class="magicrills-label">Target Height (px)</label>
+                    <input type="number" id="magicrills-target-height" min="1" class="magicrills-input">
+                </div>
+
+                <!-- Aspect Ratio Toggle -->
+                <div class="magicrills-option-group">
+                    <label class="magicrills-checkbox">
+                        <input type="checkbox" id="magicrills-maintain-aspect" checked>
+                        <span class="checkmark"></span>
+                        Maintain Aspect Ratio
+                        <span class="magicrills-tooltip">ℹ️
+                            <span class="tooltip-text">Keep original proportions when resizing</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Advanced Options Toggle -->
+                <div class="magicrills-advanced-toggle">
+                    <button class="magicrills-btn magicrills-btn-ghost" id="magicrills-toggle-advanced">
+                        <span>🔧 Advanced Options</span>
+                        <span class="toggle-arrow">▼</span>
+                    </button>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="magicrills-advanced-options" id="magicrills-advanced-options" style="display: none;">
+                    <!-- Format Selection -->
+                    <div class="magicrills-option-group">
+                        <label class="magicrills-label">Output Format</label>
+                        <div class="magicrills-format-grid">
+                            <label class="format-option">
+                                <input type="radio" name="output-format" value="original" checked>
+                                <div class="format-card">
+                                    <span class="format-icon">📄</span>
+                                    <span>Original</span>
+                                </div>
+                            </label>
+                            <label class="format-option">
+                                <input type="radio" name="output-format" value="jpeg">
+                                <div class="format-card">
+                                    <span class="format-icon">🖼️</span>
+                                    <span>JPEG</span>
+                                </div>
+                            </label>
+                            <label class="format-option">
+                                <input type="radio" name="output-format" value="png">
+                                <div class="format-card">
+                                    <span class="format-icon">🖌️</span>
+                                    <span>PNG</span>
+                                </div>
+                            </label>
+                            <label class="format-option">
+                                <input type="radio" name="output-format" value="webp">
+                                <div class="format-card">
+                                    <span class="format-icon">⚡</span>
+                                    <span>WebP</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Quality Settings -->
+                    <div class="magicrills-option-group" id="magicrills-quality-group">
+                        <label class="magicrills-label">
+                            Quality: <span id="magicrills-quality-value">80%</span>
+                        </label>
+                        <div class="magicrills-range-container">
+                            <input type="range" id="magicrills-quality" min="1" max="100" value="80" class="magicrills-range">
+                            <div class="range-labels">
+                                <span>Small</span>
+                                <span>Balanced</span>
+                                <span>Best</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Watermark Options -->
+                    <div class="magicrills-option-group">
+                        <label class="magicrills-checkbox">
+                            <input type="checkbox" id="magicrills-add-watermark">
+                            <span class="checkmark"></span>
+                            Add Watermark
+                        </label>
+                    </div>
+
+                    <div class="magicrills-watermark-options" id="magicrills-watermark-options" style="display: none;">
+                        <div class="magicrills-option-group">
+                            <label class="magicrills-label">Watermark Text</label>
+                            <input type="text" id="magicrills-watermark-text" placeholder="Your watermark" class="magicrills-input">
+                        </div>
+                        
+                        <div class="magicrills-option-group">
+                            <label class="magicrills-label">Position</label>
+                            <div class="position-grid">
+                                <label class="position-option">
+                                    <input type="radio" name="watermark-position" value="top-left" checked>
+                                    <div class="position-card">↖️</div>
+                                </label>
+                                <label class="position-option">
+                                    <input type="radio" name="watermark-position" value="top-right">
+                                    <div class="position-card">↗️</div>
+                                </label>
+                                <label class="position-option">
+                                    <input type="radio" name="watermark-position" value="center">
+                                    <div class="position-card">⏺️</div>
+                                </label>
+                                <label class="position-option">
+                                    <input type="radio" name="watermark-position" value="bottom-left">
+                                    <div class="position-card">↙️</div>
+                                </label>
+                                <label class="position-option">
+                                    <input type="radio" name="watermark-position" value="bottom-right">
+                                    <div class="position-card">↘️</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="magicrills-option-group">
+                            <label class="magicrills-label">
+                                Opacity: <span id="magicrills-opacity-value">50%</span>
+                            </label>
+                            <input type="range" id="magicrills-watermark-opacity" min="1" max="100" value="50" class="magicrills-range">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Process Button -->
+                <button class="magicrills-btn magicrills-btn-success magicrills-process-btn" id="magicrills-process-btn">
+                    <span class="btn-icon">✨</span>
+                    Process Images
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="magicrills-results-section" id="magicrills-results-section" style="display: none;">
+            <div class="section-header">
+                <h2>📊 Results</h2>
+                <div class="results-stats">
+                    <span id="magicrills-processed-count">0</span> images processed
+                </div>
+            </div>
+
+            <div class="magicrills-progress-container" id="magicrills-progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="magicrills-progress-fill"></div>
+                </div>
+                <div class="progress-text" id="magicrills-progress-text">Processing...</div>
+            </div>
+
+            <div class="magicrills-preview-grid" id="magicrills-preview-grid">
+                <!-- Processed images will appear here -->
+            </div>
+
+            <div class="magicrills-batch-actions">
+                <button class="magicrills-btn magicrills-btn-primary" id="magicrills-download-all">
+                    <span class="btn-icon">💾</span>
+                    Download All Images
+                </button>
+                <button class="magicrills-btn magicrills-btn-outline" id="magicrills-clear-results">
+                    <span class="btn-icon">🗑️</span>
+                    Clear Results
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="magicrills-spinner" id="magicrills-spinner">
+            <div class="spinner-circle"></div>
+            <p>Processing your images...</p>
+        </div>
+    </div>
+
+    <script src="magicrills-image-resizer-script.js"></script>
+</body>
+</html>
