@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image Filter Tool | MagicRills</title>
+    <link rel="stylesheet" href="image-filter-tool.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle" class="theme-btn">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+    
+    <div class="tool-container">
+        <div class="tool-header">
+            <h1><i class="fas fa-magic"></i> Advanced Image Filter Tool</h1>
+            <p>AI-powered image editing with real-time preview</p>
+        </div>
+        
+        <div class="tool-body">
+            <div class="sidebar">
+                <div class="upload-section">
+                    <div class="drop-area" id="dropArea">
+                        <div class="drop-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag & drop image here</p>
+                            <span>or</span>
+                            <button class="btn upload-btn" id="uploadBtn">
+                                <i class="fas fa-folder-open"></i> Select Image
+                            </button>
+                            <input type="file" id="fileInput" class="file-input" accept="image/*">
+                        </div>
+                    </div>
+                    
+                    <div class="ai-suggestions">
+                        <h3><i class="fas fa-robot"></i> AI Suggestions</h3>
+                        <div class="ai-buttons">
+                            <button class="ai-btn" data-ai="enhance">
+                                <i class="fas fa-wand-magic-sparkles"></i> Enhance
+                            </button>
+                            <button class="ai-btn" data-ai="portrait">
+                                <i class="fas fa-user"></i> Portrait
+                            </button>
+                            <button class="ai-btn" data-ai="landscape">
+                                <i class="fas fa-mountain"></i> Landscape
+                            </button>
+                            <button class="ai-btn" data-ai="vintage">
+                                <i class="fas fa-camera-retro"></i> Vintage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h3><i class="fas fa-sliders-h"></i> Basic Adjustments</h3>
+                        <div class="slider-container">
+                            <label for="brightness">Brightness</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="brightness" min="0" max="200" value="100">
+                                <span class="value" id="brightnessValue">100%</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="contrast">Contrast</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="contrast" min="0" max="200" value="100">
+                                <span class="value" id="contrastValue">100%</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="saturation">Saturation</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="saturation" min="0" max="200" value="100">
+                                <span class="value" id="saturationValue">100%</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="temperature">Temperature</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="temperature" min="-100" max="100" value="0">
+                                <span class="value" id="temperatureValue">0</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="exposure">Exposure</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="exposure" min="-100" max="100" value="0">
+                                <span class="value" id="exposureValue">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3><i class="fas fa-palette"></i> Color Filters</h3>
+                        <div class="slider-container">
+                            <label for="grayscale">Grayscale</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="grayscale" min="0" max="100" value="0">
+                                <span class="value" id="grayscaleValue">0%</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="sepia">Sepia</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="sepia" min="0" max="100" value="0">
+                                <span class="value" id="sepiaValue">0%</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="hue">Hue Rotate</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="hue" min="0" max="360" value="0">
+                                <span class="value" id="hueValue">0°</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="invert">Invert</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="invert" min="0" max="100" value="0">
+                                <span class="value" id="invertValue">0%</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="vibrance">Vibrance</label>
+                            <div class="slider-wrapper">
+                                <input type="range" id="vibrance" min="-100" max="100" value="0">
+                                <span class="value" id="vibranceValue">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3><i class="fas fa-star"></i> Preset Filters</h3>
+                        <div class="preset-grid">
+                            <button class="preset-btn" data-preset="vintage">
+                                <div class="preset-preview vintage"></div>
+                                <span>Vintage</span>
+                            </button>
+                            <button class="preset-btn" data-preset="blackWhite">
+                                <div class="preset-preview bw"></div>
+                                <span>B&W</span>
+                            </button>
+                            <button class="preset-btn" data-preset="cool">
+                                <div class="preset-preview cool"></div>
+                                <span>Cool</span>
+                            </button>
+                            <button class="preset-btn" data-preset="warm">
+                                <div class="preset-preview warm"></div>
+                                <span>Warm</span>
+                            </button>
+                            <button class="preset-btn" data-preset="dramatic">
+                                <div class="preset-preview dramatic"></div>
+                                <span>Dramatic</span>
+                            </button>
+                            <button class="preset-btn" data-preset="cinematic">
+                                <div class="preset-preview cinematic"></div>
+                                <span>Cinematic</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn reset-btn" id="resetBtn">
+                            <i class="fas fa-undo"></i> Reset Filters
+                        </button>
+                        <button class="btn save-preset-btn" id="savePresetBtn">
+                            <i class="fas fa-save"></i> Save Preset
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="main-content">
+                <div class="preview-section">
+                    <div class="preview-header">
+                        <h3>Preview</h3>
+                        <div class="preview-controls">
+                            <button class="btn preview-control-btn" id="zoomInBtn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button class="btn preview-control-btn" id="zoomOutBtn">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <button class="btn preview-control-btn" id="rotateBtn">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                            <button class="btn preview-control-btn" id="originalBtn">
+                                <i class="fas fa-eye"></i> Original
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-container">
+                        <div class="canvas-wrapper">
+                            <img id="imagePreview" alt="Preview">
+                            <canvas id="imageCanvas"></canvas>
+                            <div class="zoom-info" id="zoomInfo">100%</div>
+                        </div>
+                        
+                        <div class="tool-buttons">
+                            <button class="btn tool-btn" id="cropBtn">
+                                <i class="fas fa-crop-alt"></i> Crop
+                            </button>
+                            <button class="btn tool-btn" id="textBtn">
+                                <i class="fas fa-font"></i> Add Text
+                            </button>
+                            <button class="btn tool-btn" id="drawBtn">
+                                <i class="fas fa-pencil-alt"></i> Draw
+                            </button>
+                            <button class="btn tool-btn" id="filterBtn">
+                                <i class="fas fa-filter"></i> AI Filter
+                            </button>
+                        </div>
+                        
+                        <div class="crop-controls" id="cropControls">
+                            <h4>Crop Image</h4>
+                            <div class="crop-buttons">
+                                <button class="btn apply-crop-btn" id="applyCropBtn">
+                                    <i class="fas fa-check"></i> Apply Crop
+                                </button>
+                                <button class="btn cancel-crop-btn" id="cancelCropBtn">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="download-section">
+                            <div class="format-options">
+                                <h4>Export Format</h4>
+                                <div class="format-buttons">
+                                    <label class="format-option">
+                                        <input type="radio" name="format" value="jpg" checked>
+                                        <span>JPG</span>
+                                    </label>
+                                    <label class="format-option">
+                                        <input type="radio" name="format" value="png">
+                                        <span>PNG</span>
+                                    </label>
+                                    <label class="format-option">
+                                        <input type="radio" name="format" value="webp">
+                                        <span>WebP</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button class="btn download-btn" id="downloadBtn">
+                                <i class="fas fa-download"></i> Download Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="history-section">
+                    <h3><i class="fas fa-history"></i> Edit History</h3>
+                    <div class="history-list" id="historyList">
+                        <div class="history-empty">
+                            <i class="fas fa-clock"></i>
+                            <p>Your edit history will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Processing your image...</p>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <div class="notification-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationText">Operation completed successfully!</span>
+        </div>
+    </div>
+    
+    <script src="image-filter-tool.js"></script>
+</body>
+</html>
