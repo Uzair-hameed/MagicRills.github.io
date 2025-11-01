@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image to Text Converter | MagicRills</title>
+    <link rel="stylesheet" href="image-to-text-converter.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-animation">
+                        <div class="logo-icon">📷</div>
+                        <div class="logo-text">
+                            <h1>Image to Text Converter</h1>
+                            <p>AI-Powered OCR Tool</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="processedCount">0</span>
+                        <span class="stat-label">Images Processed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="accuracyRate">98%</span>
+                        <span class="stat-label">Accuracy Rate</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard">
+            <!-- Upload Section -->
+            <section class="dashboard-card upload-section">
+                <div class="card-header">
+                    <h2><span class="icon">📁</span> Upload Image</h2>
+                </div>
+                
+                <div class="upload-interface">
+                    <!-- Drop Zone -->
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-content">
+                            <div class="drop-icon">📁</div>
+                            <h3>Drop your image here</h3>
+                            <p>or</p>
+                            <button class="btn-primary" id="browseBtn">Browse Files</button>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="image-preview-container" id="previewContainer" style="display: none;">
+                        <div class="preview-header">
+                            <h3>Image Preview</h3>
+                            <div class="preview-actions">
+                                <button class="btn-small" id="rotateBtn">🔄 Rotate</button>
+                                <button class="btn-small" id="enhanceBtn">✨ Enhance</button>
+                                <button class="btn-small btn-danger" id="clearBtn">🗑️ Clear</button>
+                            </div>
+                        </div>
+                        <div class="preview-content">
+                            <img id="imagePreview" alt="Preview">
+                            <div class="preview-overlay">
+                                <div class="preview-info">
+                                    <span id="imageName">No image selected</span>
+                                    <span id="imageSize">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section class="dashboard-card processing-section">
+                <div class="card-header">
+                    <h2><span class="icon">⚙️</span> Processing Options</h2>
+                </div>
+                
+                <div class="processing-options">
+                    <!-- Language Selection -->
+                    <div class="option-group">
+                        <label for="languageSelect">OCR Language</label>
+                        <select id="languageSelect" class="styled-select">
+                            <option value="eng">English</option>
+                            <option value="urd">Urdu</option>
+                            <option value="ara">Arabic</option>
+                            <option value="spa">Spanish</option>
+                            <option value="fra">French</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Adjustments -->
+                    <div class="adjustment-grid">
+                        <div class="adjustment-item">
+                            <label>Brightness: <span id="brightnessValue">0</span></label>
+                            <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
+                        </div>
+                        <div class="adjustment-item">
+                            <label>Contrast: <span id="contrastValue">100</span></label>
+                            <input type="range" id="contrastSlider" min="0" max="200" value="100">
+                        </div>
+                    </div>
+
+                    <!-- Extract Button -->
+                    <button class="btn-extract" id="extractBtn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Extract Text</span>
+                        <div class="btn-loading" id="extractLoading"></div>
+                    </button>
+
+                    <!-- Progress -->
+                    <div class="progress-container" id="progressContainer" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">Initializing...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Output Section -->
+            <section class="dashboard-card output-section">
+                <div class="card-header">
+                    <h2><span class="icon">📝</span> Extracted Text</h2>
+                    <div class="output-stats">
+                        <div class="stat-badge" id="confidenceBadge">
+                            <span class="stat-label">Confidence</span>
+                            <span class="stat-value" id="confidenceValue">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-controls">
+                    <div class="action-tools">
+                        <button class="btn-action" id="copyBtn">
+                            <span>📋</span> Copy
+                        </button>
+                        <button class="btn-action" id="downloadTxtBtn">
+                            <span>📄</span> TXT
+                        </button>
+                        <button class="btn-action" id="downloadPdfBtn">
+                            <span>📑</span> PDF
+                        </button>
+                        <button class="btn-action btn-clear" id="clearTextBtn">
+                            <span>🗑️</span> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-output-container">
+                    <textarea id="textOutput" placeholder="Extracted text will appear here..."></textarea>
+                    <div class="text-overlay" id="textOverlay">
+                        <div class="overlay-content">
+                            <div class="empty-state">
+                                <div class="empty-icon">📄</div>
+                                <h3>No Text Extracted Yet</h3>
+                                <p>Upload an image and click 'Extract Text' to get started</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>🔒 100% Client-side Processing - Your data never leaves your device</p>
+                </div>
+                <div class="footer-actions">
+                    <button class="btn-theme" id="themeToggle">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="image-to-text-converter.js"></script>
+</body>
+</html>
