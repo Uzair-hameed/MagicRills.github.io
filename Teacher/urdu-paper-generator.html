@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اردو پیپر جنریٹر - جدید ورژن</title>
+    <link rel="stylesheet" href="urdu-paper-generator.css">
+    <link rel="stylesheet" href="urdu-paper-generator-fonts.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="urdu-paper-generator.js" defer></script>
+    <script src="urdu-paper-generator-pdf.js" defer></script>
+    <script src="urdu-paper-generator-doc.js" defer></script>
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="logo">📝 اردو پیپر جنریٹر</h1>
+                <p class="tagline">AI-پاورڈ تعلیمی ٹول</p>
+            </div>
+            <div class="theme-controls">
+                <button id="themeToggle" class="theme-btn">🌙 ڈارک موڈ</button>
+                <button id="fontSizeToggle" class="font-btn">A⁺ فونٹ سائز</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <button class="nav-btn active" data-tab="dashboard">🏠 ڈیش بورڈ</button>
+            <button class="nav-btn" data-tab="setup">⚙️ بنیادی سیٹ اپ</button>
+            <button class="nav-btn" data-tab="objective">🎯 معروضی سیکشن</button>
+            <button class="nav-btn" data-tab="subjective">✍️ حصہ انشائیہ</button>
+            <button class="nav-btn" data-tab="preview">👁️ پیش نظارہ</button>
+            <button class="nav-btn" data-tab="ai-tools">🤖 AI ٹولز</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <section id="dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <h3>کل پیپرز</h3>
+                    <p class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <h3>محفوظ شدہ</h3>
+                    <p class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <h3>سوالات</h3>
+                    <p class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🤖</div>
+                    <h3>AI استعمال</h3>
+                    <p class="stat-number">0</p>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h2>فوری اقدامات</h2>
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="openTab('setup')">
+                        <span class="action-icon">🚀</span>
+                        نیا پیپر شروع کریں
+                    </button>
+                    <button class="action-btn" onclick="loadTemplate()">
+                        <span class="action-icon">📁</span>
+                        ٹیمپلیٹ لوڈ کریں
+                    </button>
+                    <button class="action-btn" onclick="openTab('ai-tools')">
+                        <span class="action-icon">🤖</span>
+                        AI سوال جنریٹر
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Setup Tab -->
+        <section id="setup" class="tab-content">
+            <div class="section-header">
+                <h2>⚙️ بنیادی معلومات</h2>
+                <p>اپنے پیپر کی بنیادی معلومات درج کریں</p>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="school-name">🏫 سکول کا نام:</label>
+                    <input type="text" id="school-name" placeholder="سکول کا نام درج کریں">
+                </div>
+                <div class="form-group">
+                    <label for="paper-title">📝 پرچے کا عنوان:</label>
+                    <input type="text" id="paper-title" placeholder="پرچے کا عنوان درج کریں">
+                </div>
+                <div class="form-group">
+                    <label for="term">📅 ٹرم:</label>
+                    <select id="term">
+                        <option value="پہلا">پہلا ٹرم</option>
+                        <option value="دوسرا">دوسرا ٹرم</option>
+                        <option value="سالانہ">سالانہ امتحان</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subject">📚 مضمون:</label>
+                    <input type="text" id="subject" placeholder="مضمون درج کریں">
+                </div>
+                <div class="form-group">
+                    <label for="total-marks">🎯 کل نمبر:</label>
+                    <input type="number" id="total-marks" placeholder="کل نمبر درج کریں">
+                </div>
+                <div class="form-group">
+                    <label for="time">⏰ وقت:</label>
+                    <input type="text" id="time" placeholder="مثال: 2 گھنٹے">
+                </div>
+                <div class="form-group full-width">
+                    <label for="instructions">📋 ہدایات:</label>
+                    <textarea id="instructions" placeholder="پرچے کی ہدایات درج کریں" rows="4"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Objective Tab -->
+        <section id="objective" class="tab-content">
+            <div class="section-header">
+                <h2>🎯 معروضی سیکشن</h2>
+                <p>معروضی سوالات شامل کریں (MCQs, صحیح/غلط, خالی جگہیں, میچنگ کالم وغیرہ)</p>
+            </div>
+            
+            <div class="question-controls">
+                <button class="control-btn" onclick="addObjectiveQuestion('mcq')">
+                    <span class="btn-icon">🔘</span> MCQ سوال
+                </button>
+                <button class="control-btn" onclick="addObjectiveQuestion('truefalse')">
+                    <span class="btn-icon">✅</span> صحیح/غلط
+                </button>
+                <button class="control-btn" onclick="addObjectiveQuestion('fillblank')">
+                    <span class="btn-icon">📝</span> خالی جگہ
+                </button>
+                <button class="control-btn" onclick="addObjectiveQuestion('matching')">
+                    <span class="btn-icon">🔗</span> میچنگ کالم
+                </button>
+            </div>
+
+            <div id="objective-questions-container" class="questions-container">
+                <!-- Questions will be added here dynamically -->
+            </div>
+        </section>
+
+        <!-- Subjective Tab -->
+        <section id="subjective" class="tab-content">
+            <div class="section-header">
+                <h2>✍️ حصہ انشائیہ</h2>
+                <p>انشائیہ سوالات شامل کریں (مختصر جواب, طویل جواب, تشریحی سوالات وغیرہ)</p>
+            </div>
+            
+            <div class="question-controls">
+                <button class="control-btn" onclick="addSubjectiveQuestion('short')">
+                    <span class="btn-icon">📄</span> مختصر سوال
+                </button>
+                <button class="control-btn" onclick="addSubjectiveQuestion('long')">
+                    <span class="btn-icon">📑</span> طویل سوال
+                </button>
+                <button class="control-btn" onclick="addSubjectiveQuestion('comprehension')">
+                    <span class="btn-icon">📖</span> تشریحی سوال
+                </button>
+            </div>
+
+            <div id="subjective-questions-container" class="questions-container">
+                <!-- Questions will be added here dynamically -->
+            </div>
+        </section>
+
+        <!-- Preview Tab -->
+        <section id="preview" class="tab-content">
+            <div class="section-header">
+                <h2>👁️ پرچے کا پیش نظارہ</h2>
+                <p>اپنے پیپر کا حتمی نظارہ دیکھیں اور پرنٹ/محفوظ کریں</p>
+            </div>
+            
+            <div class="export-controls">
+                <button class="export-btn" onclick="printPaper()">
+                    <span class="btn-icon">🖨️</span> پرنٹ کریں
+                </button>
+                <button class="export-btn" onclick="exportToPDF()">
+                    <span class="btn-icon">📄</span> PDF محفوظ کریں
+                </button>
+                <button class="export-btn" onclick="exportToDOC()">
+                    <span class="btn-icon">📝</span> DOC محفوظ کریں
+                </button>
+                <button class="export-btn" onclick="saveTemplate()">
+                    <span class="btn-icon">💾</span> ٹیمپلیٹ محفوظ کریں
+                </button>
+            </div>
+
+            <div class="paper-preview-container">
+                <div class="paper-preview" id="paper-preview">
+                    <!-- Paper preview will be generated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Tools Tab -->
+        <section id="ai-tools" class="tab-content">
+            <div class="section-header">
+                <h2>🤖 AI سوال جنریٹر</h2>
+                <p>مصنوعی ذہانت کی مدد سے خودکار سوالات تیار کریں</p>
+            </div>
+            
+            <div class="ai-controls">
+                <div class="ai-input-group">
+                    <label for="ai-topic">📚 موضوع درج کریں:</label>
+                    <input type="text" id="ai-topic" placeholder="مثال: اسلامیات، سائنس، ریاضی">
+                </div>
+                <div class="ai-input-group">
+                    <label for="ai-grade">🎓 جماعت:</label>
+                    <select id="ai-grade">
+                        <option value="1">پہلی جماعت</option>
+                        <option value="2">دوسری جماعت</option>
+                        <option value="3">تیسری جماعت</option>
+                        <option value="4">چوتھی جماعت</option>
+                        <option value="5">پانچویں جماعت</option>
+                        <option value="6">چھٹی جماعت</option>
+                        <option value="7">ساتویں جماعت</option>
+                        <option value="8">آٹھویں جماعت</option>
+                        <option value="9">نویں جماعت</option>
+                        <option value="10">دسویں جماعت</option>
+                    </select>
+                </div>
+                <div class="ai-input-group">
+                    <label for="ai-question-type">❓ سوال کی قسم:</label>
+                    <select id="ai-question-type">
+                        <option value="mcq">MCQ سوالات</option>
+                        <option value="short">مختصر جواب</option>
+                        <option value="long">طویل جواب</option>
+                        <option value="mixed">مخلوط سوالات</option>
+                    </select>
+                </div>
+                <div class="ai-input-group">
+                    <label for="ai-count">🔢 سوالات کی تعداد:</label>
+                    <input type="number" id="ai-count" value="5" min="1" max="20">
+                </div>
+                
+                <button class="ai-generate-btn" onclick="generateAIQuestions()">
+                    <span class="btn-icon">⚡</span> سوالات جنریٹ کریں
+                </button>
+            </div>
+
+            <div id="ai-results" class="ai-results">
+                <!-- AI generated questions will appear here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>© 2024 اردو پیپر جنریٹر - Magicrills.com کا ایک پروڈکٹ</p>
+            <div class="footer-links">
+                <a href="#">مدد</a>
+                <a href="#">فیچرز</a>
+                <a href="#">فیدبیک</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Animation -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>لوڈ ہو رہا ہے...</p>
+        </div>
+    </div>
+
+    <!-- Success Notification -->
+    <div id="successNotification" class="notification success">
+        <span class="notification-icon">✅</span>
+        <span class="notification-text">کامیابی کے ساتھ محفوظ ہو گیا!</span>
+    </div>
+</body>
+</html>
