@@ -1,0 +1,1077 @@
+<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/10967/10967987.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/10967/10967987.png"style='display:none'/></a></div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Paper Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --secondary: #2D2D2D;
+            --light: #F5F5F5;
+            --dark: #1A1A1A;
+            --accent: #FF8C42;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--secondary), var(--dark));
+            color: white;
+            padding: 20px 0;
+            border-bottom: 5px solid var(--primary);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .dashboard {
+            background-color: var(--secondary);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--primary);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        .lang-text {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background-color: var(--accent);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #3a3a3a;
+        }
+        
+        .paper-preview {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .paper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+        }
+        
+        .school-info {
+            flex: 1;
+        }
+        
+        .school-logo {
+            width: 100px;
+            height: 100px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .paper-title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            background-color: var(--secondary);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .question-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        
+        .question-text {
+            margin-bottom: 10px;
+        }
+        
+        .mcq-options {
+            margin-left: 20px;
+        }
+        
+        .mcq-option {
+            margin-bottom: 5px;
+        }
+        
+        .matching-column {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .column {
+            width: 45%;
+        }
+        
+        .diagram-space {
+            height: 200px;
+            border: 1px dashed #ccc;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        
+        .answer-space {
+            margin: 15px 0;
+        }
+        
+        .answer-line {
+            line-height: 1.5;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .download-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .urdu-text {
+            direction: rtl;
+            text-align: right;
+            font-family: 'Jameel Noori Nastaleeq', serif;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .image-upload-group {
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .image-position-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .image-position-options label {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .image-position-options input {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .question-with-image {
+            position: relative;
+        }
+        
+        .image-left {
+            float: left;
+            margin-right: 15px;
+            margin-bottom: 10px;
+            max-width: 40%;
+        }
+        
+        .image-right {
+            float: right;
+            margin-left: 15px;
+            margin-bottom: 10px;
+            max-width: 40%;
+        }
+        
+        .image-center {
+            display: block;
+            margin: 10px auto;
+            max-width: 80%;
+        }
+        
+        .image-parallel {
+            display: inline-block;
+            vertical-align: top;
+            margin: 0 10px;
+            max-width: 45%;
+        }
+        
+        .image-below {
+            display: block;
+            margin: 10px 0;
+            max-width: 100%;
+        }
+        
+        @media print {
+            .dashboard, .action-buttons, .download-buttons {
+                display: none;
+            }
+            
+            .paper-preview {
+                display: block !important;
+                box-shadow: none;
+                padding: 0;
+            }
+            
+            body {
+                background-color: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Science Paper Generator</div>
+                <div class="toggle-container">
+                    <span class="toggle-label">Language:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="languageToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="lang-text" id="langText">English</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="dashboard">
+            <h2 id="dashboardTitle">Paper Configuration</h2>
+            
+            <div class="form-group">
+                <label for="paperType" id="paperTypeLabel">Paper Type:</label>
+                <select id="paperType">
+                    <option value="midTerm">Mid Term</option>
+                    <option value="secondMid">2nd Mid</option>
+                    <option value="finalTerm">Final Term</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="schoolName" id="schoolNameLabel">School Name:</label>
+                <input type="text" id="schoolName" placeholder="Enter school name">
+            </div>
+            
+            <div class="form-group">
+                <label for="subject" id="subjectLabel">Subject:</label>
+                <input type="text" id="subject" placeholder="Enter subject">
+            </div>
+            
+            <div class="form-group">
+                <label for="date" id="dateLabel">Date:</label>
+                <input type="date" id="date">
+            </div>
+            
+            <div class="form-group">
+                <label for="time" id="timeLabel">Time:</label>
+                <input type="text" id="time" placeholder="e.g., 2 hours">
+            </div>
+            
+            <h3 id="objectiveSectionLabel">Objective Section</h3>
+            
+            <div class="form-group">
+                <label for="objectiveType" id="objectiveTypeLabel">Question Type:</label>
+                <select id="objectiveType">
+                    <option value="mcq">MCQs</option>
+                    <option value="fillBlank">Fill in the Blanks</option>
+                    <option value="trueFalse">True / False</option>
+                    <option value="matching">Matching Column</option>
+                    <option value="mindMapping">Mind Mapping</option>
+                    <option value="creative">Creative Question</option>
+                    <option value="diagram">Making Diagram</option>
+                    <option value="short">Short Question</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="objectiveQuestion" id="objectiveQuestionLabel">Question:</label>
+                <textarea id="objectiveQuestion" rows="3" placeholder="Enter your question"></textarea>
+            </div>
+            
+            <div class="form-group" id="mcqOptionsGroup">
+                <label id="mcqOptionsLabel">Options (for MCQs):</label>
+                <input type="text" id="optionA" placeholder="Option A">
+                <input type="text" id="optionB" placeholder="Option B">
+                <input type="text" id="optionC" placeholder="Option C">
+                <input type="text" id="optionD" placeholder="Option D">
+            </div>
+            
+            <button class="btn" id="addObjectiveBtn">Add Question</button>
+            
+            <h3 id="subjectiveSectionLabel">Subjective Section</h3>
+            
+            <div class="form-group">
+                <label for="subjectiveQuestion" id="subjectiveQuestionLabel">Extended Response Question:</label>
+                <textarea id="subjectiveQuestion" rows="4" placeholder="Enter your extended response question"></textarea>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeDiagram">
+                <label for="includeDiagram" id="includeDiagramLabel">Include Diagram Space</label>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeImage">
+                <label for="includeImage" id="includeImageLabel">Include Image</label>
+            </div>
+            
+            <div class="image-upload-group" id="imageUploadGroup">
+                <label for="imageUpload" id="imageUploadLabel">Upload Image:</label>
+                <input type="file" id="imageUpload" accept="image/*">
+                <div class="image-preview" id="imagePreview"></div>
+                
+                <div class="image-position-options">
+                    <label>
+                        <input type="radio" name="imagePosition" value="left" checked>
+                        <span id="positionLeftLabel">Left</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imagePosition" value="right">
+                        <span id="positionRightLabel">Right</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imagePosition" value="center">
+                        <span id="positionCenterLabel">Center</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imagePosition" value="parallel">
+                        <span id="positionParallelLabel">Parallel to Text</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imagePosition" value="below">
+                        <span id="positionBelowLabel">Below Text</span>
+                    </label>
+                </div>
+            </div>
+            
+            <button class="btn" id="addSubjectiveBtn">Add Question</button>
+            
+            <div class="action-buttons">
+                <button class="btn" id="generateBtn">Generate Paper</button>
+                <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            </div>
+        </div>
+        
+        <div class="paper-preview" id="paperPreview">
+            <div class="paper-header">
+                <div class="school-info">
+                    <div id="previewSchoolName">School Name</div>
+                    <div id="previewSubject">Subject</div>
+                    <div id="previewDate">Date</div>
+                    <div id="previewTime">Time</div>
+                </div>
+                <div class="school-logo" id="previewLogo">LOGO</div>
+            </div>
+            
+            <div class="paper-title" id="previewPaperTitle">Mid Term Examination</div>
+            
+            <div class="section">
+                <div class="section-title" id="previewObjectiveTitle">Objective Section</div>
+                <div id="objectiveQuestionsContainer">
+                    <!-- Objective questions will be added here -->
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title" id="previewSubjectiveTitle">Subjective Section</div>
+                <div id="subjectiveQuestionsContainer">
+                    <!-- Subjective questions will be added here -->
+                </div>
+            </div>
+            
+            <div class="download-buttons">
+                <button class="btn" id="downloadPdfBtn">Download as PDF</button>
+                <button class="btn" id="downloadDocBtn">Download as Word</button>
+                <button class="btn btn-secondary" id="printBtn">Print Paper</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Language toggle functionality
+        const languageToggle = document.getElementById('languageToggle');
+        const langText = document.getElementById('langText');
+        
+        // English text content
+        const englishText = {
+            dashboardTitle: "Paper Configuration",
+            paperTypeLabel: "Paper Type:",
+            schoolNameLabel: "School Name:",
+            subjectLabel: "Subject:",
+            dateLabel: "Date:",
+            timeLabel: "Time:",
+            objectiveSectionLabel: "Objective Section",
+            objectiveTypeLabel: "Question Type:",
+            objectiveQuestionLabel: "Question:",
+            mcqOptionsLabel: "Options (for MCQs):",
+            subjectiveSectionLabel: "Subjective Section",
+            subjectiveQuestionLabel: "Extended Response Question:",
+            includeDiagramLabel: "Include Diagram Space",
+            includeImageLabel: "Include Image",
+            imageUploadLabel: "Upload Image:",
+            positionLeftLabel: "Left",
+            positionRightLabel: "Right",
+            positionCenterLabel: "Center",
+            positionParallelLabel: "Parallel to Text",
+            positionBelowLabel: "Below Text",
+            previewObjectiveTitle: "Objective Section",
+            previewSubjectiveTitle: "Subjective Section",
+            addObjectiveBtn: "Add Question",
+            addSubjectiveBtn: "Add Question",
+            generateBtn: "Generate Paper",
+            resetBtn: "Reset",
+            optionA: "Option A",
+            optionB: "Option B",
+            optionC: "Option C",
+            optionD: "Option D",
+            downloadPdfBtn: "Download as PDF",
+            downloadDocBtn: "Download as Word",
+            printBtn: "Print Paper"
+        };
+        
+        // Urdu text content
+        const urduText = {
+            dashboardTitle: "پیپر کی تشکیل",
+            paperTypeLabel: "پیپر کی قسم:",
+            schoolNameLabel: "اسکول کا نام:",
+            subjectLabel: "مضمون:",
+            dateLabel: "تاریخ:",
+            timeLabel: "وقت:",
+            objectiveSectionLabel: "معروضی سیکشن",
+            objectiveTypeLabel: "سوال کی قسم:",
+            objectiveQuestionLabel: "سوال:",
+            mcqOptionsLabel: "اختیارات (MCQs کے لیے):",
+            subjectiveSectionLabel: "تذکاری سیکشن",
+            subjectiveQuestionLabel: "تفصیلی جواب والا سوال:",
+            includeDiagramLabel: "ڈایاگرام کی جگہ شامل کریں",
+            includeImageLabel: "تصویر شامل کریں",
+            imageUploadLabel: "تصویر اپ لوڈ کریں:",
+            positionLeftLabel: "بائیں",
+            positionRightLabel: "دائیں",
+            positionCenterLabel: "مرکز",
+            positionParallelLabel: "متن کے متوازی",
+            positionBelowLabel: "متن کے نیچے",
+            previewObjectiveTitle: "معروضی سیکشن",
+            previewSubjectiveTitle: "تذکاری سیکشن",
+            addObjectiveBtn: "سوال شامل کریں",
+            addSubjectiveBtn: "سوال شامل کریں",
+            generateBtn: "پیپر بنائیں",
+            resetBtn: "دوبارہ ترتیب دیں",
+            optionA: "اختیار الف",
+            optionB: "اختیار ب",
+            optionC: "اختیار ج",
+            optionD: "اختیار د",
+            downloadPdfBtn: "پی ڈی ایف ڈاؤن لوڈ کریں",
+            downloadDocBtn: "ورڈ ڈاؤن لوڈ کریں",
+            printBtn: "پیپر پرنٹ کریں"
+        };
+        
+        // Function to update text based on language
+        function updateLanguage(isUrdu) {
+            const text = isUrdu ? urduText : englishText;
+            
+            // Update all text elements
+            document.getElementById('dashboardTitle').textContent = text.dashboardTitle;
+            document.getElementById('paperTypeLabel').textContent = text.paperTypeLabel;
+            document.getElementById('schoolNameLabel').textContent = text.schoolNameLabel;
+            document.getElementById('subjectLabel').textContent = text.subjectLabel;
+            document.getElementById('dateLabel').textContent = text.dateLabel;
+            document.getElementById('timeLabel').textContent = text.timeLabel;
+            document.getElementById('objectiveSectionLabel').textContent = text.objectiveSectionLabel;
+            document.getElementById('objectiveTypeLabel').textContent = text.objectiveTypeLabel;
+            document.getElementById('objectiveQuestionLabel').textContent = text.objectiveQuestionLabel;
+            document.getElementById('mcqOptionsLabel').textContent = text.mcqOptionsLabel;
+            document.getElementById('subjectiveSectionLabel').textContent = text.subjectiveSectionLabel;
+            document.getElementById('subjectiveQuestionLabel').textContent = text.subjectiveQuestionLabel;
+            document.getElementById('includeDiagramLabel').textContent = text.includeDiagramLabel;
+            document.getElementById('includeImageLabel').textContent = text.includeImageLabel;
+            document.getElementById('imageUploadLabel').textContent = text.imageUploadLabel;
+            document.getElementById('positionLeftLabel').textContent = text.positionLeftLabel;
+            document.getElementById('positionRightLabel').textContent = text.positionRightLabel;
+            document.getElementById('positionCenterLabel').textContent = text.positionCenterLabel;
+            document.getElementById('positionParallelLabel').textContent = text.positionParallelLabel;
+            document.getElementById('positionBelowLabel').textContent = text.positionBelowLabel;
+            document.getElementById('previewObjectiveTitle').textContent = text.previewObjectiveTitle;
+            document.getElementById('previewSubjectiveTitle').textContent = text.previewSubjectiveTitle;
+            document.getElementById('addObjectiveBtn').textContent = text.addObjectiveBtn;
+            document.getElementById('addSubjectiveBtn').textContent = text.addSubjectiveBtn;
+            document.getElementById('generateBtn').textContent = text.generateBtn;
+            document.getElementById('resetBtn').textContent = text.resetBtn;
+            document.getElementById('downloadPdfBtn').textContent = text.downloadPdfBtn;
+            document.getElementById('downloadDocBtn').textContent = text.downloadDocBtn;
+            document.getElementById('printBtn').textContent = text.printBtn;
+            
+            // Update placeholders
+            document.getElementById('optionA').placeholder = text.optionA;
+            document.getElementById('optionB').placeholder = text.optionB;
+            document.getElementById('optionC').placeholder = text.optionC;
+            document.getElementById('optionD').placeholder = text.optionD;
+            
+            // Update language text
+            langText.textContent = isUrdu ? "اردو" : "English";
+            
+            // Apply Urdu styling if needed
+            if (isUrdu) {
+                document.body.classList.add('urdu-text');
+            } else {
+                document.body.classList.remove('urdu-text');
+            }
+        }
+        
+        // Initial language setup
+        updateLanguage(false);
+        
+        // Toggle language when switch is changed
+        languageToggle.addEventListener('change', function() {
+            updateLanguage(this.checked);
+        });
+        
+        // Paper generation functionality
+        const generateBtn = document.getElementById('generateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const addObjectiveBtn = document.getElementById('addObjectiveBtn');
+        const addSubjectiveBtn = document.getElementById('addSubjectiveBtn');
+        const paperPreview = document.getElementById('paperPreview');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const downloadDocBtn = document.getElementById('downloadDocBtn');
+        const printBtn = document.getElementById('printBtn');
+        const includeDiagram = document.getElementById('includeDiagram');
+        const includeImage = document.getElementById('includeImage');
+        const imageUploadGroup = document.getElementById('imageUploadGroup');
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        // Arrays to store questions
+        let objectiveQuestions = [];
+        let subjectiveQuestions = [];
+        
+        // Show/hide image upload group based on checkbox
+        includeImage.addEventListener('change', function() {
+            imageUploadGroup.style.display = this.checked ? 'block' : 'none';
+            if (!this.checked) {
+                imagePreview.style.display = 'none';
+                imagePreview.innerHTML = '';
+            }
+        });
+        
+        // Handle image upload preview
+        imageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width: 100%; max-height: 200px;">`;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Add objective question
+        addObjectiveBtn.addEventListener('click', function() {
+            const questionType = document.getElementById('objectiveType').value;
+            const questionText = document.getElementById('objectiveQuestion').value;
+            
+            if (!questionText) {
+                alert('Please enter a question');
+                return;
+            }
+            
+            let questionData = {
+                type: questionType,
+                text: questionText
+            };
+            
+            // Add options for MCQs
+            if (questionType === 'mcq') {
+                const optionA = document.getElementById('optionA').value;
+                const optionB = document.getElementById('optionB').value;
+                const optionC = document.getElementById('optionC').value;
+                const optionD = document.getElementById('optionD').value;
+                
+                if (!optionA || !optionB || !optionC || !optionD) {
+                    alert('Please enter all options for MCQ');
+                    return;
+                }
+                
+                questionData.options = {
+                    A: optionA,
+                    B: optionB,
+                    C: optionC,
+                    D: optionD
+                };
+            }
+            
+            objectiveQuestions.push(questionData);
+            updateObjectivePreview();
+            
+            // Clear form
+            document.getElementById('objectiveQuestion').value = '';
+            document.getElementById('optionA').value = '';
+            document.getElementById('optionB').value = '';
+            document.getElementById('optionC').value = '';
+            document.getElementById('optionD').value = '';
+        });
+        
+        // Add subjective question
+        addSubjectiveBtn.addEventListener('click', function() {
+            const questionText = document.getElementById('subjectiveQuestion').value;
+            
+            if (!questionText) {
+                alert('Please enter a question');
+                return;
+            }
+            
+            let questionData = {
+                text: questionText,
+                includeDiagram: includeDiagram.checked,
+                includeImage: includeImage.checked
+            };
+            
+            // Add image data if included
+            if (includeImage.checked) {
+                const imageFile = imageUpload.files[0];
+                if (imageFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        questionData.image = {
+                            src: e.target.result,
+                            position: document.querySelector('input[name="imagePosition"]:checked').value
+                        };
+                        subjectiveQuestions.push(questionData);
+                        updateSubjectivePreview();
+                    };
+                    reader.readAsDataURL(imageFile);
+                } else {
+                    subjectiveQuestions.push(questionData);
+                    updateSubjectivePreview();
+                }
+            } else {
+                subjectiveQuestions.push(questionData);
+                updateSubjectivePreview();
+            }
+            
+            // Clear form
+            document.getElementById('subjectiveQuestion').value = '';
+            includeDiagram.checked = false;
+            includeImage.checked = false;
+            imageUploadGroup.style.display = 'none';
+            imagePreview.style.display = 'none';
+            imagePreview.innerHTML = '';
+            imageUpload.value = '';
+        });
+        
+        // Update objective questions preview
+        function updateObjectivePreview() {
+            const container = document.getElementById('objectiveQuestionsContainer');
+            container.innerHTML = '';
+            
+            objectiveQuestions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                
+                let questionHTML = `<div class="question-text"><strong>Q${index + 1}:</strong> ${question.text}</div>`;
+                
+                if (question.type === 'mcq' && question.options) {
+                    questionHTML += `<div class="mcq-options">`;
+                    questionHTML += `<div class="mcq-option">A. ${question.options.A}</div>`;
+                    questionHTML += `<div class="mcq-option">B. ${question.options.B}</div>`;
+                    questionHTML += `<div class="mcq-option">C. ${question.options.C}</div>`;
+                    questionHTML += `<div class="mcq-option">D. ${question.options.D}</div>`;
+                    questionHTML += `</div>`;
+                } else if (question.type === 'trueFalse') {
+                    questionHTML += `<div class="mcq-options">`;
+                    questionHTML += `<div class="mcq-option">True</div>`;
+                    questionHTML += `<div class="mcq-option">False</div>`;
+                    questionHTML += `</div>`;
+                } else if (question.type === 'matching') {
+                    questionHTML += `<div class="matching-column">`;
+                    questionHTML += `<div class="column">`;
+                    questionHTML += `<div>Column A</div>`;
+                    questionHTML += `<div>1. ________</div>`;
+                    questionHTML += `<div>2. ________</div>`;
+                    questionHTML += `<div>3. ________</div>`;
+                    questionHTML += `</div>`;
+                    questionHTML += `<div class="column">`;
+                    questionHTML += `<div>Column B</div>`;
+                    questionHTML += `<div>A. ________</div>`;
+                    questionHTML += `<div>B. ________</div>`;
+                    questionHTML += `<div>C. ________</div>`;
+                    questionHTML += `</div>`;
+                    questionHTML += `</div>`;
+                } else if (question.type === 'diagram') {
+                    questionHTML += `<div class="diagram-space">Diagram Space</div>`;
+                }
+                
+                questionItem.innerHTML = questionHTML;
+                container.appendChild(questionItem);
+            });
+        }
+        
+        // Update subjective questions preview
+        function updateSubjectivePreview() {
+            const container = document.getElementById('subjectiveQuestionsContainer');
+            container.innerHTML = '';
+            
+            subjectiveQuestions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                
+                let questionHTML = '';
+                
+                // Handle image positioning
+                if (question.includeImage && question.image) {
+                    const positionClass = `image-${question.image.position}`;
+                    questionHTML += `<div class="question-with-image">`;
+                    
+                    if (question.image.position === 'left' || question.image.position === 'right' || question.image.position === 'parallel') {
+                        questionHTML += `<img src="${question.image.src}" class="${positionClass}" alt="Question Image">`;
+                    }
+                    
+                    questionHTML += `<div class="question-text"><strong>Q${index + 1}:</strong> ${question.text}</div>`;
+                    
+                    if (question.image.position === 'center' || question.image.position === 'below') {
+                        questionHTML += `<img src="${question.image.src}" class="${positionClass}" alt="Question Image">`;
+                    }
+                    
+                    questionHTML += `</div>`;
+                } else {
+                    questionHTML += `<div class="question-text"><strong>Q${index + 1}:</strong> ${question.text}</div>`;
+                }
+                
+                questionHTML += `<div class="answer-space">`;
+                
+                // Add 10 answer lines with 1.5 line spacing
+                for (let i = 0; i < 10; i++) {
+                    questionHTML += `<div class="answer-line">________________________________________________________</div>`;
+                }
+                
+                questionHTML += `</div>`;
+                
+                // Add diagram space if needed
+                if (question.includeDiagram) {
+                    questionHTML += `<div class="diagram-space">Diagram Space</div>`;
+                }
+                
+                questionItem.innerHTML = questionHTML;
+                container.appendChild(questionItem);
+            });
+        }
+        
+        // Generate paper
+        generateBtn.addEventListener('click', function() {
+            // Update paper header
+            document.getElementById('previewSchoolName').textContent = document.getElementById('schoolName').value || 'School Name';
+            document.getElementById('previewSubject').textContent = document.getElementById('subject').value || 'Subject';
+            
+            const dateInput = document.getElementById('date').value;
+            if (dateInput) {
+                const date = new Date(dateInput);
+                document.getElementById('previewDate').textContent = date.toLocaleDateString();
+            } else {
+                document.getElementById('previewDate').textContent = 'Date';
+            }
+            
+            document.getElementById('previewTime').textContent = document.getElementById('time').value || 'Time';
+            
+            // Update paper title based on type
+            const paperType = document.getElementById('paperType').value;
+            let paperTitle = '';
+            if (paperType === 'midTerm') paperTitle = 'Mid Term Examination';
+            else if (paperType === 'secondMid') paperTitle = '2nd Mid Term Examination';
+            else if (paperType === 'finalTerm') paperTitle = 'Final Term Examination';
+            
+            document.getElementById('previewPaperTitle').textContent = paperTitle;
+            
+            // Show the preview
+            paperPreview.style.display = 'block';
+            
+            // Scroll to preview
+            paperPreview.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Reset paper
+        resetBtn.addEventListener('click', function() {
+            // Clear form fields
+            document.getElementById('schoolName').value = '';
+            document.getElementById('subject').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('time').value = '';
+            document.getElementById('objectiveQuestion').value = '';
+            document.getElementById('subjectiveQuestion').value = '';
+            document.getElementById('optionA').value = '';
+            document.getElementById('optionB').value = '';
+            document.getElementById('optionC').value = '';
+            document.getElementById('optionD').value = '';
+            includeDiagram.checked = false;
+            includeImage.checked = false;
+            imageUploadGroup.style.display = 'none';
+            imagePreview.style.display = 'none';
+            imagePreview.innerHTML = '';
+            imageUpload.value = '';
+            
+            // Clear questions arrays
+            objectiveQuestions = [];
+            subjectiveQuestions = [];
+            
+            // Clear preview
+            document.getElementById('objectiveQuestionsContainer').innerHTML = '';
+            document.getElementById('subjectiveQuestionsContainer').innerHTML = '';
+            
+            // Hide preview
+            paperPreview.style.display = 'none';
+        });
+        
+        // Show/hide MCQ options based on question type
+        document.getElementById('objectiveType').addEventListener('change', function() {
+            const mcqOptionsGroup = document.getElementById('mcqOptionsGroup');
+            if (this.value === 'mcq') {
+                mcqOptionsGroup.style.display = 'block';
+            } else {
+                mcqOptionsGroup.style.display = 'none';
+            }
+        });
+        
+        // Download as PDF
+        downloadPdfBtn.addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Get paper content
+            const paperContent = document.getElementById('paperPreview').innerText;
+            
+            // Add content to PDF
+            doc.text(paperContent, 10, 10);
+            
+            // Save the PDF
+            doc.save('science-paper.pdf');
+        });
+        
+        // Download as Word
+        downloadDocBtn.addEventListener('click', function() {
+            // Get paper content
+            const paperContent = document.getElementById('paperPreview').innerHTML;
+            
+            // Create a Blob with the content
+            const blob = new Blob([`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Science Paper</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.5; }
+                        .paper-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                        .paper-title { text-align: center; font-size: 18px; font-weight: bold; margin: 20px 0; }
+                        .section-title { background-color: #2D2D2D; color: white; padding: 8px; margin-bottom: 10px; }
+                        .question-item { margin-bottom: 15px; }
+                        .answer-line { border-bottom: 1px solid #000; margin-bottom: 8px; }
+                        .diagram-space { border: 1px dashed #ccc; height: 150px; margin: 10px 0; }
+                    </style>
+                </head>
+                <body>
+                    ${paperContent}
+                </body>
+                </html>
+            `], { type: 'application/msword' });
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'science-paper.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        
+        // Print paper
+        printBtn.addEventListener('click', function() {
+            window.print();
+        });
+    </script>
+</body>
+</html>
