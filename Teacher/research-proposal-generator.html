@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Research Proposal Generator</title>
+  <link rel="stylesheet" href="research-proposal-generator.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+</head>
+<body class="light-theme">
+  <div class="container">
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo"><i class="fas fa-flask"></i></div>
+          <h1>AI Research Proposal Generator</h1>
+        </div>
+        <div class="header-controls">
+          <button id="themeToggle"><i class="fas fa-moon"></i></button>
+          <button id="helpBtn"><i class="fas fa-question-circle"></i></button>
+          <button id="printPreviewBtn"><i class="fas fa-print"></i></button>
+        </div>
+      </div>
+      <p class="tagline">AI-Powered Professional Proposals in Seconds</p>
+    </header>
+
+    <div class="stats-dashboard">
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-file-alt"></i></div><div class="stat-info"><h3 id="proposalsCount">0</h3><p>Generated</p></div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><h3 id="timeSaved">0</h3><p>Hours Saved</p></div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-download"></i></div><div class="stat-info"><h3 id="exportsCount">0</h3><p>Exported</p></div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-brain"></i></div><div class="stat-info"><h3 id="aiSuggestions">0</h3><p>AI Tips</p></div></div>
+    </div>
+
+    <div class="progress-bar hidden" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+      <span id="progressText">0%</span>
+    </div>
+
+    <div class="main-content">
+      <div class="input-section">
+        <div class="section-header">
+          <h2>Research Details</h2>
+          <div class="ai-assist-toggle">
+            <span>AI Assist</span>
+            <label class="switch"><input type="checkbox" id="aiAssistToggle" checked><span class="slider round"></span></label>
+          </div>
+        </div>
+
+        <div class="input-group template-controls">
+          <select id="templateSelect">
+            <option value="modern">Modern Blue</option>
+            <option value="academic">Academic Classic</option>
+            <option value="minimal">Minimal Clean</option>
+          </select>
+          <button id="saveTemplateBtn" class="template-btn"><i class="fas fa-save"></i></button>
+          <button id="loadTemplateBtn" class="template-btn"><i class="fas fa-folder-open"></i></button>
+        </div>
+
+        <div class="input-group">
+          <label for="researchTopic">Topic * <span class="ai-suggestion" id="topicSuggestion"></span></label>
+          <input type="text" id="researchTopic" placeholder="e.g., Need Assessment of Educational Software">
+        </div>
+
+        <div class="input-group">
+          <label for="researchArea">Field * <span class="ai-suggestion" id="areaSuggestion"></span></label>
+          <input type="text" id="researchArea" placeholder="e.g., Educational Technology">
+        </div>
+
+        <div class="input-group">
+          <label for="industry">Sector</label>
+          <input type="text" id="industry" placeholder="e.g., Secondary Education">
+        </div>
+
+        <div class="input-group">
+          <label for="keyTerms">Key Terms
+            <button type="button" class="ai-generate-btn" id="generateTermsBtn"><i class="fas fa-magic"></i> AI</button>
+          </label>
+          <textarea id="keyTerms" placeholder="One per line: Pedagogy - Teaching method"></textarea>
+        </div>
+
+        <div class="input-group">
+          <label for="methodology">Methodology</label>
+          <select id="methodology">
+            <option value="">Select</option>
+            <option value="quantitative">Quantitative</option>
+            <option value="qualitative">Qualitative</option>
+            <option value="mixed">Mixed Methods</option>
+            <option value="experimental">Experimental</option>
+            <option value="case-study">Case Study</option>
+          </select>
+        </div>
+
+        <button class="generate-btn" id="generateProposalBtn">
+          <i class="fas fa-rocket"></i> Generate with AI
+        </button>
+
+        <div class="platform-integration">
+          <h3>Search & Auto-Add Literature</h3>
+          <div class="platform-buttons">
+            <button class="platform-btn" data-platform="scholar"><i class="fas fa-graduation-cap"></i> Scholar</button>
+            <button class="platform-btn" data-platform="arxiv"><i class="fas fa-atom"></i> arXiv</button>
+            <button class="platform-btn" data-platform="pubmed"><i class="fas fa-heartbeat"></i> PubMed</button>
+            <button class="add-lit-btn" id="addLiteratureBtn"><i class="fas fa-plus"></i> Add to Proposal</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-section">
+        <div class="section-header">
+          <h2>Generated Proposal</h2>
+          <div class="output-controls">
+            <button id="copyBtn"><i class="fas fa-copy"></i></button>
+            <button id="saveBtn"><i class="fas fa-save"></i></button>
+            <button id="exportMdBtn"><i class="fas fa-file-code"></i></button>
+          </div>
+        </div>
+
+        <div id="proposalOutput" class="proposal-content">
+          <div class="placeholder-content">
+            <i class="fas fa-file-alt"></i>
+            <h3>Your proposal will appear here</h3>
+            <p>Fill in details and click Generate</p>
+          </div>
+        </div>
+
+        <div class="export-options hidden" id="exportOptions">
+          <div class="export-buttons">
+            <button id="exportPdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button id="exportWordBtn"><i class="fas fa-file-word"></i> Word</button>
+            <button id="exportStatsBtn"><i class="fas fa-chart-bar"></i> Stats CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-assistant-panel" id="aiAssistantPanel">
+      <div class="ai-panel-header">
+        <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+        <button class="close-panel" id="closeAiPanel"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="ai-suggestions-content" id="aiSuggestionsContent">
+        <div class="welcome-message">
+          <i class="fas fa-robot"></i>
+          <p>Start typing for real AI suggestions!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification" id="notification"></div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Generating with AI...</p>
+    </div>
+  </div>
+
+  <script src="research-proposal-generator.js"></script>
+  <script src="research-proposal-generator-pdf.js"></script>
+  <script src="research-proposal-generator-word.js"></script>
+</body>
+</html>
