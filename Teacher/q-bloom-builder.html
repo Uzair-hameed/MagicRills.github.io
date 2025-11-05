@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q Bloom Builder - Advanced Bloom's Taxonomy Classifier</title>
+    <link rel="stylesheet" href="q-bloom-builder.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="q-bloom-builder-container">
+        <!-- Theme Toggle -->
+        <div class="theme-toggle">
+            <button id="themeToggle" class="theme-btn">
+                <span class="sun">☀️</span>
+                <span class="moon">🌙</span>
+            </button>
+        </div>
+
+        <header class="q-bloom-builder-header">
+            <div class="header-content">
+                <h1 class="main-title">
+                    <span class="title-text">Q Bloom Builder</span>
+                    <span class="title-badge">AI Powered</span>
+                </h1>
+                <p class="subtitle">Advanced Bloom's Taxonomy Classification with AI Analysis</p>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalTools">110+</span>
+                        <span class="stat-label">Educational Tools</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="aiPowered">AI</span>
+                        <span class="stat-label">Enhanced</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="q-bloom-builder-main">
+            <!-- Input Section -->
+            <section class="input-section">
+                <div class="section-header">
+                    <h2>📝 Input Questions</h2>
+                    <div class="section-actions">
+                        <button class="action-btn sample-btn" onclick="loadSampleQuestions()">
+                            <span>📋</span>
+                            Load Samples
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <textarea id="questionInput" placeholder="Enter your questions here, one per line. For example:
+
+What is the capital of France?
+How would you compare these two theories?
+Design an experiment to test this hypothesis.
+Create a story about space exploration.
+
+You can also paste a whole paragraph - our AI will extract questions automatically!"></textarea>
+                    
+                    <div class="input-footer">
+                        <div class="char-count">
+                            <span id="charCount">0</span> characters
+                        </div>
+                        <div class="question-count">
+                            <span id="questionCount">0</span> questions detected
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn primary analyze-btn" onclick="analyzeQuestions()">
+                        <span class="btn-icon">🔍</span>
+                        Analyze Questions
+                    </button>
+                    <button class="btn secondary ai-enhance-btn" onclick="enhanceWithAI()">
+                        <span class="btn-icon">🤖</span>
+                        AI Enhance
+                    </button>
+                    <button class="btn success export-btn" onclick="exportPDF()">
+                        <span class="btn-icon">📄</span>
+                        Export PDF
+                    </button>
+                    <button class="btn warning export-btn" onclick="exportWord()">
+                        <span class="btn-icon">📝</span>
+                        Export Word
+                    </button>
+                    <button class="btn danger reset-btn" onclick="resetAnalysis()">
+                        <span class="btn-icon">🔄</span>
+                        Reset All
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section">
+                <div class="section-header">
+                    <h2>📊 Analysis Results</h2>
+                    <div class="results-summary">
+                        <div class="summary-item">
+                            <span class="summary-value" id="totalQuestions">0</span>
+                            <span class="summary-label">Total</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value" id="classifiedQuestions">0</span>
+                            <span class="summary-label">Classified</span>
+                        </div>
+                        <div class="summary-item highlight">
+                            <span class="summary-value" id="highestLevel">-</span>
+                            <span class="summary-label">Highest Level</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🧠</div>
+                        <div class="stat-content">
+                            <h3 id="rememberCount">0</h3>
+                            <p>Remember</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💡</div>
+                        <div class="stat-content">
+                            <h3 id="understandCount">0</h3>
+                            <p>Understand</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <h3 id="applyCount">0</h3>
+                            <p>Apply</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔍</div>
+                        <div class="stat-content">
+                            <h3 id="analyzeCount">0</h3>
+                            <p>Analyze</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-content">
+                            <h3 id="evaluateCount">0</h3>
+                            <p>Evaluate</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎨</div>
+                        <div class="stat-content">
+                            <h3 id="createCount">0</h3>
+                            <p>Create</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloom Levels Grid -->
+                <div class="bloom-levels-grid">
+                    <!-- Levels will be populated by JavaScript -->
+                </div>
+
+                <!-- Visualization -->
+                <div class="visualization-section">
+                    <h3>📈 Distribution Visualization</h3>
+                    <div class="chart-container">
+                        <div class="bloom-chart" id="bloom-chart"></div>
+                        <div class="chart-legend" id="chart-legend"></div>
+                    </div>
+                </div>
+
+                <!-- AI Recommendations -->
+                <div class="ai-recommendations" id="aiRecommendations">
+                    <h3>🤖 AI Recommendations</h3>
+                    <div class="recommendations-content">
+                        <p>Analyze questions to get AI-powered suggestions for improving your question distribution.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="q-bloom-builder-footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>Q Bloom Builder</h3>
+                    <p>Part of MagicRills.com - 110+ Educational Tools</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">GitHub</a>
+                    <a href="#" class="footer-link">Vercel</a>
+                    <a href="#" class="footer-link">Documentation</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="q-bloom-builder.js"></script>
+    <script src="q-bloom-builder-ai.js"></script>
+    <script src="q-bloom-builder-dashboard.js"></script>
+</body>
+</html>
