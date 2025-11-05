@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Case Study Generator | MagicRills</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="professional-case-study-generator.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Animated Header -->
+        <header class="animated-header">
+            <div class="logo-container">
+                <div class="logo">📊 CaseStudyPro</div>
+                <div class="theme-toggle">
+                    <button id="theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+                </div>
+            </div>
+            <h1 class="main-title">Advanced Case Study Generator</h1>
+            <p class="subtitle">Create Professional Case Studies with AI-Powered Templates</p>
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard">
+            <!-- Input Section -->
+            <div class="input-section glassmorphism">
+                <div class="section-header">
+                    <span class="section-icon">🎯</span>
+                    <h3>Case Study Details</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="topic" class="form-label">
+                            <span class="label-icon">📝</span>
+                            Main Topic
+                        </label>
+                        <input type="text" id="topic" class="form-input" placeholder="e.g., Digital Transformation in Education">
+                        <div class="input-hint">Enter the primary focus of your case study</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="industry" class="form-label">
+                            <span class="label-icon">🏫</span>
+                            Educational Sector
+                        </label>
+                        <select id="industry" class="form-select">
+                            <option value="">Select Sector</option>
+                            <option value="Early Childhood Education">Early Childhood Education</option>
+                            <option value="Primary Education">Primary Education</option>
+                            <option value="Secondary Education">Secondary Education</option>
+                            <option value="Higher Education">Higher Education</option>
+                            <option value="Online Education">Online Education</option>
+                            <option value="STEM Education">STEM Education</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration" class="form-label">
+                            <span class="label-icon">⏱️</span>
+                            Study Duration
+                        </label>
+                        <input type="text" id="duration" class="form-input" placeholder="e.g., 6 months, 1 academic year">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="participants" class="form-label">
+                            <span class="label-icon">👥</span>
+                            Participants
+                        </label>
+                        <input type="text" id="participants" class="form-input" placeholder="e.g., 150 students, 20 teachers">
+                    </div>
+                </div>
+
+                <!-- Quick Topics -->
+                <div class="quick-topics">
+                    <h4>Quick Topics</h4>
+                    <div class="topic-chips">
+                        <div class="topic-chip" data-topic="Blended Learning">Blended Learning</div>
+                        <div class="topic-chip" data-topic="Student Engagement">Student Engagement</div>
+                        <div class="topic-chip" data-topic="EdTech Integration">EdTech Integration</div>
+                        <div class="topic-chip" data-topic="Personalized Learning">Personalized Learning</div>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="generate-button">
+                    <span class="btn-icon">🚀</span>
+                    Generate Case Study
+                    <div class="btn-shine"></div>
+                </button>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section glassmorphism">
+                <div class="section-header">
+                    <span class="section-icon">👁️</span>
+                    <h3>Live Preview</h3>
+                </div>
+                
+                <div class="preview-container">
+                    <div id="preview-placeholder" class="preview-placeholder">
+                        <div class="placeholder-icon">📄</div>
+                        <p>Your case study will appear here</p>
+                        <small>Fill in the details and click generate</small>
+                    </div>
+                    
+                    <div id="loading" class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Generating your case study...</p>
+                        <div class="loading-bar">
+                            <div class="loading-progress"></div>
+                        </div>
+                    </div>
+
+                    <div id="case-study-preview" class="case-study-preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="export-section">
+            <div class="section-header">
+                <span class="section-icon">📤</span>
+                <h3>Export Options</h3>
+            </div>
+            
+            <div class="export-buttons">
+                <button id="export-pdf" class="export-btn pdf-btn" disabled>
+                    <span class="export-icon">📄</span>
+                    Export as PDF
+                </button>
+                <button id="export-word" class="export-btn word-btn" disabled>
+                    <span class="export-icon">📝</span>
+                    Export to Word
+                </button>
+                <button id="export-html" class="export-btn html-btn" disabled>
+                    <span class="export-icon">🌐</span>
+                    Export as HTML
+                </button>
+                <button id="new-study" class="export-btn new-btn">
+                    <span class="export-icon">🆕</span>
+                    New Study
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="studies-generated">0</div>
+                <div class="stat-label">Studies Generated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-value" id="time-saved">0h</div>
+                <div class="stat-label">Time Saved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="success-rate">98%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <div class="notification-content">
+            <span class="notification-icon">✅</span>
+            <span class="notification-text">Operation completed successfully!</span>
+        </div>
+    </div>
+
+    <script src="professional-case-study-generator.js"></script>
+</body>
+</html>
