@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicRills - AI Plagiarism & Paraphrasing Tool</title>
+    <link rel="stylesheet" href="plagiarism-paraphrasing-tool.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- API Status Badge -->
+    <div class="api-status" id="apiStatusBadge">
+        <i class="fas fa-wifi"></i> API Connected
+    </div>
+
+    <div class="container">
+        <!-- Animated Header -->
+        <header class="animated-header">
+            <div class="logo">
+                <i class="fas fa-magic"></i>
+                <span>MagicRills</span>
+                <span class="badge">AI PRO</span>
+            </div>
+            <div class="header-controls">
+                <button class="mode-toggle" id="modeToggle">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </button>
+                <button class="btn btn-outline" onclick="downloadSampleText()">
+                    <i class="fas fa-download"></i> Sample Text
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Stats -->
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalChecks">0</h3>
+                    <p>Total Checks</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="avgSimilarity">0%</h3>
+                    <p>Avg Similarity</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="timeSaved">0h</h3>
+                    <p>Time Saved</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="accuracyScore">98%</h3>
+                    <p>Accuracy</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tool Section -->
+        <div class="tool-grid">
+            <!-- Input Section -->
+            <div class="card input-section">
+                <div class="card-header">
+                    <h2><i class="fas fa-keyboard"></i> Enter Your Text</h2>
+                    <div class="word-count">
+                        <span id="currentWordCount">0</span> words
+                    </div>
+                </div>
+                <textarea id="inputText" placeholder="Paste your essay, article, or assignment here..."></textarea>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="checkPlagiarism">
+                        <i class="fas fa-search"></i> Check Plagiarism
+                    </button>
+                    <button class="btn btn-success" id="paraphraseText">
+                        <i class="fas fa-sync-alt"></i> Paraphrase Text
+                    </button>
+                    <button class="btn btn-warning" id="improveText">
+                        <i class="fas fa-magic"></i> Improve Writing
+                    </button>
+                    <button class="btn btn-danger" id="clearText">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Advanced Settings -->
+                <div class="settings-panel">
+                    <h3><i class="fas fa-cog"></i> Advanced Settings</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoParaphrase">
+                                <span class="slider"></span>
+                            </label>
+                            <span>Auto-paraphrase detected plagiarism</span>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="highlightSynonyms" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>Highlight synonym suggestions</span>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="advancedAnalysis" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>Advanced text analysis</span>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="grammarCheck" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>Grammar checking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <!-- Plagiarism Report -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar"></i> Plagiarism Report</h2>
+                        <div class="status-badge" id="plagiarismStatus">Ready</div>
+                    </div>
+                    
+                    <div class="loading" id="plagiarismLoading">
+                        <div class="loading-spinner"></div>
+                        <p>Analyzing text for plagiarism...</p>
+                    </div>
+                    
+                    <div class="report-content" id="plagiarismReport" style="display: none;">
+                        <div class="similarity-score">
+                            <div class="score-circle">
+                                <svg class="progress-ring" width="120" height="120">
+                                    <circle class="progress-ring-background" cx="60" cy="60" r="54" stroke-width="8"></circle>
+                                    <circle class="progress-ring-circle" cx="60" cy="60" r="54" stroke-width="8" stroke-linecap="round"></circle>
+                                </svg>
+                                <div class="score-text">
+                                    <span id="similarityScore">0%</span>
+                                    <small>Similarity</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="score-breakdown">
+                            <div class="breakdown-item">
+                                <span class="label">Direct Match</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" data-value="15"></div>
+                                </div>
+                                <span class="value">15%</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="label">Paraphrased</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" data-value="25"></div>
+                                </div>
+                                <span class="value">25%</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="label">Original</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" data-value="60"></div>
+                                </div>
+                                <span class="value">60%</span>
+                            </div>
+                        </div>
+
+                        <div id="highlightedText" class="highlighted-text"></div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-outline" id="downloadReport">
+                                <i class="fas fa-download"></i> Download PDF
+                            </button>
+                            <button class="btn btn-outline" id="shareReport">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                            <button class="btn btn-outline" id="detailedReport">
+                                <i class="fas fa-chart-pie"></i> Detailed Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paraphrased Output -->
+                <div class="card output-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-edit"></i> Paraphrased Text</h2>
+                        <div class="quality-badge">
+                            <i class="fas fa-star"></i>
+                            <span>AI Enhanced</span>
+                        </div>
+                    </div>
+                    
+                    <div class="loading" id="paraphraseLoading">
+                        <div class="loading-spinner"></div>
+                        <p>Generating paraphrased text...</p>
+                    </div>
+                    
+                    <div class="output-content" id="paraphrasedOutput" style="display: none;">
+                        <div class="output-header">
+                            <div class="output-stats">
+                                <span><i class="fas fa-font"></i> <span id="outputWordCount">0</span> words</span>
+                                <span><i class="fas fa-bolt"></i> <span id="uniquenessScore">0%</span> unique</span>
+                            </div>
+                            <div class="output-actions">
+                                <button class="btn-icon" id="copyParaphrased" title="Copy Text">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="btn-icon" id="speakText" title="Read Aloud">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="paraphrasedText" class="paraphrased-text"></div>
+                        
+                        <div class="output-footer">
+                            <button class="btn btn-success" id="useParaphrased">
+                                <i class="fas fa-check"></i> Use This Version
+                            </button>
+                            <button class="btn btn-outline" id="regenerateParaphrase">
+                                <i class="fas fa-redo"></i> Regenerate
+                            </button>
+                            <button class="btn btn-outline" id="toneSelector">
+                                <i class="fas fa-palette"></i> Change Tone
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tone Selector Modal -->
+        <div class="modal" id="toneModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Select Writing Tone</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="tone-options">
+                    <div class="tone-option" data-tone="formal">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Formal</span>
+                    </div>
+                    <div class="tone-option" data-tone="casual">
+                        <i class="fas fa-user-friends"></i>
+                        <span>Casual</span>
+                    </div>
+                    <div class="tone-option" data-tone="academic">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Academic</span>
+                    </div>
+                    <div class="tone-option" data-tone="creative">
+                        <i class="fas fa-paint-brush"></i>
+                        <span>Creative</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>MagicRills Tools</h4>
+                    <p>Advanced AI-powered plagiarism detection and paraphrasing</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect With Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2024 MagicRills. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Notification System -->
+    <div class="notification-container">
+        <div class="notification" id="notification">
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationText">Operation completed successfully!</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="plagiarism-paraphrasing-tool.js"></script>
+</body>
+</html>
