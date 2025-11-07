@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto ID Card Generator Tool</title>
+    <link rel="stylesheet" href="auto-id-card-generator-tool.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-designer@1.0.1/dist/canvas-designer.min.js"></script>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button id="theme-btn" class="btn-theme">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader">
+            <div class="loader-spinner"></div>
+            <p>Initializing AI-Powered ID Card Generator...</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-id-card"></i>
+                    Auto ID Card Generator
+                </h1>
+                <p class="tagline">AI-Powered Professional ID Cards in Seconds</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="ai-enhance">
+                    <i class="fas fa-magic"></i>
+                    AI Enhance
+                </button>
+                <button class="btn btn-secondary" id="save-template">
+                    <i class="fas fa-save"></i>
+                    Save Template
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard -->
+        <div class="dashboard">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <div class="nav-section">
+                        <h3>Design</h3>
+                        <button class="nav-btn active" data-section="templates">
+                            <i class="fas fa-palette"></i>
+                            Templates
+                        </button>
+                        <button class="nav-btn" data-section="customize">
+                            <i class="fas fa-sliders-h"></i>
+                            Customize
+                        </button>
+                        <button class="nav-btn" data-section="colors">
+                            <i class="fas fa-fill-drip"></i>
+                            Colors
+                        </button>
+                    </div>
+                    
+                    <div class="nav-section">
+                        <h3>Content</h3>
+                        <button class="nav-btn" data-section="personal-info">
+                            <i class="fas fa-user"></i>
+                            Personal Info
+                        </button>
+                        <button class="nav-btn" data-section="media">
+                            <i class="fas fa-images"></i>
+                            Media
+                        </button>
+                        <button class="nav-btn" data-section="rules">
+                            <i class="fas fa-file-alt"></i>
+                            Rules & Terms
+                        </button>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3>Export</h3>
+                        <button class="nav-btn" data-section="export">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                        <button class="nav-btn" data-section="batch">
+                            <i class="fas fa-layer-group"></i>
+                            Batch Generate
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Templates Section -->
+                <section id="templates" class="content-section active">
+                    <h2>Choose Template</h2>
+                    <div class="template-grid">
+                        <div class="template-card" data-template="corporate">
+                            <div class="template-preview corporate-template">
+                                <div class="template-badge">Popular</div>
+                            </div>
+                            <h3>Corporate</h3>
+                            <p>Professional business design</p>
+                        </div>
+                        <div class="template-card" data-template="modern">
+                            <div class="template-preview modern-template">
+                                <div class="template-badge">New</div>
+                            </div>
+                            <h3>Modern</h3>
+                            <p>Clean and contemporary</p>
+                        </div>
+                        <div class="template-card" data-template="creative">
+                            <div class="template-preview creative-template"></div>
+                            <h3>Creative</h3>
+                            <p>Artistic and unique</p>
+                        </div>
+                        <div class="template-card" data-template="minimal">
+                            <div class="template-preview minimal-template"></div>
+                            <h3>Minimal</h3>
+                            <p>Simple and elegant</p>
+                        </div>
+                        <div class="template-card" data-template="security">
+                            <div class="template-preview security-template"></div>
+                            <h3>Security</h3>
+                            <p>High-security features</p>
+                        </div>
+                        <div class="template-card" data-template="custom">
+                            <div class="template-preview custom-template">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <h3>Custom</h3>
+                            <p>Create from scratch</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Personal Info Section -->
+                <section id="personal-info" class="content-section">
+                    <h2>Personal Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" placeholder="John Smith" value="John Smith">
+                        </div>
+                        <div class="form-group">
+                            <label for="id-number">ID Number</label>
+                            <input type="text" id="id-number" placeholder="EMP-12345" value="EMP-12345">
+                        </div>
+                        <div class="form-group">
+                            <label for="position">Position</label>
+                            <input type="text" id="position" placeholder="Software Developer" value="Software Developer">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <input type="text" id="department" placeholder="Information Technology" value="Information Technology">
+                        </div>
+                        <div class="form-group">
+                            <label for="organization">Organization</label>
+                            <input type="text" id="organization" placeholder="Tech Innovations Inc." value="Tech Innovations Inc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" placeholder="john@company.com" value="john@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" placeholder="+1 (555) 123-4567" value="+1 (555) 123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <textarea id="address" placeholder="123 Main Street, City, State 12345">123 Main Street, City, State 12345</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="valid-until">Valid Until</label>
+                            <input type="date" id="valid-until">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Media Section -->
+                <section id="media" class="content-section">
+                    <h2>Media Upload</h2>
+                    <div class="media-upload-grid">
+                        <div class="upload-card">
+                            <h3>Profile Photo</h3>
+                            <div class="upload-area" id="photo-upload-area">
+                                <i class="fas fa-user-circle"></i>
+                                <p>Click to upload photo</p>
+                                <input type="file" id="photo-upload" accept="image/*" hidden>
+                            </div>
+                            <div class="upload-actions">
+                                <button class="btn btn-small" id="ai-photo-enhance">
+                                    <i class="fas fa-magic"></i>
+                                    AI Enhance
+                                </button>
+                                <button class="btn btn-small btn-secondary" id="remove-photo">
+                                    <i class="fas fa-trash"></i>
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="upload-card">
+                            <h3>Organization Logo</h3>
+                            <div class="upload-area" id="logo-upload-area">
+                                <i class="fas fa-building"></i>
+                                <p>Click to upload logo</p>
+                                <input type="file" id="logo-upload" accept="image/*" hidden>
+                            </div>
+                        </div>
+
+                        <div class="upload-card">
+                            <h3>Signature</h3>
+                            <div class="upload-area" id="signature-upload-area">
+                                <i class="fas fa-signature"></i>
+                                <p>Click to upload signature</p>
+                                <input type="file" id="signature-upload" accept="image/*" hidden>
+                            </div>
+                            <div class="signature-options">
+                                <button class="btn btn-small" id="draw-signature">
+                                    <i class="fas fa-pen"></i>
+                                    Draw Signature
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Customize Section -->
+                <section id="customize" class="content-section">
+                    <h2>Customize Design</h2>
+                    <div class="customize-grid">
+                        <div class="customize-group">
+                            <h3>Card Orientation</h3>
+                            <div class="option-buttons">
+                                <button class="option-btn active" data-orientation="horizontal">
+                                    <i class="fas fa-arrows-alt-h"></i>
+                                    Horizontal
+                                </button>
+                                <button class="option-btn" data-orientation="vertical">
+                                    <i class="fas fa-arrows-alt-v"></i>
+                                    Vertical
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="customize-group">
+                            <h3>Font Style</h3>
+                            <div class="font-options">
+                                <div class="font-option active" data-font="sans-serif">
+                                    <span style="font-family: 'Segoe UI', sans-serif">Sans Serif</span>
+                                </div>
+                                <div class="font-option" data-font="serif">
+                                    <span style="font-family: 'Times New Roman', serif">Serif</span>
+                                </div>
+                                <div class="font-option" data-font="monospace">
+                                    <span style="font-family: 'Courier New', monospace">Monospace</span>
+                                </div>
+                                <div class="font-option" data-font="cursive">
+                                    <span style="font-family: 'Brush Script MT', cursive">Cursive</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="customize-group">
+                            <h3>Card Size</h3>
+                            <select id="card-size" class="form-select">
+                                <option value="standard">Standard (CR80)</option>
+                                <option value="custom">Custom Size</option>
+                            </select>
+                        </div>
+
+                        <div class="customize-group">
+                            <h3>Security Features</h3>
+                            <div class="checkbox-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" id="hologram" checked>
+                                    <span class="checkmark"></span>
+                                    Hologram Effect
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" id="barcode">
+                                    <span class="checkmark"></span>
+                                    Barcode
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" id="qr-code">
+                                    <span class="checkmark"></span>
+                                    QR Code
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" id="watermark">
+                                    <span class="checkmark"></span>
+                                    Watermark
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Colors Section -->
+                <section id="colors" class="content-section">
+                    <h2>Color Customization</h2>
+                    <div class="color-customization">
+                        <div class="color-group">
+                            <h3>Primary Color</h3>
+                            <div class="color-palette">
+                                <div class="color-option active" data-color="#3498db" style="background-color: #3498db;"></div>
+                                <div class="color-option" data-color="#e74c3c" style="background-color: #e74c3c;"></div>
+                                <div class="color-option" data-color="#2ecc71" style="background-color: #2ecc71;"></div>
+                                <div class="color-option" data-color="#9b59b6" style="background-color: #9b59b6;"></div>
+                                <div class="color-option" data-color="#f39c12" style="background-color: #f39c12;"></div>
+                                <div class="color-option" data-color="#1abc9c" style="background-color: #1abc9c;"></div>
+                                <div class="color-option custom-color">
+                                    <i class="fas fa-palette"></i>
+                                    <input type="color" id="custom-primary" hidden>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="color-group">
+                            <h3>Background Color</h3>
+                            <div class="color-palette">
+                                <div class="color-option active" data-bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #ddd;"></div>
+                                <div class="color-option" data-bgcolor="#f8f9fa" style="background-color: #f8f9fa;"></div>
+                                <div class="color-option" data-bgcolor="#e3f2fd" style="background-color: #e3f2fd;"></div>
+                                <div class="color-option" data-bgcolor="#fff8e1" style="background-color: #fff8e1;"></div>
+                                <div class="color-option" data-bgcolor="#f1f8e9" style="background-color: #f1f8e9;"></div>
+                                <div class="color-option custom-color">
+                                    <i class="fas fa-palette"></i>
+                                    <input type="color" id="custom-bg" hidden>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="color-group">
+                            <h3>Gradient Options</h3>
+                            <div class="gradient-options">
+                                <div class="gradient-option active" data-gradient="linear-135">
+                                    <div class="gradient-preview" style="background: linear-gradient(135deg, #3498db, #2980b9);"></div>
+                                    <span>Blue Gradient</span>
+                                </div>
+                                <div class="gradient-option" data-gradient="linear-45">
+                                    <div class="gradient-preview" style="background: linear-gradient(45deg, #e74c3c, #c0392b);"></div>
+                                    <span>Red Gradient</span>
+                                </div>
+                                <div class="gradient-option" data-gradient="linear-90">
+                                    <div class="gradient-preview" style="background: linear-gradient(90deg, #2ecc71, #27ae60);"></div>
+                                    <span>Green Gradient</span>
+                                </div>
+                                <div class="gradient-option" data-gradient="radial">
+                                    <div class="gradient-preview" style="background: radial-gradient(circle, #9b59b6, #8e44ad);"></div>
+                                    <span>Purple Radial</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rules Section -->
+                <section id="rules" class="content-section">
+                    <h2>Rules & Terms (Back Side)</h2>
+                    <div class="rules-editor">
+                        <div class="rules-controls">
+                            <button class="btn btn-small" id="add-rule">
+                                <i class="fas fa-plus"></i>
+                                Add Rule
+                            </button>
+                            <button class="btn btn-small btn-secondary" id="ai-suggest-rules">
+                                <i class="fas fa-robot"></i>
+                                AI Suggest Rules
+                            </button>
+                        </div>
+                        <div class="rules-list" id="rules-list">
+                            <div class="rule-item">
+                                <textarea placeholder="Enter rule text...">This ID card is property of the organization and must be returned upon termination.</textarea>
+                                <button class="btn-remove-rule">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="rule-item">
+                                <textarea placeholder="Enter rule text...">Must be worn visibly at all times within organization premises.</textarea>
+                                <button class="btn-remove-rule">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="rule-item">
+                                <textarea placeholder="Enter rule text...">Report lost or stolen cards immediately to security department.</textarea>
+                                <button class="btn-remove-rule">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Export Section -->
+                <section id="export" class="content-section">
+                    <h2>Export Options</h2>
+                    <div class="export-options">
+                        <div class="export-card">
+                            <i class="fas fa-file-pdf"></i>
+                            <h3>PDF</h3>
+                            <p>High-quality vector format</p>
+                            <button class="btn btn-primary" id="export-pdf">
+                                <i class="fas fa-download"></i>
+                                Download PDF
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <i class="fas fa-file-image"></i>
+                            <h3>PNG</h3>
+                            <p>High-resolution image</p>
+                            <button class="btn btn-primary" id="export-png">
+                                <i class="fas fa-download"></i>
+                                Download PNG
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <i class="fas fa-file-image"></i>
+                            <h3>JPG</h3>
+                            <p>Compressed image format</p>
+                            <button class="btn btn-primary" id="export-jpg">
+                                <i class="fas fa-download"></i>
+                                Download JPG
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <i class="fas fa-print"></i>
+                            <h3>Print</h3>
+                            <p>Direct to printer</p>
+                            <button class="btn btn-primary" id="export-print">
+                                <i class="fas fa-print"></i>
+                                Print Cards
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <i class="fab fa-canva"></i>
+                            <h3>Canva</h3>
+                            <p>Edit in Canva</p>
+                            <button class="btn btn-primary" id="export-canva">
+                                <i class="fas fa-external-link-alt"></i>
+                                Open in Canva
+                            </button>
+                        </div>
+
+                        <div class="export-card">
+                            <i class="fas fa-layer-group"></i>
+                            <h3>Batch Export</h3>
+                            <p>Multiple cards at once</p>
+                            <button class="btn btn-primary" id="export-batch">
+                                <i class="fas fa-download"></i>
+                                Batch Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="export-settings">
+                        <h3>Export Settings</h3>
+                        <div class="settings-grid">
+                            <div class="form-group">
+                                <label for="export-quality">Quality</label>
+                                <select id="export-quality" class="form-select">
+                                    <option value="high">High (300 DPI)</option>
+                                    <option value="medium">Medium (150 DPI)</option>
+                                    <option value="low">Low (72 DPI)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="export-format">Format</label>
+                                <select id="export-format" class="form-select">
+                                    <option value="single">Single Card</option>
+                                    <option value="a4-sheet">A4 Sheet (Multiple)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="export-cards-per-sheet">Cards per Sheet</label>
+                                <select id="export-cards-per-sheet" class="form-select">
+                                    <option value="2">2 Cards</option>
+                                    <option value="4" selected>4 Cards</option>
+                                    <option value="6">6 Cards</option>
+                                    <option value="8">8 Cards</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Batch Generate Section -->
+                <section id="batch" class="content-section">
+                    <h2>Batch ID Card Generation</h2>
+                    <div class="batch-generator">
+                        <div class="batch-upload">
+                            <div class="upload-area large" id="batch-upload-area">
+                                <i class="fas fa-file-csv"></i>
+                                <h3>Upload CSV File</h3>
+                                <p>Upload a CSV file with employee data</p>
+                                <input type="file" id="batch-csv-upload" accept=".csv" hidden>
+                                <button class="btn btn-primary" id="upload-csv-btn">
+                                    <i class="fas fa-upload"></i>
+                                    Choose CSV File
+                                </button>
+                            </div>
+                            <div class="batch-preview" id="batch-preview">
+                                <h4>Data Preview</h4>
+                                <div class="preview-table" id="preview-table"></div>
+                            </div>
+                        </div>
+
+                        <div class="batch-actions">
+                            <button class="btn btn-primary" id="generate-batch">
+                                <i class="fas fa-cogs"></i>
+                                Generate All Cards
+                            </button>
+                            <button class="btn btn-secondary" id="download-batch">
+                                <i class="fas fa-download"></i>
+                                Download All as ZIP
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Preview Panel -->
+            <aside class="preview-panel">
+                <div class="preview-header">
+                    <h3>Live Preview</h3>
+                    <div class="preview-actions">
+                        <button class="btn-icon" id="flip-card">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn-icon" id="zoom-in">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="btn-icon" id="zoom-out">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="preview-container">
+                    <div class="card-wrapper" id="card-wrapper">
+                        <!-- Front Side -->
+                        <div class="id-card front active" id="id-card-front">
+                            <div class="card-header">
+                                <div class="organization-logo" id="org-logo-preview">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <h2 class="organization-name" id="org-name-preview">Tech Innovations Inc.</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="photo-section">
+                                    <div class="photo-container" id="photo-preview">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="id-number" id="id-number-preview">EMP-12345</div>
+                                </div>
+                                <div class="details-section">
+                                    <div class="detail-row">
+                                        <span class="label">Name:</span>
+                                        <span class="value" id="name-preview">John Smith</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="label">Position:</span>
+                                        <span class="value" id="position-preview">Software Developer</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="label">Department:</span>
+                                        <span class="value" id="department-preview">Information Technology</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="label">Valid Until:</span>
+                                        <span class="value" id="valid-until-preview">12/31/2025</span>
+                                    </div>
+                                </div>
+                                <div class="signature-section">
+                                    <div class="signature" id="signature-preview">
+                                        <div class="signature-line"></div>
+                                        <span>Authorized Signature</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="security-features">
+                                    <div class="hologram" id="hologram-preview"></div>
+                                    <div class="barcode" id="barcode-preview"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Back Side -->
+                        <div class="id-card back" id="id-card-back">
+                            <div class="card-header back">
+                                <h2>Terms & Conditions</h2>
+                            </div>
+                            <div class="card-body back">
+                                <div class="rules-list-preview" id="rules-preview">
+                                    <div class="rule-preview">
+                                        <i class="fas fa-circle"></i>
+                                        <span>This ID card is property of the organization and must be returned upon termination.</span>
+                                    </div>
+                                    <div class="rule-preview">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Must be worn visibly at all times within organization premises.</span>
+                                    </div>
+                                    <div class="rule-preview">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Report lost or stolen cards immediately to security department.</span>
+                                    </div>
+                                </div>
+                                <div class="contact-info">
+                                    <h4>Contact Information</h4>
+                                    <p id="contact-email-preview">john@company.com</p>
+                                    <p id="contact-phone-preview">+1 (555) 123-4567</p>
+                                    <p id="contact-address-preview">123 Main Street, City, State 12345</p>
+                                </div>
+                                <div class="emergency-contact">
+                                    <h4>Emergency Contact</h4>
+                                    <p>Security: +1 (555) 911-9111</p>
+                                </div>
+                            </div>
+                            <div class="card-footer back">
+                                <div class="qr-code" id="qr-code-preview">
+                                    <div class="qr-placeholder">
+                                        <i class="fas fa-qrcode"></i>
+                                        <span>QR Code</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-stats">
+                    <div class="stat">
+                        <span class="stat-label">Template</span>
+                        <span class="stat-value" id="current-template">Corporate</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Orientation</span>
+                        <span class="stat-value" id="current-orientation">Horizontal</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Size</span>
+                        <span class="stat-value" id="current-size">Standard</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- AI Enhancement Modal -->
+    <div id="ai-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>AI Enhancement</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="ai-options">
+                    <div class="ai-option">
+                        <input type="radio" id="ai-design" name="ai-option" checked>
+                        <label for="ai-design">
+                            <i class="fas fa-palette"></i>
+                            <span>Design Enhancement</span>
+                            <small>AI will optimize colors, layout, and typography</small>
+                        </label>
+                    </div>
+                    <div class="ai-option">
+                        <input type="radio" id="ai-content" name="ai-option">
+                        <label for="ai-content">
+                            <i class="fas fa-edit"></i>
+                            <span>Content Optimization</span>
+                            <small>AI will improve text content and formatting</small>
+                        </label>
+                    </div>
+                    <div class="ai-option">
+                        <input type="radio" id="ai-photo" name="ai-option">
+                        <label for="ai-photo">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Photo Enhancement</span>
+                            <small>AI will improve photo quality and background</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="ai-preview">
+                    <div class="before-after">
+                        <div class="before">
+                            <h4>Before</h4>
+                            <div class="preview-card" id="ai-before"></div>
+                        </div>
+                        <div class="after">
+                            <h4>After AI</h4>
+                            <div class="preview-card" id="ai-after"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-ai">Cancel</button>
+                <button class="btn btn-primary" id="apply-ai">
+                    <i class="fas fa-magic"></i>
+                    Apply AI Enhancement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signature Drawing Modal -->
+    <div id="signature-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Draw Signature</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="signature-canvas-container">
+                    <canvas id="signature-canvas" width="400" height="200"></canvas>
+                </div>
+                <div class="signature-controls">
+                    <button class="btn btn-small" id="clear-signature">
+                        <i class="fas fa-eraser"></i>
+                        Clear
+                    </button>
+                    <button class="btn btn-small" id="undo-signature">
+                        <i class="fas fa-undo"></i>
+                        Undo
+                    </button>
+                    <div class="color-picker">
+                        <input type="color" id="signature-color" value="#000000">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-signature">Cancel</button>
+                <button class="btn btn-primary" id="save-signature">
+                    <i class="fas fa-save"></i>
+                    Save Signature
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="auto-id-card-generator-tool.js"></script>
+</body>
+</html>
