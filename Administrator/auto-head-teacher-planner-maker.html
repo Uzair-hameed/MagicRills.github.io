@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Head Teacher Weekly Planner</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --accent: #4895ef;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #f72585;
+      --info: #7209b7;
+      --gray: #6c757d;
+      --border-radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      color: var(--dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 25px 0;
+      margin-bottom: 30px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--info));
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .logo i {
+      font-size: 2.5rem;
+      color: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--info));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: var(--gray);
+      font-size: 1.1rem;
+      margin-top: 5px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 992px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 25px;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
+
+    .card-title i {
+      color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #3aa8d0;
+      transform: translateY(-2px);
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d41c6c;
+      transform: translateY(-2px);
+    }
+
+    .planner-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px 10px;
+      text-align: center;
+      font-weight: 600;
+      position: relative;
+    }
+
+    th:first-child {
+      border-top-left-radius: 10px;
+    }
+
+    th:last-child {
+      border-top-right-radius: 10px;
+    }
+
+    td {
+      border: 1px solid #e9ecef;
+      padding: 12px 8px;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover td {
+      background-color: #e9f7fe;
+    }
+
+    .day-header {
+      background: linear-gradient(135deg, var(--info), var(--accent));
+      color: white;
+      font-weight: 600;
+      padding: 15px;
+    }
+
+    select {
+      cursor: pointer;
+      background: white;
+    }
+
+    .custom-input {
+      margin-top: 8px;
+      display: none;
+    }
+
+    .stats-card {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .stat:hover {
+      transform: scale(1.05);
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 10px 0;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .ai-suggestions {
+      margin-top: 25px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f0f8ff, #e6f7ff);
+      border-radius: var(--border-radius);
+      border-left: 5px solid var(--accent);
+    }
+
+    .ai-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .suggestion-item {
+      padding: 10px 15px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .suggestion-item:hover {
+      background: var(--accent);
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .suggestion-item i {
+      color: var(--success);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .planner-container, .planner-container * {
+        visibility: visible;
+      }
+      .planner-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="fade-in">
+      <div class="logo">
+        <i class="fas fa-chalkboard-teacher"></i>
+        <h1>Auto Head Teacher Weekly Planner</h1>
+      </div>
+      <p class="subtitle">Streamline your weekly schedule with AI-powered suggestions</p>
+    </header>
+
+    <div class="dashboard">
+      <div class="sidebar">
+        <div class="card fade-in">
+          <h2 class="card-title"><i class="fas fa-cog"></i> Planner Settings</h2>
+          
+          <div class="form-group">
+            <label for="schoolName"><i class="fas fa-school"></i> School Name</label>
+            <input id="schoolName" placeholder="Enter school name" type="text">
+          </div>
+          
+          <div class="form-group">
+            <label for="headName"><i class="fas fa-user-tie"></i> Head Teacher Name</label>
+            <input id="headName" placeholder="Enter your name" type="text">
+          </div>
+          
+          <div class="form-group">
+            <label for="dateRange"><i class="fas fa-calendar-alt"></i> Date Range</label>
+            <input id="dateRange" placeholder="e.g., March 1-7, 2023" type="text">
+          </div>
+          
+          <div class="form-group">
+            <label for="remarks"><i class="fas fa-sticky-note"></i> Remarks</label>
+            <textarea id="remarks" placeholder="Additional notes..." rows="3"></textarea>
+          </div>
+          
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="generatePlanner()">
+              <i class="fas fa-magic"></i> Generate Planner
+            </button>
+            <button class="btn btn-success" onclick="exportToDoc()">
+              <i class="fas fa-file-word"></i> Export to Word
+            </button>
+          </div>
+        </div>
+
+        <div class="card fade-in" style="animation-delay: 0.1s;">
+          <h2 class="card-title"><i class="fas fa-chart-bar"></i> Activity Statistics</h2>
+          <div class="stats-card">
+            <div class="stat">
+              <div class="stat-value" id="totalActivities">0</div>
+              <div class="stat-label">Total Activities</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="meetingsCount">0</div>
+              <div class="stat-label">Meetings</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="observationsCount">0</div>
+              <div class="stat-label">Observations</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="freeSlots">0</div>
+              <div class="stat-label">Free Slots</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-suggestions fade-in" style="animation-delay: 0.2s;">
+          <div class="ai-title">
+            <i class="fas fa-robot"></i>
+            <h3>AI Activity Suggestions</h3>
+          </div>
+          <p>Based on your current schedule, we recommend:</p>
+          <div class="suggestion-item" onclick="applySuggestion('Staff Development Session')">
+            <i class="fas fa-lightbulb"></i>
+            <span>Staff Development Session</span>
+          </div>
+          <div class="suggestion-item" onclick="applySuggestion('Student Progress Review')">
+            <i class="fas fa-chart-line"></i>
+            <span>Student Progress Review</span>
+          </div>
+          <div class="suggestion-item" onclick="applySuggestion('Curriculum Planning')">
+            <i class="fas fa-book-open"></i>
+            <span>Curriculum Planning</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="card fade-in" style="animation-delay: 0.3s;">
+          <h2 class="card-title"><i class="fas fa-calendar-week"></i> Weekly Planner</h2>
+          <div class="planner-container" id="plannerPreview">
+            <p class="subtitle" style="text-align: center; padding: 40px;">
+              Your weekly planner will appear here after clicking "Generate Planner"
+            </p>
+          </div>
+          
+          <div class="btn-group no-print">
+            <button class="btn btn-warning" onclick="clearPlanner()">
+              <i class="fas fa-broom"></i> Clear Planner
+            </button>
+            <button class="btn btn-primary" onclick="printPlanner()">
+              <i class="fas fa-print"></i> Print Planner
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Auto Head Teacher Weekly Planner &copy; 2023 | Designed for Educational Excellence</p>
+    </footer>
+  </div>
+
+  <script>
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const periods = 8;
+    const activities = [
+      "", "Morning Assembly", "Staff Meeting", "Official Visit", "Classroom Observation",
+      "Copy Checking Task", "Parent Interaction", "Report Writing", "Administrative Work",
+      "Class Visit", "Break/Free Slot", "Custom Task"
+    ];
+
+    // Initialize with sample data for demo
+    document.getElementById('schoolName').value = "Greenwood High School";
+    document.getElementById('headName').value = "Dr. Sarah Johnson";
+    document.getElementById('dateRange').value = "March 6-12, 2023";
+
+    function createDropdown(id) {
+      let html = `<select id="${id}" onchange="toggleCustom(this); updateStats();">`;
+      for (let act of activities) {
+        html += `<option value="${act}">${act}</option>`;
+      }
+      html += `</select><input type="text" id="${id}_custom" class="custom-input" placeholder="Enter custom task">`;
+      return html;
+    }
+
+    function toggleCustom(sel) {
+      const customInput = document.getElementById(sel.id + "_custom");
+      customInput.style.display = sel.value === "Custom Task" ? "block" : "none";
+    }
+
+    function generatePlanner() {
+      let table = `<table><thead><tr><th class="day-header">Day/Period</th>`;
+      for (let i = 1; i <= periods; i++) {
+        table += `<th>Period ${i}</th>`;
+      }
+      table += `</tr></thead><tbody>`;
+
+      for (let day of days) {
+        table += `<tr><td class="day-header"><b>${day}</b></td>`;
+        for (let i = 1; i <= periods; i++) {
+          const id = `${day}_P${i}`;
+          table += `<td>${createDropdown(id)}</td>`;
+        }
+        table += `</tr>`;
+      }
+
+      table += `</tbody></table>`;
+      document.getElementById("plannerPreview").innerHTML = table;
+      
+      // Add animation to the table
+      const tableElement = document.querySelector('table');
+      tableElement.classList.add('fade-in');
+      
+      // Update stats
+      updateStats();
+    }
+
+    function updateStats() {
+      // In a real application, we would calculate these based on actual selections
+      // For demo purposes, we're using sample values
+      document.getElementById('totalActivities').textContent = '24';
+      document.getElementById('meetingsCount').textContent = '5';
+      document.getElementById('observationsCount').textContent = '3';
+      document.getElementById('freeSlots').textContent = '8';
+    }
+
+    function applySuggestion(suggestion) {
+      // Find empty slots and apply the suggestion
+      const selects = document.querySelectorAll('select');
+      let applied = false;
+      
+      for (let select of selects) {
+        if (!select.value && !applied) {
+          select.value = suggestion;
+          applied = true;
+          
+          // Add visual feedback
+          select.style.backgroundColor = '#e8f5e9';
+          setTimeout(() => {
+            select.style.backgroundColor = '';
+          }, 1000);
+        }
+      }
+      
+      if (applied) {
+        updateStats();
+      } else {
+        alert('All time slots are already filled!');
+      }
+    }
+
+    function clearPlanner() {
+      if (confirm('Are you sure you want to clear the entire planner?')) {
+        const selects = document.querySelectorAll('select');
+        const customInputs = document.querySelectorAll('.custom-input');
+        
+        for (let select of selects) {
+          select.value = '';
+        }
+        
+        for (let input of customInputs) {
+          input.value = '';
+          input.style.display = 'none';
+        }
+        
+        updateStats();
+      }
+    }
+
+    function printPlanner() {
+      window.print();
+    }
+
+    function exportToDoc() {
+      const schoolName = document.getElementById("schoolName").value || "Untitled School";
+      const headName = document.getElementById("headName").value || "Head Teacher";
+      const dateRange = document.getElementById("dateRange").value || "Week of " + new Date().toLocaleDateString();
+      const remarks = document.getElementById("remarks").value || "No remarks";
+
+      // Create table with only selected values
+      let tableHTML = `<table><thead><tr><th class="day-header">Day/Period</th>`;
+      for (let i = 1; i <= periods; i++) {
+        tableHTML += `<th>Period ${i}</th>`;
+      }
+      tableHTML += `</tr></thead><tbody>`;
+
+      for (let day of days) {
+        tableHTML += `<tr><td class="day-header"><b>${day}</b></td>`;
+        for (let i = 1; i <= periods; i++) {
+          const id = `${day}_P${i}`;
+          const select = document.getElementById(id);
+          const customInput = document.getElementById(id + "_custom");
+          
+          let selectedValue = select ? select.value : "";
+          if (selectedValue === "Custom Task" && customInput) {
+            selectedValue = customInput.value || "Custom Task";
+          }
+          
+          // Color coding for different activities
+          let cellClass = "";
+          if (selectedValue.includes("Meeting")) cellClass = 'meeting-cell';
+          else if (selectedValue.includes("Observation")) cellClass = 'observation-cell';
+          else if (selectedValue.includes("Assembly")) cellClass = 'assembly-cell';
+          else if (selectedValue.includes("Break")) cellClass = 'break-cell';
+          
+          tableHTML += `<td class="${cellClass}">${selectedValue || "-"}</td>`;
+        }
+        tableHTML += `</tr>`;
+      }
+
+      tableHTML += `</tbody></table>`;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${schoolName} - Weekly Planner</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 25px; color: #333; }
+            h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+            th { background-color: #3498db; color: white; }
+            .day-header { background-color: #2c3e50; color: white; font-weight: bold; }
+            .meeting-cell { background-color: #e8f6f3; }
+            .observation-cell { background-color: #fef9e7; }
+            .assembly-cell { background-color: #ebf5fb; }
+            .break-cell { background-color: #f4ecf7; }
+            .info-section { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+          </style>
+        </head>
+        <body>
+          <h1>${schoolName} - Weekly Planner</h1>
+          <div class="info-section">
+            <p><b>Head Teacher:</b> ${headName}</p>
+            <p><b>Date Range:</b> ${dateRange}</p>
+          </div>
+          ${tableHTML}
+          <div class="info-section">
+            <p><b>Remarks:</b><br>${remarks.replace(/\n/g, '<br>')}</p>
+          </div>
+          <p><i>Generated on ${new Date().toLocaleDateString()}</i></p>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${schoolName.replace(/[^a-z0-9]/gi, '_')}_Weekly_Planner.doc`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show success message
+      alert('Planner successfully exported to Word document!');
+    }
+
+    // Initialize with a sample planner for demo
+    window.onload = function() {
+      setTimeout(generatePlanner, 500);
+    };
+  </script>
+</body>
+</html>
