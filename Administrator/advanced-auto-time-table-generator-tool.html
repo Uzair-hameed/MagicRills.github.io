@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Auto Timetable Generator Tool</title>
+    <link rel="stylesheet" href="advanced-auto-time-table-generator-tool.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>Advanced Timetable Generator</h1>
+                <p>AI-Powered School Timetable Management System</p>
+            </div>
+            <div class="header-controls">
+                <button id="themeToggle" class="btn-theme">
+                    <span class="theme-icon">🌙</span> Dark Mode
+                </button>
+                <button id="exportAll" class="btn-export">Export All</button>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <nav class="sidebar">
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-link active" data-target="dashboard-view"><i class="icon-dashboard"></i> Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-target="master-timetable"><i class="icon-master"></i> Master Timetable</a></li>
+                    <li><a href="#" class="nav-link" data-target="class-timetable"><i class="icon-class"></i> Class-wise Timetable</a></li>
+                    <li><a href="#" class="nav-link" data-target="teacher-timetable"><i class="icon-teacher"></i> Teacher-wise Timetable</a></li>
+                    <li><a href="#" class="nav-link" data-target="free-periods"><i class="icon-free"></i> Free Periods</a></li>
+                    <li><a href="#" class="nav-link" data-target="teacher-free"><i class="icon-teacher-free"></i> Teacher Free Periods</a></li>
+                </ul>
+                
+                <div class="ai-section">
+                    <h3>AI Assistant</h3>
+                    <div class="ai-chat">
+                        <div class="ai-message">How can I help optimize your timetable today?</div>
+                        <div class="ai-suggestions">
+                            <button class="ai-suggestion-btn">Balance teacher workload</button>
+                            <button class="ai-suggestion-btn">Optimize classroom usage</button>
+                            <button class="ai-suggestion-btn">Check for conflicts</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="main-content">
+                <!-- Dashboard View -->
+                <section id="dashboard-view" class="content-section active">
+                    <div class="section-header">
+                        <h2>Dashboard Overview</h2>
+                        <div class="controls">
+                            <select id="gradeSelectDashboard">
+                                <option value="grade3">Grade III</option>
+                                <option value="grade4">Grade IV</option>
+                                <option value="grade5">Grade V</option>
+                            </select>
+                            <button id="generateAll" class="btn-primary">Generate All Timetables</button>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📚</div>
+                            <div class="stat-info">
+                                <h3>Total Subjects</h3>
+                                <span class="stat-value">12</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">👨‍🏫</div>
+                            <div class="stat-info">
+                                <h3>Total Teachers</h3>
+                                <span class="stat-value">15</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🏫</div>
+                            <div class="stat-info">
+                                <h3>Total Classes</h3>
+                                <span class="stat-value">3</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-info">
+                                <h3>Total Periods/Week</h3>
+                                <span class="stat-value">41</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ai-recommendations">
+                        <h3>AI Recommendations</h3>
+                        <div class="recommendation-list">
+                            <div class="recommendation-item">
+                                <span class="rec-badge">Optimization</span>
+                                <p>Consider redistributing 2 periods from Ms. Aisha to balance workload</p>
+                            </div>
+                            <div class="recommendation-item">
+                                <span class="rec-badge">Efficiency</span>
+                                <p>Add 15-minute breaks between intensive subjects for better focus</p>
+                            </div>
+                            <div class="recommendation-item">
+                                <span class="rec-badge">Resource</span>
+                                <p>Optimize classroom usage by scheduling back-to-back classes</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Master Timetable -->
+                <section id="master-timetable" class="content-section">
+                    <div class="section-header">
+                        <h2>Master Timetable</h2>
+                        <div class="controls">
+                            <select id="masterGradeSelect">
+                                <option value="grade3">Grade III</option>
+                                <option value="grade4">Grade IV</option>
+                                <option value="grade5">Grade V</option>
+                            </select>
+                            <button class="btn-export" data-export="master">Export to Word</button>
+                        </div>
+                    </div>
+                    <div id="masterTimetableContent" class="timetable-container">
+                        <!-- Master timetable will be generated here -->
+                    </div>
+                </section>
+
+                <!-- Class-wise Timetable -->
+                <section id="class-timetable" class="content-section">
+                    <div class="section-header">
+                        <h2>Class-wise Timetable</h2>
+                        <div class="controls">
+                            <select id="classSelect">
+                                <option value="grade3">Grade III</option>
+                                <option value="grade4">Grade IV</option>
+                                <option value="grade5">Grade V</option>
+                            </select>
+                            <button class="btn-export" data-export="class">Export to Word</button>
+                        </div>
+                    </div>
+                    <div id="classTimetableContent" class="timetable-container">
+                        <!-- Class timetable will be generated here -->
+                    </div>
+                </section>
+
+                <!-- Teacher-wise Timetable -->
+                <section id="teacher-timetable" class="content-section">
+                    <div class="section-header">
+                        <h2>Teacher-wise Timetable</h2>
+                        <div class="controls">
+                            <select id="teacherSelect">
+                                <option value="all">All Teachers</option>
+                                <option value="teacher1">Ms. Aisha - Sindhi/Urdu</option>
+                                <option value="teacher2">Mr. Ahmed - English</option>
+                                <option value="teacher3">Ms. Fatima - Mathematics</option>
+                                <option value="teacher4">Mr. Hassan - Science</option>
+                                <option value="teacher5">Ms. Zainab - Social Studies</option>
+                            </select>
+                            <button class="btn-export" data-export="teacher">Export to Word</button>
+                        </div>
+                    </div>
+                    <div id="teacherTimetableContent" class="timetable-container">
+                        <!-- Teacher timetable will be generated here -->
+                    </div>
+                </section>
+
+                <!-- Free Periods -->
+                <section id="free-periods" class="content-section">
+                    <div class="section-header">
+                        <h2>Free Periods Timetable</h2>
+                        <div class="controls">
+                            <select id="freePeriodGradeSelect">
+                                <option value="grade3">Grade III</option>
+                                <option value="grade4">Grade IV</option>
+                                <option value="grade5">Grade V</option>
+                            </select>
+                            <button class="btn-export" data-export="free">Export to Word</button>
+                        </div>
+                    </div>
+                    <div id="freePeriodContent" class="timetable-container">
+                        <!-- Free periods timetable will be generated here -->
+                    </div>
+                </section>
+
+                <!-- Teacher Free Periods -->
+                <section id="teacher-free" class="content-section">
+                    <div class="section-header">
+                        <h2>Teacher Free Periods Timetable</h2>
+                        <div class="controls">
+                            <select id="teacherFreeSelect">
+                                <option value="all">All Teachers</option>
+                                <option value="teacher1">Ms. Aisha - Sindhi/Urdu</option>
+                                <option value="teacher2">Mr. Ahmed - English</option>
+                                <option value="teacher3">Ms. Fatima - Mathematics</option>
+                                <option value="teacher4">Mr. Hassan - Science</option>
+                                <option value="teacher5">Ms. Zainab - Social Studies</option>
+                            </select>
+                            <button class="btn-export" data-export="teacher-free">Export to Word</button>
+                        </div>
+                    </div>
+                    <div id="teacherFreeContent" class="timetable-container">
+                        <!-- Teacher free periods timetable will be generated here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            <p>Advanced Auto Timetable Generator Tool &copy; 2023 | AI-Powered School Management System</p>
+        </footer>
+    </div>
+
+    <script src="advanced-auto-time-table-generator-tool.js"></script>
+</body>
+</html>
