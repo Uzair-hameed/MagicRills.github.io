@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Resume Maker</title>
+    <link rel="stylesheet" href="auto-resume-maker.css">
+    <!-- Clean, reliable libraries only -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Auto Resume Maker</h1>
+            <div class="theme-toggle">
+                <button id="themeToggle">🌙 Dark Mode</button>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <!-- Sidebar with Templates & Export -->
+            <div class="sidebar">
+                <div class="template-selector">
+                    <h3>Resume Templates</h3>
+                    <div class="template-options">
+                        <div class="template active" data-template="professional">
+                            <div class="template-preview"></div>
+                            <span>Professional</span>
+                        </div>
+                        <div class="template" data-template="modern">
+                            <div class="template-preview"></div>
+                            <span>Modern</span>
+                        </div>
+                        <div class="template" data-template="creative">
+                            <div class="template-preview"></div>
+                            <span>Creative</span>
+                        </div>
+                        <div class="template" data-template="executive">
+                            <div class="template-preview"></div>
+                            <span>Executive</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-options">
+                    <h3>Export Resume</h3>
+                    <button id="exportPdf" class="export-btn">📄 Export as PDF</button>
+                    <button id="exportWord" class="export-btn">📝 Export as Word</button>
+                    <button id="exportPrint" class="export-btn">🖨️ Print Resume</button>
+                </div>
+                
+                <div class="tips-section">
+                    <h3>Pro Tips</h3>
+                    <ul>
+                        <li>Use action verbs</li>
+                        <li>Quantify achievements</li>
+                        <li>Keep it 1-2 pages</li>
+                        <li>Tailor to job description</li>
+                        <li>Proofread carefully</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- Form Section -->
+                <div class="form-section">
+                    <div class="section personal-info">
+                        <div class="section-header">
+                            <h2>👤 Personal Information</h2>
+                            <button class="section-toggle">−</button>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="fullName" placeholder="Full Name">
+                            <input type="text" id="jobTitle" placeholder="Job Title">
+                            <input type="email" id="email" placeholder="Email">
+                            <input type="tel" id="phone" placeholder="Phone">
+                            <input type="text" id="location" placeholder="Location">
+                            <textarea id="summary" placeholder="Professional Summary" rows="4"></textarea>
+                            
+                            <div class="image-upload">
+                                <label for="profileImage">📷 Upload Profile Image (Optional)</label>
+                                <input type="file" id="profileImage" accept="image/*">
+                                <div class="image-preview">
+                                    <span>No image selected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section experience">
+                        <div class="section-header">
+                            <h2>💼 Work Experience</h2>
+                            <button class="section-toggle">−</button>
+                        </div>
+                        <div id="experienceContainer">
+                            <!-- Experience items will be added here -->
+                        </div>
+                        <button id="addExperience" class="add-btn">+ Add Experience</button>
+                    </div>
+
+                    <div class="section education">
+                        <div class="section-header">
+                            <h2>🎓 Education</h2>
+                            <button class="section-toggle">−</button>
+                        </div>
+                        <div id="educationContainer">
+                            <!-- Education items will be added here -->
+                        </div>
+                        <button id="addEducation" class="add-btn">+ Add Education</button>
+                    </div>
+
+                    <div class="section skills">
+                        <div class="section-header">
+                            <h2>🛠️ Skills</h2>
+                            <button class="section-toggle">−</button>
+                        </div>
+                        <div id="skillsContainer">
+                            <!-- Skill items will be added here -->
+                        </div>
+                        <button id="addSkill" class="add-btn">+ Add Skill</button>
+                    </div>
+                    
+                    <div class="section additional">
+                        <div class="section-header">
+                            <h2>📚 Additional Information</h2>
+                            <button class="section-toggle">−</button>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="languages" placeholder="Languages (e.g., English, Spanish)">
+                            <input type="text" id="certifications" placeholder="Certifications">
+                            <textarea id="projects" placeholder="Notable Projects" rows="3"></textarea>
+                            <textarea id="interests" placeholder="Interests & Hobbies" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="preview-section">
+                    <div class="preview-header">
+                        <h2>👁️ Resume Preview</h2>
+                        <div class="preview-actions">
+                            <button id="zoomOut" class="preview-btn">−</button>
+                            <span id="zoomLevel">100%</span>
+                            <button id="zoomIn" class="preview-btn">+</button>
+                        </div>
+                    </div>
+                    <div id="resumePreview" class="resume-preview">
+                        <!-- Preview will be generated here -->
+                        <div class="preview-placeholder">
+                            <h3>Your Resume Preview</h3>
+                            <p>Start filling the form to see your resume appear here in real-time!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript files -->
+    <script src="auto-resume-maker.js"></script>
+    <script src="auto-resume-maker-pdf.js"></script>
+    <script src="auto-resume-maker-word.js"></script>
+</body>
+</html>
