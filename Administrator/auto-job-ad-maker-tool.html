@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Job Ad Maker | MagicRills</title>
+  <link rel="stylesheet" href="auto-job-ad-maker-tool.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Updated PDF Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <!-- Rest of your HTML remains exactly the same -->
+  <div class="theme-toggle">
+    <button id="themeSwitch" class="theme-btn">
+      <i class="fas fa-moon"></i>
+    </button>
+  </div>
+
+  <div class="container">
+    <!-- Header with Animation -->
+    <header class="header">
+      <div class="logo-section">
+        <i class="fas fa-magic logo-icon"></i>
+        <h1>Auto Job Ad Maker</h1>
+      </div>
+      <p class="subtitle">Create professional job ads in seconds with AI assistance</p>
+    </header>
+
+    <!-- Dashboard Layout -->
+    <div class="dashboard">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3><i class="fas fa-palette"></i> Design Options</h3>
+          <div class="design-options">
+            <button class="design-btn active" data-layout="modern">Modern</button>
+            <button class="design-btn" data-layout="professional">Professional</button>
+            <button class="design-btn" data-layout="creative">Creative</button>
+            <button class="design-btn" data-layout="minimal">Minimal</button>
+            <button class="design-btn" data-layout="elegant">Elegant</button>
+            <button class="design-btn" data-layout="corporate">Corporate</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3><i class="fas fa-image"></i> Poster Styles</h3>
+          <div class="poster-styles">
+            <div class="poster-preview active" data-style="style1"></div>
+            <div class="poster-preview" data-style="style2"></div>
+            <div class="poster-preview" data-style="style3"></div>
+            <div class="poster-preview" data-style="style4"></div>
+            <div class="poster-preview" data-style="style5"></div>
+            <div class="poster-preview" data-style="style6"></div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3><i class="fas fa-robot"></i> AI Features</h3>
+          <button class="ai-btn" onclick="generateWithAI()">
+            <i class="fas fa-wand-magic-sparkles"></i> AI Generate
+          </button>
+          <button class="ai-btn" onclick="improveWithAI()">
+            <i class="fas fa-stars"></i> AI Improve
+          </button>
+        </div>
+
+        <div class="sidebar-section">
+          <h3><i class="fas fa-shapes"></i> Clipart Gallery</h3>
+          <div class="clipart-gallery">
+            <div class="clipart-item" data-clipart="💼">💼</div>
+            <div class="clipart-item" data-clipart="👨‍💼">👨‍💼</div>
+            <div class="clipart-item" data-clipart="👩‍💻">👩‍💻</div>
+            <div class="clipart-item" data-clipart="📊">📊</div>
+            <div class="clipart-item" data-clipart="🎯">🎯</div>
+            <div class="clipart-item" data-clipart="🚀">🚀</div>
+          </div>
+          <button class="ai-btn btn-outline" onclick="uploadCustomClipart()">
+            <i class="fas fa-upload"></i> Upload Clipart
+          </button>
+          <input type="file" id="clipartInput" accept="image/*" style="display: none;">
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Input Form Section -->
+        <section class="form-section">
+          <div class="form-grid">
+            <!-- Organization Details -->
+            <div class="input-group">
+              <label for="orgName">
+                <i class="fas fa-building"></i> Organization Name *
+              </label>
+              <input type="text" id="orgName" placeholder="Enter organization name" required>
+            </div>
+
+            <!-- Job Details -->
+            <div class="input-group">
+              <label for="post">
+                <i class="fas fa-briefcase"></i> Job Position *
+              </label>
+              <select id="post" required>
+                <option value="">Select Position</option>
+                <option value="Principal">Principal</option>
+                <option value="Head Teacher">Head Teacher</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Coordinator">Coordinator</option>
+                <option value="Admin">Admin</option>
+                <option value="Assistant Teacher">Assistant Teacher</option>
+                <option value="IT Specialist">IT Specialist</option>
+                <option value="Librarian">Librarian</option>
+                <option value="HR Manager">HR Manager</option>
+                <option value="Receptionist">Receptionist</option>
+                <option value="Accountant">Accountant</option>
+                <option value="Marketing Manager">Marketing Manager</option>
+                <option value="Sales Executive">Sales Executive</option>
+                <option value="Project Manager">Project Manager</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <!-- Qualifications -->
+            <div class="input-group">
+              <label for="qualification">
+                <i class="fas fa-graduation-cap"></i> Qualification
+              </label>
+              <select id="qualification">
+                <option value="Matric">Matric</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Graduation">Graduation</option>
+                <option value="Master">Master</option>
+                <option value="Post Master">Post Master</option>
+                <option value="PhD">PhD</option>
+                <option value="Diploma">Diploma</option>
+                <option value="Certification">Certification</option>
+              </select>
+            </div>
+
+            <!-- Experience -->
+            <div class="input-group">
+              <label for="experience">
+                <i class="fas fa-chart-line"></i> Experience
+              </label>
+              <select id="experience">
+                <option value="Fresh">Fresh</option>
+                <option value="1 year">1 year</option>
+                <option value="2 years">2 years</option>
+                <option value="3 years">3 years</option>
+                <option value="4 years">4 years</option>
+                <option value="5 years">5 years</option>
+                <option value="5+ years">5+ years</option>
+                <option value="10+ years">10+ years</option>
+              </select>
+            </div>
+
+            <!-- Salary Range -->
+            <div class="input-group">
+              <label for="salary">
+                <i class="fas fa-money-bill-wave"></i> Salary Range
+              </label>
+              <input type="text" id="salary" placeholder="e.g., $30,000 - $40,000">
+            </div>
+
+            <!-- Location -->
+            <div class="input-group">
+              <label for="location">
+                <i class="fas fa-map-marker-alt"></i> Job Location
+              </label>
+              <input type="text" id="location" placeholder="e.g., New York, NY">
+            </div>
+
+            <!-- Logo Upload -->
+            <div class="input-group">
+              <label for="logoInput">
+                <i class="fas fa-upload"></i> Upload Logo
+              </label>
+              <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click or drag & drop to upload logo</p>
+                <p class="upload-hint">PNG, JPG, SVG (Max 2MB)</p>
+                <input type="file" id="logoInput" accept="image/*" style="display: none;">
+              </div>
+              <div id="logoPreview" class="logo-preview"></div>
+            </div>
+
+            <!-- Additional Images -->
+            <div class="input-group">
+              <label for="additionalImages">
+                <i class="fas fa-images"></i> Additional Images
+              </label>
+              <div class="upload-area" id="additionalImagesArea">
+                <i class="fas fa-plus-circle"></i>
+                <p>Add more images to your ad</p>
+                <input type="file" id="additionalImages" accept="image/*" multiple style="display: none;">
+              </div>
+              <div id="additionalPreview" class="additional-preview"></div>
+            </div>
+
+            <!-- Job Description -->
+            <div class="input-group full-width">
+              <label for="jobDescription">
+                <i class="fas fa-file-alt"></i> Job Description
+              </label>
+              <div class="formatting-tools">
+                <button type="button" onclick="formatText('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                <button type="button" onclick="formatText('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                <button type="button" onclick="formatText('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                <button type="button" onclick="formatText('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                <button type="button" onclick="formatText('insertOrderedList')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                <button type="button" onclick="formatText('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                <button type="button" onclick="formatText('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+                <button type="button" onclick="formatText('justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+              </div>
+              <div contenteditable="true" id="jobDescription" class="rich-text-editor" placeholder="Enter job description, responsibilities, and requirements..."></div>
+            </div>
+
+            <!-- Computer Experience -->
+            <div class="input-group full-width">
+              <label for="computerExp">
+                <i class="fas fa-laptop-code"></i> Computer Experience
+              </label>
+              <div contenteditable="true" id="computerExp" class="rich-text-editor" placeholder="List required computer skills and software knowledge..."></div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="input-group full-width">
+              <label for="contactInfo">
+                <i class="fas fa-address-card"></i> Contact Information
+              </label>
+              <div class="contact-grid">
+                <input type="email" id="contactEmail" placeholder="Email address">
+                <input type="tel" id="contactPhone" placeholder="Phone number">
+                <input type="text" id="contactPerson" placeholder="Contact person name">
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="generateAd()">
+              <i class="fas fa-rocket"></i> Generate Ad
+            </button>
+            <button class="btn btn-secondary" onclick="downloadPDF()">
+              <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-secondary" onclick="downloadDOC()">
+              <i class="fas fa-file-word"></i> Download DOC
+            </button>
+            <button class="btn btn-info" onclick="saveTemplate()">
+              <i class="fas fa-save"></i> Save Template
+            </button>
+            <button class="btn btn-success" onclick="shareAd()">
+              <i class="fas fa-share"></i> Share
+            </button>
+            <button class="btn btn-warning" onclick="resetForm()">
+              <i class="fas fa-redo"></i> Reset
+            </button>
+          </div>
+        </section>
+
+        <!-- Preview Section -->
+        <section class="preview-section">
+          <div class="preview-header">
+            <h3><i class="fas fa-eye"></i> Live Preview</h3>
+            <div class="preview-controls">
+              <button class="btn btn-sm" onclick="zoomPreview(-0.1)">
+                <i class="fas fa-search-minus"></i>
+              </button>
+              <button class="btn btn-sm" onclick="zoomPreview(0.1)">
+                <i class="fas fa-search-plus"></i>
+              </button>
+              <button class="btn btn-sm" onclick="resetZoom()">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div id="adPreview" class="ad-preview">
+            <div class="preview-placeholder">
+              <i class="fas fa-ad"></i>
+              <p>Your job ad will appear here</p>
+              <small>Fill the form and click "Generate Ad"</small>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Loading Animation -->
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p>AI is generating your content...</p>
+  </div>
+
+  <!-- Template Gallery Modal -->
+  <div id="templateModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Choose a Template</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="template-gallery">
+          <div class="template-item" data-template="template1">
+            <div class="template-preview template-1"></div>
+            <p>Modern Blue</p>
+          </div>
+          <div class="template-item" data-template="template2">
+            <div class="template-preview template-2"></div>
+            <p>Professional Green</p>
+          </div>
+          <div class="template-item" data-template="template3">
+            <div class="template-preview template-3"></div>
+            <p>Creative Purple</p>
+          </div>
+          <div class="template-item" data-template="template4">
+            <div class="template-preview template-4"></div>
+            <p>Elegant Gold</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="auto-job-ad-maker-tool.js"></script>
+</body>
+</html>
