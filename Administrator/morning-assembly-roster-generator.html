@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Assembly Roster Generator - Advanced</title>
+    <link rel="stylesheet" href="morning-assembly-roster-generator.css">
+    <!-- Updated PDF and Word export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Morning Assembly Roster Generator</h1>
+            <p class="subtitle">For Pakistani Schools (Grades 2-10) - Advanced Edition</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions">
+                <button id="saveTemplateBtn" class="btn btn-outline">Save as Template</button>
+                <button id="loadTemplateBtn" class="btn btn-outline">Load Template</button>
+                <button id="shareRosterBtn" class="btn btn-outline">Share Roster</button>
+                <button id="aiSuggestBtn" class="btn btn-ai">AI Suggestions</button>
+            </div>
+
+            <!-- Collaboration Panel -->
+            <div class="collaboration-panel" id="collaborationPanel">
+                <h3>Team Collaboration</h3>
+                <div class="online-users" id="onlineUsers"></div>
+                <div class="chat-box" id="chatBox">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="Type a message...">
+                        <button id="sendChatBtn">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="form-title">Assembly Details</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="schoolName">School Name</label>
+                        <input type="text" id="schoolName" placeholder="Enter school name" value="The City School, Gulshan Campus">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="theme">Assembly Theme</label>
+                        <input type="text" id="theme" placeholder="Enter assembly theme" value="Respect for Our Environment: Our Islamic Duty">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gradeSelect">Select Grade</label>
+                        <select id="gradeSelect" class="grade-select">
+                            <option value="">-- Select Grade --</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                            <option value="6">Grade 6</option>
+                            <option value="7">Grade 7</option>
+                            <option value="8">Grade 8</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="totalTime">Total Assembly Time (minutes)</label>
+                        <input type="number" id="totalTime" placeholder="Enter total time" value="45">
+                        <div class="time-optimizer">
+                            <button id="optimizeTimeBtn" class="btn-small">Optimize Time</button>
+                            <span class="time-status" id="timeStatus"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="language">Language</label>
+                        <select id="language" class="language-select">
+                            <option value="english">English</option>
+                            <option value="urdu">Urdu</option>
+                            <option value="bilingual">Bilingual</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activities-container">
+                <div class="activities-header">
+                    <h2 class="form-title">Assembly Activities</h2>
+                    <div class="activity-actions">
+                        <button id="addActivityBtn" class="btn btn-primary">Add Custom Activity</button>
+                        <button id="reorderActivitiesBtn" class="btn btn-outline">Reorder Activities</button>
+                    </div>
+                </div>
+                
+                <div id="activitiesList" class="activities-list">
+                    <!-- Activities will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <div class="preview-header">
+                    <h2 class="preview-title">Roster Preview</h2>
+                    <div class="preview-actions">
+                        <button id="toggleCollaborationBtn" class="btn btn-outline">Team Collaboration</button>
+                        <button id="exportOptionsBtn" class="btn btn-outline">Export Options</button>
+                    </div>
+                </div>
+                <div class="roster-preview" id="rosterPreview">
+                    <table class="roster-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Activity</th>
+                                <th>Lead By</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewBody">
+                            <!-- Preview content will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="generateBtn" class="btn btn-primary">Generate Roster</button>
+                <button id="downloadPdfBtn" class="btn btn-secondary">Download PDF</button>
+                <button id="downloadWordBtn" class="btn btn-secondary">Download Word</button>
+                <button id="downloadExcelBtn" class="btn btn-secondary">Download Excel</button>
+                <button id="saveRosterBtn" class="btn btn-outline">Save to Cloud</button>
+            </div>
+
+            <!-- Export Options Modal -->
+            <div id="exportModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Export Options</h3>
+                    <div class="export-options">
+                        <div class="export-option">
+                            <h4>PDF Formats</h4>
+                            <button class="btn btn-outline" data-format="pdf-simple">Simple PDF</button>
+                            <button class="btn btn-outline" data-format="pdf-detailed">Detailed PDF</button>
+                            <button class="btn btn-outline" data-format="pdf-booklet">Booklet Format</button>
+                        </div>
+                        <div class="export-option">
+                            <h4>Other Formats</h4>
+                            <button class="btn btn-outline" data-format="excel">Excel Sheet</button>
+                            <button class="btn btn-outline" data-format="word">Word Document</button>
+                            <button class="btn btn-outline" data-format="json">JSON Data</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Template Library Modal -->
+            <div id="templateModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Template Library</h3>
+                    <div class="template-grid" id="templateGrid">
+                        <!-- Templates will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Suggestions Modal -->
+            <div id="aiModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>AI Activity Suggestions</h3>
+                    <div class="ai-suggestions" id="aiSuggestions">
+                        <!-- AI suggestions will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2024 Morning Assembly Roster Generator | Advanced Edition | Designed for Pakistani Schools</p>
+            <div class="footer-links">
+                <a href="#" id="exportHistory">Export History</a>
+                <a href="#" id="viewAnalytics">View Analytics</a>
+                <a href="#" id="helpDocs">Help Documentation</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="morning-assembly-roster-generator.js"></script>
+    <script src="morning-assembly-roster-generator-pdf.js"></script>
+    <script src="morning-assembly-roster-generator-word.js"></script>
+</body>
+</html>
