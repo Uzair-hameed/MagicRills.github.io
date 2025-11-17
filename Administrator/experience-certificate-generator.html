@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Experience Certificate Generator</title>
+    <link rel="stylesheet" href="experience-certificate-generator.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-certificate"></i> Experience Certificate Generator</h1>
+            <p>Create professional certificates for employees and staff members</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Form Section -->
+            <div class="form-section">
+                <div class="form-card">
+                    <h2><i class="fas fa-edit"></i> Employee Details</h2>
+                    
+                    <div class="form-group">
+                        <label for="employeeName">Full Name *</label>
+                        <input type="text" id="employeeName" placeholder="Enter employee full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="employeeCnic">CNIC Number *</label>
+                        <input type="text" id="employeeCnic" placeholder="XXXXX-XXXXXXX-X">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="companyName">Company/Organization *</label>
+                        <input type="text" id="companyName" placeholder="Enter company name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Department/Category *</label>
+                        <select id="department">
+                            <option value="">Select Department</option>
+                            <option value="School Premises">School Premises</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Admin and Finance">Admin and Finance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Teaching">Teaching</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Human Resources">Human Resources</option>
+                            <option value="Operations">Operations</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="designation">Designation *</label>
+                        <input type="text" id="designation" placeholder="Employee position">
+                    </div>
+                    
+                    <div class="date-group">
+                        <div class="form-group">
+                            <label for="startDate">Start Date *</label>
+                            <input type="date" id="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date *</label>
+                            <input type="date" id="endDate">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experienceText">Experience Description</label>
+                        <textarea id="experienceText" rows="3" placeholder="Key responsibilities and achievements"></textarea>
+                        <button id="addExperience" class="btn-secondary">
+                            <i class="fas fa-plus"></i> Add Experience Point
+                        </button>
+                    </div>
+                    
+                    <div id="experienceList" class="experience-list"></div>
+                </div>
+                
+                <div class="form-card">
+                    <h2><i class="fas fa-sliders-h"></i> Customization</h2>
+                    
+                    <div class="form-group">
+                        <label for="issuerName">Issuer Name *</label>
+                        <input type="text" id="issuerName" placeholder="Certificate issuer name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="issuerDesignation">Issuer Designation *</label>
+                        <input type="text" id="issuerDesignation" placeholder="Issuer position">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Upload Signature</label>
+                        <div class="file-upload">
+                            <input type="file" id="signatureUpload" accept="image/*">
+                            <label for="signatureUpload" class="file-label">
+                                <i class="fas fa-upload"></i> Choose Signature Image
+                            </label>
+                        </div>
+                        <div id="signaturePreview" class="signature-preview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Color Theme</label>
+                        <div class="color-themes">
+                            <div class="color-option active" data-color="#2c3e50" style="background:#2c3e50;"></div>
+                            <div class="color-option" data-color="#e74c3c" style="background:#e74c3c;"></div>
+                            <div class="color-option" data-color="#3498db" style="background:#3498db;"></div>
+                            <div class="color-option" data-color="#9b59b6" style="background:#9b59b6;"></div>
+                            <div class="color-option" data-color="#1abc9c" style="background:#1abc9c;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fontFamily">Font Family</label>
+                        <select id="fontFamily">
+                            <option value="Poppins">Poppins</option>
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <div class="preview-card">
+                    <h2><i class="fas fa-eye"></i> Certificate Preview</h2>
+                    <div class="certificate-container">
+                        <div class="certificate-a4" id="certificatePreview">
+                            <!-- Certificate header -->
+                            <div class="certificate-header">
+                                <div class="header-decoration">
+                                    <div class="decoration-left"></div>
+                                    <div class="decoration-center">
+                                        <i class="fas fa-certificate"></i>
+                                    </div>
+                                    <div class="decoration-right"></div>
+                                </div>
+                                <h1>CERTIFICATE OF EXPERIENCE</h1>
+                                <div class="header-subtitle">This is to certify that</div>
+                            </div>
+                            
+                            <!-- Certificate body -->
+                            <div class="certificate-body">
+                                <div class="employee-name" id="previewName">[Employee Name]</div>
+                                <div class="employee-details">
+                                    <p>Holder of CNIC: <span id="previewCnic">[CNIC Number]</span> has worked with 
+                                    <span id="previewCompany">[Company Name]</span> in the <span id="previewDepartment">[Department]</span> 
+                                    department as <span id="previewDesignation">[Designation]</span> from 
+                                    <span id="previewStartDate">[Start Date]</span> to <span id="previewEndDate">[End Date]</span>.</p>
+                                    
+                                    <p>During the employment period, the employee demonstrated excellent professional skills and dedication. Key responsibilities included:</p>
+                                    
+                                    <ul id="previewExperienceList">
+                                        <li>Sample responsibility or achievement</li>
+                                        <li>Another key contribution</li>
+                                    </ul>
+                                    
+                                    <p>The employee performed all duties with utmost sincerity and professionalism. We wish <span id="previewName2">[Employee Name]</span> success in all future endeavors.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Certificate footer -->
+                            <div class="certificate-footer">
+                                <div class="signature-section">
+                                    <div id="previewSignature" class="signature-placeholder">
+                                        <div class="signature-line"></div>
+                                    </div>
+                                    <div class="issuer-details">
+                                        <div id="previewIssuerName">[Issuer Name]</div>
+                                        <div id="previewIssuerDesignation">[Issuer Designation]</div>
+                                    </div>
+                                </div>
+                                <div class="date-section">
+                                    <div class="date-label">Date of Issue:</div>
+                                    <div id="previewCurrentDate">[Current Date]</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Certificate border decorations -->
+                            <div class="border-decoration top-left"></div>
+                            <div class="border-decoration top-right"></div>
+                            <div class="border-decoration bottom-left"></div>
+                            <div class="border-decoration bottom-right"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-actions">
+                        <button id="generateBtn" class="btn-primary">
+                            <i class="fas fa-sync-alt"></i> Generate Certificate
+                        </button>
+                        <button id="exportWord" class="btn-success">
+                            <i class="fas fa-file-word"></i> Export as MS Word
+                        </button>
+                        <button id="resetBtn" class="btn-warning">
+                            <i class="fas fa-redo"></i> Reset Form
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI Suggestions Panel -->
+                <div class="ai-panel">
+                    <h3><i class="fas fa-robot"></i> AI Experience Suggestions</h3>
+                    <div class="suggestions-list">
+                        <div class="suggestion-item" data-text="Demonstrated exceptional leadership and team management capabilities">
+                            <i class="fas fa-lightbulb"></i> Leadership skills
+                        </div>
+                        <div class="suggestion-item" data-text="Consistently exceeded performance targets and expectations">
+                            <i class="fas fa-chart-line"></i> Performance excellence
+                        </div>
+                        <div class="suggestion-item" data-text="Showed remarkable problem-solving abilities in challenging situations">
+                            <i class="fas fa-puzzle-piece"></i> Problem solving
+                        </div>
+                        <div class="suggestion-item" data-text="Effectively collaborated with cross-functional teams to achieve project goals">
+                            <i class="fas fa-users"></i> Team collaboration
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating Action Buttons -->
+        <div class="floating-actions">
+            <button class="fab" title="Help Guide">
+                <i class="fas fa-question"></i>
+            </button>
+            <button class="fab" title="Save Template">
+                <i class="fas fa-save"></i>
+            </button>
+            <button class="fab" title="Quick Examples">
+                <i class="fas fa-bolt"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="experience-certificate-generator.js"></script>
+</body>
+</html>
