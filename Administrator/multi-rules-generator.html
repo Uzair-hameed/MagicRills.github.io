@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Rules Generator - Advanced</title>
+    <link rel="stylesheet" href="multi-rules-generator.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <div class="logo-section">
+                <div class="animated-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Multi Rules Generator</h1>
+            </div>
+            <div class="theme-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span>Dark Mode</span>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="control-panel">
+                <div class="panel-header">
+                    <h2>Rule Settings</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ruleCategory">Rule Category</label>
+                    <select id="ruleCategory">
+                        <option value="">-- Select Category --</option>
+                        <option value="classroom">Classroom Rules</option>
+                        <option value="boarding">Boarding House Rules</option>
+                        <option value="science">Science Lab Rules</option>
+                        <option value="computer">Computer Lab Rules</option>
+                        <option value="library">Library Rules</option>
+                        <option value="playground">Playground Rules</option>
+                        <option value="exam">Examination Hall Rules</option>
+                        <option value="training">Training Hall Rules</option>
+                        <option value="canteen">Canteen Rules</option>
+                        <option value="general">General School Rules</option>
+                        <option value="kindergarten">Kindergarten Rules</option>
+                        <option value="elementary">Elementary School Rules</option>
+                        <option value="highschool">High School Rules</option>
+                        <option value="college">College Rules</option>
+                        <option value="online">Online Class Rules</option>
+                        <option value="art">Art Room Rules</option>
+                        <option value="music">Music Room Rules</option>
+                        <option value="sports">Sports Rules</option>
+                        <option value="swimming">Swimming Pool Rules</option>
+                        <option value="gym">Gym Rules</option>
+                        <option value="auditorium">Auditorium Rules</option>
+                        <option value="cafeteria">Cafeteria Rules</option>
+                        <option value="dormitory">Dormitory Rules</option>
+                        <option value="bus">School Bus Rules</option>
+                        <option value="parking">Parking Lot Rules</option>
+                        <option value="restroom">Restroom Rules</option>
+                        <option value="hallway">Hallway Rules</option>
+                        <option value="staircase">Staircase Rules</option>
+                        <option value="emergency">Emergency Procedures</option>
+                        <option value="cyber">Cyber Safety Rules</option>
+                        <option value="social">Social Media Rules</option>
+                        <option value="fieldtrip">Field Trip Rules</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="schoolName">School Name</label>
+                    <input type="text" id="schoolName" placeholder="Enter school name">
+                </div>
+
+                <!-- New Logo Upload Section -->
+                <div class="form-group">
+                    <label for="schoolLogo">School Logo (Optional)</label>
+                    <input type="file" id="schoolLogo" accept="image/*">
+                    <small>Recommended: Square logo, max 200x200px</small>
+                    <div id="logoPreview" class="logo-preview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ruleTheme">Rule Theme</label>
+                    <select id="ruleTheme">
+                        <option value="default">Default Theme</option>
+                        <option value="professional">Professional</option>
+                        <option value="colorful">Colorful</option>
+                        <option value="minimal">Minimal</option>
+                    </select>
+                </div>
+                
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="showNumbersToggle" checked>
+                        <span class="toggle-slider"></span>
+                        Show Rule Numbers
+                    </label>
+                </div>
+                
+                <div class="ai-section">
+                    <h3>AI Rule Generator</h3>
+                    <div class="form-group">
+                        <label for="aiApiKey">AI API Key (Optional)</label>
+                        <input type="password" id="aiApiKey" placeholder="Enter OpenAI API key">
+                        <small>Get free key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a></small>
+                    </div>
+                    <div class="ai-input-group">
+                        <input type="text" id="aiPrompt" placeholder="Describe rules you need (e.g., '5 rules for a quiet library')">
+                        <button id="generateAiRules" class="ai-button">Generate Rules</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rules-panel">
+                <div class="panel-header">
+                    <h2 id="rulesTitle">Rules Preview</h2>
+                    <div class="panel-actions">
+                        <button id="addRuleBtn" class="action-btn primary">+ Add Rule</button>
+                        <button id="exportBtn" class="action-btn secondary">Export</button>
+                    </div>
+                </div>
+                
+                <div class="rules-container" id="rulesContainer">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>No Rules Yet</h3>
+                        <p>Select a category or create custom rules to get started</p>
+                    </div>
+                </div>
+                
+                <div class="add-rule-container">
+                    <input type="text" id="newRuleText" placeholder="Enter a new rule...">
+                    <button id="saveRuleBtn" class="save-btn">Save Rule</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalRules">0</span>
+                    <span class="stat-label">Total Rules</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="currentCategory">-</span>
+                    <span class="stat-label">Current Category</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="lastUpdated">-</span>
+                    <span class="stat-label">Last Updated</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Rules</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="export-option" data-format="pdf">
+                        <div class="export-icon">📄</div>
+                        <h3>PDF Document</h3>
+                        <p>Professional colorful layout with logo</p>
+                    </div>
+                    <div class="export-option" data-format="excel">
+                        <div class="export-icon">📊</div>
+                        <h3>Excel Spreadsheet</h3>
+                        <p>Structured data with colorful formatting</p>
+                    </div>
+                    <div class="export-option" data-format="word">
+                        <div class="export-icon">📝</div>
+                        <h3>Word Document</h3>
+                        <p>Professional document with styling</p>
+                    </div>
+                    <div class="export-option" data-format="text">
+                        <div class="export-icon">📃</div>
+                        <h3>Plain Text</h3>
+                        <p>Simple text file</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Export Template -->
+    <div id="exportTemplate" style="display: none;">
+        <div class="export-template">
+            <div class="export-header">
+                <div class="header-left">
+                    <div id="exportLogo" class="export-logo"></div>
+                    <div class="school-info">
+                        <h1 id="exportSchoolName">School Name</h1>
+                        <p id="exportCategory">Category Rules</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="export-date">
+                        Generated on: <span id="exportDate"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="export-content">
+                <h2 class="rules-title">Rules & Regulations</h2>
+                <div id="exportRulesList" class="rules-list"></div>
+            </div>
+            <div class="export-footer">
+                <div class="footer-left">
+                    <p>Official Document - <span id="exportPageNumber">Page 1 of 1</span></p>
+                </div>
+                <div class="footer-right">
+                    <p>Generated by Multi Rules Generator</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="multi-rules-generator.js"></script>
+</body>
+</html>
