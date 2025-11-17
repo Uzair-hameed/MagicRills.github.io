@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI School Attendance Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="school-attendance-sheet-generator.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-container">
+                        <img alt="School Logo" class="logo-preview" id="logo-preview" src="https://via.placeholder.com/80" />
+                        <div class="logo-upload">
+                            <input accept="image/*" id="logo-upload" type="file" />
+                            <button class="btn-gradient" onclick="uploadLogo()">
+                                <span class="btn-icon">📷</span>
+                                Upload Logo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="header-text">
+                        <h1 class="gradient-text">AI School Attendance Dashboard</h1>
+                        <p class="subtitle">Smart tracking with predictive analytics</p>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <button class="theme-toggle btn-glass" onclick="toggleTheme()">
+                        <span class="theme-icon">🌙</span>
+                        <span class="theme-text">Dark Mode</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- AI Insights Banner -->
+        <div class="ai-banner">
+            <div class="ai-content">
+                <div class="ai-icon">🤖</div>
+                <div class="ai-text">
+                    <strong>AI Insight:</strong> 
+                    <span id="ai-prediction">Loading predictions...</span>
+                </div>
+                <button class="btn-ai" onclick="generateAIPrediction()">
+                    <span class="btn-icon">🔍</span>
+                    Analyze
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card card-gradient-1">
+                <div class="card-icon">👥</div>
+                <div class="card-content">
+                    <h3>Total Strength</h3>
+                    <div class="value" id="total-strength">0</div>
+                    <div class="label">All Students</div>
+                </div>
+                <div class="card-wave"></div>
+            </div>
+            <div class="card card-gradient-2">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <h3>Today's Attendance</h3>
+                    <div class="value" id="attendance-percentage">0%</div>
+                    <div class="label" id="attendance-count">0/0 Present</div>
+                </div>
+                <div class="card-wave"></div>
+            </div>
+            <div class="card card-gradient-3">
+                <div class="card-icon">❌</div>
+                <div class="card-content">
+                    <h3>Absent Today</h3>
+                    <div class="value" id="absent-count">0</div>
+                    <div class="label">Students</div>
+                </div>
+                <div class="card-wave"></div>
+            </div>
+            <div class="card card-gradient-4">
+                <div class="card-icon">🏖️</div>
+                <div class="card-content">
+                    <h3>On Leave</h3>
+                    <div class="value" id="leave-count">0</div>
+                    <div class="label">Students</div>
+                </div>
+                <div class="card-wave"></div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="analytics-section">
+            <div class="analytics-card">
+                <h3>Attendance Trends</h3>
+                <div class="chart-container">
+                    <canvas id="attendance-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="controls-section">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="grade-select">Grade</label>
+                    <select id="grade-select" onchange="updateClassOptions()" class="select-glass">
+                        <option value="PG">Pre-Kindergarten (PG)</option>
+                        <option value="KG">Kindergarten (KG)</option>
+                        <option value="1">Grade 1</option>
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5">Grade 5</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12">Grade 12</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="class-select">Class</label>
+                    <select id="class-select" class="select-glass">
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                        <option value="D">Section D</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="date-picker">Date</label>
+                    <input id="date-picker" type="date" class="input-glass" />
+                </div>
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-primary" onclick="loadClassData()">
+                        <span class="btn-icon">🔄</span>
+                        Load Class
+                    </button>
+                </div>
+            </div>
+            
+            <div class="student-add-section">
+                <div class="control-group">
+                    <label for="student-name">Add Student</label>
+                    <div class="input-with-button">
+                        <input id="student-name" placeholder="Enter student name..." type="text" class="input-glass" />
+                        <button class="btn-success" onclick="addStudent()">
+                            <span class="btn-icon">➕</span>
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input id="search-input" oninput="filterStudents()" placeholder="Search students by name, grade, or class..." type="text" class="search-input" />
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <h3>Student Attendance</h3>
+                <div class="table-actions">
+                    <button class="btn-outline" onclick="markAllPresent()">
+                        <span class="btn-icon">✅</span>
+                        Mark All Present
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="attendance-table" id="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Roll No.</th>
+                            <th>Student Name</th>
+                            <th>Grade</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-list">
+                        <!-- Student data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-section">
+            <div class="action-buttons">
+                <button class="btn-action btn-save" onclick="saveAttendance()">
+                    <span class="btn-icon">💾</span>
+                    Save Attendance
+                </button>
+                <button class="btn-action btn-export" onclick="exportToPDF()">
+                    <span class="btn-icon">📄</span>
+                    Export to PDF
+                </button>
+                <button class="btn-action btn-export" onclick="exportToExcel()">
+                    <span class="btn-icon">📊</span>
+                    Export to Excel
+                </button>
+                <button class="btn-action btn-report" onclick="generateMonthlyReport()">
+                    <span class="btn-icon">📅</span>
+                    Monthly Report
+                </button>
+                <button class="btn-action btn-print" onclick="window.print()">
+                    <span class="btn-icon">🖨️</span>
+                    Print
+                </button>
+                <button class="btn-action btn-clear" onclick="clearData()">
+                    <span class="btn-icon">🗑️</span>
+                    Clear Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Print View -->
+        <div class="print-view hidden">
+            <h2 style="margin-bottom: 20px; text-align: center;">School Attendance Sheet</h2>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div>
+                    <strong>Date:</strong> <span id="print-date"></span><br />
+                    <strong>Grade:</strong> <span id="print-grade"></span><br />
+                    <strong>Class:</strong> <span id="print-class"></span>
+                </div>
+                <div style="text-align: right;">
+                    <img alt="School Logo" id="print-logo" src="" style="height: 60px;" />
+                </div>
+            </div>
+            <table style="border-collapse: collapse; margin-bottom: 30px; width: 100%;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 10px;">Roll No.</th>
+                        <th style="border: 1px solid #ddd; padding: 10px;">Student Name</th>
+                        <th style="border: 1px solid #ddd; padding: 10px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="print-student-list">
+                    <!-- Print student data will be inserted here -->
+                </tbody>
+            </table>
+            <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                <div>
+                    <strong>Class Teacher:</strong> _____________________
+                </div>
+                <div>
+                    <strong>Principal:</strong> _____________________
+                </div>
+            </div>
+            <div style="font-size: 12px; margin-top: 20px; text-align: center;">
+                <p>Generated by AI School Attendance Dashboard</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="school-attendance-sheet-generator.js"></script>
+</body>
+</html>
