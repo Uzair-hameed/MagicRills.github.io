@@ -1,1 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MagicRills - Kids Games | Fun Learning Hub</title>
+    <!-- Font Awesome 6 (Free Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN for the graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+        }
 
+        body {
+            background: linear-gradient(145deg, #fff5f9 0%, #fce4ec 100%);
+            color: #3a2c2f;
+            scroll-behavior: smooth;
+        }
+
+        /* main container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Baby Pink & Purple Theme */
+        :root {
+            --baby-pink: #ffb7c5;
+            --soft-pink: #ffe4ed;
+            --purple-lite: #d9b8ff;
+            --purple-mid: #b77dff;
+            --purple-deep: #9b4dff;
+            --card-white: #ffffffdd;
+            --shadow-sm: 0 12px 28px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 20px 35px -12px rgba(156, 77, 255, 0.3);
+        }
+
+        /* Hero section upper & bottom */
+        .hero-upper {
+            background: linear-gradient(120deg, #ffe6f0, #f3e5ff);
+            border-radius: 48px;
+            padding: 2rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .hero-upper h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #b347b0, #ff80a5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-upper p {
+            font-size: 1.2rem;
+            color: #5e4b6e;
+            font-weight: 500;
+        }
+
+        .hero-bottom {
+            background: #faeef7;
+            border-radius: 40px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .hero-bottom span {
+            font-weight: 600;
+            color: #9b4dff;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            padding: 1.3rem 0.8rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #ffe0f0;
+        }
+
+        .stat-card i {
+            font-size: 2.2rem;
+            color: var(--purple-mid);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #3b2c3b;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #7a5a7a;
+            letter-spacing: 0.5px;
+        }
+
+        .graph-container {
+            background: white;
+            border-radius: 32px;
+            padding: 1.2rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2.5rem;
+            border: 1px solid #ffd9e6;
+        }
+
+        canvas {
+            max-height: 260px;
+            width: 100%;
+        }
+
+        /* Tool usage counter section */
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 1.5rem 0 1rem;
+            padding-left: 0.5rem;
+            border-left: 8px solid var(--purple-mid);
+            color: #4a2c5e;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Tool Card with multi-color hover effect */
+        .tool-card {
+            background: var(--card-white);
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            padding: 1.5rem;
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(255, 210, 230, 0.8);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Multi-color background hover effect */
+        .tool-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            background: linear-gradient(135deg, #ffe0f5, #f0e2ff, #ffe0ea);
+            box-shadow: var(--shadow-hover);
+            border-color: #d9b8ff;
+        }
+
+        .tool-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #49246b;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-desc {
+            font-size: 0.85rem;
+            color: #6b4e71;
+            margin: 0.3rem 0;
+        }
+
+        .usage-counter {
+            display: inline-block;
+            background: #f3e0ff;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 0.7rem 0;
+            width: fit-content;
+            color: #6b2e99;
+        }
+
+        .tool-link {
+            margin-top: 0.6rem;
+            text-decoration: none;
+            font-weight: 600;
+            background: #f7e9ff;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            text-align: center;
+            color: #9b4dff;
+            transition: 0.2s;
+            border: 1px solid #e7c8ff;
+        }
+
+        .tool-link:hover {
+            background: #9b4dff;
+            color: white;
+        }
+
+        /* bottom section styles */
+        .bottom-section {
+            background: #fff0f5;
+            border-radius: 48px;
+            padding: 2rem 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .social-icons a {
+            background: white;
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 60px;
+            font-size: 1.6rem;
+            color: var(--purple-mid);
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .social-icons a:hover {
+            background: var(--purple-mid);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            background: white;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 60px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: #5a3e6b;
+        }
+
+        .action-btn i {
+            font-size: 1rem;
+        }
+
+        .action-btn:hover {
+            background: var(--purple-lite);
+            color: #2d1b3a;
+        }
+
+        .links-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0 1.5rem;
+        }
+
+        .links-column {
+            min-width: 180px;
+            text-align: left;
+        }
+
+        .links-column h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid #ffb7c5;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+        .links-column a {
+            display: block;
+            color: #653f7c;
+            text-decoration: none;
+            margin: 0.4rem 0;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .links-column a:hover {
+            color: #9b4dff;
+            transform: translateX(5px);
+        }
+
+        .copyright {
+            margin-top: 1.8rem;
+            font-size: 0.8rem;
+            color: #b384b3;
+        }
+
+        hr {
+            margin: 0.8rem 0;
+            border-color: #ffd2e2;
+        }
+
+        @media (max-width: 680px) {
+            .container {
+                padding: 1rem;
+            }
+            .hero-upper h1 {
+                font-size: 1.8rem;
+            }
+            .tools-grid {
+                gap: 1rem;
+            }
+            .links-row {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .links-column {
+                text-align: center;
+            }
+        }
+
+        .scroll-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 1rem;
+        }
+
+        button.scroll-btn {
+            background: #f0defa;
+            border: none;
+            font-size: 1.2rem;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .follow-btn-active {
+            background: #9b4dff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Hero Upper -->
+    <div class="hero-upper">
+        <h1><i class="fas fa-gamepad"></i> Kids Games · MagicRills</h1>
+        <p>Play, Learn & Grow with Urdu & Math Adventures!</p>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <div class="stat-card"><i class="fas fa-eye"></i><div class="stat-number" id="totalViews">24.8K</div><div class="stat-label">Total Views</div></div>
+        <div class="stat-card"><i class="fas fa-circle" style="color:#4caf50; font-size:1.5rem;"></i><div class="stat-number" id="onlineCount">143</div><div class="stat-label">Online</div></div>
+        <div class="stat-card"><i class="fas fa-share-alt"></i><div class="stat-number" id="totalShares">5.2K</div><div class="stat-label">Total Shares</div></div>
+        <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalFollowers">8.9K</div><div class="stat-label">Total Followers</div></div>
+        <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">587</div><div class="stat-label">Today’s visitor</div></div>
+    </div>
+
+    <!-- Graph Container -->
+    <div class="graph-container">
+        <canvas id="visitorChart" width="400" height="180" style="max-height:220px; width:100%"></canvas>
+    </div>
+
+    <!-- Tool Usage Counter & Tool Links section -->
+    <div class="section-title"><i class="fas fa-chart-simple"></i> Every Tool Usage Counter & Games</div>
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <!-- Hero Bottom Section (second hero) -->
+    <div class="hero-bottom">
+        <i class="fas fa-star-of-life" style="color:#b77dff"></i> <span>✨ Weekly Challenge: Unlock new badges ✨</span> — Join thousands of young learners!
+    </div>
+
+    <!-- BOTTOM SECTION (Follow, Home, share, scroll, social, popular/trending/latest) -->
+    <div class="bottom-section" id="bottomSection">
+        <div class="social-icons">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a>
+            <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn" id="followBtn"><i class="fas fa-heart"></i> Follow MagicRills</button>
+            <a href="https://magicrills.com" class="action-btn" style="text-decoration: none;"><i class="fas fa-home"></i> Back to Home</a>
+            <button class="action-btn" id="sharePageBtn"><i class="fas fa-share-nodes"></i> Share Page</button>
+        </div>
+        <div class="scroll-buttons">
+            <button class="scroll-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Scroll Up</button>
+            <button class="scroll-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Scroll Down</button>
+        </div>
+
+        <!-- Popular Tools, Trending Post, Latest Tool (clickable links) -->
+        <div class="links-row" id="dynamicLinksRow">
+            <div class="links-column" id="popularToolsList">
+                <h4>🔥 Popular Tools</h4>
+                <div>Loading...</div>
+            </div>
+            <div class="links-column" id="trendingList">
+                <h4>📈 Trending Posts</h4>
+                <div>Loading...</div>
+            </div>
+            <div class="links-column" id="latestToolsList">
+                <h4>🆕 Latest Tools</h4>
+                <div>Loading...</div>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2025 MagicRills — sparking joy in every child's learning journey.
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- LIST OF TOOLS (Given URLs & titles extracted) ----------
+    const toolsData = [
+        { name: "Urdu Alphabet Stories", url: "https://magicrills.com/Kids-Games/magicrills-urdu-alphabet-stories.html", usage: 12450 },
+        { name: "Akhlaqi Stories", url: "https://magicrills.com/Kids-Games/magicrills-akhlaqi-stories.html", usage: 8320 },
+        { name: "Urdu Tracing App", url: "https://magicrills.com/Kids-Games/magicrills-urdu-tracing-app.html", usage: 9670 },
+        { name: "Urdu Jor Tor", url: "https://magicrills.com/Kids-Games/magicrills-urdu-jor-tor.html", usage: 5430 },
+        { name: "Sentence Builder", url: "https://magicrills.com/Kids-Games/magicrills-sentence-builder.html", usage: 6780 },
+        { name: "Synonyms Antonyms Match", url: "https://magicrills.com/Kids-Games/magicrills-synonyms-antonyms-match.html", usage: 4120 },
+        { name: "Spelling Bee", url: "https://magicrills.com/Kids-Games/magicrills-spelling-bee.html", usage: 10320 },
+        { name: "Word Search Puzzle", url: "https://magicrills.com/Kids-Games/magicrills-word-search-puzzle.html", usage: 7650 },
+        { name: "Basic Arithmetic Quiz", url: "https://magicrills.com/Kids-Games/magicrills-basic-arithmetic-quiz.html", usage: 5890 },
+        { name: "Fraction Matching", url: "https://magicrills.com/Kids-Games/magicrills-fraction-matching.html", usage: 3240 },
+        { name: "Math Bingo", url: "https://magicrills.com/Kids-Games/magicrills-math-bingo.html", usage: 7210 },
+        { name: "Counting Game", url: "https://magicrills.com/Kids-Games/magicrills-counting-game.html", usage: 8810 },
+        { name: "Magic Numbers Comparison", url: "https://magicrills.com/Kids-Games/magic-numbers-comparison-game.html", usage: 4370 },
+        { name: "GK Fun Quiz", url: "https://magicrills.com/Kids-Games/gk-fun-quiz.html", usage: 15430 },
+        { name: "Urdu Alpha Fun", url: "https://magicrills.com/Kids-Games/urdu-alpha-fun.html", usage: 6320 },
+        { name: "Number Fun Game", url: "https://magicrills.com/Kids-Games/number-fun-game.html", usage: 9800 },
+        { name: "Alpha Fun", url: "https://magicrills.com/Kids-Games/alpha-fun.html", usage: 11020 }
+    ];
+
+    // Dashboard simulated dynamic values (can be updated later)
+    let totalViews = 24800;
+    let onlineCount = 143;
+    let totalShares = 5200;
+    let totalFollowers = 8900;
+    let todayVisitors = 587;
+
+    // Update dashboard numbers (small random increment simulation)
+    function updateDashboardRandomly() {
+        // just for a lively feel, but we keep base
+        document.getElementById('totalViews').innerText = totalViews.toLocaleString();
+        document.getElementById('onlineCount').innerText = onlineCount;
+        document.getElementById('totalShares').innerText = totalShares.toLocaleString();
+        document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
+        document.getElementById('todayVisitors').innerText = todayVisitors;
+    }
+
+    // Render tool cards with usage counters & links
+    function renderTools() {
+        const grid = document.getElementById('toolsGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        toolsData.forEach(tool => {
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.innerHTML = `
+                <h3>🎮 ${tool.name}</h3>
+                <div class="tool-desc">Interactive learning for kids</div>
+                <div class="usage-counter"><i class="fas fa-chart-line"></i> Used ${tool.usage.toLocaleString()} times</div>
+                <a href="${tool.url}" class="tool-link" target="_blank" rel="noopener noreferrer">Play Now →</a>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // Populate Popular Tools (based on highest usage), Trending (random pick but consistent: 2nd highest & dynamic), Latest Tools (last 3 in order)
+    function populateDynamicSections() {
+        // sort by usage desc for popular
+        const sortedByUsage = [...toolsData].sort((a,b) => b.usage - a.usage);
+        const popularItems = sortedByUsage.slice(0, 5); // top 5 popular
+
+        const popularContainer = document.getElementById('popularToolsList');
+        if(popularContainer) {
+            popularContainer.innerHTML = `<h4>🔥 Popular Tools</h4>`;
+            popularItems.forEach(t => {
+                const link = document.createElement('a');
+                link.href = t.url;
+                link.target = "_blank";
+                link.innerText = t.name;
+                popularContainer.appendChild(link);
+            });
+        }
+
+        // Trending posts: based on usage + recent interest (we will use 3 random but fixed with mid-high usage)
+        const trendingCandidates = [...toolsData].sort((a,b) => b.usage - a.usage).slice(1,6);
+        const trendingContainer = document.getElementById('trendingList');
+        if(trendingContainer) {
+            trendingContainer.innerHTML = `<h4>📈 Trending Posts</h4>`;
+            trendingCandidates.slice(0,4).forEach(t => {
+                const link = document.createElement('a');
+                link.href = t.url;
+                link.target = "_blank";
+                link.innerText = t.name;
+                trendingContainer.appendChild(link);
+            });
+        }
+
+        // Latest tools: based on original order (last 3 tools from given list)
+        const latestTools = [...toolsData].slice(-4).reverse();
+        const latestContainer = document.getElementById('latestToolsList');
+        if(latestContainer) {
+            latestContainer.innerHTML = `<h4>🆕 Latest Tools</h4>`;
+            latestTools.forEach(t => {
+                const link = document.createElement('a');
+                link.href = t.url;
+                link.target = "_blank";
+                link.innerText = t.name;
+                latestContainer.appendChild(link);
+            });
+        }
+    }
+
+    // GRAPH: weekly visitors trend (today's visitor representation)
+    let visitorChart;
+    function initChart() {
+        const ctx = document.getElementById('visitorChart').getContext('2d');
+        visitorChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Daily Visitors',
+                    data: [420, 510, 587, 620, 790, 880, 950],
+                    backgroundColor: 'rgba(187, 125, 255, 0.2)',
+                    borderColor: '#b77dff',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#ff9fbb',
+                    pointBorderColor: '#9b4dff',
+                    pointRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 12 } } }
+                }
+            }
+        });
+    }
+
+    // FOLLOW button interaction
+    let isFollowing = false;
+    function initFollowButton() {
+        const followBtn = document.getElementById('followBtn');
+        if(followBtn) {
+            followBtn.addEventListener('click', () => {
+                isFollowing = !isFollowing;
+                if(isFollowing) {
+                    followBtn.innerHTML = '<i class="fas fa-check-circle"></i> Following!';
+                    followBtn.style.background = "#9b4dff";
+                    followBtn.style.color = "white";
+                    alert("You are now following MagicRills! 🎉");
+                } else {
+                    followBtn.innerHTML = '<i class="fas fa-heart"></i> Follow MagicRills';
+                    followBtn.style.background = "white";
+                    followBtn.style.color = "#5a3e6b";
+                }
+            });
+        }
+    }
+
+    // Page sharing button (Web Share API fallback)
+    function initShareButton() {
+        const shareBtn = document.getElementById('sharePageBtn');
+        if(shareBtn) {
+            shareBtn.addEventListener('click', () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'MagicRills Kids Games',
+                        text: 'Check out amazing learning games for kids!',
+                        url: window.location.href,
+                    }).catch(() => console.log('share cancelled'));
+                } else {
+                    // fallback copy link
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        alert('Page link copied to clipboard! Share with friends 📋');
+                    }).catch(() => alert('Could not copy link'));
+                }
+            });
+        }
+    }
+
+    // Scroll up & down buttons
+    function initScrollButtons() {
+        const upBtn = document.getElementById('scrollUpBtn');
+        const downBtn = document.getElementById('scrollDownBtn');
+        if(upBtn) upBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        if(downBtn) downBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    }
+
+    // Optionally simulate real-time online count increment
+    function simulateOnlineActivity() {
+        setInterval(() => {
+            let fluctuation = Math.floor(Math.random() * 15) - 5;
+            let newOnline = onlineCount + fluctuation;
+            if(newOnline < 20) newOnline = 98;
+            if(newOnline > 380) newOnline = 220;
+            onlineCount = newOnline;
+            document.getElementById('onlineCount').innerText = onlineCount;
+            // small increment for today visitors for dynamic feel
+            let extraVisitors = Math.floor(Math.random() * 4);
+            if(extraVisitors > 0) {
+                todayVisitors += extraVisitors;
+                document.getElementById('todayVisitors').innerText = todayVisitors;
+                totalViews += extraVisitors;
+                document.getElementById('totalViews').innerText = totalViews.toLocaleString();
+            }
+        }, 12000);
+    }
+
+    // Additional: Simulate share count increment when share button clicked
+    function addShareTracking() {
+        const shareBtn = document.getElementById('sharePageBtn');
+        if(shareBtn){
+            shareBtn.addEventListener('click', () => {
+                totalShares += 1;
+                document.getElementById('totalShares').innerText = totalShares.toLocaleString();
+            });
+        }
+    }
+
+    // Mobile responsiveness friendly interface fully done via CSS
+    window.addEventListener('load', () => {
+        renderTools();
+        updateDashboardRandomly();
+        initChart();
+        populateDynamicSections();
+        initFollowButton();
+        initShareButton();
+        initScrollButtons();
+        addShareTracking();
+        simulateOnlineActivity();
+        // Set follower count increments occasionally (just fun)
+        setInterval(() => {
+            totalFollowers += Math.floor(Math.random() * 3);
+            document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
+        }, 20000);
+    });
+</script>
+</body>
+</html>
