@@ -1,1 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ECCE Teacher Hub | MagicRills</title>
+    <!-- Google Fonts & Font Awesome 6 (free) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN for graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fefaf5;
+            color: #1e2a2f;
+            scroll-behavior: smooth;
+        }
+
+        /* Color Palette: Baby Orange, Purple, Aqua Green */
+        :root {
+            --orange: #FFB347;    /* baby orange */
+            --purple: #B19CD9;    /* soft purple */
+            --aqua: #8FD9C7;      /* aqua green */
+            --orange-light: #FFD9B5;
+            --purple-light: #E4D5F7;
+            --aqua-light: #C7F0E5;
+            --dark-text: #2c3e2f;
+            --card-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
+            --card-hover: 0 20px 30px -12px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero Upper & Bottom */
+        .hero-upper {
+            background: linear-gradient(135deg, var(--orange-light) 0%, var(--purple-light) 100%);
+            border-radius: 2rem;
+            padding: 2rem 2rem 1.8rem;
+            margin: 1.5rem 0 1rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .hero-upper h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            background: linear-gradient(120deg, #E67E22, #8E44AD, #1ABC9C);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .hero-upper p {
+            font-size: 1.1rem;
+            margin-top: 0.75rem;
+            color: #2d3e3b;
+            font-weight: 500;
+        }
+
+        .hero-bottom {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem 2rem;
+            margin: 1rem 0 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.2rem;
+            margin: 2rem 0 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1.6rem;
+            padding: 1.2rem 0.8rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: all 0.2s ease;
+            border-bottom: 4px solid var(--orange);
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--purple);
+            margin-bottom: 0.6rem;
+        }
+
+        .stat-number {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #1f3d38;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5f6c6a;
+        }
+
+        .graph-container {
+            background: white;
+            border-radius: 1.6rem;
+            padding: 1.2rem;
+            margin: 1rem 0 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        canvas#viewsChart {
+            max-height: 260px;
+            width: 100%;
+        }
+
+        /* Tools Section */
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 2rem 0 1.2rem;
+            border-left: 6px solid var(--orange);
+            padding-left: 1rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            transition: all 0.25s ease-in-out;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            border: 1px solid #f0e4d4;
+        }
+
+        /* Multi-color background hover effect */
+        .tool-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--card-hover);
+            background: linear-gradient(145deg, #fff9f0, #ffffff);
+            border-color: transparent;
+            background-size: 200% 200%;
+            animation: subtleGlow 0.3s ease;
+        }
+
+        /* multicolor border / bg hint on hover */
+        .tool-card:hover .tool-inner {
+            background: linear-gradient(115deg, rgba(255,179,71,0.08), rgba(143,217,199,0.1), rgba(177,156,217,0.08));
+        }
+
+        .tool-inner {
+            padding: 1.4rem 1.2rem 1.2rem;
+        }
+
+        .tool-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c3e2f;
+        }
+
+        .tool-card p {
+            font-size: 0.85rem;
+            color: #5e706b;
+            margin-bottom: 1rem;
+        }
+
+        .counter-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.6rem;
+            border-top: 1px solid #f0e0d0;
+            padding-top: 0.8rem;
+        }
+
+        .usage-counter {
+            font-weight: 700;
+            background: var(--orange-light);
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-link {
+            background: var(--aqua);
+            color: #1f3d38;
+            text-decoration: none;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .tool-link:hover {
+            background: var(--orange);
+            color: white;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            background: #ffffffea;
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2rem 1.5rem;
+            margin: 2.5rem 0 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(177,156,217,0.3);
+        }
+
+        .bottom-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: space-between;
+        }
+
+        .bottom-col {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .bottom-col h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--purple);
+            padding-left: 10px;
+        }
+
+        .clickable-list {
+            list-style: none;
+        }
+
+        .clickable-list li {
+            margin-bottom: 0.7rem;
+        }
+
+        .clickable-list a {
+            text-decoration: none;
+            color: #2c6b5e;
+            font-weight: 500;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clickable-list a:hover {
+            color: var(--orange);
+            transform: translateX(5px);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .social-icons a {
+            background: #f0eef3;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--purple);
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        .social-icons a:hover {
+            background: var(--orange);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background: var(--purple-light);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-follow {
+            background: var(--orange);
+            color: white;
+        }
+
+        .btn-follow:hover {
+            background: #e6952e;
+        }
+
+        .scroll-btn {
+            background: var(--aqua);
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .share-btn {
+            background: var(--purple);
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            font-size: 0.8rem;
+            color: #7e8c8a;
+        }
+
+        @media (max-width: 750px) {
+            .hero-upper h1 { font-size: 1.7rem; }
+            .stat-number { font-size: 1.5rem; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .bottom-flex { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Hero Upper Section -->
+    <div class="hero-upper">
+        <h1><i class="fas fa-chalkboard-user"></i> ECCE Teacher Toolkit</h1>
+        <p>Empowering Early Childhood Educators • Smart Tools, Big Impact</p>
+    </div>
+
+    <!-- Dashboard Stats + Graph -->
+    <div class="dashboard" id="dashboardStats">
+        <div class="stat-card"><i class="fas fa-eye"></i><div class="stat-number" id="totalViews">0</div><div class="stat-label">Total Views</div></div>
+        <div class="stat-card"><i class="fas fa-circle"></i><div class="stat-number" id="onlineCount">0</div><div class="stat-label">Online</div></div>
+        <div class="stat-card"><i class="fas fa-share-alt"></i><div class="stat-number" id="totalShares">0</div><div class="stat-label">Total Shares</div></div>
+        <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalFollowers">0</div><div class="stat-label">Total Followers</div></div>
+        <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">0</div><div class="stat-label">Today’s Visitor</div></div>
+    </div>
+    <div class="graph-container">
+        <canvas id="viewsChart" width="400" height="180" style="max-height:220px; width:100%"></canvas>
+        <p style="text-align:center; margin-top:8px; font-size:12px; color:#7b8a76;">📈 Weekly views trend (last 7 days)</p>
+    </div>
+
+    <!-- Tools Section with counters & links -->
+    <div class="section-title"><i class="fas fa-tools"></i> Every Tool Usage Counter</div>
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <!-- Hero Bottom Section (after tools) -->
+    <div class="hero-bottom">
+        <div><i class="fas fa-heart" style="color:#FFB347;"></i> <strong>ECCE Community</strong> | 100+ joyful resources</div>
+        <div><i class="fas fa-lightbulb" style="color:#B19CD9;"></i> "Play • Learn • Grow"</div>
+        <div><i class="fas fa-chart-line" style="color:#8FD9C7;"></i> Real-time teacher analytics</div>
+    </div>
+
+    <!-- Bottom Section with all required components -->
+    <div class="bottom-section">
+        <div class="bottom-flex">
+            <div class="bottom-col">
+                <h4>✨ Quick Actions</h4>
+                <div class="action-buttons">
+                    <button class="btn btn-follow" id="followBtn"><i class="fab fa-gratipay"></i> Follow</button>
+                    <button class="btn share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
+                    <a href="https://magicrills.com" class="btn" style="background:#8FD9C7; text-decoration:none; display:inline-block;"><i class="fas fa-home"></i> Back to Home</a>
+                </div>
+                <div class="scroll-buttons" style="display:flex; gap:10px; margin-top: 20px;">
+                    <div class="scroll-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></div>
+                    <div class="scroll-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></div>
+                </div>
+                <div class="social-icons" style="margin-top: 20px;">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+            <div class="bottom-col">
+                <h4>🔥 Popular Tools</h4>
+                <ul class="clickable-list" id="popularList"></ul>
+            </div>
+            <div class="bottom-col">
+                <h4>📈 Trending Posts</h4>
+                <ul class="clickable-list" id="trendingList"></ul>
+            </div>
+            <div class="bottom-col">
+                <h4>🆕 Latest Tool</h4>
+                <ul class="clickable-list" id="latestToolList"></ul>
+            </div>
+        </div>
+    </div>
+    <footer>© MagicRills ECCE Hub • Nurturing young minds with creativity</footer>
+</div>
+
+<script>
+    // -------- Tool data with provided URLs and names (extracted from links) --------
+    const toolsRaw = [
+        { name: "Developmental Milestone Checker", url: "https://magicrills.com/ECCE/developmental-milestone-checker.html" },
+        { name: "Circle Time Story Generator", url: "https://magicrills.com/ECCE/circle-time-story-generator.html" },
+        { name: "Circle Time Song Generator", url: "https://magicrills.com/ECCE/circle-time-song-generator.html" },
+        { name: "Fine Motor Skills Activity Planner", url: "https://magicrills.com/ECCE/fine-motor-skills-activity-planner.html" },
+        { name: "Sensory Play Idea Generator", url: "https://magicrills.com/ECCE/sensory-play-idea-generator.html" },
+        { name: "Social-Emotional Development (ECCE)", url: "https://magicrills.com/ECCE/social-emotional-development-ecce.html" },
+        { name: "Health & Hygiene Teacher Idea", url: "https://magicrills.com/ECCE/health-hygiene-ecce-teacher-idea.html" },
+        { name: "Creative Art ECCE Idea", url: "https://magicrills.com/ECCE/creative-art-ecce-teacher-idea.html" },
+        { name: "The World Around Us Idea", url: "https://magicrills.com/ECCE/the-world-around-us-teacher-idea.html" },
+        { name: "Auto Time Table Generator", url: "https://magicrills.com/ECCE/auto-time-table-generator-for-ecce.html" },
+        { name: "ECCE Observation Tool", url: "https://magicrills.com/ECCE/ecce-observation-tool.html" },
+        { name: "Worksheet Maker for ECCE", url: "https://magicrills.com/ECCE/worksheet-maker-for-ecce-teachers.html" }
+    ];
+
+    // initialize usage counters from localStorage or default random-ish
+    let toolCounters = [];
+    const STORAGE_KEY = "ecce_tool_usage";
+    function loadCounters() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if(stored) {
+            toolCounters = JSON.parse(stored);
+            if(toolCounters.length !== toolsRaw.length) {
+                resetCounters();
+            }
+        } else {
+            resetCounters();
+        }
+    }
+    function resetCounters() {
+        toolCounters = toolsRaw.map(() => Math.floor(Math.random() * 180) + 25); // between 25-205
+        saveCounters();
+    }
+    function saveCounters() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toolCounters));
+    }
+    function incrementCounter(index) {
+        toolCounters[index] = (toolCounters[index] || 0) + 1;
+        saveCounters();
+        renderToolsGrid();
+        updateDashboardStats(); // total views depends on sum
+    }
+
+    // Dashboard dynamic data simulation
+    let totalShares = 847;
+    let totalFollowers = 2350;
+    let onlineVisitors = 42;
+    let todayVisitorsCount = 189;
+
+    // total views = sum of all tool counters
+    function computeTotalViews() {
+        return toolCounters.reduce((a,b) => a + b, 0);
+    }
+
+    function updateDashboardStats() {
+        document.getElementById('totalViews').innerText = computeTotalViews().toLocaleString();
+        document.getElementById('onlineCount').innerText = onlineVisitors;
+        document.getElementById('totalShares').innerText = totalShares.toLocaleString();
+        document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
+        document.getElementById('todayVisitors').innerText = todayVisitorsCount.toLocaleString();
+    }
+
+    // graph data: weekly views simulation (last 7 days trend based on real total views)
+    let weeklyData = [320, 410, 378, 492, 587, 710, 842];
+    let chart;
+    function initChart() {
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Views',
+                    data: weeklyData,
+                    borderColor: '#FFB347',
+                    backgroundColor: 'rgba(255,179,71,0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#B19CD9',
+                    pointBorderColor: '#8FD9C7',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    }
+    function updateChartWithNewTotal() {
+        if(chart) {
+            // simulate dynamic shift: rotate values + new trend
+            const newVal = Math.floor(computeTotalViews() / 12) + 85;
+            weeklyData.push(newVal);
+            weeklyData.shift();
+            chart.data.datasets[0].data = weeklyData;
+            chart.update();
+        }
+    }
+
+    // Render tool cards with hover effects and counters
+    function renderToolsGrid() {
+        const grid = document.getElementById('toolsGrid');
+        grid.innerHTML = '';
+        toolsRaw.forEach((tool, idx) => {
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.innerHTML = `
+                <div class="tool-inner">
+                    <h3><i class="fas fa-wand-magic" style="color:var(--purple);"></i> ${tool.name}</h3>
+                    <p>Interactive ECCE tool for joyful teaching</p>
+                    <div class="counter-wrap">
+                        <span class="usage-counter"><i class="fas fa-chart-simple"></i> Used: ${toolCounters[idx]}</span>
+                        <a href="${tool.url}" target="_blank" class="tool-link" data-idx="${idx}">Open Tool →</a>
+                    </div>
+                </div>
+            `;
+            const link = card.querySelector('.tool-link');
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                incrementCounter(idx);
+                // update total views also
+                updateDashboardStats();
+                updateChartWithNewTotal();
+                // open in new tab after increment
+                window.open(tool.url, '_blank');
+            });
+            grid.appendChild(card);
+        });
+    }
+
+    // Popular / Trending / Latest based on usage counter
+    function getToolsWithCounters() {
+        return toolsRaw.map((tool, idx) => ({ ...tool, count: toolCounters[idx], idx }));
+    }
+    function renderSidebarLinks() {
+        const toolsWithCount = getToolsWithCounters();
+        // popular: top 3 by usage count
+        const popular = [...toolsWithCount].sort((a,b) => b.count - a.count).slice(0, 3);
+        // trending: we simulate by recent + high increment (for demo, we choose next 3 after popular or based on random order but consistent)
+        const trending = [...toolsWithCount].sort((a,b) => (b.count * 0.7 + Math.random()*10) - (a.count * 0.7 + Math.random()*10)).slice(0,3);
+        // latest tool: just last index (newest according to order) but also we can show first in array if needed but show the one with most recent index last
+        const latest = toolsWithCount[toolsWithCount.length-1];
+        
+        const popularList = document.getElementById('popularList');
+        const trendingList = document.getElementById('trendingList');
+        const latestContainer = document.getElementById('latestToolList');
+        
+        popularList.innerHTML = '';
+        popular.forEach(t => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-fire"></i> ${t.name}</a>`;
+            popularList.appendChild(li);
+        });
+        trendingList.innerHTML = '';
+        trending.forEach(t => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-chart-line"></i> ${t.name}</a>`;
+            trendingList.appendChild(li);
+        });
+        latestContainer.innerHTML = '';
+        if(latest) {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${latest.url}" target="_blank"><i class="fas fa-star"></i> ${latest.name} <span style="font-size:10px;">✨new</span></a>`;
+            latestContainer.appendChild(li);
+        }
+    }
+
+    // Follow button & share logic, scroll
+    function initInteractions() {
+        const followBtn = document.getElementById('followBtn');
+        let followed = false;
+        followBtn.addEventListener('click', () => {
+            if(!followed) {
+                totalFollowers += 1;
+                followed = true;
+                updateDashboardStats();
+                followBtn.innerHTML = '<i class="fas fa-check"></i> Following';
+                followBtn.style.background = "#8FD9C7";
+                alert("🎉 You're now following ECCE Teacher Hub!");
+            } else {
+                alert("You already follow this page ❤️");
+            }
+        });
+
+        // page sharing button (Web Share API fallback)
+        const shareBtn = document.getElementById('pageShareBtn');
+        shareBtn.addEventListener('click', () => {
+            const shareData = {
+                title: 'ECCE Teacher Toolkit',
+                text: 'Discover amazing ECCE teaching tools & resources!',
+                url: window.location.href,
+            };
+            if (navigator.share) {
+                navigator.share(shareData).then(() => {
+                    totalShares++;
+                    updateDashboardStats();
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Link copied! Share with fellow educators. (+1 share counted)");
+                totalShares++;
+                updateDashboardStats();
+            }
+        });
+
+        // scroll up/down
+        const up = document.getElementById('scrollUpBtn');
+        const down = document.getElementById('scrollDownBtn');
+        up.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        down.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    }
+
+    // simulate online visitors (fluctuate)
+    function simulateOnlineAndVisitors() {
+        setInterval(() => {
+            onlineVisitors = Math.floor(Math.random() * 40) + 28; // 28-68
+            todayVisitorsCount += Math.floor(Math.random() * 5);
+            updateDashboardStats();
+        }, 9000);
+        // total views auto increment mimic activity
+        setInterval(() => {
+            // slight organic increment for demonstration
+            const randomTool = Math.floor(Math.random() * toolCounters.length);
+            toolCounters[randomTool] += 1;
+            saveCounters();
+            renderToolsGrid();
+            updateDashboardStats();
+            updateChartWithNewTotal();
+            renderSidebarLinks();   // update popular/trending after increments
+        }, 28000);
+    }
+
+    // initial load & refresh
+    function init() {
+        loadCounters();
+        initChart();
+        renderToolsGrid();
+        updateDashboardStats();
+        renderSidebarLinks();
+        initInteractions();
+        simulateOnlineAndVisitors();
+        // Update side links on each interval or after increments
+        setInterval(() => {
+            renderSidebarLinks();
+        }, 15000);
+        // extra: update total views after any increment already triggers inside incrementCounter but for safety
+        window.addEventListener('storage', () => {
+            loadCounters();
+            renderToolsGrid();
+            updateDashboardStats();
+            renderSidebarLinks();
+            updateChartWithNewTotal();
+        });
+    }
+    init();
+</script>
+</body>
+</html>
