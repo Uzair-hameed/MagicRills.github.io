@@ -1,1 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Student Tool Hub | MagicRills</title>
+    <!-- Font Awesome 6 (Free CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN for Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
 
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background: linear-gradient(145deg, #fef9e6 0%, #fff5f0 100%);
+            color: #1f1a2e;
+            scroll-behavior: smooth;
+        }
+
+        /* Color Palette: yellow, purple, baby pink, sky blue */
+        :root {
+            --yellow: #FFE66D;
+            --purple: #9B7BDF;
+            --baby-pink: #FFB7C5;
+            --sky-blue: #8ECAE6;
+            --dark-purple: #5e3c9e;
+            --soft-gray: #f8f9fc;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem;
+        }
+
+        /* Hero Upper & Bottom */
+        .hero-upper {
+            background: linear-gradient(135deg, var(--purple), var(--sky-blue));
+            border-radius: 48px;
+            padding: 2.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+            color: white;
+            text-align: center;
+        }
+        .hero-upper h1 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+        .hero-upper p {
+            font-size: 1.2rem;
+            margin-top: 0.8rem;
+            opacity: 0.95;
+        }
+        .hero-bottom {
+            background: var(--baby-pink);
+            border-radius: 40px;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0 2rem 0;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .hero-bottom .badge-tag {
+            background: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: var(--dark-purple);
+        }
+
+        /* Dashboard Cards Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .stat-card {
+            background: white;
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            padding: 1.4rem 0.8rem;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(155,123,223,0.2);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-5px); background: #fff; }
+        .stat-card i { font-size: 2.4rem; margin-bottom: 0.5rem; display: inline-block; }
+        .stat-card .stat-number { font-size: 2rem; font-weight: 800; color: var(--purple); }
+        .stat-card .stat-label { font-weight: 500; color: #4a4a6a; letter-spacing: 0.3px; }
+
+        /* Graph + extra row */
+        .graph-container {
+            background: white;
+            border-radius: 36px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+        }
+        canvas { max-height: 280px; width: 100% !important; }
+
+        /* Tool Cards Section */
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem 0;
+            border-left: 7px solid var(--purple);
+            padding-left: 1rem;
+            color: #2c2a4a;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+        .tool-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.4rem;
+            box-shadow: 0 12px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid #f0eef5;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Multi-color background hover effect */
+        .tool-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            background: linear-gradient(145deg, #FFF7E6, #FFE0E7, #E3F0FF);
+            box-shadow: 0 24px 36px -12px rgba(0,0,0,0.25);
+            border-color: var(--purple);
+        }
+        .tool-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        .tool-card p {
+            color: #4a4868;
+            margin: 0.6rem 0;
+            font-size: 0.9rem;
+        }
+        .usage-counter {
+            background: var(--yellow);
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 0.6rem;
+        }
+        .tool-link {
+            display: inline-block;
+            margin-top: 0.9rem;
+            background: var(--purple);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .tool-link:hover { background: var(--dark-purple); transform: scale(0.97); }
+
+        /* Bottom Section Layout */
+        .bottom-section {
+            background: #ffffffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 2rem;
+            margin: 2rem 0 1rem;
+            box-shadow: 0 18px 35px rgba(0,0,0,0.05);
+            border: 1px solid rgba(155,123,223,0.3);
+        }
+        .bottom-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .bottom-col {
+            flex: 1;
+            min-width: 180px;
+        }
+        .bottom-col h4 {
+            font-size: 1.2rem;
+            border-bottom: 3px solid var(--baby-pink);
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .clickable-links a {
+            display: block;
+            color: #2c2a4a;
+            text-decoration: none;
+            margin: 0.6rem 0;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .clickable-links a:hover { color: var(--purple); transform: translateX(5px); }
+        
+        /* Centered action buttons container */
+        .action-buttons-center {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px dashed rgba(155,123,223,0.3);
+        }
+        .follow-btn, .share-btn, .scroll-btn, .back-home-btn {
+            background: var(--yellow);
+            border: none;
+            padding: 0.7rem 1.6rem;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #1f1a2e;
+        }
+        .share-btn { background: var(--baby-pink); color: #1f1a2e; }
+        .scroll-btn { background: var(--sky-blue); }
+        .back-home-btn { background: var(--purple); color: white; }
+        .follow-btn:hover, .share-btn:hover, .scroll-btn:hover, .back-home-btn:hover { opacity: 0.85; transform: scale(0.97); }
+        
+        .social-icons-center {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 1.5rem 0 0.5rem;
+        }
+        .social-icons-center a {
+            background: var(--sky-blue);
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.3rem;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .social-icons-center a:hover { background: var(--purple); transform: scale(1.1); }
+        
+        hr { margin: 1rem 0; background: var(--baby-pink); height: 2px; border: none; }
+        footer { text-align: center; padding: 1.5rem; font-size: 0.8rem; color: gray; }
+
+        @media (max-width: 760px) {
+            .container { padding: 1rem; }
+            .hero-upper h1 { font-size: 1.8rem; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .bottom-flex { flex-direction: column; }
+            .action-buttons-center { flex-direction: column; align-items: stretch; }
+            .action-buttons-center a, .action-buttons-center button { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Hero Upper Section -->
+    <div class="hero-upper">
+        <h1><i class="fas fa-graduation-cap"></i> Student Tool Hub</h1>
+        <p>Supercharge your learning journey — AI-powered tools, productivity boosters & creative generators</p>
+    </div>
+
+    <!-- Dashboard: Total views, Online, Shares, Followers, Today’s visitor -->
+    <div class="dashboard">
+        <div class="stat-card"><i class="fas fa-eye" style="color: var(--purple);"></i><div class="stat-number" id="totalViews">0</div><div class="stat-label">Total Views</div></div>
+        <div class="stat-card"><i class="fas fa-globe" style="color: var(--sky-blue);"></i><div class="stat-number" id="onlineCount">0</div><div class="stat-label">Online Now</div></div>
+        <div class="stat-card"><i class="fas fa-share-alt" style="color: var(--yellow);"></i><div class="stat-number" id="totalShares">0</div><div class="stat-label">Total Shares</div></div>
+        <div class="stat-card"><i class="fas fa-heart" style="color: var(--baby-pink);"></i><div class="stat-number" id="totalFollowers">0</div><div class="stat-label">Total Followers</div></div>
+        <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">0</div><div class="stat-label">Today's Visitor</div></div>
+    </div>
+
+    <!-- Graph Section -->
+    <div class="graph-container">
+        <h3 style="margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> Weekly Activity (Views Trend)</h3>
+        <canvas id="viewsChart" width="800" height="300" style="max-height: 280px;"></canvas>
+    </div>
+
+    <!-- Every Tool Usage Counter & Tool Links (10 tools) -->
+    <div class="section-title"><i class="fas fa-tools"></i> 📚 Student Toolbox — Usage counters + instant access</div>
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <!-- Hero Bottom Section -->
+    <div class="hero-bottom">
+        <span class="badge-tag"><i class="fas fa-lightbulb"></i> #StudySmart</span>
+        <span class="badge-tag"><i class="fas fa-chart-simple"></i> Real-time analytics</span>
+        <span class="badge-tag"><i class="fas fa-magic"></i> Powered by MagicRills</span>
+    </div>
+
+    <!-- Bottom Section: Popular/Trending/Latest tools lists, then centered buttons -->
+    <div class="bottom-section">
+        <div class="bottom-flex">
+            <div class="bottom-col">
+                <h4>🔥 Popular Tools</h4>
+                <div id="popularTools" class="clickable-links"></div>
+            </div>
+            <div class="bottom-col">
+                <h4>📈 Trending Posts</h4>
+                <div id="trendingTools" class="clickable-links"></div>
+            </div>
+            <div class="bottom-col">
+                <h4>✨ Latest Tool</h4>
+                <div id="latestTool" class="clickable-links"></div>
+            </div>
+        </div>
+        
+        <!-- CENTERED ACTION BUTTONS: Follow, Back to Home, Page Sharing, Scroll Up/Down -->
+        <div class="action-buttons-center">
+            <button id="followBtn" class="follow-btn"><i class="fab fa-twitter"></i> Follow MagicRills</button>
+            <a href="https://magicrills.com" class="back-home-btn" target="_blank"><i class="fas fa-home"></i> Back to Home</a>
+            <button id="pageShareBtn" class="share-btn"><i class="fas fa-share-alt"></i> Share Page</button>
+            <button id="scrollUpBtn" class="scroll-btn"><i class="fas fa-arrow-up"></i> Scroll Up</button>
+            <button id="scrollDownBtn" class="scroll-btn"><i class="fas fa-arrow-down"></i> Scroll Down</button>
+        </div>
+        
+        <!-- Social Media Icons (centered) -->
+        <div class="social-icons-center">
+            <a href="#" aria-label="Facebook" id="fbIcon"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Twitter" id="twIcon"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram" id="igIcon"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="LinkedIn" id="inIcon"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+    </div>
+    <footer>© 2025 MagicRills — Student Empowerment Suite | All analytics are live simulated</footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 10 Student Tools Data (Links, titles, usage counters)
+    const toolsData = [
+        { name: "Study Planner (Pomodoro)", url: "https://magicrills.com/Student/study-planner-pomodoro-technique.html", usage: 12450 },
+        { name: "Classroom Weekly Roster", url: "https://magicrills.com/Student/classroom-weekly-roster-generator.html", usage: 8930 },
+        { name: "Story & Poetry Generator", url: "https://magicrills.com/Student/story-poetry-generator-for-creative.html", usage: 15720 },
+        { name: "Speech to Notes Converter", url: "https://magicrills.com/Student/speech-to-notes-converter.html", usage: 11230 },
+        { name: "Auto Resume Maker", url: "https://magicrills.com/Student/auto-resume-maker.html", usage: 14560 },
+        { name: "Auto Translation Tool", url: "https://magicrills.com/Student/auto-translation-tool.html", usage: 6780 },
+        { name: "Audio Text Converter", url: "https://magicrills.com/Student/audio-text-converter.html", usage: 9500 },
+        { name: "Text Audio Converter", url: "https://magicrills.com/Student/text-audio-converter.html", usage: 10200 },
+        { name: "Auto Speech Generator", url: "https://magicrills.com/Student/auto-speech-generator-tool-for-student.html", usage: 8250 },
+        { name: "Advanced Grammar Checker", url: "https://magicrills.com/Student/advanced-grammar-checking-tool.html", usage: 18800 }
+    ];
+
+    // Helper: update local usage counters and persist in localStorage if needed (simulate dynamic increments)
+    let toolUsage = [...toolsData.map(t => t.usage)];
+    // Dashboard dynamic values
+    let totalViewsBase = 98450;
+    let onlineUsers = 247;
+    let totalSharesCount = 5320;
+    let totalFollowersCount = 12480;
+    let todayVisitorCount = 1870;
+
+    // DOM elements
+    const totalViewsSpan = document.getElementById('totalViews');
+    const onlineSpan = document.getElementById('onlineCount');
+    const totalSharesSpan = document.getElementById('totalShares');
+    const totalFollowersSpan = document.getElementById('totalFollowers');
+    const todayVisitorSpan = document.getElementById('todayVisitors');
+
+    function updateDashboardUI() {
+        totalViewsSpan.innerText = totalViewsBase.toLocaleString();
+        onlineSpan.innerText = onlineUsers;
+        totalSharesSpan.innerText = totalSharesCount.toLocaleString();
+        totalFollowersSpan.innerText = totalFollowersCount.toLocaleString();
+        todayVisitorSpan.innerText = todayVisitorCount.toLocaleString();
+    }
+
+    // Simulate live increments every 45 sec (just for demo dynamics)
+    setInterval(() => {
+        totalViewsBase += Math.floor(Math.random() * 30) + 10;
+        onlineUsers = Math.floor(Math.random() * 80) + 180;
+        totalSharesCount += Math.floor(Math.random() * 6);
+        totalFollowersCount += Math.floor(Math.random() * 12);
+        todayVisitorCount += Math.floor(Math.random() * 25) + 3;
+        updateDashboardUI();
+        // Also increment random tool usage for realism
+        let randTool = Math.floor(Math.random() * toolUsage.length);
+        toolUsage[randTool] += Math.floor(Math.random() * 12) + 1;
+        renderToolsGrid();  // refresh tool cards counters
+        updatePopularTrendingLatest(); // refresh bottom lists with updated counts
+    }, 30000);
+
+    // Graph: Weekly data
+    const ctx = document.getElementById('viewsChart').getContext('2d');
+    let viewsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Daily Views (thousands)',
+                data: [4.2, 5.1, 6.3, 7.0, 8.2, 9.5, 10.1],
+                borderColor: '#9B7BDF',
+                backgroundColor: 'rgba(155, 123, 223, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#FFB7C5',
+                pointBorderColor: '#5e3c9e',
+                pointRadius: 5
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+    });
+
+    // Render tools grid with usage counter and tool links
+    function renderToolsGrid() {
+        const grid = document.getElementById('toolsGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        toolsData.forEach((tool, idx) => {
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.innerHTML = `
+                <h3>${tool.name} <span style="font-size:0.7rem; background:#f0eef5; padding:2px 8px; border-radius:20px;">#${idx+1}</span></h3>
+                <p><i class="fas fa-chart-simple"></i> Usage counter: <strong class="usage-value-${idx}" style="color: var(--purple);">${toolUsage[idx].toLocaleString()}</strong> clicks</p>
+                <div class="usage-counter"><i class="fas fa-mouse-pointer"></i> engagement spike</div>
+                <a href="${tool.url}" target="_blank" class="tool-link" data-tool-idx="${idx}"><i class="fas fa-external-link-alt"></i> Launch Tool →</a>
+            `;
+            grid.appendChild(card);
+        });
+        // attach click listeners to each tool link to increment usage counter
+        document.querySelectorAll('.tool-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const idxAttr = link.getAttribute('data-tool-idx');
+                if (idxAttr !== null) {
+                    const idxNum = parseInt(idxAttr, 10);
+                    toolUsage[idxNum] += 1;
+                    totalViewsBase += 1;   // each tool click adds to total views
+                    updateDashboardUI();
+                    renderToolsGrid();       // refresh counters
+                    updatePopularTrendingLatest(); // refresh ranking lists
+                }
+            });
+        });
+    }
+
+    // Helper: generate popular/trending/latest based on usage counts (dynamic)
+    function updatePopularTrendingLatest() {
+        // combine tools with current usage
+        const toolsWithUsage = toolsData.map((tool, idx) => ({ ...tool, usageCount: toolUsage[idx] }));
+        // sort by usage count for popular (top 4)
+        const popularSorted = [...toolsWithUsage].sort((a,b) => b.usageCount - a.usageCount).slice(0, 4);
+        // trending: next 4 after popular (based on high usage but different variety)
+        const trendingSorted = [...toolsWithUsage].sort((a,b) => b.usageCount - a.usageCount).slice(1, 5);
+        // latest: last 3 tools by original index
+        const latestTools = [...toolsWithUsage].slice(-3).reverse();
+
+        const popularDiv = document.getElementById('popularTools');
+        const trendingDiv = document.getElementById('trendingTools');
+        const latestDiv = document.getElementById('latestTool');
+        if(popularDiv) {
+            popularDiv.innerHTML = popularSorted.map(t => `<a href="${t.url}" target="_blank"><i class="fas fa-fire-flame"></i> ${t.name} (${t.usageCount.toLocaleString()} uses)</a>`).join('');
+        }
+        if(trendingDiv) {
+            trendingDiv.innerHTML = trendingSorted.map(t => `<a href="${t.url}" target="_blank"><i class="fas fa-chart-line"></i> ${t.name}</a>`).join('');
+        }
+        if(latestDiv) {
+            latestDiv.innerHTML = latestTools.map(t => `<a href="${t.url}" target="_blank"><i class="fas fa-star"></i> ${t.name}</a>`).join('');
+        }
+    }
+
+    // ---- Bottom Section Interactions ----
+    // Follow Button simulation
+    document.getElementById('followBtn')?.addEventListener('click', () => {
+        totalFollowersCount += 1;
+        updateDashboardUI();
+        alert('🎉 You are now following MagicRills! +1 Follower');
+    });
+    // Page Sharing Button (Web Share API fallback)
+    const shareBtn = document.getElementById('pageShareBtn');
+    if(shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            const shareUrl = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: 'Student Tool Hub', text: 'Check out amazing student tools!', url: shareUrl })
+                    .then(() => { totalSharesCount += 1; updateDashboardUI(); })
+                    .catch(() => {});
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                totalSharesCount += 1;
+                updateDashboardUI();
+                alert('Link copied to clipboard! +1 Share');
+            }
+        });
+    }
+    // Scroll up & down buttons
+    document.getElementById('scrollUpBtn')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById('scrollDownBtn')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+    // Social Media Icons: simulate share or just open new window demo
+    const socialUrls = {
+        fbIcon: 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href),
+        twIcon: 'https://twitter.com/intent/tweet?text=Student%20Tools%20by%20MagicRills&url=' + encodeURIComponent(window.location.href),
+        igIcon: 'https://instagram.com/magicrills',
+        inIcon: 'https://www.linkedin.com/shareArticle?mini=true&url=' + encodeURIComponent(window.location.href)
+    };
+    document.getElementById('fbIcon')?.addEventListener('click', (e) => { e.preventDefault(); window.open(socialUrls.fbIcon, '_blank'); });
+    document.getElementById('twIcon')?.addEventListener('click', (e) => { e.preventDefault(); window.open(socialUrls.twIcon, '_blank'); });
+    document.getElementById('igIcon')?.addEventListener('click', (e) => { e.preventDefault(); window.open('https://www.instagram.com/magicrills', '_blank'); });
+    document.getElementById('inIcon')?.addEventListener('click', (e) => { e.preventDefault(); window.open(socialUrls.inIcon, '_blank'); });
+
+    // Initial load: render all, set dashboard, graph, counters.
+    function init() {
+        renderToolsGrid();
+        updateDashboardUI();
+        updatePopularTrendingLatest();
+        // Simulate random online user variation every 10s
+        setInterval(() => {
+            onlineUsers = Math.floor(Math.random() * 100) + 190;
+            updateDashboardUI();
+        }, 15000);
+        // random graph data update (just to show liveness)
+        setInterval(() => {
+            const newData = [3.8, 5.4, 6.7, 7.2, 8.9, 9.8, 11.2];
+            viewsChart.data.datasets[0].data = newData.map(v => v + (Math.random() * 0.5 - 0.2));
+            viewsChart.update();
+        }, 45000);
+    }
+    init();
+</script>
+</body>
+</html>
