@@ -1,1 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Quiz Games Arena | Interactive Learning Hub</title>
+  <!-- Font Awesome 6 (Free CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Chart.js CDN for graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
 
+    body {
+      background: linear-gradient(145deg, #f0f9ff 0%, #eef2fa 100%);
+      color: #1a2c3e;
+      scroll-behavior: smooth;
+    }
+
+    /* container */
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* hero top & bottom */
+    .hero-top, .hero-bottom {
+      background: linear-gradient(135deg, #00c6fb, #005bea);
+      border-radius: 2rem;
+      padding: 2rem 2rem;
+      margin: 2rem 0 1.5rem 0;
+      color: white;
+      box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+    .hero-bottom {
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      margin-top: 2rem;
+    }
+    .hero-top h1, .hero-bottom h2 {
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+    }
+    .hero-top p, .hero-bottom p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-top: 0.6rem;
+    }
+
+    /* dashboard grid */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 1.5rem;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(2px);
+      border-radius: 2rem;
+      padding: 1.8rem;
+      margin: 1.5rem 0;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+    .stat-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1.2rem 0.8rem;
+      text-align: center;
+      transition: 0.2s;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.03);
+      border-left: 5px solid #00a6c4;
+    }
+    .stat-card i {
+      font-size: 2rem;
+      color: #0f67b3;
+      margin-bottom: 0.5rem;
+    }
+    .stat-number {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #0c4e6e;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #4b6a8b;
+    }
+
+    .graph-container {
+      background: white;
+      border-radius: 1.8rem;
+      padding: 1rem;
+      margin: 1rem 0 1.8rem 0;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    canvas {
+      max-height: 280px;
+      width: 100%;
+    }
+
+    /* Tools section: every tool usage counter + card hover effects */
+    .section-title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      margin: 2rem 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #1f3b4c;
+    }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    .tool-card {
+      background: white;
+      border-radius: 1.8rem;
+      overflow: hidden;
+      transition: all 0.35s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+      cursor: pointer;
+      border: 1px solid rgba(0,0,0,0.05);
+      position: relative;
+    }
+    /* multi-color background hover effect */
+    .tool-card:hover {
+      transform: translateY(-8px);
+      background: linear-gradient(135deg, #ffe6f0, #e0f7ff);
+      box-shadow: 0 24px 36px -12px rgba(0, 0, 0, 0.25);
+      border-color: transparent;
+    }
+    /* alternate background on hover mix of aqua blue, purple, orange */
+    .tool-card:nth-child(odd):hover {
+      background: linear-gradient(125deg, #c0f2ff, #cbb2fe);
+    }
+    .tool-card:nth-child(even):hover {
+      background: linear-gradient(125deg, #ffe0b5, #ffb77c);
+    }
+    .tool-card-inner {
+      padding: 1.5rem;
+    }
+    .tool-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .usage-badge {
+      background: #2c7da0;
+      color: white;
+      border-radius: 40px;
+      padding: 0.2rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .tool-desc {
+      color: #2c3e4e;
+      margin: 0.7rem 0;
+      font-size: 0.9rem;
+    }
+    .tool-link {
+      display: inline-block;
+      margin-top: 0.8rem;
+      font-weight: 600;
+      color: #005f8c;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+    .tool-link i {
+      margin-left: 5px;
+    }
+    .tool-card:hover .tool-link {
+      color: #b13e3e;
+      text-decoration: underline;
+    }
+    hr {
+      margin: 0.5rem 0;
+    }
+
+    /* bottom section (center alignment after popular/trending/latest) */
+    .bottom-section {
+      background: #ffffffd9;
+      border-radius: 2rem;
+      padding: 2rem 1.5rem;
+      margin: 2rem 0 2rem;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    }
+    .row-cols {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .col-panel {
+      flex: 1;
+      min-width: 180px;
+      background: #f8fcff;
+      padding: 1rem 1.2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .col-panel h3 {
+      font-size: 1.3rem;
+      border-left: 5px solid #ff8c42;
+      padding-left: 12px;
+      margin-bottom: 1rem;
+    }
+    .link-list {
+      list-style: none;
+    }
+    .link-list li {
+      margin: 12px 0;
+    }
+    .link-list a {
+      text-decoration: none;
+      color: #1f6392;
+      font-weight: 500;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .link-list a:hover {
+      color: #f57c00;
+      transform: translateX(5px);
+    }
+
+    /* center buttons container */
+    .center-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.2rem;
+      margin-top: 1rem;
+      margin-bottom: 1.8rem;
+      padding-top: 1rem;
+      border-top: 2px dashed #cbdde9;
+    }
+    .btn {
+      background: #eef2fa;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: #1e4663;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: #1f7b9e;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #0f5a77;
+      transform: scale(1.02);
+    }
+    .social-icons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .social-icons a {
+      background: #eef2fa;
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #2c3e66;
+      font-size: 1.3rem;
+      transition: 0.2s;
+    }
+    .social-icons a:hover {
+      background: #ff8c42;
+      color: white;
+      transform: translateY(-3px);
+    }
+    .scroll-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      padding: 2rem 0 1rem;
+      color: #6b7c93;
+    }
+    @media (max-width: 700px) {
+      .hero-top h1, .hero-bottom h2 { font-size: 1.6rem; }
+      .stat-number { font-size: 1.4rem; }
+      .tools-grid { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Hero Section Upper -->
+  <div class="hero-top">
+    <h1><i class="fas fa-gamepad"></i> Quiz Games Arena</h1>
+    <p>Test your knowledge across Islamic Studies, Science, Computer, Math, History & more. Play & learn!</p>
+  </div>
+
+  <!-- Dashboard: total views, online, shares, followers, today’s visitor, graph -->
+  <div class="dashboard">
+    <div class="stat-card"><i class="fas fa-eye"></i><div class="stat-number" id="totalViews">18.4K</div><div class="stat-label">Total Views</div></div>
+    <div class="stat-card"><i class="fas fa-wifi"></i><div class="stat-number" id="onlineCount">142</div><div class="stat-label">Online</div></div>
+    <div class="stat-card"><i class="fas fa-share-alt"></i><div class="stat-number" id="totalShares">3.2K</div><div class="stat-label">Total Shares</div></div>
+    <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalFollowers">2.5K</div><div class="stat-label">Followers</div></div>
+    <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">378</div><div class="stat-label">Today's Visitor</div></div>
+  </div>
+
+  <!-- Graph Section -->
+  <div class="graph-container">
+    <canvas id="visitorChart" width="400" height="180" style="max-height:220px; width:100%"></canvas>
+  </div>
+
+  <!-- Every Tool Usage Counter + Tool Links -->
+  <div class="section-title">
+    <i class="fas fa-tools" style="color:#ff8c42;"></i> Interactive Quizzes · Tool Usage Counters
+  </div>
+  <div class="tools-grid" id="toolsGrid"></div>
+
+  <!-- Hero Section Bottom -->
+  <div class="hero-bottom">
+    <h2><i class="fas fa-chalkboard-user"></i> Challenge Yourself!</h2>
+    <p>Compete with friends, gain XP, and master GK, English, Urdu & advanced science quizzes.</p>
+  </div>
+
+  <!-- Bottom Section: Popular, Trending, Latest, then center buttons -->
+  <div class="bottom-section">
+    <div class="row-cols">
+      <div class="col-panel">
+        <h3><i class="fas fa-fire"></i> Popular Tools</h3>
+        <ul class="link-list" id="popularList"></ul>
+      </div>
+      <div class="col-panel">
+        <h3><i class="fas fa-chart-line"></i> Trending Posts</h3>
+        <ul class="link-list" id="trendingList"></ul>
+      </div>
+      <div class="col-panel">
+        <h3><i class="fas fa-clock"></i> Latest Tool</h3>
+        <ul class="link-list" id="latestList"></ul>
+      </div>
+    </div>
+
+    <!-- CENTER BUTTONS (all buttons centered) -->
+    <div class="center-buttons">
+      <button class="btn" id="followBtn"><i class="fab fa-twitter"></i> Follow Us</button>
+      <a href="https://magicrills.com" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
+      <button class="btn" id="sharePageBtn"><i class="fas fa-share-square"></i> Share Page</button>
+      <button class="btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Up</button>
+      <button class="btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Down</button>
+    </div>
+    <!-- Social Media Icons centered -->
+    <div class="social-icons">
+      <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+  </div>
+  <footer>⚡ Quiz Games • Expand your mind • magicrills ecosystem</footer>
+</div>
+
+<script>
+  // Tool data: title, url, usage counter (Every Tool Usage Counter)
+  const toolsData = [
+    { name: "Islamic Studies Quiz Challenge", url: "https://magicrills.com/Quiz-Games/islamic-studies-quiz-challenge.html", usage: 1247 },
+    { name: "Computer Quiz Challenge", url: "https://magicrills.com/Quiz-Games/computer-quiz-challenge.html", usage: 985 },
+    { name: "Advanced Science Quiz Challenge", url: "https://magicrills.com/Quiz-Games/advanced-science-quiz-challenge.html", usage: 742 },
+    { name: "Science Quiz Challenge", url: "https://magicrills.com/Quiz-Games/science-quiz-challenge.html", usage: 2103 },
+    { name: "History & Geography GK Quiz", url: "https://magicrills.com/Quiz-Games/history-geography-gk-quiz-challenge.html", usage: 1630 },
+    { name: "English Language Quiz", url: "https://magicrills.com/Quiz-Games/english-language-quiz-challenge.html", usage: 1189 },
+    { name: "Urdu Quiz Challenge", url: "https://magicrills.com/Quiz-Games/urdu-quiz-challenge.html", usage: 876 },
+    { name: "Math Quiz Challenge", url: "https://magicrills.com/Quiz-Games/math-quiz-challenge.html", usage: 1502 }
+  ];
+
+  // increment usage local simulation (dummy but shows dynamic counter + update dashboard)
+  let toolUsageMap = new Map();
+  toolsData.forEach(t => toolUsageMap.set(t.url, t.usage));
+
+  // Dashboard values (dynamic)
+  let totalViews = 18400;
+  let onlineCount = 142;
+  let totalShares = 3200;
+  let totalFollowers = 2500;
+  let todayVisitors = 378;
+
+  function updateDashboardUI() {
+    document.getElementById('totalViews').innerText = totalViews.toLocaleString();
+    document.getElementById('onlineCount').innerText = onlineCount;
+    document.getElementById('totalShares').innerText = totalShares.toLocaleString();
+    document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
+    document.getElementById('todayVisitors').innerText = todayVisitors;
+  }
+
+  // render tool cards with usage counters + add click to increment usage (simulate tool usage)
+  function renderTools() {
+    const grid = document.getElementById('toolsGrid');
+    grid.innerHTML = '';
+    toolsData.forEach(tool => {
+      const currentUsage = toolUsageMap.get(tool.url);
+      const card = document.createElement('div');
+      card.className = 'tool-card';
+      card.innerHTML = `
+        <div class="tool-card-inner">
+          <div class="tool-title">
+            <span>📚 ${tool.name}</span>
+            <span class="usage-badge"><i class="fas fa-chart-simple"></i> ${currentUsage} plays</span>
+          </div>
+          <div class="tool-desc">Test your expertise and challenge friends! Smart & engaging.</div>
+          <a href="${tool.url}" class="tool-link" target="_blank">Launch Quiz <i class="fas fa-arrow-right"></i></a>
+          <div style="margin-top:10px;"><button class="btn" style="background:#e2eafc; padding:5px 12px;" data-url="${tool.url}"><i class="fas fa-plus-circle"></i> Simulate Usage +1</button></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+    // attach increment event listeners
+    document.querySelectorAll('.tool-card .btn[data-url]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const url = btn.getAttribute('data-url');
+        let oldVal = toolUsageMap.get(url) || 0;
+        toolUsageMap.set(url, oldVal + 1);
+        // also increment total views & maybe update stats
+        totalViews += 1;
+        todayVisitors = Math.max(todayVisitors, todayVisitors + (Math.random() > 0.7 ? 1 : 0)); // subtle dynamic
+        updateDashboardUI();
+        renderTools();   // re-render to show updated usage counts
+        // also refresh popular/trending lists based on new usage counts
+        updateBottomDynamicLinks();
+        // show small toast-like (no external)
+        showToast(`${url.split('/').pop().replace('.html','')} usage +1`);
+      });
+    });
+  }
+
+  // small toast notifier (light)
+  function showToast(msg) {
+    let toast = document.createElement('div');
+    toast.innerText = msg;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.backgroundColor = '#1f6392';
+    toast.style.color = 'white';
+    toast.style.padding = '10px 18px';
+    toast.style.borderRadius = '40px';
+    toast.style.zIndex = '9999';
+    toast.style.fontSize = '0.8rem';
+    toast.style.boxShadow = '0 4px 12px black';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 1800);
+  }
+
+  // Generate popular, trending, latest based on usage & order
+  function getSortedByUsage() {
+    return [...toolsData].sort((a,b) => (toolUsageMap.get(b.url)||0) - (toolUsageMap.get(a.url)||0));
+  }
+  function getTrending() {
+    // trending based on usage growth: random factor for demo, but we use recent usage + small offset (last 3 days simulation: use usage variance)
+    // real implementation: simply sort by usage and pick top 3 for "popular", and for trending we pick next 3 distinct.
+    const sorted = getSortedByUsage();
+    return sorted.slice(0,3); // popular top 3
+  }
+  function getPopular() {
+    const sorted = getSortedByUsage();
+    return sorted.slice(0,3);
+  }
+  function getLatest() {
+    // latest: based on original order (index descending) just last 3 tools by insertion (Math, Urdu, English)
+    return [...toolsData].reverse().slice(0,3);
+  }
+
+  function updateBottomDynamicLinks() {
+    const popular = getPopular();
+    const trending = getTrending(); // same as popular for consistency but we make trending different: second tier usage
+    const allSorted = getSortedByUsage();
+    const trendingItems = allSorted.length > 3 ? allSorted.slice(1,4) : allSorted.slice(0,3);
+    const popularItems = allSorted.slice(0,3);
+    const latestItems = getLatest();
+
+    const popularList = document.getElementById('popularList');
+    const trendingList = document.getElementById('trendingList');
+    const latestList = document.getElementById('latestList');
+    popularList.innerHTML = '';
+    trendingList.innerHTML = '';
+    latestList.innerHTML = '';
+
+    popularItems.forEach(t => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-chart-simple"></i> ${t.name} (${toolUsageMap.get(t.url)} plays)</a>`;
+      popularList.appendChild(li);
+    });
+    trendingItems.forEach(t => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-fire"></i> ${t.name} 🔥</a>`;
+      trendingList.appendChild(li);
+    });
+    latestItems.forEach(t => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-star"></i> ${t.name}</a>`;
+      latestList.appendChild(li);
+    });
+  }
+
+  // Graph (weekly visitors) aqua/purple/orange blend
+  let chart;
+  function initChart() {
+    const ctx = document.getElementById('visitorChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Daily Visitors',
+          data: [320, 405, 478, 512, 589, 703, 682],
+          borderColor: '#ff884d',
+          backgroundColor: 'rgba(0, 198, 251, 0.2)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#9b4dff',
+          pointBorderColor: '#ffffff',
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+  }
+
+  // Simulate random live updates for online / shares/followers (slight variation)
+  function simulateLiveStats() {
+    setInterval(() => {
+      onlineCount = Math.floor(Math.random() * (180 - 80 + 1) + 80);
+      totalShares += Math.floor(Math.random() * 5);
+      totalFollowers += Math.floor(Math.random() * 3);
+      todayVisitors = todayVisitors + Math.floor(Math.random() * 7);
+      totalViews += Math.floor(Math.random() * 12);
+      updateDashboardUI();
+    }, 12000);
+  }
+
+  // Page sharing button (Web Share API fallback)
+  document.getElementById('sharePageBtn')?.addEventListener('click', () => {
+    if (navigator.share) {
+      navigator.share({ title: 'Quiz Games Category', url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard! Share with friends.');
+    }
+  });
+  // Follow button simulation
+  document.getElementById('followBtn')?.addEventListener('click', () => {
+    totalFollowers += 1;
+    updateDashboardUI();
+    alert('✨ Thanks for following! (simulated) +1 follower');
+  });
+  // scroll up/down
+  document.getElementById('scrollUpBtn')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  document.getElementById('scrollDownBtn')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+  // Initialize everything
+  function init() {
+    renderTools();
+    updateDashboardUI();
+    initChart();
+    updateBottomDynamicLinks();
+    simulateLiveStats();
+    // Optional: re-render bottom links if tool usage changes after increment
+    const observer = setInterval(() => {
+      updateBottomDynamicLinks();
+    }, 3000);
+  }
+  init();
+</script>
+</body>
+</html>
