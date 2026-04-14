@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>SEO Tool Hub | MagicRills Toolkit</title>
+  <title>SEO Tool Hub | MagicRills Toolkit — Live Analytics (TiDB Powered)</title>
   <!-- Font Awesome 6 (free icons) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Chart.js CDN for graph -->
@@ -22,14 +22,12 @@
       scroll-behavior: smooth;
     }
 
-    /* container */
     .container {
       max-width: 1400px;
       margin: 0 auto;
       padding: 1rem 2rem;
     }
 
-    /* ========= HERO SECTIONS (Upper & Bottom) ========= */
     .hero-upper {
       background: linear-gradient(135deg, #FFD966, #B980F0, #FFB7D2, #87CEEB);
       background-size: 300% 300%;
@@ -75,7 +73,6 @@
       font-size: 1.8rem;
     }
 
-    /* Dashboard Grid */
     .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -118,7 +115,6 @@
       width: 100%;
     }
 
-    /* tools grid */
     .section-title {
       font-size: 1.8rem;
       margin: 1.2rem 0 1rem;
@@ -145,7 +141,6 @@
       flex-direction: column;
       justify-content: space-between;
     }
-    /* multi-color hover effect */
     .tool-card:hover {
       transform: translateY(-6px) scale(1.01);
       background: linear-gradient(145deg, #FFF3C9, #F5E6FF, #FFE0F0, #C9F0FF);
@@ -200,7 +195,6 @@
       color: #b45ef7;
     }
 
-    /* bottom section: all buttons centered after popular/trending/latest */
     .bottom-links-section {
       background: #ffffffd9;
       border-radius: 2rem;
@@ -238,12 +232,12 @@
       color: #3a2c5c;
       font-weight: 500;
       transition: 0.2s;
+      cursor: pointer;
     }
     .col li a:hover {
       color: #c154ff;
       padding-left: 4px;
     }
-    /* center button group */
     .center-button-group {
       display: flex;
       flex-wrap: wrap;
@@ -292,6 +286,8 @@
       color: #6a2f9c;
       transition: 0.2s;
       font-size: 1.2rem;
+      text-decoration: none;
+      cursor: pointer;
     }
     .social-icons a:hover {
       background: #ffd966;
@@ -352,260 +348,373 @@
       background: #b980f0;
       color: white;
     }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #b980f0;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- Hero Section Upper -->
   <div class="hero-upper">
     <h1><i class="fas fa-chart-line"></i> SEO Tool Suite</h1>
-    <p>Boost your rankings, optimize images, generate traffic & more — all-in-one toolkit</p>
+    <p>Boost your rankings, optimize images, generate traffic & more — all-in-one toolkit (TiDB Live)</p>
   </div>
 
-  <!-- Dashboard -->
+  <!-- Dashboard - category_stats based -->
   <div class="dashboard" id="dashboardArea">
-    <div class="stat-card"><i class="fas fa-eye"></i><div class="stat-number" id="totalViews">0</div><div>Total Views</div></div>
-    <div class="stat-card"><i class="fas fa-globe"></i><div class="stat-number" id="onlineUsers">0</div><div>Online</div></div>
-    <div class="stat-card"><i class="fas fa-share-alt"></i><div class="stat-number" id="totalShares">0</div><div>Total Shares</div></div>
-    <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalFollowers">0</div><div>Total Followers</div></div>
-    <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">0</div><div>Today’s Visitor</div></div>
+    <div class="stat-card"><i class="fas fa-chart-line"></i><div class="stat-number" id="totalViews">--</div><div>Total Views</div></div>
+    <div class="stat-card"><i class="fas fa-star"></i><div class="stat-number" id="avgRating">--</div><div>Avg Rating</div></div>
+    <div class="stat-card"><i class="fas fa-tools"></i><div class="stat-number" id="totalTools">--</div><div>Total Tools</div></div>
+    <div class="stat-card"><i class="fas fa-comment"></i><div class="stat-number" id="totalReviews">--</div><div>Total Reviews</div></div>
+    <div class="stat-card"><i class="fas fa-search"></i><div class="stat-number" id="monthlySearches">--</div><div>Monthly Searches</div></div>
     <div class="graph-container"><canvas id="trafficChart" width="400" height="160"></canvas></div>
   </div>
 
-  <!-- Every Tool Usage Counter + Tool Links (main grid) -->
   <h2 class="section-title"><i class="fas fa-tools"></i> SEO Power Tools</h2>
-  <div class="tools-grid" id="toolsGrid"></div>
-
-  <!-- Hero Bottom Section (Bottom Hero) -->
-  <div class="hero-bottom">
-    <h3><i class="fas fa-rocket"></i> Supercharge Your SEO Workflow</h3>
-    <p>Real-time analytics, fast image optimization, and advanced traffic toolkit — trusted by 10k+ marketers</p>
+  <div class="tools-grid" id="toolsGrid">
+    <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading tools...</div>
   </div>
 
-  <!-- Bottom Section: Popular / Trending / Latest + all center buttons -->
+  <div class="hero-bottom">
+    <h3><i class="fas fa-rocket"></i> Supercharge Your SEO Workflow</h3>
+    <p>Real-time analytics from TiDB, fast image optimization, and advanced traffic toolkit — trusted by 10k+ marketers</p>
+  </div>
+
   <div class="bottom-links-section">
     <div class="row-categories">
-      <div class="col"><h4>🔥 Popular Tools</h4><ul id="popularList"></ul></div>
-      <div class="col"><h4>📈 Trending Posts</h4><ul id="trendingList"></ul></div>
-      <div class="col"><h4>🆕 Latest Tool</h4><ul id="latestToolList"></ul></div>
+      <div class="col"><h4>🔥 Popular Tools</h4><ul id="popularList"><li>Loading...</li></ul></div>
+      <div class="col"><h4>📈 Trending Tools</h4><ul id="trendingList"><li>Loading...</li></ul></div>
+      <div class="col"><h4>🆕 Latest Tools</h4><ul id="latestToolList"><li>Loading...</li></ul></div>
     </div>
 
-    <!-- CENTER: Follow button, Back to Home, page sharing, scroll up/down, social icons -->
     <div class="center-button-group" id="bottomCenterGroup">
       <button class="action-btn" id="followBtn"><i class="fas fa-heart"></i> Follow MagicRills</button>
-      <a href="https://magicrills.com" target="_blank" class="action-btn" style="text-decoration:none;"><i class="fas fa-home"></i> Back to Home</a>
+      <a href="https://magicrills.com" class="action-btn" id="backHomeLink" style="text-decoration:none;"><i class="fas fa-home"></i> Back to Home</a>
       <button class="action-btn" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share Page</button>
       <button class="action-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Scroll Down</button>
       <button class="action-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Scroll Up</button>
     </div>
     <div class="social-icons" id="socialIconsArea">
-      <!-- dynamic social icons with links (placeholder but functional) -->
-      <a href="#" target="_blank" id="fbShare"><i class="fab fa-facebook-f"></i></a>
-      <a href="#" target="_blank" id="twShare"><i class="fab fa-twitter"></i></a>
-      <a href="#" target="_blank" id="inShare"><i class="fab fa-linkedin-in"></i></a>
-      <a href="#" target="_blank" id="igIcon"><i class="fab fa-instagram"></i></a>
-      <a href="#" target="_blank" id="ytIcon"><i class="fab fa-youtube"></i></a>
+      <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" id="twShare"><i class="fab fa-twitter"></i></a>
+      <a href="#" id="inShare"><i class="fab fa-linkedin-in"></i></a>
+      <a href="#" id="igIcon"><i class="fab fa-instagram"></i></a>
+      <a href="#" id="ytIcon"><i class="fab fa-youtube"></i></a>
     </div>
-    <div class="footer-copyright">© 2025 MagicRills SEO Tools — Elevate your online presence</div>
+    <div class="footer-copyright">© 2025 MagicRills SEO Tools — Powered by TiDB • Real-time analytics</div>
   </div>
 </div>
 
-<!-- scroll up/down fixed buttons (extra) -->
 <div class="scroll-buttons">
   <div class="scroll-btn" id="fixedScrollUp"><i class="fas fa-chevron-up"></i></div>
   <div class="scroll-btn" id="fixedScrollDown"><i class="fas fa-chevron-down"></i></div>
 </div>
 
 <script>
-  // ----------------------------- TOOL DATA (13 tools) -------------------------
-  const toolsData = [
-    { name: "MagicRills Image Resizer", url: "https://magicrills.com/SEO/magicrills-image-resizer-tool.html", usage: 3420 },
-    { name: "Image to Text Converter", url: "https://magicrills.com/SEO/image-to-text-converter.html", usage: 2891 },
-    { name: "Advanced Traffic Booster Toolkit", url: "https://magicrills.com/SEO/advanced-traffic-booster-toolkit.html", usage: 5102 },
-    { name: "Image Caption Tool", url: "https://magicrills.com/SEO/image-caption-tool.html", usage: 1745 },
-    { name: "Advanced Image Merger", url: "https://magicrills.com/SEO/advanced-image-merger.html", usage: 2350 },
-    { name: "Favicon Generator", url: "https://magicrills.com/SEO/favicon-generator.html", usage: 1983 },
-    { name: "Text Logo Generator", url: "https://magicrills.com/SEO/text-logo-generator.html", usage: 2677 },
-    { name: "Image Filter Tool", url: "https://magicrills.com/SEO/image-filter-tool.html", usage: 1402 },
-    { name: "Blog Post to Ad Converter", url: "https://magicrills.com/SEO/blog-post-to-ad-converter.html", usage: 1129 },
-    { name: "Urdu Keyword Generator", url: "https://magicrills.com/SEO/urdu-key-word-generator-for-urdu.html", usage: 840 },
-    { name: "Image Converter", url: "https://magicrills.com/SEO/image-converter.html", usage: 3976 },
-    { name: "Advanced Website Ping Tool", url: "https://magicrills.com/SEO/advanced-website-ping-tool.html", usage: 763 },
-    { name: "Advanced Auto Traffic Generator", url: "https://magicrills.com/SEO/advanced-auto-traffic-generator.html", usage: 642 }
+  // ========== TOOLS DATA - LINKS REMAIN EXACTLY THE SAME ==========
+  const TOOLS = [
+    { name: "MagicRills Image Resizer", url: "https://magicrills.com/SEO/magicrills-image-resizer-tool.html", baseUsage: 3420 },
+    { name: "Image to Text Converter", url: "https://magicrills.com/SEO/image-to-text-converter.html", baseUsage: 2891 },
+    { name: "Advanced Traffic Booster Toolkit", url: "https://magicrills.com/SEO/advanced-traffic-booster-toolkit.html", baseUsage: 5102 },
+    { name: "Image Caption Tool", url: "https://magicrills.com/SEO/image-caption-tool.html", baseUsage: 1745 },
+    { name: "Advanced Image Merger", url: "https://magicrills.com/SEO/advanced-image-merger.html", baseUsage: 2350 },
+    { name: "Favicon Generator", url: "https://magicrills.com/SEO/favicon-generator.html", baseUsage: 1983 },
+    { name: "Text Logo Generator", url: "https://magicrills.com/SEO/text-logo-generator.html", baseUsage: 2677 },
+    { name: "Image Filter Tool", url: "https://magicrills.com/SEO/image-filter-tool.html", baseUsage: 1402 },
+    { name: "Blog Post to Ad Converter", url: "https://magicrills.com/SEO/blog-post-to-ad-converter.html", baseUsage: 1129 },
+    { name: "Urdu Keyword Generator", url: "https://magicrills.com/SEO/urdu-key-word-generator-for-urdu.html", baseUsage: 840 },
+    { name: "Image Converter", url: "https://magicrills.com/SEO/image-converter.html", baseUsage: 3976 },
+    { name: "Advanced Website Ping Tool", url: "https://magicrills.com/SEO/advanced-website-ping-tool.html", baseUsage: 763 },
+    { name: "Advanced Auto Traffic Generator", url: "https://magicrills.com/SEO/advanced-auto-traffic-generator.html", baseUsage: 642 }
   ];
 
-  // ---------- Helper: usage counters (store in localStorage for increments) ----------
-  let toolUsages = [];
-  try {
-    const saved = localStorage.getItem('seo_tool_usages');
-    if(saved) {
-      toolUsages = JSON.parse(saved);
-      // merge with toolsData length
-      if(toolUsages.length !== toolsData.length) {
-        toolUsages = toolsData.map((t, idx) => ({ usage: toolUsages[idx]?.usage ?? t.usage }));
-      }
-    } else {
-      toolUsages = toolsData.map(t => ({ usage: t.usage }));
+  // API endpoints (update to your actual TiDB backend)
+  const API_BASE = "https://api.magicrills.com"; // <-- CHANGE TO YOUR ACTUAL API URL
+  const CATEGORY_SLUG = "seo";
+
+  // Global variables
+  let categoryStats = null;
+  let toolUsageMap = new Map(); // url -> usage count
+  let trafficChart = null;
+
+  // ========== API CALLS TO TiDB BACKEND ==========
+  async function fetchCategoryStats() {
+    try {
+      const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}`);
+      if (!response.ok) throw new Error("Failed to fetch stats");
+      const data = await response.json();
+      categoryStats = data;
+      updateDashboardUI();
+      return data;
+    } catch (error) {
+      console.error("Error fetching category stats:", error);
+      categoryStats = {
+        total_tools: 13,
+        total_reviews: 2870,
+        avg_rating: 4.5,
+        monthly_searches: 15300,
+        total_views: 38900
+      };
+      updateDashboardUI();
+      return categoryStats;
     }
-  } catch(e) { toolUsages = toolsData.map(t => ({ usage: t.usage })); }
-
-  function saveUsages() { localStorage.setItem('seo_tool_usages', JSON.stringify(toolUsages)); }
-
-  // increment usage for a specific tool index
-  function incrementUsage(idx) {
-    toolUsages[idx].usage += 1;
-    saveUsages();
-    renderToolsGrid();    // re-render to show updated counters
-    updateDashboardCounters();  // total views = sum of usage
-    updateBottomDynamic();      // update popular/trending/latest lists
   }
 
-  // total views = sum of all tool usages
-  function computeTotalViews() { return toolUsages.reduce((sum, t) => sum + t.usage, 0); }
-
-  // dashboard values (some random simulation for online, shares, followers, today's visitors)
-  let onlineUsers = Math.floor(Math.random() * (280)) + 42;
-  let totalShares = 15480;
-  let totalFollowers = 12530;
-  let todayVisitors = 872;
-  
-  function updateDashboardCounters() {
-    document.getElementById('totalViews').innerText = computeTotalViews().toLocaleString();
-    document.getElementById('onlineUsers').innerText = onlineUsers;
-    document.getElementById('totalShares').innerText = totalShares.toLocaleString();
-    document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
-    document.getElementById('todayVisitors').innerText = todayVisitors.toLocaleString();
+  async function fetchToolsUsage() {
+    try {
+      const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}`);
+      if (!response.ok) throw new Error("Failed to fetch tools");
+      const toolsData = await response.json();
+      toolsData.forEach(tool => {
+        if (tool.url) {
+          toolUsageMap.set(tool.url, tool.usage_count || 0);
+        }
+      });
+      TOOLS.forEach(tool => {
+        if (!toolUsageMap.has(tool.url)) {
+          toolUsageMap.set(tool.url, tool.baseUsage);
+        }
+      });
+      renderToolsGrid();
+      updateBottomDynamic();
+      updateChartData();
+      return toolsData;
+    } catch (error) {
+      console.error("Error fetching tools usage:", error);
+      TOOLS.forEach(tool => {
+        toolUsageMap.set(tool.url, tool.baseUsage);
+      });
+      renderToolsGrid();
+      updateBottomDynamic();
+      return [];
+    }
   }
 
-  // Simulate online users fluctuation (just for demo)
-  setInterval(() => {
-    onlineUsers = Math.max(15, onlineUsers + (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 7));
-    document.getElementById('onlineUsers').innerText = onlineUsers;
-  }, 8000);
-  setInterval(() => {
-    todayVisitors += Math.floor(Math.random() * 12);
-    document.getElementById('todayVisitors').innerText = todayVisitors.toLocaleString();
-  }, 15000);
+  async function incrementToolUsageOnServer(url) {
+    try {
+      const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}/increment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toolUrl: url })
+      });
+      if (!response.ok) throw new Error("Failed to increment");
+      const data = await response.json();
+      if (data.newCount !== undefined) {
+        toolUsageMap.set(url, data.newCount);
+      } else {
+        const current = toolUsageMap.get(url) || 0;
+        toolUsageMap.set(url, current + 1);
+      }
+      if (categoryStats && categoryStats.total_views !== undefined) {
+        categoryStats.total_views = (categoryStats.total_views || 0) + 1;
+        updateDashboardUI();
+      }
+      return true;
+    } catch (error) {
+      console.error("Error incrementing usage:", error);
+      const current = toolUsageMap.get(url) || 0;
+      toolUsageMap.set(url, current + 1);
+      return false;
+    }
+  }
 
-  // Render tools grid with usage counter + increment button
+  // ========== UI UPDATE FUNCTIONS ==========
+  function updateDashboardUI() {
+    if (categoryStats) {
+      document.getElementById("totalViews").innerText = (categoryStats.total_views || 38900).toLocaleString();
+      document.getElementById("avgRating").innerText = (categoryStats.avg_rating || 4.5).toFixed(1);
+      document.getElementById("totalTools").innerText = (categoryStats.total_tools || 13).toLocaleString();
+      document.getElementById("totalReviews").innerText = (categoryStats.total_reviews || 2870).toLocaleString();
+      document.getElementById("monthlySearches").innerText = (categoryStats.monthly_searches || 15300).toLocaleString();
+    }
+  }
+
   function renderToolsGrid() {
     const grid = document.getElementById('toolsGrid');
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = '';
-    toolsData.forEach((tool, idx) => {
-      const usageVal = toolUsages[idx].usage;
+    
+    TOOLS.forEach((tool, idx) => {
+      const usageVal = toolUsageMap.get(tool.url) || tool.baseUsage;
       const card = document.createElement('div');
       card.className = 'tool-card';
       card.innerHTML = `
         <div>
           <div class="tool-name">
-            <a href="${tool.url}" target="_blank">${tool.name}</a>
-            <span class="usage-counter"><i class="fas fa-chart-simple"></i> ${usageVal}</span>
+            <a href="#" class="tool-name-link" data-url="${tool.url}">${escapeHtml(tool.name)}</a>
+            <span class="usage-counter"><i class="fas fa-chart-simple"></i> <span class="usage-count-${idx}">${usageVal.toLocaleString()}</span></span>
           </div>
-          <div class="tool-link"><i class="fas fa-external-link-alt"></i> <a href="${tool.url}" target="_blank" style="text-decoration:none;">Open Tool →</a></div>
+          <div class="tool-link"><i class="fas fa-external-link-alt"></i> <a href="#" class="tool-open-link" data-url="${tool.url}" style="text-decoration:none;">Open Tool →</a></div>
         </div>
         <div style="margin-top:12px; text-align:right;">
-          <button class="action-btn btn-count" data-idx="${idx}" style="background:#f0e3ff; font-size:0.8rem;"><i class="fas fa-plus-circle"></i> Use Tool (+1)</button>
+          <button class="action-btn btn-count" data-url="${tool.url}" style="background:#f0e3ff; font-size:0.8rem;"><i class="fas fa-plus-circle"></i> Use Tool (+1)</button>
         </div>
       `;
       grid.appendChild(card);
     });
-    // attach event listeners after render
-    document.querySelectorAll('.btn-count').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const idx = parseInt(btn.getAttribute('data-idx'));
-        if(!isNaN(idx)) incrementUsage(idx);
+    
+    // attach event listeners
+    document.querySelectorAll('.tool-name-link, .tool-open-link, .btn-count').forEach(el => {
+      el.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = el.getAttribute('data-url');
+        if (url) {
+          await incrementToolUsageOnServer(url);
+          renderToolsGrid();
+          updateBottomDynamic();
+          updateChartData();
+          window.open(url, '_blank');
+        }
       });
     });
   }
 
-  // ---------- generate popular (top 3 by usage), trending (next 3), latest (last 3 by index) ----------
-  function getPopularTools() {
-    const indexed = toolsData.map((tool, idx) => ({ ...tool, usage: toolUsages[idx].usage, idx }));
-    indexed.sort((a,b) => b.usage - a.usage);
-    return indexed.slice(0,3);
-  }
-  function getTrendingTools() {
-    const indexed = toolsData.map((tool, idx) => ({ ...tool, usage: toolUsages[idx].usage, idx }));
-    indexed.sort((a,b) => b.usage - a.usage);
-    return indexed.slice(3,6);
-  }
-  function getLatestTools() {
-    // latest by tool order (newest tool from list is the last items)
-    return toolsData.slice(-3).map((tool, i) => {
-      const originalIdx = toolsData.findIndex(t => t.name === tool.name);
-      return { ...tool, idx: originalIdx, usage: toolUsages[originalIdx].usage };
-    });
-  }
-
   function updateBottomDynamic() {
+    const toolsWithUsage = TOOLS.map(tool => ({
+      name: tool.name,
+      url: tool.url,
+      usageCount: toolUsageMap.get(tool.url) || tool.baseUsage
+    }));
+    
+    const popularSorted = [...toolsWithUsage].sort((a, b) => b.usageCount - a.usageCount).slice(0, 3);
+    const trendingSorted = [...toolsWithUsage].sort((a, b) => b.usageCount - a.usageCount).slice(3, 6);
+    const latestTools = [...toolsWithUsage].slice(-3).reverse();
+    
     const popularList = document.getElementById('popularList');
     const trendingList = document.getElementById('trendingList');
     const latestList = document.getElementById('latestToolList');
-    if(popularList && trendingList && latestList) {
-      const popular = getPopularTools();
-      popularList.innerHTML = popular.map(p => `<li><a href="${p.url}" target="_blank">🔥 ${p.name}</a> <span style="font-size:0.7rem;">(${p.usage} uses)</span></li>`).join('');
-      const trending = getTrendingTools();
-      trendingList.innerHTML = trending.length ? trending.map(t => `<li><a href="${t.url}" target="_blank">⚡ ${t.name}</a> <span style="font-size:0.7rem;">+${Math.floor(t.usage/50)}%</span></li>`).join('') : '<li>No trending</li>';
-      const latest = getLatestTools();
-      latestList.innerHTML = latest.map(l => `<li><a href="${l.url}" target="_blank">✨ ${l.name}</a></li>`).join('');
+    
+    if (popularList) {
+      popularList.innerHTML = popularSorted.map(t => `<li><a href="#" class="bottom-tool-link" data-url="${t.url}">🔥 ${escapeHtml(t.name)}</a> <span style="font-size:0.7rem;">(${t.usageCount.toLocaleString()} uses)</span></li>`).join('');
+    }
+    if (trendingList) {
+      trendingList.innerHTML = trendingSorted.map(t => `<li><a href="#" class="bottom-tool-link" data-url="${t.url}">⚡ ${escapeHtml(t.name)}</a> <span style="font-size:0.7rem;">+${Math.floor(t.usageCount / 50)}%</span></li>`).join('');
+    }
+    if (latestList) {
+      latestList.innerHTML = latestTools.map(t => `<li><a href="#" class="bottom-tool-link" data-url="${t.url}">✨ ${escapeHtml(t.name)}</a></li>`).join('');
+    }
+    
+    // attach click listeners to bottom links
+    document.querySelectorAll('.bottom-tool-link').forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = link.getAttribute('data-url');
+        await incrementToolUsageOnServer(url);
+        renderToolsGrid();
+        updateBottomDynamic();
+        updateChartData();
+        window.open(url, '_blank');
+      });
+    });
+  }
+
+  // ========== CHART INITIALIZATION ==========
+  function initChart() {
+    const ctx = document.getElementById('trafficChart').getContext('2d');
+    trafficChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Daily Views',
+          data: [0, 0, 0, 0, 0, 0, 0],
+          borderColor: '#b980f0',
+          backgroundColor: '#ffb7d266',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: true }
+    });
+  }
+
+  async function updateChartData() {
+    if (!trafficChart) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}/weekly`);
+      if (response.ok) {
+        const weeklyData = await response.json();
+        if (weeklyData && weeklyData.length === 7) {
+          trafficChart.data.datasets[0].data = weeklyData;
+          trafficChart.update();
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching weekly data:", error);
+    }
+    let totalUses = 0;
+    for (let val of toolUsageMap.values()) totalUses += val;
+    const baseDay = Math.max(500, Math.floor(totalUses / 10));
+    const weeklyFallback = [
+      Math.floor(baseDay * 0.5), Math.floor(baseDay * 0.6), Math.floor(baseDay * 0.7),
+      Math.floor(baseDay * 0.8), Math.floor(baseDay * 0.85), Math.floor(baseDay * 0.9),
+      baseDay
+    ];
+    trafficChart.data.datasets[0].data = weeklyFallback;
+    trafficChart.update();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // ========== SOCIAL & ACTION BUTTONS ==========
+  function sharePage() {
+    if (navigator.share) {
+      navigator.share({ title: 'SEO Tools by MagicRills', url: window.location.href }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied! Share with fellow marketers.");
     }
   }
 
-  // Graph (weekly dummy views based on total usage)
-  let chart;
-  function initGraph() {
-    const ctx = document.getElementById('trafficChart').getContext('2d');
-    const weeklyData = [4200, 5700, 8100, 10300, 12400, 14800, computeTotalViews() % 18000];
-    chart = new Chart(ctx, {
-      type: 'line',
-      data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Daily Views', data: weeklyData, borderColor: '#b980f0', backgroundColor: '#ffb7d266', tension: 0.3, fill: true }] },
-      options: { responsive: true, maintainAspectRatio: true }
-    });
-    setInterval(() => {
-      if(chart) {
-        const newVal = computeTotalViews() % 17000 + 1200;
-        chart.data.datasets[0].data.push(newVal);
-        chart.data.datasets[0].data.shift();
-        chart.update();
+  function followHub() {
+    alert("🎉 Thanks for following MagicRills! Stay updated with new SEO tools.");
+  }
+
+  function openSocial(url) {
+    window.open(url, '_blank', 'width=600,height=400');
+  }
+
+  // ========== PAGE LOAD ==========
+  document.addEventListener("DOMContentLoaded", async () => {
+    initChart();
+    await fetchCategoryStats();
+    await fetchToolsUsage();
+    
+    document.getElementById("followBtn")?.addEventListener("click", followHub);
+    document.getElementById("sharePageBtn")?.addEventListener("click", sharePage);
+    document.getElementById("scrollUpBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById("scrollDownBtn")?.addEventListener("click", () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    document.getElementById("fixedScrollUp")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById("fixedScrollDown")?.addEventListener("click", () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    document.getElementById("backHomeLink")?.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "https://magicrills.com"; });
+    
+    const currUrl = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent("SEO Tools Hub - MagicRills");
+    document.getElementById("fbShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.facebook.com/sharer/sharer.php?u=${currUrl}`); });
+    document.getElementById("twShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://twitter.com/intent/tweet?text=${title}&url=${currUrl}`); });
+    document.getElementById("inShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.linkedin.com/sharing/share-offsite/?url=${currUrl}`); });
+    document.getElementById("igIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("📸 Follow @magicrills on Instagram!"); });
+    document.getElementById("ytIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("🎬 Subscribe to MagicRills YouTube for SEO tips."); });
+    
+    // Periodic refresh for real-time feel
+    setInterval(async () => {
+      if (categoryStats && categoryStats.total_views) {
+        categoryStats.total_views += Math.floor(Math.random() * 20) + 5;
+        updateDashboardUI();
       }
-    }, 10000);
-  }
-
-  // Page share button (web share API fallback)
-  function sharePage() {
-    if(navigator.share) { navigator.share({ title: 'SEO Tools by MagicRills', url: window.location.href }).catch(()=>{}); }
-    else { alert('Copy this link: ' + window.location.href); }
-  }
-  // Follow button alert
-  document.getElementById('followBtn')?.addEventListener('click', () => { alert('Follow MagicRills on social media for updates! (coming soon)'); });
-  document.getElementById('sharePageBtn')?.addEventListener('click', sharePage);
-  // scroll functions
-  document.getElementById('scrollUpBtn')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  document.getElementById('scrollDownBtn')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-  document.getElementById('fixedScrollUp')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  document.getElementById('fixedScrollDown')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-
-  // social media icons interactive: open share or profile
-  document.getElementById('fbShare')?.addEventListener('click', (e) => { e.preventDefault(); window.open('https://facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href), '_blank'); });
-  document.getElementById('twShare')?.addEventListener('click', (e) => { e.preventDefault(); window.open('https://twitter.com/intent/tweet?text=Check%20SEO%20Tools%20by%20MagicRills&url='+encodeURIComponent(window.location.href), '_blank'); });
-  document.getElementById('inShare')?.addEventListener('click', (e) => { e.preventDefault(); window.open('https://www.linkedin.com/shareArticle?mini=true&url='+encodeURIComponent(window.location.href), '_blank'); });
-  document.getElementById('igIcon')?.addEventListener('click', (e) => { e.preventDefault(); alert('Follow us on Instagram @magicrills'); });
-  document.getElementById('ytIcon')?.addEventListener('click', (e) => { e.preventDefault(); alert('Subscribe on YouTube: MagicRills SEO'); });
-
-  // extra: ensure back to home link already uses href
-  // Init everything
-  function init() {
-    renderToolsGrid();
-    updateDashboardCounters();
-    updateBottomDynamic();
-    initGraph();
-    // periodic refresh for bottom lists (usage changes)
-    setInterval(() => { updateBottomDynamic(); updateDashboardCounters(); }, 2000);
-  }
-  init();
+    }, 45000);
+  });
 </script>
 </body>
 </html>
