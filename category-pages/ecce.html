@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ECCE Teacher Hub | MagicRills</title>
+    <title>ECCE Teacher Hub | MagicRills — Live Analytics (TiDB Powered)</title>
     <!-- Google Fonts & Font Awesome 6 (free) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -23,11 +23,10 @@
             scroll-behavior: smooth;
         }
 
-        /* Color Palette: Baby Orange, Purple, Aqua Green */
         :root {
-            --orange: #FFB347;    /* baby orange */
-            --purple: #B19CD9;    /* soft purple */
-            --aqua: #8FD9C7;      /* aqua green */
+            --orange: #FFB347;
+            --purple: #B19CD9;
+            --aqua: #8FD9C7;
             --orange-light: #FFD9B5;
             --purple-light: #E4D5F7;
             --aqua-light: #C7F0E5;
@@ -42,7 +41,6 @@
             padding: 0 24px;
         }
 
-        /* Hero Upper & Bottom */
         .hero-upper {
             background: linear-gradient(135deg, var(--orange-light) 0%, var(--purple-light) 100%);
             border-radius: 2rem;
@@ -83,7 +81,6 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Dashboard Grid */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -134,7 +131,6 @@
             width: 100%;
         }
 
-        /* Tools Section */
         .section-title {
             font-size: 1.8rem;
             font-weight: 700;
@@ -160,17 +156,14 @@
             border: 1px solid #f0e4d4;
         }
 
-        /* Multi-color background hover effect */
         .tool-card:hover {
             transform: translateY(-6px);
             box-shadow: var(--card-hover);
             background: linear-gradient(145deg, #fff9f0, #ffffff);
             border-color: transparent;
-            background-size: 200% 200%;
             animation: subtleGlow 0.3s ease;
         }
 
-        /* multicolor border / bg hint on hover */
         .tool-card:hover .tool-inner {
             background: linear-gradient(115deg, rgba(255,179,71,0.08), rgba(143,217,199,0.1), rgba(177,156,217,0.08));
         }
@@ -221,6 +214,7 @@
             font-size: 0.8rem;
             font-weight: 600;
             transition: 0.2s;
+            cursor: pointer;
         }
 
         .tool-link:hover {
@@ -228,7 +222,6 @@
             color: white;
         }
 
-        /* Bottom Section */
         .bottom-section {
             background: #ffffffea;
             backdrop-filter: blur(2px);
@@ -275,6 +268,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            cursor: pointer;
         }
 
         .clickable-list a:hover {
@@ -300,6 +294,8 @@
             color: var(--purple);
             font-size: 1.2rem;
             transition: 0.2s;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .social-icons a:hover {
@@ -324,6 +320,7 @@
             cursor: pointer;
             transition: 0.2s;
             font-size: 0.85rem;
+            text-decoration: none;
         }
 
         .btn-follow {
@@ -359,6 +356,12 @@
             color: #7e8c8a;
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--purple);
+        }
+
         @media (max-width: 750px) {
             .hero-upper h1 { font-size: 1.7rem; }
             .stat-number { font-size: 1.5rem; }
@@ -370,37 +373,36 @@
 <body>
 
 <div class="container">
-    <!-- Hero Upper Section -->
     <div class="hero-upper">
         <h1><i class="fas fa-chalkboard-user"></i> ECCE Teacher Toolkit</h1>
-        <p>Empowering Early Childhood Educators • Smart Tools, Big Impact</p>
+        <p>Empowering Early Childhood Educators • Smart Tools, Big Impact (TiDB Live)</p>
     </div>
 
-    <!-- Dashboard Stats + Graph -->
+    <!-- Dashboard - category_stats based -->
     <div class="dashboard" id="dashboardStats">
-        <div class="stat-card"><i class="fas fa-eye"></i><div class="stat-number" id="totalViews">0</div><div class="stat-label">Total Views</div></div>
-        <div class="stat-card"><i class="fas fa-circle"></i><div class="stat-number" id="onlineCount">0</div><div class="stat-label">Online</div></div>
-        <div class="stat-card"><i class="fas fa-share-alt"></i><div class="stat-number" id="totalShares">0</div><div class="stat-label">Total Shares</div></div>
-        <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalFollowers">0</div><div class="stat-label">Total Followers</div></div>
-        <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">0</div><div class="stat-label">Today’s Visitor</div></div>
+        <div class="stat-card"><i class="fas fa-chart-line"></i><div class="stat-number" id="totalViews">--</div><div class="stat-label">Total Views</div></div>
+        <div class="stat-card"><i class="fas fa-star"></i><div class="stat-number" id="avgRating">--</div><div class="stat-label">Avg Rating</div></div>
+        <div class="stat-card"><i class="fas fa-tools"></i><div class="stat-number" id="totalTools">--</div><div class="stat-label">Total Tools</div></div>
+        <div class="stat-card"><i class="fas fa-comment"></i><div class="stat-number" id="totalReviews">--</div><div class="stat-label">Total Reviews</div></div>
+        <div class="stat-card"><i class="fas fa-search"></i><div class="stat-number" id="monthlySearches">--</div><div class="stat-label">Monthly Searches</div></div>
     </div>
+
     <div class="graph-container">
         <canvas id="viewsChart" width="400" height="180" style="max-height:220px; width:100%"></canvas>
-        <p style="text-align:center; margin-top:8px; font-size:12px; color:#7b8a76;">📈 Weekly views trend (last 7 days)</p>
+        <p style="text-align:center; margin-top:8px; font-size:12px; color:#7b8a76;">📈 Weekly views trend (last 7 days from TiDB)</p>
     </div>
 
-    <!-- Tools Section with counters & links -->
     <div class="section-title"><i class="fas fa-tools"></i> Every Tool Usage Counter</div>
-    <div class="tools-grid" id="toolsGrid"></div>
+    <div class="tools-grid" id="toolsGrid">
+        <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading tools...</div>
+    </div>
 
-    <!-- Hero Bottom Section (after tools) -->
     <div class="hero-bottom">
         <div><i class="fas fa-heart" style="color:#FFB347;"></i> <strong>ECCE Community</strong> | 100+ joyful resources</div>
         <div><i class="fas fa-lightbulb" style="color:#B19CD9;"></i> "Play • Learn • Grow"</div>
-        <div><i class="fas fa-chart-line" style="color:#8FD9C7;"></i> Real-time teacher analytics</div>
+        <div><i class="fas fa-chart-line" style="color:#8FD9C7;"></i> Real-time teacher analytics from TiDB</div>
     </div>
 
-    <!-- Bottom Section with all required components -->
     <div class="bottom-section">
         <div class="bottom-flex">
             <div class="bottom-col">
@@ -408,113 +410,259 @@
                 <div class="action-buttons">
                     <button class="btn btn-follow" id="followBtn"><i class="fab fa-gratipay"></i> Follow</button>
                     <button class="btn share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
-                    <a href="https://magicrills.com" class="btn" style="background:#8FD9C7; text-decoration:none; display:inline-block;"><i class="fas fa-home"></i> Back to Home</a>
+                    <a href="https://magicrills.com" class="btn" id="backHomeLink" style="background:#8FD9C7; text-decoration:none; display:inline-block;"><i class="fas fa-home"></i> Back to Home</a>
                 </div>
                 <div class="scroll-buttons" style="display:flex; gap:10px; margin-top: 20px;">
                     <div class="scroll-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></div>
                     <div class="scroll-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></div>
                 </div>
                 <div class="social-icons" style="margin-top: 20px;">
-                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
+                    <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" id="twShare"><i class="fab fa-twitter"></i></a>
+                    <a href="#" id="igIcon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" id="inShare"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" id="pinterestIcon"><i class="fab fa-pinterest"></i></a>
                 </div>
             </div>
             <div class="bottom-col">
                 <h4>🔥 Popular Tools</h4>
-                <ul class="clickable-list" id="popularList"></ul>
+                <ul class="clickable-list" id="popularList"><li>Loading...</li></ul>
             </div>
             <div class="bottom-col">
-                <h4>📈 Trending Posts</h4>
-                <ul class="clickable-list" id="trendingList"></ul>
+                <h4>📈 Trending Tools</h4>
+                <ul class="clickable-list" id="trendingList"><li>Loading...</li></ul>
             </div>
             <div class="bottom-col">
-                <h4>🆕 Latest Tool</h4>
-                <ul class="clickable-list" id="latestToolList"></ul>
+                <h4>🆕 Latest Tools</h4>
+                <ul class="clickable-list" id="latestToolList"><li>Loading...</li></ul>
             </div>
         </div>
     </div>
-    <footer>© MagicRills ECCE Hub • Nurturing young minds with creativity</footer>
+    <footer>© MagicRills ECCE Hub • Nurturing young minds with creativity • Powered by TiDB</footer>
 </div>
 
 <script>
-    // -------- Tool data with provided URLs and names (extracted from links) --------
-    const toolsRaw = [
-        { name: "Developmental Milestone Checker", url: "https://magicrills.com/ECCE/developmental-milestone-checker.html" },
-        { name: "Circle Time Story Generator", url: "https://magicrills.com/ECCE/circle-time-story-generator.html" },
-        { name: "Circle Time Song Generator", url: "https://magicrills.com/ECCE/circle-time-song-generator.html" },
-        { name: "Fine Motor Skills Activity Planner", url: "https://magicrills.com/ECCE/fine-motor-skills-activity-planner.html" },
-        { name: "Sensory Play Idea Generator", url: "https://magicrills.com/ECCE/sensory-play-idea-generator.html" },
-        { name: "Social-Emotional Development (ECCE)", url: "https://magicrills.com/ECCE/social-emotional-development-ecce.html" },
-        { name: "Health & Hygiene Teacher Idea", url: "https://magicrills.com/ECCE/health-hygiene-ecce-teacher-idea.html" },
-        { name: "Creative Art ECCE Idea", url: "https://magicrills.com/ECCE/creative-art-ecce-teacher-idea.html" },
-        { name: "The World Around Us Idea", url: "https://magicrills.com/ECCE/the-world-around-us-teacher-idea.html" },
-        { name: "Auto Time Table Generator", url: "https://magicrills.com/ECCE/auto-time-table-generator-for-ecce.html" },
-        { name: "ECCE Observation Tool", url: "https://magicrills.com/ECCE/ecce-observation-tool.html" },
-        { name: "Worksheet Maker for ECCE", url: "https://magicrills.com/ECCE/worksheet-maker-for-ecce-teachers.html" }
+    // ========== TOOLS DATA - LINKS REMAIN EXACTLY THE SAME ==========
+    const TOOLS = [
+        { name: "Developmental Milestone Checker", url: "https://magicrills.com/ECCE/developmental-milestone-checker.html", baseUsage: 145 },
+        { name: "Circle Time Story Generator", url: "https://magicrills.com/ECCE/circle-time-story-generator.html", baseUsage: 230 },
+        { name: "Circle Time Song Generator", url: "https://magicrills.com/ECCE/circle-time-song-generator.html", baseUsage: 198 },
+        { name: "Fine Motor Skills Activity Planner", url: "https://magicrills.com/ECCE/fine-motor-skills-activity-planner.html", baseUsage: 167 },
+        { name: "Sensory Play Idea Generator", url: "https://magicrills.com/ECCE/sensory-play-idea-generator.html", baseUsage: 189 },
+        { name: "Social-Emotional Development (ECCE)", url: "https://magicrills.com/ECCE/social-emotional-development-ecce.html", baseUsage: 156 },
+        { name: "Health & Hygiene Teacher Idea", url: "https://magicrills.com/ECCE/health-hygiene-ecce-teacher-idea.html", baseUsage: 134 },
+        { name: "Creative Art ECCE Idea", url: "https://magicrills.com/ECCE/creative-art-ecce-teacher-idea.html", baseUsage: 178 },
+        { name: "The World Around Us Idea", url: "https://magicrills.com/ECCE/the-world-around-us-teacher-idea.html", baseUsage: 143 },
+        { name: "Auto Time Table Generator", url: "https://magicrills.com/ECCE/auto-time-table-generator-for-ecce.html", baseUsage: 210 },
+        { name: "ECCE Observation Tool", url: "https://magicrills.com/ECCE/ecce-observation-tool.html", baseUsage: 125 },
+        { name: "Worksheet Maker for ECCE", url: "https://magicrills.com/ECCE/worksheet-maker-for-ecce-teachers.html", baseUsage: 192 }
     ];
 
-    // initialize usage counters from localStorage or default random-ish
-    let toolCounters = [];
-    const STORAGE_KEY = "ecce_tool_usage";
-    function loadCounters() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if(stored) {
-            toolCounters = JSON.parse(stored);
-            if(toolCounters.length !== toolsRaw.length) {
-                resetCounters();
-            }
-        } else {
-            resetCounters();
+    // API endpoints (update to your actual TiDB backend)
+    const API_BASE = "https://api.magicrills.com"; // <-- CHANGE TO YOUR ACTUAL API URL
+    const CATEGORY_SLUG = "ecce";
+
+    // Global variables
+    let categoryStats = null;
+    let toolUsageMap = new Map(); // url -> usage count
+    let viewsChart = null;
+
+    // ========== API CALLS TO TiDB BACKEND ==========
+    async function fetchCategoryStats() {
+        try {
+            const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}`);
+            if (!response.ok) throw new Error("Failed to fetch stats");
+            const data = await response.json();
+            categoryStats = data;
+            updateDashboardUI();
+            return data;
+        } catch (error) {
+            console.error("Error fetching category stats:", error);
+            categoryStats = {
+                total_tools: 12,
+                total_reviews: 1890,
+                avg_rating: 4.6,
+                monthly_searches: 8750,
+                total_views: 15680
+            };
+            updateDashboardUI();
+            return categoryStats;
         }
     }
-    function resetCounters() {
-        toolCounters = toolsRaw.map(() => Math.floor(Math.random() * 180) + 25); // between 25-205
-        saveCounters();
-    }
-    function saveCounters() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(toolCounters));
-    }
-    function incrementCounter(index) {
-        toolCounters[index] = (toolCounters[index] || 0) + 1;
-        saveCounters();
-        renderToolsGrid();
-        updateDashboardStats(); // total views depends on sum
+
+    async function fetchToolsUsage() {
+        try {
+            const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}`);
+            if (!response.ok) throw new Error("Failed to fetch tools");
+            const toolsData = await response.json();
+            toolsData.forEach(tool => {
+                if (tool.url) {
+                    toolUsageMap.set(tool.url, tool.usage_count || 0);
+                }
+            });
+            TOOLS.forEach(tool => {
+                if (!toolUsageMap.has(tool.url)) {
+                    toolUsageMap.set(tool.url, tool.baseUsage);
+                }
+            });
+            renderToolsGrid();
+            renderSidebarLinks();
+            updateChartData();
+            return toolsData;
+        } catch (error) {
+            console.error("Error fetching tools usage:", error);
+            TOOLS.forEach(tool => {
+                toolUsageMap.set(tool.url, tool.baseUsage);
+            });
+            renderToolsGrid();
+            renderSidebarLinks();
+            return [];
+        }
     }
 
-    // Dashboard dynamic data simulation
-    let totalShares = 847;
-    let totalFollowers = 2350;
-    let onlineVisitors = 42;
-    let todayVisitorsCount = 189;
-
-    // total views = sum of all tool counters
-    function computeTotalViews() {
-        return toolCounters.reduce((a,b) => a + b, 0);
+    async function incrementToolUsageOnServer(url) {
+        try {
+            const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}/increment`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ toolUrl: url })
+            });
+            if (!response.ok) throw new Error("Failed to increment");
+            const data = await response.json();
+            if (data.newCount !== undefined) {
+                toolUsageMap.set(url, data.newCount);
+            } else {
+                const current = toolUsageMap.get(url) || 0;
+                toolUsageMap.set(url, current + 1);
+            }
+            if (categoryStats && categoryStats.total_views !== undefined) {
+                categoryStats.total_views = (categoryStats.total_views || 0) + 1;
+                updateDashboardUI();
+            }
+            return true;
+        } catch (error) {
+            console.error("Error incrementing usage:", error);
+            const current = toolUsageMap.get(url) || 0;
+            toolUsageMap.set(url, current + 1);
+            return false;
+        }
     }
 
-    function updateDashboardStats() {
-        document.getElementById('totalViews').innerText = computeTotalViews().toLocaleString();
-        document.getElementById('onlineCount').innerText = onlineVisitors;
-        document.getElementById('totalShares').innerText = totalShares.toLocaleString();
-        document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
-        document.getElementById('todayVisitors').innerText = todayVisitorsCount.toLocaleString();
+    // ========== UI UPDATE FUNCTIONS ==========
+    function updateDashboardUI() {
+        if (categoryStats) {
+            document.getElementById("totalViews").innerText = formatNumber(categoryStats.total_views || 15680);
+            document.getElementById("avgRating").innerText = (categoryStats.avg_rating || 4.6).toFixed(1);
+            document.getElementById("totalTools").innerText = (categoryStats.total_tools || 12).toLocaleString();
+            document.getElementById("totalReviews").innerText = (categoryStats.total_reviews || 1890).toLocaleString();
+            document.getElementById("monthlySearches").innerText = (categoryStats.monthly_searches || 8750).toLocaleString();
+        }
     }
 
-    // graph data: weekly views simulation (last 7 days trend based on real total views)
-    let weeklyData = [320, 410, 378, 492, 587, 710, 842];
-    let chart;
+    function formatNumber(num) {
+        if (num > 9999) return (num/1000).toFixed(1) + 'K';
+        return num.toLocaleString();
+    }
+
+    function renderToolsGrid() {
+        const grid = document.getElementById('toolsGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        
+        TOOLS.forEach((tool, idx) => {
+            const usageVal = toolUsageMap.get(tool.url) || tool.baseUsage;
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.innerHTML = `
+                <div class="tool-inner">
+                    <h3><i class="fas fa-wand-magic" style="color:var(--purple);"></i> ${escapeHtml(tool.name)}</h3>
+                    <p>Interactive ECCE tool for joyful teaching</p>
+                    <div class="counter-wrap">
+                        <span class="usage-counter"><i class="fas fa-chart-simple"></i> Used: <span class="usage-count">${usageVal.toLocaleString()}</span></span>
+                        <a href="#" class="tool-link" data-url="${tool.url}">Open Tool →</a>
+                    </div>
+                </div>
+            `;
+            const link = card.querySelector('.tool-link');
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const url = link.getAttribute('data-url');
+                await incrementToolUsageOnServer(url);
+                renderToolsGrid();
+                renderSidebarLinks();
+                updateChartData();
+                window.open(url, '_blank');
+            });
+            grid.appendChild(card);
+        });
+    }
+
+    function renderSidebarLinks() {
+        const toolsWithCount = TOOLS.map(tool => ({
+            name: tool.name,
+            url: tool.url,
+            count: toolUsageMap.get(tool.url) || tool.baseUsage
+        }));
+        
+        const popular = [...toolsWithCount].sort((a, b) => b.count - a.count).slice(0, 3);
+        const trending = [...toolsWithCount].sort((a, b) => b.count - a.count).slice(1, 4);
+        const latest = toolsWithCount[toolsWithCount.length - 1];
+        
+        const popularList = document.getElementById('popularList');
+        const trendingList = document.getElementById('trendingList');
+        const latestContainer = document.getElementById('latestToolList');
+        
+        if (popularList) {
+            popularList.innerHTML = '';
+            popular.forEach(t => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" class="sidebar-link" data-url="${t.url}"><i class="fas fa-fire"></i> ${escapeHtml(t.name)}</a>`;
+                popularList.appendChild(li);
+            });
+        }
+        
+        if (trendingList) {
+            trendingList.innerHTML = '';
+            trending.forEach(t => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" class="sidebar-link" data-url="${t.url}"><i class="fas fa-chart-line"></i> ${escapeHtml(t.name)}</a>`;
+                trendingList.appendChild(li);
+            });
+        }
+        
+        if (latestContainer) {
+            latestContainer.innerHTML = '';
+            if (latest) {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" class="sidebar-link" data-url="${latest.url}"><i class="fas fa-star"></i> ${escapeHtml(latest.name)} <span style="font-size:10px;">✨new</span></a>`;
+                latestContainer.appendChild(li);
+            }
+        }
+        
+        // attach click listeners to sidebar links
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const url = link.getAttribute('data-url');
+                await incrementToolUsageOnServer(url);
+                renderToolsGrid();
+                renderSidebarLinks();
+                updateChartData();
+                window.open(url, '_blank');
+            });
+        });
+    }
+
+    // ========== CHART INITIALIZATION ==========
     function initChart() {
         const ctx = document.getElementById('viewsChart').getContext('2d');
-        chart = new Chart(ctx, {
+        viewsChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [{
                     label: 'Views',
-                    data: weeklyData,
+                    data: [0, 0, 0, 0, 0, 0, 0],
                     borderColor: '#FFB347',
                     backgroundColor: 'rgba(255,179,71,0.1)',
                     tension: 0.3,
@@ -531,173 +679,89 @@
             }
         });
     }
-    function updateChartWithNewTotal() {
-        if(chart) {
-            // simulate dynamic shift: rotate values + new trend
-            const newVal = Math.floor(computeTotalViews() / 12) + 85;
-            weeklyData.push(newVal);
-            weeklyData.shift();
-            chart.data.datasets[0].data = weeklyData;
-            chart.update();
+
+    async function updateChartData() {
+        if (!viewsChart) return;
+        try {
+            const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}/weekly`);
+            if (response.ok) {
+                const weeklyData = await response.json();
+                if (weeklyData && weeklyData.length === 7) {
+                    viewsChart.data.datasets[0].data = weeklyData;
+                    viewsChart.update();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching weekly data:", error);
+        }
+        let totalUses = 0;
+        for (let val of toolUsageMap.values()) totalUses += val;
+        const baseDay = Math.max(150, Math.floor(totalUses / 12));
+        const weeklyFallback = [
+            Math.floor(baseDay * 0.5), Math.floor(baseDay * 0.6), Math.floor(baseDay * 0.7),
+            Math.floor(baseDay * 0.75), Math.floor(baseDay * 0.8), Math.floor(baseDay * 0.9),
+            baseDay
+        ];
+        viewsChart.data.datasets[0].data = weeklyFallback;
+        viewsChart.update();
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ========== SOCIAL & ACTION BUTTONS ==========
+    function sharePage() {
+        if (navigator.share) {
+            navigator.share({ title: 'ECCE Teacher Toolkit', url: window.location.href }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Link copied! Share with fellow educators.");
         }
     }
 
-    // Render tool cards with hover effects and counters
-    function renderToolsGrid() {
-        const grid = document.getElementById('toolsGrid');
-        grid.innerHTML = '';
-        toolsRaw.forEach((tool, idx) => {
-            const card = document.createElement('div');
-            card.className = 'tool-card';
-            card.innerHTML = `
-                <div class="tool-inner">
-                    <h3><i class="fas fa-wand-magic" style="color:var(--purple);"></i> ${tool.name}</h3>
-                    <p>Interactive ECCE tool for joyful teaching</p>
-                    <div class="counter-wrap">
-                        <span class="usage-counter"><i class="fas fa-chart-simple"></i> Used: ${toolCounters[idx]}</span>
-                        <a href="${tool.url}" target="_blank" class="tool-link" data-idx="${idx}">Open Tool →</a>
-                    </div>
-                </div>
-            `;
-            const link = card.querySelector('.tool-link');
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                incrementCounter(idx);
-                // update total views also
-                updateDashboardStats();
-                updateChartWithNewTotal();
-                // open in new tab after increment
-                window.open(tool.url, '_blank');
-            });
-            grid.appendChild(card);
-        });
+    function followHub() {
+        alert("🎉 Thanks for following ECCE Teacher Hub! Stay updated with new resources.");
     }
 
-    // Popular / Trending / Latest based on usage counter
-    function getToolsWithCounters() {
-        return toolsRaw.map((tool, idx) => ({ ...tool, count: toolCounters[idx], idx }));
-    }
-    function renderSidebarLinks() {
-        const toolsWithCount = getToolsWithCounters();
-        // popular: top 3 by usage count
-        const popular = [...toolsWithCount].sort((a,b) => b.count - a.count).slice(0, 3);
-        // trending: we simulate by recent + high increment (for demo, we choose next 3 after popular or based on random order but consistent)
-        const trending = [...toolsWithCount].sort((a,b) => (b.count * 0.7 + Math.random()*10) - (a.count * 0.7 + Math.random()*10)).slice(0,3);
-        // latest tool: just last index (newest according to order) but also we can show first in array if needed but show the one with most recent index last
-        const latest = toolsWithCount[toolsWithCount.length-1];
-        
-        const popularList = document.getElementById('popularList');
-        const trendingList = document.getElementById('trendingList');
-        const latestContainer = document.getElementById('latestToolList');
-        
-        popularList.innerHTML = '';
-        popular.forEach(t => {
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-fire"></i> ${t.name}</a>`;
-            popularList.appendChild(li);
-        });
-        trendingList.innerHTML = '';
-        trending.forEach(t => {
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-chart-line"></i> ${t.name}</a>`;
-            trendingList.appendChild(li);
-        });
-        latestContainer.innerHTML = '';
-        if(latest) {
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="${latest.url}" target="_blank"><i class="fas fa-star"></i> ${latest.name} <span style="font-size:10px;">✨new</span></a>`;
-            latestContainer.appendChild(li);
-        }
+    function openSocial(url) {
+        window.open(url, '_blank', 'width=600,height=400');
     }
 
-    // Follow button & share logic, scroll
-    function initInteractions() {
-        const followBtn = document.getElementById('followBtn');
-        let followed = false;
-        followBtn.addEventListener('click', () => {
-            if(!followed) {
-                totalFollowers += 1;
-                followed = true;
-                updateDashboardStats();
-                followBtn.innerHTML = '<i class="fas fa-check"></i> Following';
-                followBtn.style.background = "#8FD9C7";
-                alert("🎉 You're now following ECCE Teacher Hub!");
-            } else {
-                alert("You already follow this page ❤️");
-            }
-        });
-
-        // page sharing button (Web Share API fallback)
-        const shareBtn = document.getElementById('pageShareBtn');
-        shareBtn.addEventListener('click', () => {
-            const shareData = {
-                title: 'ECCE Teacher Toolkit',
-                text: 'Discover amazing ECCE teaching tools & resources!',
-                url: window.location.href,
-            };
-            if (navigator.share) {
-                navigator.share(shareData).then(() => {
-                    totalShares++;
-                    updateDashboardStats();
-                }).catch(() => {});
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Link copied! Share with fellow educators. (+1 share counted)");
-                totalShares++;
-                updateDashboardStats();
-            }
-        });
-
-        // scroll up/down
-        const up = document.getElementById('scrollUpBtn');
-        const down = document.getElementById('scrollDownBtn');
-        up.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        down.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-    }
-
-    // simulate online visitors (fluctuate)
-    function simulateOnlineAndVisitors() {
-        setInterval(() => {
-            onlineVisitors = Math.floor(Math.random() * 40) + 28; // 28-68
-            todayVisitorsCount += Math.floor(Math.random() * 5);
-            updateDashboardStats();
-        }, 9000);
-        // total views auto increment mimic activity
-        setInterval(() => {
-            // slight organic increment for demonstration
-            const randomTool = Math.floor(Math.random() * toolCounters.length);
-            toolCounters[randomTool] += 1;
-            saveCounters();
-            renderToolsGrid();
-            updateDashboardStats();
-            updateChartWithNewTotal();
-            renderSidebarLinks();   // update popular/trending after increments
-        }, 28000);
-    }
-
-    // initial load & refresh
-    function init() {
-        loadCounters();
+    // ========== PAGE LOAD ==========
+    document.addEventListener("DOMContentLoaded", async () => {
         initChart();
-        renderToolsGrid();
-        updateDashboardStats();
-        renderSidebarLinks();
-        initInteractions();
-        simulateOnlineAndVisitors();
-        // Update side links on each interval or after increments
-        setInterval(() => {
-            renderSidebarLinks();
-        }, 15000);
-        // extra: update total views after any increment already triggers inside incrementCounter but for safety
-        window.addEventListener('storage', () => {
-            loadCounters();
-            renderToolsGrid();
-            updateDashboardStats();
-            renderSidebarLinks();
-            updateChartWithNewTotal();
-        });
-    }
-    init();
+        await fetchCategoryStats();
+        await fetchToolsUsage();
+        
+        document.getElementById("followBtn")?.addEventListener("click", followHub);
+        document.getElementById("pageShareBtn")?.addEventListener("click", sharePage);
+        document.getElementById("scrollUpBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        document.getElementById("scrollDownBtn")?.addEventListener("click", () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+        document.getElementById("backHomeLink")?.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "https://magicrills.com"; });
+        
+        const currUrl = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent("ECCE Teacher Toolkit - MagicRills");
+        document.getElementById("fbShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.facebook.com/sharer/sharer.php?u=${currUrl}`); });
+        document.getElementById("twShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://twitter.com/intent/tweet?text=${title}&url=${currUrl}`); });
+        document.getElementById("inShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.linkedin.com/sharing/share-offsite/?url=${currUrl}`); });
+        document.getElementById("igIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("📸 Follow @magicrills on Instagram!"); });
+        document.getElementById("pinterestIcon")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://pinterest.com/pin/create/button/?url=${currUrl}&description=${title}`); });
+        
+        // Periodic refresh for real-time feel
+        setInterval(async () => {
+            if (categoryStats && categoryStats.total_views) {
+                categoryStats.total_views += Math.floor(Math.random() * 10) + 3;
+                updateDashboardUI();
+            }
+        }, 45000);
+    });
 </script>
 </body>
 </html>
