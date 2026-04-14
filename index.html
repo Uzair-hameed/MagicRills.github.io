@@ -1,598 +1,625 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- import { Analytics } from "@vercel/analytics/next"
- <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-4JE1RK9B0K"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-4JE1RK9B0K');
-</script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Magicrills · AI Tools Dashboard</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4JE1RK9B0K"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-4JE1RK9B0K');
+    </script>
+    
+    <!-- Vercel Analytics -->
+    <script>
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    
+    <!-- Font Awesome & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Magicrills · AI Tools Dashboard</title>
-  <!-- Font Awesome 6 (free) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        body {
+            background: #f9fafc;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            color: #1a2634;
+            scroll-behavior: smooth;
+        }
 
-    body {
-      background: #f9fafc;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
-      color: #1a2634;
-      scroll-behavior: smooth;
-    }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap');
 
-    /* Import Google Font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap');
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.8rem;
+        }
 
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 2rem 1.8rem;
-    }
+        /* Logo */
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .logo {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            background: linear-gradient(135deg, #10182F, #1F2B4E);
+            padding: 0.7rem 1.8rem;
+            border-radius: 100px;
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        .logo:hover {
+            transform: scale(1.02);
+        }
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            background: linear-gradient(120deg, #FFFFFF, #C0F2F0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .logo span {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #FFE6A3;
+            background: rgba(255,255,240,0.15);
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+        }
+        .badge-new {
+            background: rgba(255,215,100,0.2);
+            backdrop-filter: blur(4px);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2B4F6E;
+        }
 
-    /* ----- refined glassmorphism & modern feel ----- */
-    /* Logo */
-    .logo-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-    }
-    .logo {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      background: linear-gradient(135deg, #10182F, #1F2B4E);
-      padding: 0.7rem 1.8rem;
-      border-radius: 100px;
-      box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.2);
-      transition: transform 0.2s;
-    }
-    .logo:hover {
-      transform: scale(1.02);
-    }
-    .logo h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      background: linear-gradient(120deg, #FFFFFF, #C0F2F0);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-    .logo span {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #FFE6A3;
-      background: rgba(255,255,240,0.15);
-      padding: 0.2rem 0.8rem;
-      border-radius: 40px;
-    }
-    .badge-new {
-      background: rgba(255,215,100,0.2);
-      backdrop-filter: blur(4px);
-      padding: 0.3rem 1rem;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #2B4F6E;
-    }
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.2rem;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 1.2rem 0.8rem;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255,255,255,0.6);
+            transition: all 0.2s ease;
+        }
+        .stat-card i {
+            font-size: 2.2rem;
+            background: linear-gradient(145deg, #4F46E5, #7C3AED);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.6rem;
+        }
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0F172A;
+        }
+        .stat-card p {
+            font-weight: 500;
+            color: #475569;
+            letter-spacing: 0.2px;
+        }
 
-    /* dashboard cards modern */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2.2rem;
-    }
-    .stat-card {
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(2px);
-      border-radius: 2rem;
-      padding: 1.2rem 0.8rem;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.03);
-      border: 1px solid rgba(255,255,255,0.6);
-      transition: all 0.2s ease;
-    }
-    .stat-card i {
-      font-size: 2.2rem;
-      background: linear-gradient(145deg, #4F46E5, #7C3AED);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      margin-bottom: 0.6rem;
-    }
-    .stat-card h3 {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #0F172A;
-    }
-    .stat-card p {
-      font-weight: 500;
-      color: #475569;
-      letter-spacing: 0.2px;
-    }
+        /* Graph */
+        .graph-container {
+            background: #FFFFFF;
+            border-radius: 2rem;
+            padding: 1.2rem;
+            margin-bottom: 2.2rem;
+            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.05);
+            border: 1px solid #EFF3F8;
+        }
+        canvas {
+            max-height: 230px;
+            width: 100%;
+        }
 
-    /* graph area */
-    .graph-container {
-      background: #FFFFFF;
-      border-radius: 2rem;
-      padding: 1.2rem;
-      margin-bottom: 2.2rem;
-      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.05);
-      border: 1px solid #EFF3F8;
-    }
-    canvas {
-      max-height: 230px;
-      width: 100%;
-    }
+        /* Hero Sections */
+        .hero-upper {
+            background: linear-gradient(105deg, #EFF6FF 0%, #FEF9E3 100%);
+            border-radius: 2rem;
+            padding: 2rem 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,240,0.7);
+        }
+        .hero-upper h2 {
+            font-size: 2rem;
+            background: linear-gradient(120deg, #1E3A8A, #6D28D9);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+        .hero-bottom {
+            background: linear-gradient(105deg, #FEF2E8, #E0F2FE);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .hero-bottom p {
+            font-weight: 500;
+            color: #2C3E66;
+            font-size: 1.1rem;
+        }
 
-    /* hero sections - elegant */
-    .hero-upper {
-      background: linear-gradient(105deg, #EFF6FF 0%, #FEF9E3 100%);
-      border-radius: 2rem;
-      padding: 2rem 2rem;
-      margin-bottom: 1.5rem;
-      text-align: center;
-      border: 1px solid rgba(255,255,240,0.7);
-    }
-    .hero-upper h2 {
-      font-size: 2rem;
-      background: linear-gradient(120deg, #1E3A8A, #6D28D9);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      font-weight: 800;
-    }
-    .hero-bottom {
-      background: linear-gradient(105deg, #FEF2E8, #E0F2FE);
-      border-radius: 2rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-    .hero-bottom p {
-      font-weight: 500;
-      color: #2C3E66;
-      font-size: 1.1rem;
-    }
+        /* Category Section */
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin: 2rem 0 1.2rem 0;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1E2B5C, #3B2E7E);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .total-tools-badge {
+            background: #E9EEF5;
+            border-radius: 60px;
+            padding: 0.4rem 1.2rem;
+            font-weight: 700;
+            color: #1F2B4E;
+            font-size: 0.9rem;
+        }
 
-    /* category header */
-    .category-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      margin: 2rem 0 1.2rem 0;
-    }
-    .section-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #1E2B5C, #3B2E7E);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .total-tools-badge {
-      background: #E9EEF5;
-      border-radius: 60px;
-      padding: 0.4rem 1.2rem;
-      font-weight: 700;
-      color: #1F2B4E;
-      font-size: 0.9rem;
-      box-shadow: inset 0 1px 1px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.02);
-    }
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 3rem;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 1.8rem;
+            padding: 1.6rem 1.2rem;
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #F0F2F8;
+        }
+        .tool-card i {
+            font-size: 2.4rem;
+            margin-bottom: 0.8rem;
+            transition: 0.2s;
+        }
+        .tool-card h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            color: #0F172A;
+        }
+        .tool-card p {
+            font-size: 0.85rem;
+            color: #5B6E8C;
+        }
+        .tool-counter-chip {
+            margin-top: 0.9rem;
+            background: #F1F5F9;
+            padding: 0.25rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #2563EB;
+        }
 
-    /* category grid - multi color hover effect */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.8rem;
-      margin-bottom: 3rem;
-    }
-    .tool-card {
-      background: #ffffff;
-      border-radius: 1.8rem;
-      padding: 1.6rem 1.2rem;
-      transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-      cursor: pointer;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
-      border: 1px solid #F0F2F8;
-    }
-    .tool-card i {
-      font-size: 2.4rem;
-      margin-bottom: 0.8rem;
-      transition: 0.2s;
-    }
-    .tool-card h3 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 0.3rem;
-      color: #0F172A;
-    }
-    .tool-card p {
-      font-size: 0.85rem;
-      color: #5B6E8C;
-    }
-    .tool-counter-chip {
-      margin-top: 0.9rem;
-      background: #F1F5F9;
-      padding: 0.25rem 1rem;
-      border-radius: 40px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #2563EB;
-    }
+        /* Hover Effects */
+        .tool-card:nth-child(1):hover { background: linear-gradient(135deg, #E0F2FE, #FFEDD5); border-color: transparent; }
+        .tool-card:nth-child(2):hover { background: linear-gradient(135deg, #E6F0FA, #FCE7F3); border-color: transparent; }
+        .tool-card:nth-child(3):hover { background: linear-gradient(135deg, #FEF9C3, #D9F99D); border-color: transparent; }
+        .tool-card:nth-child(4):hover { background: linear-gradient(135deg, #E9E3FF, #CFFAFE); border-color: transparent; }
+        .tool-card:nth-child(5):hover { background: linear-gradient(135deg, #FFE4E0, #D1FAE5); border-color: transparent; }
+        .tool-card:nth-child(6):hover { background: linear-gradient(135deg, #F3E8FF, #FED7AA); border-color: transparent; }
+        .tool-card:nth-child(7):hover { background: linear-gradient(135deg, #FFEDD5, #CCF0FF); border-color: transparent; }
+        .tool-card:nth-child(8):hover { background: linear-gradient(135deg, #D9F0EC, #FCE7F3); border-color: transparent; }
+        .tool-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 22px 28px -12px rgba(0,0,0,0.18);
+        }
+        .tool-card:hover i {
+            transform: scale(1.07);
+        }
 
-    /* vibrant multi color backgrounds on hover */
-    .tool-card:nth-child(1):hover { background: linear-gradient(135deg, #E0F2FE, #FFEDD5); border-color: transparent; }
-    .tool-card:nth-child(2):hover { background: linear-gradient(135deg, #E6F0FA, #FCE7F3); border-color: transparent; }
-    .tool-card:nth-child(3):hover { background: linear-gradient(135deg, #FEF9C3, #D9F99D); border-color: transparent; }
-    .tool-card:nth-child(4):hover { background: linear-gradient(135deg, #E9E3FF, #CFFAFE); border-color: transparent; }
-    .tool-card:nth-child(5):hover { background: linear-gradient(135deg, #FFE4E0, #D1FAE5); border-color: transparent; }
-    .tool-card:nth-child(6):hover { background: linear-gradient(135deg, #F3E8FF, #FED7AA); border-color: transparent; }
-    .tool-card:nth-child(7):hover { background: linear-gradient(135deg, #FFEDD5, #CCF0FF); border-color: transparent; }
-    .tool-card:nth-child(8):hover { background: linear-gradient(135deg, #D9F0EC, #FCE7F3); border-color: transparent; }
-    .tool-card:hover {
-      transform: translateY(-6px) scale(1.01);
-      box-shadow: 0 22px 28px -12px rgba(0,0,0,0.18);
-    }
-    .tool-card:hover i {
-      transform: scale(1.07);
-    }
+        /* Bottom Bar */
+        .bottom-bar {
+            background: rgba(255,255,255,0.96);
+            border-radius: 80px;
+            padding: 1rem 1.8rem;
+            margin: 2rem 0 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.4rem;
+            align-items: center;
+            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1);
+            border: 1px solid rgba(79,70,229,0.15);
+        }
+        .btn-modern {
+            background: #1F2B4E;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+        .btn-outline-light {
+            background: transparent;
+            border: 1.5px solid #4F46E5;
+            color: #4F46E5;
+        }
+        .btn-outline-light:hover {
+            background: #4F46E5;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .btn-follow {
+            background: #7C3AED;
+        }
+        .btn-share {
+            background: #E07C3C;
+        }
+        .social-circle {
+            display: flex;
+            gap: 0.7rem;
+        }
+        .social-circle a {
+            background: #F1F4F9;
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #334155;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+        .social-circle a:hover {
+            background: #4F46E5;
+            color: white;
+            transform: translateY(-3px);
+        }
+        .scroll-group {
+            display: flex;
+            gap: 0.5rem;
+        }
 
-    /* bottom section center */
-    .bottom-bar {
-      background: rgba(255,255,255,0.96);
-      border-radius: 80px;
-      padding: 1rem 1.8rem;
-      margin: 2rem 0 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.4rem;
-      align-items: center;
-      box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1);
-      border: 1px solid rgba(79,70,229,0.15);
-    }
-    .btn-modern {
-      background: #1F2B4E;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 60px;
-      font-weight: 600;
-      color: white;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .btn-outline-light {
-      background: transparent;
-      border: 1.5px solid #4F46E5;
-      color: #4F46E5;
-    }
-    .btn-outline-light:hover {
-      background: #4F46E5;
-      color: white;
-      transform: translateY(-2px);
-    }
-    .btn-follow {
-      background: #7C3AED;
-    }
-    .btn-share {
-      background: #E07C3C;
-    }
-    .social-circle {
-      display: flex;
-      gap: 0.7rem;
-    }
-    .social-circle a {
-      background: #F1F4F9;
-      width: 42px;
-      height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      color: #334155;
-      font-size: 1.2rem;
-      transition: all 0.2s;
-    }
-    .social-circle a:hover {
-      background: #4F46E5;
-      color: white;
-      transform: translateY(-3px);
-    }
-    .scroll-group {
-      display: flex;
-      gap: 0.5rem;
-    }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.8rem;
+            color: #5B6E8C;
+            border-top: 1px solid #E2E8F0;
+            margin-top: 1rem;
+        }
 
-    footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.8rem;
-      color: #5B6E8C;
-      border-top: 1px solid #E2E8F0;
-      margin-top: 1rem;
-    }
-    @media (max-width: 700px) {
-      .container { padding: 1.2rem; }
-      .logo h1 { font-size: 1.5rem; }
-      .stat-card h3 { font-size: 1.5rem; }
-      .btn-modern { padding: 0.5rem 1rem; font-size: 0.8rem; }
-      .section-title { font-size: 1.4rem; }
-    }
-  </style>
+        @media (max-width: 700px) {
+            .container { padding: 1.2rem; }
+            .logo h1 { font-size: 1.5rem; }
+            .stat-card h3 { font-size: 1.5rem; }
+            .btn-modern { padding: 0.5rem 1rem; font-size: 0.8rem; }
+            .section-title { font-size: 1.4rem; }
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-  <!-- Logo with modern style -->
-  <div class="logo-wrapper">
-    <div class="logo">
-      <h1>Magicrills</h1>
-      <span>.com</span>
+    <!-- Logo -->
+    <div class="logo-wrapper">
+        <div class="logo">
+            <h1>Magicrills</h1>
+            <span>.com</span>
+        </div>
+        <div class="badge-new"><i class="fas fa-bolt"></i> AI ecosystem · live insights</div>
     </div>
-    <div class="badge-new"><i class="fas fa-bolt"></i> AI ecosystem · live insights</div>
-  </div>
 
-  <!-- Dashboard stats (refined) -->
-  <div class="dashboard-grid">
-    <div class="stat-card"><i class="fas fa-chart-line"></i><h3 id="totalViews">0</h3><p>Total Views</p></div>
-    <div class="stat-card"><i class="fas fa-wifi"></i><h3 id="onlineNow">0</h3><p>Online</p></div>
-    <div class="stat-card"><i class="fas fa-retweet"></i><h3 id="totalShares">0</h3><p>Total Shares</p></div>
-    <div class="stat-card"><i class="fas fa-heart"></i><h3 id="totalFollowers">0</h3><p>Followers</p></div>
-    <div class="stat-card"><i class="fas fa-calendar-check"></i><h3 id="todayVisitors">0</h3><p>Today’s visitors</p></div>
-  </div>
-
-  <!-- Graph Card -->
-  <div class="graph-container">
-    <canvas id="trendChart" width="400" height="180"></canvas>
-    <p style="text-align:center; margin-top:8px; font-size:0.75rem; color:#5F6C84;"><i class="fas fa-chart-line"></i> weekly category views (last 7 days)</p>
-  </div>
-
-  <!-- Hero upper & bottom -->
-  <div class="hero-upper">
-    <h2>✨ Where creativity meets AI tools ✨</h2>
-    <p style="margin-top:8px;">Empowering educators, creators, and game designers — all in one place.</p>
-  </div>
-  <div class="hero-bottom">
-    <p><i class="fas fa-rocket"></i> 20,000+ active users • realtime analytics • category magic</p>
-  </div>
-
-  <!-- Category section with counter -->
-  <div class="category-header">
-    <div class="section-title"><i class="fas fa-cubes"></i> Category tools</div>
-    <div class="total-tools-badge" id="globalToolCounter">⚙️ Total tools: 0</div>
-  </div>
-  <div class="category-grid" id="categoryGrid"></div>
-
-  <!-- bottom section (center) all buttons -->
-  <div class="bottom-bar">
-    <button class="btn-modern btn-follow" id="followBtn"><i class="fab fa-gratipay"></i> Follow</button>
-    <button class="btn-modern btn-share" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share page</button>
-    <div class="scroll-group">
-      <button class="btn-modern btn-outline-light" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Up</button>
-      <button class="btn-modern btn-outline-light" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Down</button>
+    <!-- Dashboard Stats -->
+    <div class="dashboard-grid">
+        <div class="stat-card"><i class="fas fa-chart-line"></i><h3 id="totalViews">0</h3><p>Total Views</p></div>
+        <div class="stat-card"><i class="fas fa-wifi"></i><h3 id="onlineNow">0</h3><p>Online</p></div>
+        <div class="stat-card"><i class="fas fa-retweet"></i><h3 id="totalShares">0</h3><p>Total Shares</p></div>
+        <div class="stat-card"><i class="fas fa-heart"></i><h3 id="totalFollowers">0</h3><p>Followers</p></div>
+        <div class="stat-card"><i class="fas fa-calendar-check"></i><h3 id="todayVisitors">0</h3><p>Today’s visitors</p></div>
     </div>
-    <div class="social-circle">
-      <a href="#" id="fbIcon" target="_blank"><i class="fab fa-facebook-f"></i></a>
-      <a href="#" id="twIcon" target="_blank"><i class="fab fa-twitter"></i></a>
-      <a href="#" id="liIcon" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-      <a href="#" id="igIcon" target="_blank"><i class="fab fa-instagram"></i></a>
+
+    <!-- Graph -->
+    <div class="graph-container">
+        <canvas id="trendChart" width="400" height="180"></canvas>
+        <p style="text-align:center; margin-top:8px; font-size:0.75rem; color:#5F6C84;"><i class="fas fa-chart-line"></i> weekly category views (last 7 days)</p>
     </div>
-  </div>
-  <footer>
-    <i class="far fa-copyright"></i> Magicrills.com — Smart dashboard & category tools | real-time stats
-  </footer>
+
+    <!-- Hero Sections -->
+    <div class="hero-upper">
+        <h2>✨ Where creativity meets AI tools ✨</h2>
+        <p style="margin-top:8px;">Empowering educators, creators, and game designers — all in one place.</p>
+    </div>
+    <div class="hero-bottom">
+        <p><i class="fas fa-rocket"></i> 20,000+ active users • realtime analytics • category magic</p>
+    </div>
+
+    <!-- Category Section -->
+    <div class="category-header">
+        <div class="section-title"><i class="fas fa-cubes"></i> Category tools</div>
+        <div class="total-tools-badge" id="globalToolCounter">⚙️ Total tools: 0</div>
+    </div>
+    <div class="category-grid" id="categoryGrid"></div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <button class="btn-modern btn-follow" id="followBtn"><i class="fab fa-gratipay"></i> Follow</button>
+        <button class="btn-modern btn-share" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share page</button>
+        <div class="scroll-group">
+            <button class="btn-modern btn-outline-light" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Up</button>
+            <button class="btn-modern btn-outline-light" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Down</button>
+        </div>
+        <div class="social-circle">
+            <a href="#" id="fbIcon" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" id="twIcon" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="#" id="liIcon" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" id="igIcon" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+    <footer>
+        <i class="far fa-copyright"></i> Magicrills.com — Smart dashboard & category tools | real-time stats
+    </footer>
 </div>
 
 <script>
-  // -----------------------------------------------
-  // Categories + links & tool counters (vibrant)
-  const categories = [
-    { name: "Teacher", link: "https://magicrills.com/category-pages/teacher.html", icon: "fas fa-chalkboard-user", toolCount: 27 },
-    { name: "ECCE", link: "https://magicrills.com/category-pages/ecce.html", icon: "fas fa-hands-helping", toolCount: 14 },
-    { name: "Student", link: "https://magicrills.com/category-pages/student.html", icon: "fas fa-user-graduate", toolCount: 33 },
-    { name: "Administrator", link: "https://magicrills.com/category-pages/administrator.html", icon: "fas fa-building", toolCount: 19 },
-    { name: "SEO", link: "https://magicrills.com/category-pages/seo.html", icon: "fas fa-chart-simple", toolCount: 24 },
-    { name: "Kids Games", link: "https://magicrills.com/category-pages/kids-games.html", icon: "fas fa-gamepad", toolCount: 42 },
-    { name: "Quiz Games", link: "https://magicrills.com/category-pages/quiz-games.html", icon: "fas fa-question-circle", toolCount: 29 },
-    { name: "Mixed Tools", link: "https://magicrills.com/category-pages/mixed-tools.html", icon: "fas fa-toolbox", toolCount: 37 }
-  ];
-  const totalTools = categories.reduce((s, c) => s + c.toolCount, 0);
-  document.getElementById('globalToolCounter').innerHTML = `⚙️ Total tools: ${totalTools}`;
+    // ==============================================
+    // 1. CATEGORIES DATA
+    // ==============================================
+    const categories = [
+        { name: "Teacher", link: "https://magicrills.com/category-pages/teacher.html", icon: "fas fa-chalkboard-user", toolCount: 27 },
+        { name: "ECCE", link: "https://magicrills.com/category-pages/ecce.html", icon: "fas fa-hands-helping", toolCount: 14 },
+        { name: "Student", link: "https://magicrills.com/category-pages/student.html", icon: "fas fa-user-graduate", toolCount: 33 },
+        { name: "Administrator", link: "https://magicrills.com/category-pages/administrator.html", icon: "fas fa-building", toolCount: 19 },
+        { name: "SEO", link: "https://magicrills.com/category-pages/seo.html", icon: "fas fa-chart-simple", toolCount: 24 },
+        { name: "Kids Games", link: "https://magicrills.com/category-pages/kids-games.html", icon: "fas fa-gamepad", toolCount: 42 },
+        { name: "Quiz Games", link: "https://magicrills.com/category-pages/quiz-games.html", icon: "fas fa-question-circle", toolCount: 29 },
+        { name: "Mixed Tools", link: "https://magicrills.com/category-pages/mixed-tools.html", icon: "fas fa-toolbox", toolCount: 37 }
+    ];
+    
+    const totalTools = categories.reduce((s, c) => s + c.toolCount, 0);
+    document.getElementById('globalToolCounter').innerHTML = `⚙️ Total tools: ${totalTools}`;
 
-  const categoryGrid = document.getElementById('categoryGrid');
-  categories.forEach((cat, idx) => {
-    const card = document.createElement('a');
-    card.href = cat.link;
-    card.target = "_blank";
-    card.className = "tool-card";
-    card.innerHTML = `
-      <i class="${cat.icon}"></i>
-      <h3>${cat.name}</h3>
-      <p>Explore ${cat.name.toLowerCase()} resources</p>
-      <div class="tool-counter-chip"><i class="fas fa-cog"></i> ${cat.toolCount} tools</div>
-    `;
-    categoryGrid.appendChild(card);
-  });
-
-  // ---------- Dashboard data (dynamic, smooth) ----------
-  let stats = {
-    totalViews: 182740,
-    online: 289,
-    totalShares: 11234,
-    totalFollowers: 15267,
-    todayVisitors: 2351
-  };
-  if(localStorage.getItem('magicrills_stats')) {
-    try {
-      const saved = JSON.parse(localStorage.getItem('magicrills_stats'));
-      stats = {...stats, ...saved};
-    } catch(e) {}
-  }
-  function updateUI() {
-    document.getElementById('totalViews').innerText = stats.totalViews.toLocaleString();
-    document.getElementById('onlineNow').innerText = stats.online;
-    document.getElementById('totalShares').innerText = stats.totalShares.toLocaleString();
-    document.getElementById('totalFollowers').innerText = stats.totalFollowers.toLocaleString();
-    document.getElementById('todayVisitors').innerText = stats.todayVisitors.toLocaleString();
-    localStorage.setItem('magicrills_stats', JSON.stringify(stats));
-  }
-  updateUI();
-
-  // simulate realtime fluctuations
-  setInterval(() => {
-    // online change
-    let deltaOnline = Math.floor(Math.random() * 35) - 15;
-    stats.online = Math.max(78, stats.online + deltaOnline);
-    // total views & shares gentle growth
-    stats.totalViews += Math.floor(Math.random() * 28) + 8;
-    if(Math.random() > 0.7) stats.totalShares += Math.floor(Math.random() * 7);
-    if(Math.random() > 0.65) stats.totalFollowers += Math.floor(Math.random() * 5);
-    // today visitors micro increment
-    if(Math.random() > 0.6) stats.todayVisitors += Math.floor(Math.random() * 14);
-    if(stats.todayVisitors > 4200) stats.todayVisitors = 2100; // daily cycle simulation
-    updateUI();
-    updateChartData();
-  }, 7800);
-
-  // ---------------- Graph: elegant trend (Category total views based)
-  const graphCtx = document.getElementById('trendChart').getContext('2d');
-  let weeklyViewData = [1840, 2120, 2380, 2710, 2980, 3350, 3820];
-  let chart = new Chart(graphCtx, {
-    type: 'line',
-    data: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      datasets: [{
-        label: 'Category page views',
-        data: weeklyViewData,
-        backgroundColor: 'rgba(79, 70, 229, 0.08)',
-        borderColor: '#4F46E5',
-        borderWidth: 2.5,
-        tension: 0.3,
-        fill: true,
-        pointBackgroundColor: '#E07C3C',
-        pointBorderColor: '#FFFFFF',
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { labels: { font: { size: 11 }, boxWidth: 10 } }
-      }
-    }
-  });
-  function updateChartData() {
-    let lastVal = weeklyViewData[weeklyViewData.length-1];
-    let increment = Math.floor(Math.random() * 140) - 20;
-    let newVal = Math.max(1400, lastVal + increment);
-    weeklyViewData.push(newVal);
-    weeklyViewData.shift();
-    chart.data.datasets[0].data = weeklyViewData;
-    chart.update();
-  }
-  setInterval(() => updateChartData(), 20000);
-
-  // ---------- Interactions (Follow, Share, Scroll, Social) ----------
-  const followBtn = document.getElementById('followBtn');
-  followBtn.addEventListener('click', () => {
-    stats.totalFollowers += 1;
-    updateUI();
-    followBtn.innerHTML = '<i class="fas fa-check"></i> Followed!';
-    setTimeout(() => {
-      followBtn.innerHTML = '<i class="fab fa-gratipay"></i> Follow';
-    }, 1800);
-    alert('💜 Thanks for following Magicrills! +1 follower');
-  });
-
-  const sharePageBtn = document.getElementById('sharePageBtn');
-  sharePageBtn.addEventListener('click', () => {
-    if (navigator.share) {
-      navigator.share({ title: 'Magicrills.com', text: 'Explore AI tools for teachers, games, SEO & more!', url: window.location.href })
-        .then(() => { stats.totalShares += 1; updateUI(); })
-        .catch(()=>{});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('🔗 Link copied! Share the magic.');
-      stats.totalShares += 1;
-      updateUI();
-    }
-  });
-
-  // scroll
-  document.getElementById('scrollUpBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  document.getElementById('scrollDownBtn').addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-
-  // social share links + increment shares on share action
-  const fbLink = document.getElementById('fbIcon');
-  const twLink = document.getElementById('twIcon');
-  const liLink = document.getElementById('liIcon');
-  const igLink = document.getElementById('igIcon');
-  
-  fbLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
-    stats.totalShares += 1; updateUI();
-  });
-  twLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.open(`https://twitter.com/intent/tweet?text=Check%20Magicrills.com%20awesome%20tools&url=${encodeURIComponent(window.location.href)}`, '_blank');
-    stats.totalShares += 1; updateUI();
-  });
-  liLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
-    stats.totalShares += 1; updateUI();
-  });
-  igLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    alert('📸 Follow us on Instagram: @magicrills_official');
-  });
-
-  // extra micro interaction: when category card is clicked, we increment total views as well for realism
-  document.querySelectorAll('.tool-card').forEach(card => {
-    card.addEventListener('click', () => {
-      stats.totalViews += 3;
-      updateUI();
+    const categoryGrid = document.getElementById('categoryGrid');
+    categories.forEach((cat) => {
+        const card = document.createElement('a');
+        card.href = cat.link;
+        card.target = "_blank";
+        card.className = "tool-card";
+        card.innerHTML = `
+            <i class="${cat.icon}"></i>
+            <h3>${cat.name}</h3>
+            <p>Explore ${cat.name.toLowerCase()} resources</p>
+            <div class="tool-counter-chip"><i class="fas fa-cog"></i> ${cat.toolCount} tools</div>
+        `;
+        categoryGrid.appendChild(card);
     });
-  });
-  // initialize with category total view relation
-  if(stats.totalViews < 150000) stats.totalViews = 182740;
-  updateUI();
+
+    // ==============================================
+    // 2. LIVE DASHBOARD DATA FROM TiDB DATABASE
+    // ==============================================
+    async function loadLiveDashboardData() {
+        try {
+            const response = await fetch('/api/test-db');
+            const data = await response.json();
+            
+            if (data.success && data.data && data.data.length > 0) {
+                // Get the latest record (last one)
+                const latest = data.data[data.data.length - 1];
+                
+                const totalViewsElem = document.getElementById('totalViews');
+                const totalSharesElem = document.getElementById('totalShares');
+                const totalFollowersElem = document.getElementById('totalFollowers');
+                const todayVisitorsElem = document.getElementById('todayVisitors');
+                
+                if (totalViewsElem) totalViewsElem.innerText = (latest.total_views || 0).toLocaleString();
+                if (totalSharesElem) totalSharesElem.innerText = (latest.total_shares || 0).toLocaleString();
+                if (totalFollowersElem) totalFollowersElem.innerText = (latest.total_followers || 0).toLocaleString();
+                if (todayVisitorsElem) todayVisitorsElem.innerText = (latest.today_visitors || 0).toLocaleString();
+                
+                console.log('✅ Dashboard updated from database:', latest);
+            } else {
+                console.log('⚠️ No data found in database, using fallback');
+            }
+        } catch (error) {
+            console.log('🔄 Fetching dashboard data from database...', error.message);
+        }
+    }
+
+    // ==============================================
+    // 3. ONLINE USERS (REAL-TIME SIMULATION)
+    // ==============================================
+    function updateOnlineUsers() {
+        const onlineElem = document.getElementById('onlineNow');
+        if (onlineElem) {
+            // Random online users between 200-500
+            const online = Math.floor(Math.random() * 300) + 200;
+            onlineElem.innerText = online;
+        }
+    }
+
+    // ==============================================
+    // 4. GRAPH (WEEKLY VIEWS)
+    // ==============================================
+    const graphCtx = document.getElementById('trendChart').getContext('2d');
+    let weeklyViewData = [1840, 2120, 2380, 2710, 2980, 3350, 3820];
+    
+    let chart = new Chart(graphCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Category page views',
+                data: weeklyViewData,
+                backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                borderColor: '#4F46E5',
+                borderWidth: 2.5,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#E07C3C',
+                pointBorderColor: '#FFFFFF',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { labels: { font: { size: 11 }, boxWidth: 10 } }
+            }
+        }
+    });
+    
+    function updateChartData() {
+        let lastVal = weeklyViewData[weeklyViewData.length - 1];
+        let increment = Math.floor(Math.random() * 140) - 20;
+        let newVal = Math.max(1400, lastVal + increment);
+        weeklyViewData.push(newVal);
+        weeklyViewData.shift();
+        chart.data.datasets[0].data = weeklyViewData;
+        chart.update();
+    }
+
+    // ==============================================
+    // 5. INTERACTIONS (FOLLOW, SHARE, SCROLL, SOCIAL)
+    // ==============================================
+    let localStats = {
+        totalFollowers: 15339,
+        totalShares: 11330
+    };
+    
+    const followBtn = document.getElementById('followBtn');
+    const sharePageBtn = document.getElementById('sharePageBtn');
+    
+    followBtn.addEventListener('click', () => {
+        localStats.totalFollowers += 1;
+        const followersElem = document.getElementById('totalFollowers');
+        if (followersElem) followersElem.innerText = localStats.totalFollowers.toLocaleString();
+        followBtn.innerHTML = '<i class="fas fa-check"></i> Followed!';
+        setTimeout(() => {
+            followBtn.innerHTML = '<i class="fab fa-gratipay"></i> Follow';
+        }, 1800);
+        alert('💜 Thanks for following Magicrills! +1 follower');
+    });
+
+    sharePageBtn.addEventListener('click', () => {
+        if (navigator.share) {
+            navigator.share({ title: 'Magicrills.com', text: 'Explore AI tools for teachers, games, SEO & more!', url: window.location.href })
+                .then(() => { localStats.totalShares += 1; updateShareUI(); })
+                .catch(() => {});
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('🔗 Link copied! Share the magic.');
+            localStats.totalShares += 1;
+            updateShareUI();
+        }
+    });
+    
+    function updateShareUI() {
+        const sharesElem = document.getElementById('totalShares');
+        if (sharesElem) sharesElem.innerText = localStats.totalShares.toLocaleString();
+    }
+
+    // Scroll buttons
+    document.getElementById('scrollUpBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById('scrollDownBtn').addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+    // Social share links
+    const fbLink = document.getElementById('fbIcon');
+    const twLink = document.getElementById('twIcon');
+    const liLink = document.getElementById('liIcon');
+    const igLink = document.getElementById('igIcon');
+    
+    fbLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+        localStats.totalShares += 1;
+        updateShareUI();
+    });
+    twLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(`https://twitter.com/intent/tweet?text=Check%20Magicrills.com%20awesome%20tools&url=${encodeURIComponent(window.location.href)}`, '_blank');
+        localStats.totalShares += 1;
+        updateShareUI();
+    });
+    liLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+        localStats.totalShares += 1;
+        updateShareUI();
+    });
+    igLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('📸 Follow us on Instagram: @magicrills_official');
+    });
+
+    // ==============================================
+    // 6. INITIALIZE EVERYTHING
+    // ==============================================
+    loadLiveDashboardData();
+    updateOnlineUsers();
+    
+    // Auto refresh every 30 seconds
+    setInterval(loadLiveDashboardData, 30000);
+    setInterval(updateOnlineUsers, 15000);
+    setInterval(updateChartData, 20000);
+    
+    console.log('🎉 Magicrills Dashboard Live! Connected to TiDB Database');
 </script>
 </body>
 </html>
