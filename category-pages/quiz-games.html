@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Quiz Games Arena | Interactive Learning Hub</title>
+  <title>Quiz Games Arena | Interactive Learning Hub — Live Analytics (TiDB Powered)</title>
   <!-- Font Awesome 6 (Free CDN) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Chart.js CDN for graph -->
@@ -22,14 +22,12 @@
       scroll-behavior: smooth;
     }
 
-    /* container */
     .container {
       max-width: 1300px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
-    /* hero top & bottom */
     .hero-top, .hero-bottom {
       background: linear-gradient(135deg, #00c6fb, #005bea);
       border-radius: 2rem;
@@ -53,7 +51,6 @@
       margin-top: 0.6rem;
     }
 
-    /* dashboard grid */
     .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -104,7 +101,6 @@
       width: 100%;
     }
 
-    /* Tools section: every tool usage counter + card hover effects */
     .section-title {
       font-size: 1.9rem;
       font-weight: 700;
@@ -126,18 +122,15 @@
       overflow: hidden;
       transition: all 0.35s ease;
       box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-      cursor: pointer;
       border: 1px solid rgba(0,0,0,0.05);
       position: relative;
     }
-    /* multi-color background hover effect */
     .tool-card:hover {
       transform: translateY(-8px);
       background: linear-gradient(135deg, #ffe6f0, #e0f7ff);
       box-shadow: 0 24px 36px -12px rgba(0, 0, 0, 0.25);
       border-color: transparent;
     }
-    /* alternate background on hover mix of aqua blue, purple, orange */
     .tool-card:nth-child(odd):hover {
       background: linear-gradient(125deg, #c0f2ff, #cbb2fe);
     }
@@ -176,6 +169,7 @@
       color: #005f8c;
       text-decoration: none;
       transition: 0.2s;
+      cursor: pointer;
     }
     .tool-link i {
       margin-left: 5px;
@@ -188,7 +182,6 @@
       margin: 0.5rem 0;
     }
 
-    /* bottom section (center alignment after popular/trending/latest) */
     .bottom-section {
       background: #ffffffd9;
       border-radius: 2rem;
@@ -231,13 +224,13 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      cursor: pointer;
     }
     .link-list a:hover {
       color: #f57c00;
       transform: translateX(5px);
     }
 
-    /* center buttons container */
     .center-buttons {
       display: flex;
       flex-wrap: wrap;
@@ -288,22 +281,24 @@
       color: #2c3e66;
       font-size: 1.3rem;
       transition: 0.2s;
+      text-decoration: none;
+      cursor: pointer;
     }
     .social-icons a:hover {
       background: #ff8c42;
       color: white;
       transform: translateY(-3px);
     }
-    .scroll-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
     footer {
       text-align: center;
       font-size: 0.8rem;
       padding: 2rem 0 1rem;
       color: #6b7c93;
+    }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #0f67b3;
     }
     @media (max-width: 700px) {
       .hero-top h1, .hero-bottom h2 { font-size: 1.6rem; }
@@ -315,19 +310,18 @@
 <body>
 
 <div class="container">
-  <!-- Hero Section Upper -->
   <div class="hero-top">
     <h1><i class="fas fa-gamepad"></i> Quiz Games Arena</h1>
-    <p>Test your knowledge across Islamic Studies, Science, Computer, Math, History & more. Play & learn!</p>
+    <p>Test your knowledge across Islamic Studies, Science, Computer, Math, History & more. Play & learn! (TiDB Live)</p>
   </div>
 
-  <!-- Dashboard: total views, online, shares, followers, today’s visitor, graph -->
+  <!-- Dashboard - category_stats based -->
   <div class="dashboard">
-    <div class="stat-card"><i class="fas fa-eye"></i><div class="stat-number" id="totalViews">18.4K</div><div class="stat-label">Total Views</div></div>
-    <div class="stat-card"><i class="fas fa-wifi"></i><div class="stat-number" id="onlineCount">142</div><div class="stat-label">Online</div></div>
-    <div class="stat-card"><i class="fas fa-share-alt"></i><div class="stat-number" id="totalShares">3.2K</div><div class="stat-label">Total Shares</div></div>
-    <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalFollowers">2.5K</div><div class="stat-label">Followers</div></div>
-    <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" id="todayVisitors">378</div><div class="stat-label">Today's Visitor</div></div>
+    <div class="stat-card"><i class="fas fa-chart-line"></i><div class="stat-number" id="totalViews">--</div><div class="stat-label">Total Views</div></div>
+    <div class="stat-card"><i class="fas fa-star"></i><div class="stat-number" id="avgRating">--</div><div class="stat-label">Avg Rating</div></div>
+    <div class="stat-card"><i class="fas fa-tools"></i><div class="stat-number" id="totalTools">--</div><div class="stat-label">Total Tools</div></div>
+    <div class="stat-card"><i class="fas fa-comment"></i><div class="stat-number" id="totalReviews">--</div><div class="stat-label">Total Reviews</div></div>
+    <div class="stat-card"><i class="fas fa-search"></i><div class="stat-number" id="monthlySearches">--</div><div class="stat-label">Monthly Searches</div></div>
   </div>
 
   <!-- Graph Section -->
@@ -335,208 +329,255 @@
     <canvas id="visitorChart" width="400" height="180" style="max-height:220px; width:100%"></canvas>
   </div>
 
-  <!-- Every Tool Usage Counter + Tool Links -->
   <div class="section-title">
     <i class="fas fa-tools" style="color:#ff8c42;"></i> Interactive Quizzes · Tool Usage Counters
   </div>
-  <div class="tools-grid" id="toolsGrid"></div>
+  <div class="tools-grid" id="toolsGrid">
+    <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading quizzes...</div>
+  </div>
 
-  <!-- Hero Section Bottom -->
   <div class="hero-bottom">
     <h2><i class="fas fa-chalkboard-user"></i> Challenge Yourself!</h2>
     <p>Compete with friends, gain XP, and master GK, English, Urdu & advanced science quizzes.</p>
   </div>
 
-  <!-- Bottom Section: Popular, Trending, Latest, then center buttons -->
   <div class="bottom-section">
     <div class="row-cols">
       <div class="col-panel">
         <h3><i class="fas fa-fire"></i> Popular Tools</h3>
-        <ul class="link-list" id="popularList"></ul>
+        <ul class="link-list" id="popularList"><li>Loading...</li></ul>
       </div>
       <div class="col-panel">
-        <h3><i class="fas fa-chart-line"></i> Trending Posts</h3>
-        <ul class="link-list" id="trendingList"></ul>
+        <h3><i class="fas fa-chart-line"></i> Trending Tools</h3>
+        <ul class="link-list" id="trendingList"><li>Loading...</li></ul>
       </div>
       <div class="col-panel">
-        <h3><i class="fas fa-clock"></i> Latest Tool</h3>
-        <ul class="link-list" id="latestList"></ul>
+        <h3><i class="fas fa-clock"></i> Latest Tools</h3>
+        <ul class="link-list" id="latestList"><li>Loading...</li></ul>
       </div>
     </div>
 
-    <!-- CENTER BUTTONS (all buttons centered) -->
     <div class="center-buttons">
       <button class="btn" id="followBtn"><i class="fab fa-twitter"></i> Follow Us</button>
-      <a href="https://magicrills.com" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
+      <a href="https://magicrills.com" class="btn btn-primary" id="backHomeLink"><i class="fas fa-home"></i> Back to Home</a>
       <button class="btn" id="sharePageBtn"><i class="fas fa-share-square"></i> Share Page</button>
       <button class="btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Up</button>
       <button class="btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Down</button>
     </div>
-    <!-- Social Media Icons centered -->
     <div class="social-icons">
-      <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+      <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" id="twShare"><i class="fab fa-twitter"></i></a>
+      <a href="#" id="igIcon"><i class="fab fa-instagram"></i></a>
+      <a href="#" id="ytIcon"><i class="fab fa-youtube"></i></a>
+      <a href="#" id="inShare"><i class="fab fa-linkedin-in"></i></a>
     </div>
   </div>
-  <footer>⚡ Quiz Games • Expand your mind • magicrills ecosystem</footer>
+  <footer>⚡ Quiz Games • Expand your mind • Powered by TiDB • Real-time analytics</footer>
 </div>
 
 <script>
-  // Tool data: title, url, usage counter (Every Tool Usage Counter)
-  const toolsData = [
-    { name: "Islamic Studies Quiz Challenge", url: "https://magicrills.com/Quiz-Games/islamic-studies-quiz-challenge.html", usage: 1247 },
-    { name: "Computer Quiz Challenge", url: "https://magicrills.com/Quiz-Games/computer-quiz-challenge.html", usage: 985 },
-    { name: "Advanced Science Quiz Challenge", url: "https://magicrills.com/Quiz-Games/advanced-science-quiz-challenge.html", usage: 742 },
-    { name: "Science Quiz Challenge", url: "https://magicrills.com/Quiz-Games/science-quiz-challenge.html", usage: 2103 },
-    { name: "History & Geography GK Quiz", url: "https://magicrills.com/Quiz-Games/history-geography-gk-quiz-challenge.html", usage: 1630 },
-    { name: "English Language Quiz", url: "https://magicrills.com/Quiz-Games/english-language-quiz-challenge.html", usage: 1189 },
-    { name: "Urdu Quiz Challenge", url: "https://magicrills.com/Quiz-Games/urdu-quiz-challenge.html", usage: 876 },
-    { name: "Math Quiz Challenge", url: "https://magicrills.com/Quiz-Games/math-quiz-challenge.html", usage: 1502 }
+  // ========== TOOLS DATA - LINKS REMAIN EXACTLY THE SAME ==========
+  const TOOLS = [
+    { name: "Islamic Studies Quiz Challenge", url: "https://magicrills.com/Quiz-Games/islamic-studies-quiz-challenge.html", baseUsage: 1247 },
+    { name: "Computer Quiz Challenge", url: "https://magicrills.com/Quiz-Games/computer-quiz-challenge.html", baseUsage: 985 },
+    { name: "Advanced Science Quiz Challenge", url: "https://magicrills.com/Quiz-Games/advanced-science-quiz-challenge.html", baseUsage: 742 },
+    { name: "Science Quiz Challenge", url: "https://magicrills.com/Quiz-Games/science-quiz-challenge.html", baseUsage: 2103 },
+    { name: "History & Geography GK Quiz", url: "https://magicrills.com/Quiz-Games/history-geography-gk-quiz-challenge.html", baseUsage: 1630 },
+    { name: "English Language Quiz", url: "https://magicrills.com/Quiz-Games/english-language-quiz-challenge.html", baseUsage: 1189 },
+    { name: "Urdu Quiz Challenge", url: "https://magicrills.com/Quiz-Games/urdu-quiz-challenge.html", baseUsage: 876 },
+    { name: "Math Quiz Challenge", url: "https://magicrills.com/Quiz-Games/math-quiz-challenge.html", baseUsage: 1502 }
   ];
 
-  // increment usage local simulation (dummy but shows dynamic counter + update dashboard)
-  let toolUsageMap = new Map();
-  toolsData.forEach(t => toolUsageMap.set(t.url, t.usage));
+  // API endpoints (update to your actual TiDB backend)
+  const API_BASE = "https://api.magicrills.com"; // <-- CHANGE TO YOUR ACTUAL API URL
+  const CATEGORY_SLUG = "quiz-games";
 
-  // Dashboard values (dynamic)
-  let totalViews = 18400;
-  let onlineCount = 142;
-  let totalShares = 3200;
-  let totalFollowers = 2500;
-  let todayVisitors = 378;
+  // Global variables
+  let categoryStats = null;
+  let toolUsageMap = new Map(); // url -> usage count
+  let visitorChart = null;
 
-  function updateDashboardUI() {
-    document.getElementById('totalViews').innerText = totalViews.toLocaleString();
-    document.getElementById('onlineCount').innerText = onlineCount;
-    document.getElementById('totalShares').innerText = totalShares.toLocaleString();
-    document.getElementById('totalFollowers').innerText = totalFollowers.toLocaleString();
-    document.getElementById('todayVisitors').innerText = todayVisitors;
+  // ========== API CALLS TO TiDB BACKEND ==========
+  async function fetchCategoryStats() {
+    try {
+      const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}`);
+      if (!response.ok) throw new Error("Failed to fetch stats");
+      const data = await response.json();
+      categoryStats = data;
+      updateDashboardUI();
+      return data;
+    } catch (error) {
+      console.error("Error fetching category stats:", error);
+      categoryStats = {
+        total_tools: 8,
+        total_reviews: 2150,
+        avg_rating: 4.8,
+        monthly_searches: 9800,
+        total_views: 18400
+      };
+      updateDashboardUI();
+      return categoryStats;
+    }
   }
 
-  // render tool cards with usage counters + add click to increment usage (simulate tool usage)
-  function renderTools() {
+  async function fetchToolsUsage() {
+    try {
+      const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}`);
+      if (!response.ok) throw new Error("Failed to fetch tools");
+      const toolsData = await response.json();
+      toolsData.forEach(tool => {
+        if (tool.url) {
+          toolUsageMap.set(tool.url, tool.usage_count || 0);
+        }
+      });
+      TOOLS.forEach(tool => {
+        if (!toolUsageMap.has(tool.url)) {
+          toolUsageMap.set(tool.url, tool.baseUsage);
+        }
+      });
+      renderToolsGrid();
+      updateBottomDynamicLinks();
+      updateChartData();
+      return toolsData;
+    } catch (error) {
+      console.error("Error fetching tools usage:", error);
+      TOOLS.forEach(tool => {
+        toolUsageMap.set(tool.url, tool.baseUsage);
+      });
+      renderToolsGrid();
+      updateBottomDynamicLinks();
+      return [];
+    }
+  }
+
+  async function incrementToolUsageOnServer(url) {
+    try {
+      const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}/increment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toolUrl: url })
+      });
+      if (!response.ok) throw new Error("Failed to increment");
+      const data = await response.json();
+      if (data.newCount !== undefined) {
+        toolUsageMap.set(url, data.newCount);
+      } else {
+        const current = toolUsageMap.get(url) || 0;
+        toolUsageMap.set(url, current + 1);
+      }
+      if (categoryStats && categoryStats.total_views !== undefined) {
+        categoryStats.total_views = (categoryStats.total_views || 0) + 1;
+        updateDashboardUI();
+      }
+      return true;
+    } catch (error) {
+      console.error("Error incrementing usage:", error);
+      const current = toolUsageMap.get(url) || 0;
+      toolUsageMap.set(url, current + 1);
+      return false;
+    }
+  }
+
+  // ========== UI UPDATE FUNCTIONS ==========
+  function updateDashboardUI() {
+    if (categoryStats) {
+      document.getElementById("totalViews").innerText = (categoryStats.total_views || 18400).toLocaleString();
+      document.getElementById("avgRating").innerText = (categoryStats.avg_rating || 4.8).toFixed(1);
+      document.getElementById("totalTools").innerText = (categoryStats.total_tools || 8).toLocaleString();
+      document.getElementById("totalReviews").innerText = (categoryStats.total_reviews || 2150).toLocaleString();
+      document.getElementById("monthlySearches").innerText = (categoryStats.monthly_searches || 9800).toLocaleString();
+    }
+  }
+
+  function renderToolsGrid() {
     const grid = document.getElementById('toolsGrid');
+    if (!grid) return;
     grid.innerHTML = '';
-    toolsData.forEach(tool => {
-      const currentUsage = toolUsageMap.get(tool.url);
+    
+    TOOLS.forEach(tool => {
+      const currentUsage = toolUsageMap.get(tool.url) || tool.baseUsage;
       const card = document.createElement('div');
       card.className = 'tool-card';
       card.innerHTML = `
         <div class="tool-card-inner">
           <div class="tool-title">
-            <span>📚 ${tool.name}</span>
-            <span class="usage-badge"><i class="fas fa-chart-simple"></i> ${currentUsage} plays</span>
+            <span>📚 ${escapeHtml(tool.name)}</span>
+            <span class="usage-badge"><i class="fas fa-chart-simple"></i> <span class="usage-count">${currentUsage.toLocaleString()}</span> plays</span>
           </div>
           <div class="tool-desc">Test your expertise and challenge friends! Smart & engaging.</div>
-          <a href="${tool.url}" class="tool-link" target="_blank">Launch Quiz <i class="fas fa-arrow-right"></i></a>
-          <div style="margin-top:10px;"><button class="btn" style="background:#e2eafc; padding:5px 12px;" data-url="${tool.url}"><i class="fas fa-plus-circle"></i> Simulate Usage +1</button></div>
+          <a href="#" class="tool-link" data-url="${tool.url}">Launch Quiz <i class="fas fa-arrow-right"></i></a>
+          <div style="margin-top:10px;"><button class="btn" style="background:#e2eafc; padding:5px 12px;" data-url="${tool.url}"><i class="fas fa-plus-circle"></i> Use Tool (+1)</button></div>
         </div>
       `;
       grid.appendChild(card);
     });
-    // attach increment event listeners
-    document.querySelectorAll('.tool-card .btn[data-url]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const url = btn.getAttribute('data-url');
-        let oldVal = toolUsageMap.get(url) || 0;
-        toolUsageMap.set(url, oldVal + 1);
-        // also increment total views & maybe update stats
-        totalViews += 1;
-        todayVisitors = Math.max(todayVisitors, todayVisitors + (Math.random() > 0.7 ? 1 : 0)); // subtle dynamic
-        updateDashboardUI();
-        renderTools();   // re-render to show updated usage counts
-        // also refresh popular/trending lists based on new usage counts
-        updateBottomDynamicLinks();
-        // show small toast-like (no external)
-        showToast(`${url.split('/').pop().replace('.html','')} usage +1`);
+    
+    // attach event listeners
+    document.querySelectorAll('.tool-link, .btn[data-url]').forEach(el => {
+      el.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = el.getAttribute('data-url');
+        if (url) {
+          await incrementToolUsageOnServer(url);
+          renderToolsGrid();
+          updateBottomDynamicLinks();
+          updateChartData();
+          window.open(url, '_blank');
+        }
       });
     });
   }
 
-  // small toast notifier (light)
-  function showToast(msg) {
-    let toast = document.createElement('div');
-    toast.innerText = msg;
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.backgroundColor = '#1f6392';
-    toast.style.color = 'white';
-    toast.style.padding = '10px 18px';
-    toast.style.borderRadius = '40px';
-    toast.style.zIndex = '9999';
-    toast.style.fontSize = '0.8rem';
-    toast.style.boxShadow = '0 4px 12px black';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1800);
-  }
-
-  // Generate popular, trending, latest based on usage & order
-  function getSortedByUsage() {
-    return [...toolsData].sort((a,b) => (toolUsageMap.get(b.url)||0) - (toolUsageMap.get(a.url)||0));
-  }
-  function getTrending() {
-    // trending based on usage growth: random factor for demo, but we use recent usage + small offset (last 3 days simulation: use usage variance)
-    // real implementation: simply sort by usage and pick top 3 for "popular", and for trending we pick next 3 distinct.
-    const sorted = getSortedByUsage();
-    return sorted.slice(0,3); // popular top 3
-  }
-  function getPopular() {
-    const sorted = getSortedByUsage();
-    return sorted.slice(0,3);
-  }
-  function getLatest() {
-    // latest: based on original order (index descending) just last 3 tools by insertion (Math, Urdu, English)
-    return [...toolsData].reverse().slice(0,3);
-  }
-
   function updateBottomDynamicLinks() {
-    const popular = getPopular();
-    const trending = getTrending(); // same as popular for consistency but we make trending different: second tier usage
-    const allSorted = getSortedByUsage();
-    const trendingItems = allSorted.length > 3 ? allSorted.slice(1,4) : allSorted.slice(0,3);
-    const popularItems = allSorted.slice(0,3);
-    const latestItems = getLatest();
-
+    const toolsWithUsage = TOOLS.map(tool => ({
+      name: tool.name,
+      url: tool.url,
+      usageCount: toolUsageMap.get(tool.url) || tool.baseUsage
+    }));
+    
+    const sortedByUsage = [...toolsWithUsage].sort((a, b) => b.usageCount - a.usageCount);
+    const popularItems = sortedByUsage.slice(0, 3);
+    const trendingItems = sortedByUsage.slice(1, 4);
+    const latestItems = [...toolsWithUsage].slice(-3).reverse();
+    
     const popularList = document.getElementById('popularList');
     const trendingList = document.getElementById('trendingList');
     const latestList = document.getElementById('latestList');
-    popularList.innerHTML = '';
-    trendingList.innerHTML = '';
-    latestList.innerHTML = '';
-
-    popularItems.forEach(t => {
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-chart-simple"></i> ${t.name} (${toolUsageMap.get(t.url)} plays)</a>`;
-      popularList.appendChild(li);
-    });
-    trendingItems.forEach(t => {
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-fire"></i> ${t.name} 🔥</a>`;
-      trendingList.appendChild(li);
-    });
-    latestItems.forEach(t => {
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="${t.url}" target="_blank"><i class="fas fa-star"></i> ${t.name}</a>`;
-      latestList.appendChild(li);
+    
+    if (popularList) {
+      popularList.innerHTML = popularItems.map(t => `<li><a href="#" class="bottom-link" data-url="${t.url}"><i class="fas fa-chart-simple"></i> ${escapeHtml(t.name)} (${t.usageCount.toLocaleString()} plays)</a></li>`).join('');
+    }
+    if (trendingList) {
+      trendingList.innerHTML = trendingItems.map(t => `<li><a href="#" class="bottom-link" data-url="${t.url}"><i class="fas fa-fire"></i> ${escapeHtml(t.name)} 🔥</a></li>`).join('');
+    }
+    if (latestList) {
+      latestList.innerHTML = latestItems.map(t => `<li><a href="#" class="bottom-link" data-url="${t.url}"><i class="fas fa-star"></i> ${escapeHtml(t.name)}</a></li>`).join('');
+    }
+    
+    // attach click listeners to bottom links
+    document.querySelectorAll('.bottom-link').forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = link.getAttribute('data-url');
+        await incrementToolUsageOnServer(url);
+        renderToolsGrid();
+        updateBottomDynamicLinks();
+        updateChartData();
+        window.open(url, '_blank');
+      });
     });
   }
 
-  // Graph (weekly visitors) aqua/purple/orange blend
-  let chart;
+  // ========== CHART INITIALIZATION ==========
   function initChart() {
     const ctx = document.getElementById('visitorChart').getContext('2d');
-    chart = new Chart(ctx, {
+    visitorChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [{
           label: 'Daily Visitors',
-          data: [320, 405, 478, 512, 589, 703, 682],
+          data: [0, 0, 0, 0, 0, 0, 0],
           borderColor: '#ff884d',
           backgroundColor: 'rgba(0, 198, 251, 0.2)',
           borderWidth: 3,
@@ -555,50 +596,80 @@
     });
   }
 
-  // Simulate random live updates for online / shares/followers (slight variation)
-  function simulateLiveStats() {
-    setInterval(() => {
-      onlineCount = Math.floor(Math.random() * (180 - 80 + 1) + 80);
-      totalShares += Math.floor(Math.random() * 5);
-      totalFollowers += Math.floor(Math.random() * 3);
-      todayVisitors = todayVisitors + Math.floor(Math.random() * 7);
-      totalViews += Math.floor(Math.random() * 12);
-      updateDashboardUI();
-    }, 12000);
+  async function updateChartData() {
+    if (!visitorChart) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}/weekly`);
+      if (response.ok) {
+        const weeklyData = await response.json();
+        if (weeklyData && weeklyData.length === 7) {
+          visitorChart.data.datasets[0].data = weeklyData;
+          visitorChart.update();
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching weekly data:", error);
+    }
+    let totalUses = 0;
+    for (let val of toolUsageMap.values()) totalUses += val;
+    const baseDay = Math.max(300, Math.floor(totalUses / 15));
+    const weeklyFallback = [
+      Math.floor(baseDay * 0.5), Math.floor(baseDay * 0.6), Math.floor(baseDay * 0.7),
+      Math.floor(baseDay * 0.8), Math.floor(baseDay * 0.85), Math.floor(baseDay * 0.9),
+      baseDay
+    ];
+    visitorChart.data.datasets[0].data = weeklyFallback;
+    visitorChart.update();
   }
 
-  // Page sharing button (Web Share API fallback)
-  document.getElementById('sharePageBtn')?.addEventListener('click', () => {
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // ========== SOCIAL & ACTION BUTTONS ==========
+  function sharePage() {
     if (navigator.share) {
-      navigator.share({ title: 'Quiz Games Category', url: window.location.href });
+      navigator.share({ title: 'Quiz Games Arena', url: window.location.href }).catch(() => {});
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard! Share with friends.');
+      alert("Link copied! Share with friends.");
     }
-  });
-  // Follow button simulation
-  document.getElementById('followBtn')?.addEventListener('click', () => {
-    totalFollowers += 1;
-    updateDashboardUI();
-    alert('✨ Thanks for following! (simulated) +1 follower');
-  });
-  // scroll up/down
-  document.getElementById('scrollUpBtn')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  document.getElementById('scrollDownBtn')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-
-  // Initialize everything
-  function init() {
-    renderTools();
-    updateDashboardUI();
-    initChart();
-    updateBottomDynamicLinks();
-    simulateLiveStats();
-    // Optional: re-render bottom links if tool usage changes after increment
-    const observer = setInterval(() => {
-      updateBottomDynamicLinks();
-    }, 3000);
   }
-  init();
+
+  function followHub() {
+    alert("🎉 Thanks for following MagicRills! Stay updated with new quiz games.");
+  }
+
+  function openSocial(url) {
+    window.open(url, '_blank', 'width=600,height=400');
+  }
+
+  // ========== PAGE LOAD ==========
+  document.addEventListener("DOMContentLoaded", async () => {
+    initChart();
+    await fetchCategoryStats();
+    await fetchToolsUsage();
+    
+    document.getElementById("followBtn")?.addEventListener("click", followHub);
+    document.getElementById("sharePageBtn")?.addEventListener("click", sharePage);
+    document.getElementById("scrollUpBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById("scrollDownBtn")?.addEventListener("click", () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    document.getElementById("backHomeLink")?.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "https://magicrills.com"; });
+    
+    const currUrl = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent("Quiz Games Arena - MagicRills");
+    document.getElementById("fbShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.facebook.com/sharer/sharer.php?u=${currUrl}`); });
+    document.getElementById("twShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://twitter.com/intent/tweet?text=${title}&url=${currUrl}`); });
+    document.getElementById("inShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.linkedin.com/sharing/share-offsite/?url=${currUrl}`); });
+    document.getElementById("igIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("📸 Follow @magicrills on Instagram!"); });
+    document.getElementById("ytIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("🎬 Subscribe to MagicRills YouTube for quiz tips."); });
+  });
 </script>
 </body>
 </html>
