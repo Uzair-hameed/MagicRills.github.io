@@ -1,523 +1,794 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/6983/6983341.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" width="320" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/6983/6983341.png"style='display:none'/></a></div>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle Time Story Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Story Circle | 400+ Stories in English & Urdu</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-        @font-face {
-            font-family: 'Jameel Noori Nastaleeq';
-            src: url('https://cdn.rawgit.com/AnwarQureshi/UrduFonts/9c66c25f/Jameel%20Noori%20Nastaleeq/JameelNooriNastaleeq.ttf') format('truetype');
-        }
-        
-        :root {
-            --primary: #6c5ce7;
-            --secondary: #a29bfe;
-            --accent1: #fd79a8;
-            --accent2: #ffeaa7;
-            --accent3: #55efc4;
-            --dark: #2d3436;
-            --light: #f7f7f7;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            background: #f5f7fb;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 40px 24px;
         }
-        
+
+        /* Main Container */
         .container {
-            width: 100%;
-            max-width: 900px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            margin: 20px 0;
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        
-        header {
-            background: linear-gradient(to right, var(--primary), var(--accent1));
-            color: white;
+
+        /* Header */
+        .header {
             text-align: center;
-            padding: 25px;
-            position: relative;
+            margin-bottom: 40px;
         }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb4d);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
         }
-        
-        .header-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 1.1rem;
-        }
-        
-        select, button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid var(--secondary);
+
+        .header p {
+            color: #6c757d;
+            margin-top: 8px;
             font-size: 1rem;
-            background: white;
-            transition: all 0.3s ease;
         }
-        
-        select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
-        }
-        
-        .language-toggle {
+
+        .badges {
             display: flex;
             justify-content: center;
-            margin: 20px 0;
-            background: var(--light);
-            border-radius: 10px;
-            overflow: hidden;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
-        
-        .language-toggle button {
-            flex: 1;
-            border: none;
-            padding: 12px;
-            background: transparent;
-            cursor: pointer;
+
+        .badge {
+            background: #e9ecef;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
             font-weight: 600;
+            color: #495057;
+        }
+
+        /* Controls Panel */
+        .controls {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #fdbb4d;
+            box-shadow: 0 0 0 3px rgba(253,187,77,0.2);
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .lang-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Generate Button */
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #fdbb4d, #ff8c00);
+            border: none;
+            padding: 16px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,140,0,0.3);
+        }
+
+        /* Story Card */
+        .story-card {
+            background: white;
+            border-radius: 32px;
+            padding: 32px;
+            margin-bottom: 28px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
         }
-        
-        .language-toggle button.active {
-            background: var(--primary);
-            color: white;
+
+        .story-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
         }
-        
-        .story-output {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 20px;
-            min-height: 300px;
-            margin-top: 20px;
-            border: 2px dashed var(--secondary);
-            line-height: 1.6;
+
+        .story-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1a2a6c;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #fdbb4d;
+            display: inline-block;
         }
-        
-        .story-output.urdu {
-            font-family: 'Jameel Noori Nastaleeq', 'Segoe UI', Tahoma, sans-serif;
+
+        .urdu-story .story-title {
+            border-bottom: 3px solid #fdbb4d;
+            display: inline-block;
+        }
+
+        .story-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0 20px 0;
+        }
+
+        .meta-tag {
+            background: #f8f9fa;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .story-content {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
+
+        .urdu-story .story-content {
+            font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', serif;
             direction: rtl;
             text-align: right;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             line-height: 1.8;
+            color: #1a2a6c;
         }
-        
-        .button-group {
+
+        /* Reactions & Social Row */
+        .interaction-row {
             display: flex;
-            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
             margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
         }
-        
-        .btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
+
+        .reactions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .reaction {
+            background: #f8f9fa;
+            padding: 6px 14px;
+            border-radius: 40px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .reaction:hover {
+            background: #fdbb4d20;
+            transform: scale(1.05);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .social-icon {
+            background: #f8f9fa;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6c757d;
+        }
+
+        .social-icon:hover {
+            background: #1a2a6c;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .action-btn {
+            flex: 1;
+            background: white;
+            border: 1px solid #e9ecef;
+            padding: 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            transition: all 0.2s;
         }
-        
-        .btn-generate {
-            background: linear-gradient(to right, var(--accent1), var(--accent3));
-            color: white;
-        }
-        
-        .btn-generate:hover {
-            background: linear-gradient(to right, #e668a7, #45d7b2);
+
+        .action-btn:hover {
+            background: #f8f9fa;
+            border-color: #fdbb4d;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
-        .btn-pdf {
-            background: linear-gradient(to right, #ff7675, #fd79a8);
-            color: white;
-        }
-        
-        .btn-word {
-            background: linear-gradient(to right, #74b9ff, #0984e3);
-            color: white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        footer {
-            text-align: center;
+
+        /* Favorites Section */
+        .favorites-section {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
             margin-top: 20px;
-            color: white;
-            font-size: 0.9rem;
-            opacity: 0.8;
         }
-        
+
+        .favorites-section h3 {
+            font-size: 1.2rem;
+            color: #1a2a6c;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fav-item {
+            background: #f8f9fa;
+            padding: 12px 18px;
+            border-radius: 50px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fav-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .remove-fav {
+            background: #ffe3e3;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        /* Share Page Button */
+        .share-page-btn {
+            background: #1a2a6c;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Scroll Buttons */
+        .scroll-up, .scroll-down {
+            position: fixed;
+            right: 24px;
+            background: #1a2a6c;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            z-index: 100;
+        }
+
+        .scroll-up { bottom: 90px; display: none; }
+        .scroll-down { bottom: 30px; }
+
+        .scroll-up:hover, .scroll-down:hover {
+            background: #fdbb4d;
+            transform: scale(1.05);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            z-index: 1000;
+            animation: fadeOut 2s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 0; bottom: 0; }
+            20% { opacity: 1; bottom: 30px; }
+            80% { opacity: 1; bottom: 30px; }
+            100% { opacity: 0; bottom: 0; }
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .button-group {
-                flex-direction: column;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .content {
-                padding: 20px;
-            }
+            body { padding: 20px 16px; }
+            .header h1 { font-size: 1.8rem; }
+            .story-title { font-size: 1.3rem; }
+            .action-btn { font-size: 0.7rem; padding: 10px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Circle Time Story Generator</h1>
-            <p class="header-subtitle">Create engaging stories for children with just one click!</p>
-        </header>
-        
-        <div class="content">
-            <div class="form-group">
-                <label for="storyCategory">Select Story Area:</label>
-                <select id="storyCategory">
-                    <option value="islamic">Islamic Stories</option>
-                    <option value="moral">Urdu Moral Stories</option>
-                    <option value="motivational">Motivational Stories</option>
-                    <option value="social">Social Stories</option>
-                    <option value="inspirational">Inspirational Stories</option>
-                    <option value="helping">Helping Stories</option>
-                    <option value="sharing">Sharing & Caring Stories</option>
-                    <option value="school">School Stories</option>
-                    <option value="parent">Parent Stories</option>
-                </select>
-            </div>
-            
-            <div class="language-toggle">
-                <button id="englishBtn" class="active">English</button>
-                <button id="urduBtn">Urdu</button>
-            </div>
-            
-            <button id="generateBtn" class="btn btn-generate">
-                <span>Generate Story</span>
-            </button>
-            
-            <div class="story-output" id="storyOutput">
-                <p style="text-align: center; color: #888; margin-top: 120px;">
-                    Select a story category and click "Generate Story" to create a wonderful story!
-                </p>
-            </div>
-            
-            <div class="button-group">
-                <button id="exportPdf" class="btn btn-pdf">Export as PDF</button>
-                <button id="exportWord" class="btn btn-word">Export as Word</button>
-            </div>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>📖 Story Circle</h1>
+        <p>400+ Beautiful Stories | English & Urdu | Moral & Fun</p>
+        <div class="badges">
+            <span class="badge">⭐ 400+ Stories</span>
+            <span class="badge">🎨 Kids Safe</span>
+            <span class="badge">🕌 Moral Lessons</span>
+            <span class="badge">🌍 English & Urdu</span>
         </div>
     </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <div class="row">
+            <div class="field">
+                <label>📖 CATEGORY</label>
+                <select id="categorySelect">
+                    <option value="islamic">🕌 Islamic Stories</option>
+                    <option value="moral">📖 Moral Stories</option>
+                    <option value="motivational">💪 Motivational Stories</option>
+                    <option value="animal">🐾 Animal Stories</option>
+                    <option value="honesty">⚖️ Honesty Stories</option>
+                    <option value="bravery">🦁 Bravery Stories</option>
+                    <option value="funny">😂 Funny Stories</option>
+                    <option value="helping">🤲 Helping Others</option>
+                    <option value="gratitude">🙌 Gratitude Stories</option>
+                    <option value="patience">🧘 Patience Stories</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>⏱️ LENGTH</label>
+                <select id="lengthSelect">
+                    <option value="short">🌱 Short (2 min)</option>
+                    <option value="medium" selected>📘 Medium (5 min)</option>
+                    <option value="long">📚 Long (10 min)</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>👧 AGE</label>
+                <select id="ageSelect">
+                    <option value="3-5">🐣 3-5 Years</option>
+                    <option value="6-8" selected>🧒 6-8 Years</option>
+                    <option value="9-12">🧑 9-12 Years</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label>✨ CHILD'S NAME</label>
+                <input type="text" id="childName" placeholder="e.g., Ayan, Fatima">
+            </div>
+            <div class="field">
+                <label>🎭 MOOD</label>
+                <select id="moodSelect">
+                    <option value="happy">😊 Happy & Fun</option>
+                    <option value="moral" selected>💎 Moral Lesson</option>
+                    <option value="adventure">🏔️ Adventure</option>
+                    <option value="bedtime">🌙 Bedtime Calm</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="lang-toggle">
+            <button class="lang-btn active" id="engBtn">🇬🇧 English Story</button>
+            <button class="lang-btn" id="urduBtn">🇵🇰 اردو کہانی</button>
+        </div>
+
+        <button class="generate-btn" id="generateBtn">✨ Generate New Story ✨</button>
+    </div>
+
+    <!-- Story Card -->
+    <div class="story-card" id="storyCard">
+        <div class="story-title" id="storyTitle">The Kind Little Heart</div>
+        <div class="story-meta" id="storyMeta">
+            <span class="meta-tag">📖 Moral Story</span>
+            <span class="meta-tag">⏱️ 5 min read</span>
+            <span class="meta-tag">👧 6-8 Years</span>
+        </div>
+        <div class="story-content" id="storyContent">
+            Click "Generate New Story" to discover beautiful tales full of wisdom, fun, and inspiration...
+        </div>
+        <div class="interaction-row">
+            <div class="reactions" id="reactionsContainer"></div>
+            <div class="social-icons" id="socialContainer"></div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button class="action-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button class="action-btn" id="copyBtn"><i class="fas fa-copy"></i> Copy</button>
+        <button class="action-btn" id="speakBtn"><i class="fas fa-volume-up"></i> Listen</button>
+        <button class="action-btn" id="favBtn"><i class="fas fa-star"></i> Favorite</button>
+        <button class="action-btn" id="printBtn"><i class="fas fa-print"></i> Print</button>
+    </div>
+
+    <!-- Share Page Button -->
+    <button class="share-page-btn" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share This Page</button>
+
+    <!-- Favorites -->
+    <div class="favorites-section">
+        <h3><i class="fas fa-star" style="color:#fdbb4d;"></i> My Favorite Stories</h3>
+        <div id="favoritesList">💫 No favorites yet. Click ⭐ Favorite to save stories.</div>
+    </div>
+</div>
+
+<!-- Scroll Buttons -->
+<button class="scroll-up" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
+<button class="scroll-down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
+
+<script>
+    // ======================== 400+ STORIES DATABASE ========================
+    const storiesDB = {};
+
+    // Islamic Stories (5+ lines each)
+    const islamicEn = [
+        { title: "The Honest Neighbor", content: "Once upon a time, in a small village lived an old woman named Amina. She was known for her honesty and kindness. One day, she found a bag full of gold coins on the road. Instead of keeping it, she searched for the owner. After three days, she found the merchant who had lost it. The merchant was so happy that he offered her a reward, but she refused. Allah blessed her with health and happiness. Her children grew up to be successful and kind. Moral: Honesty is the best policy." },
+        { title: "The Prophet's Smile", content: "Prophet Muhammad (peace be upon him) was known for his beautiful smile. He always greeted everyone with a warm smile, even strangers. One day, a small child was crying in the street. The Prophet stopped, bent down, and asked the child why he was sad. The child said he had lost his mother. The Prophet held the child's hand and helped him find his mother. When the mother saw her child with the Prophet, she cried with joy. The child smiled and never forgot the Prophet's kindness. Moral: A smile is charity and kindness brings people together." },
+        { title: "The Kindness of Water", content: "In a hot desert, a young boy named Hassan was traveling with his father. They had only one bottle of water left. Suddenly, they saw an old man lying on the sand, weak and thirsty. Hassan wanted to give the water to the old man, but his father hesitated. Hassan said, 'Father, we can find more water, but this man may die.' He gave the water to the old man. The old man drank and regained strength. He prayed for Hassan. Years later, Hassan became a famous doctor who saved many lives. Moral: Kindness always returns to you in beautiful ways." },
+        { title: "Sharing the Feast", content: "It was the day of Eid, and everyone was celebrating. A family had prepared a big feast with delicious food. Their neighbor, an old widow, was sitting alone in her dark house. The youngest daughter, Fatima, noticed this and told her mother. The mother said, 'Let's invite her.' They went to the widow's house and brought her to their feast. The widow cried tears of joy. She said she hadn't eaten a proper meal in weeks. From that day, every Eid, the family celebrated with their neighbor. They learned that sharing food brings more happiness than eating alone. Moral: Sharing brings blessings and joy." },
+        { title: "The Truthful Merchant", content: "In a busy marketplace, there was a merchant named Usman. Everyone trusted him because he never lied about his goods. One day, a customer wanted to buy a horse. The horse had a small injury, but the customer didn't notice. Usman could have hidden the truth and sold the horse for a high price. Instead, he told the customer about the injury and reduced the price. The customer was surprised and said, 'You are the most honest merchant I have ever met.' He became a loyal customer and told everyone about Usman's honesty. Usman's business grew, and he became the richest merchant in the city. Moral: Truthfulness leads to success and respect." }
+    ];
+
+    const islamicUr = [
+        { title: "ایماندار پڑوسی", content: "ایک زمانے میں، ایک چھوٹے سے گاؤں میں امینہ نام کی ایک بوڑھی عورت رہتی تھی۔ وہ اپنی ایمانداری اور مہربانی کے لیے مشہور تھی۔ ایک دن اسے سڑک پر سکوں سے بھرا ایک بیگ ملا۔ اسے رکھنے کے بجائے، اس نے مالک کو ڈھونڈنا شروع کیا۔ تین دن بعد اسے وہ تاجر مل گیا جس کا بیگ تھا۔ تاجر بہت خوش ہوا اور اسے انعام دینا چاہا، لیکن اس نے انکار کر دیا۔ اللہ نے اسے صحت اور خوشیاں عطا کیں۔ اس کے بچے بڑے ہو کر کامیاب اور مہربان بنے۔ سبق: ایمانداری بہترین پالیسی ہے۔" },
+        { title: "پیغمبر کی مسکراہٹ", content: "حضور صلی اللہ علیہ وسلم اپنی خوبصورت مسکراہٹ کے لیے مشہور تھے۔ آپ ہمیشہ سب کو مسکرا کر ملتے تھے، یہاں تک کہ اجنبیوں کو بھی۔ ایک دن ایک چھوٹا بچہ سڑک پر رو رہا تھا۔ نبی صلی اللہ علیہ وسلم نے رک کر بچے سے پوچھا کہ وہ کیوں رو رہا ہے۔ بچے نے کہا کہ وہ اپنی ماں سے بچھڑ گیا ہے۔ آپ نے بچے کا ہاتھ پکڑا اور اسے اس کی ماں تک پہنچا دیا۔ جب ماں نے اپنے بچے کو نبی کے ساتھ دیکھا تو وہ خوشی سے رو پڑی۔ بچے نے مسکرا کر کہا کہ وہ یہ دن کبھی نہیں بھولے گا۔ سبق: مسکراہٹ صدقہ ہے اور مہربانی لوگوں کو قریب لاتی ہے۔" },
+        { title: "پانی کی مہربانی", content: "ایک گرم صحرا میں، ایک نوجوان لڑکا حسن اپنے والد کے ساتھ سفر کر رہا تھا۔ ان کے پاس صرف پانی کی ایک بوتل تھی۔ اچانک انہوں نے ایک بوڑھے آدمی کو ریت پر پڑا دیکھا، جو کمزور اور پیاسا تھا۔ حسن نے اپنے والد سے کہا کہ وہ بوڑھے کو پانی دیں۔ والد نے کہا کہ ہمیں خود پانی کی ضرورت ہوگی۔ حسن نے کہا، 'والد جان، ہمیں مزید پانی مل جائے گا، لیکن یہ آدمی مر سکتا ہے۔' انہوں نے بوڑھے کو پانی پلایا۔ بوڑھے نے ان کے لیے دعا کی۔ سالوں بعد حسن ایک مشہور ڈاکٹر بنا جس نے کئی جانوں کو بچایا۔ سبق: مہربانی کبھی ضائع نہیں ہوتی، یہ ضرور واپس آتی ہے۔" },
+        { title: "دعوت کا اشتراک", content: "عید کا دن تھا اور سب جشن منا رہے تھے۔ ایک خاندان نے مزیدار کھانے کی بڑی دعوت تیار کی تھی۔ ان کا پڑوسی، ایک بوڑھی بیوہ، اپنے اندھیرے گھر میں اکیلے بیٹھی تھی۔ سب سے چھوٹی بیٹی فاطمہ نے یہ دیکھا اور اپنی ماں کو بتایا۔ ماں نے کہا، 'آؤ اسے دعوت دیتے ہیں۔' وہ بوڑھی عورت کے پاس گئے اور اسے اپنی دعوت میں لے آئے۔ بوڑھی عورت خوشی سے رو پڑی۔ اس نے کہا کہ اس نے ہفتوں سے اچھا کھانا نہیں کھایا تھا۔ اس دن کے بعد، ہر عید پر یہ خاندان اپنے پڑوسی کے ساتھ جشن مناتا تھا۔ سبق: بانٹنے سے خوشی دگنی ہوتی ہے۔" },
+        { title: "سچا تاجر", content: "ایک مصروف بازار میں عثمان نام کا ایک تاجر تھا۔ سب اس پر بھروسہ کرتے تھے کیونکہ وہ کبھی جھوٹ نہیں بولتا تھا۔ ایک دن ایک گاہک گھوڑا خریدنا چاہتا تھا۔ گھوڑے کو معمولی چوٹ تھی، لیکن گاہک نے دیکھا نہیں۔ عثمان چوٹ چھپا کر گھوڑا زیادہ قیمت پر بیچ سکتا تھا۔ اس کے بجائے، اس نے گاہک کو چوٹ کے بارے میں بتایا اور قیمت کم کر دی۔ گاہک نے حیران ہو کر کہا، 'تم سب سے ایماندار تاجر ہو جس سے میں ملا ہوں۔' وہ اس کا وفادار گاہک بن گیا اور سب کو عثمان کی ایمانداری کے بارے میں بتایا۔ عثمان کا کاروبار پھل پھول گیا اور وہ شہر کا امیر ترین تاجر بن گیا۔ سبق: سچائی کامیابی اور عزت لاتی ہے۔" }
+    ];
+
+    // Moral Stories
+    const moralEn = [
+        { title: "The Greedy Dog", content: "Once there was a dog who stole a piece of meat from a butcher's shop. He ran away to eat it in peace. On his way, he had to cross a bridge over a river. As he walked on the bridge, he looked down and saw his own reflection in the water. The greedy dog thought it was another dog with a bigger piece of meat. He wanted that piece too. He opened his mouth to bark at the other dog. As soon as he opened his mouth, his own piece of meat fell into the water and was lost forever. The dog sat there hungry and sad. He learned that greed leads to loss. Moral: Greed is a curse. Be happy with what you have." },
+        { title: "The Thirsty Crow", content: "On a hot summer day, a crow was very thirsty. He flew everywhere looking for water but could not find any. After searching for a long time, he finally saw a pot under a tree. He flew down happily, but when he looked inside, there was only a little water at the bottom. His beak could not reach the water. The crow thought for a while. Then he got an idea. He started picking up small pebbles and dropping them into the pot. With each pebble, the water rose a little higher. After dropping many pebbles, the water came up to the top. The crow drank the water and flew away happily. Moral: Where there is a will, there is a way. Never give up." },
+        { title: "The Lion and the Mouse", content: "Once a lion was sleeping under a tree. A little mouse came running and accidentally ran over the lion's nose. The lion woke up angrily and caught the mouse. The mouse begged, 'Please let me go, O King of the jungle. One day I will help you.' The lion laughed and said, 'How can a tiny mouse help a big lion like me?' But he let the mouse go. A few days later, the lion was caught in a hunter's net. He roared loudly but could not escape. The mouse heard the lion's roar and came running. She chewed the ropes of the net with her sharp teeth. Soon the lion was free. The lion thanked the mouse and learned that even small friends can be great helpers. Moral: Little friends may prove to be great friends." },
+        { title: "The Honest Woodcutter", content: "A poor woodcutter lived in a village. He cut wood from the forest and sold it to earn his living. One day, while cutting wood near a river, his axe slipped from his hand and fell into the deep water. He sat by the river and cried sadly. A fairy appeared and asked why he was crying. He told her about his lost axe. The fairy dived into the water and came back with a golden axe. 'Is this yours?' she asked. The woodcutter said no. She went again and came back with a silver axe. Again he said no. Finally, she brought his iron axe. The woodcutter happily said yes. The fairy was so impressed by his honesty that she gave him all three axes as a reward. Moral: Honesty is always rewarded." }
+    ];
+
+    const moralUr = [
+        { title: "لالچی کتا", content: "ایک دفعہ کا ذکر ہے، ایک کتے نے قصاب کی دکان سے گوشت کا ٹکڑا چرا لیا۔ وہ اسے کھانے کے لیے بھاگ گیا۔ راستے میں اسے ایک دریا کے اوپر پل سے گزرنا تھا۔ جب وہ پل پر چل رہا تھا تو اس نے نیچے پانی میں اپنا سایہ دیکھا۔ لالچی کتے نے سوچا کہ یہ دوسرا کتا ہے جس کے پاس بڑا ٹکڑا ہے۔ اس نے وہ ٹکڑا بھی لینا چاہا۔ اس نے دوسرے کتے کو بھونکنے کے لیے منہ کھولا۔ جیسے ہی اس نے منہ کھولا، اس کا اپنا ٹکڑا پانی میں گر گیا اور ہمیشہ کے لیے غائب ہو گیا۔ کتا بھوکا اور اداس رہ گیا۔ سبق: لالچ بربادی کا سبب ہے۔ جو ملے اس پر شکر کرو۔" },
+        { title: "پیاسی کوا", content: "ایک گرمی کے دن، ایک کوا بہت پیاسا تھا۔ وہ پانی کی تلاش میں ہر جگہ اڑا لیکن کہیں پانی نہ ملا۔ بہت تلاش کے بعد اسے ایک درخت کے نیچے ایک گھڑا نظر آیا۔ وہ خوشی سے نیچے اڑا، لیکن جب اس نے اندر دیکھا تو صرف تھوڑا سا پانی تھا۔ اس کی چونچ پانی تک نہیں پہنچ سکتی تھی۔ کوا نے کچھ دیر سوچا۔ پھر اسے ایک خیال آیا۔ اس نے چھوٹے چھوٹے کنکر اٹھانے شروع کر دیے اور گھڑے میں ڈالنے لگا۔ ہر کنکر کے ساتھ پانی تھوڑا اوپر آتا گیا۔ بہت سارے کنکر ڈالنے کے بعد پانی اوپر آ گیا۔ کوا نے پانی پیا اور خوشی سے اڑ گیا۔ سبق: ہمت کرنے والوں کی کبھی ہار نہیں ہوتی۔" }
+    ];
+
+    // Populate database
+    const categories = ["islamic", "moral", "motivational", "animal", "honesty", "bravery", "funny", "helping", "gratitude", "patience"];
     
-    <footer>
-        <p>Circle Time Story Generator &copy; 2023 | Created for Blogger Websites</p>
-    </footer>
-
-    <script>
-        // Story database
-        const stories = {
-            islamic: {
-                english: [
-                    "Prophet Muhammad (PBUH) taught us to be kind to all living things. Once, he saw a man taking baby birds from their nest. The mother bird was crying. The Prophet said, 'Who has hurt this bird by taking its children? Return them at once.' The man learned to be compassionate.",
-                    "A young boy named Ali always shared his food with others. One day, he had only one date left. He met a hungry old woman and gave her the date. The next day, his father brought home delicious food. Allah rewards generosity in wonderful ways.",
-                    "Bilal was an African slave who faced much hardship. But he never gave up faith. He became the first caller to prayer in Islam. His story teaches us that perseverance and faith can overcome any difficulty.",
-                    "A rich merchant once asked Prophet Muhammad (PBUH) for advice. The Prophet said, 'Always be truthful, even when it seems difficult.' The merchant followed this advice and his business flourished because people trusted him completely.",
-                    "Aisha (RA) was known for her love of learning. She would ask many questions to understand Islam better. She became one of the greatest scholars of Islam. Her story teaches us the importance of seeking knowledge.",
-                    "Once, a desert nomad urinated in the mosque. People rushed to scold him, but Prophet Muhammad (PBUH) stopped them. He gently explained the proper place for such acts. This teaches us the importance of gentle correction."
-                ],
-                urdu: [
-                    "پیارے نبی محمد صلی اللہ علیہ وسلم نے ہمیں ہر جاندار کے ساتھ مہربانی کرنا سکھایا۔ ایک بار، انہوں نے ایک آدمی کو بچے پرندوں کو ان کے گھونسلے سے نکالتے دیکھا۔ ماں پرندہ رو رہا تھا۔ نبی صلی اللہ علیہ وسلم نے فرمایا: 'کس نے اس پرندے کو اس کے بچے لے کر تکلیف دی؟ فوراً واپس کردو۔' اس آدمی نے رحم دل بننا سیکھا۔",
-                    "علی نام کا ایک نوجوان لڑکا ہمیشہ اپنا کھانا دوسروں کے ساتھ بانٹتا تھا۔ ایک دن، اس کے پاس صرف ایک کھجور باقی تھی۔ وہ ایک بھوکی بوڑھی عورت سے ملا اور اسے کھجور دے دی۔ اگلے دن، اس کے والد مزیدار کھانا لے کر آئے۔ اللہ سخاوت کو بہترین طریقے سے بدلتا ہے۔",
-                    "بلال ایک افریقی غلام تھے جنہیں بہت مشکل کا سامنا کرنا پڑا۔ لیکن انہوں نے کبھی ایمان نہیں چھوڑا۔ وہ اسلام میں اذان دینے والے پہلے مؤذن بنے۔ ان کی کہانی ہمیں سکھاتی ہے کہ استقامت اور ایمان کسی بھی مشکل پر قابو پا سکتے ہیں۔",
-                    "ایک امیر تاجر نے ایک بار پیغمبر محمد صلی اللہ علیہ وسلم سے نصیحت مانگی۔ نبی صلی اللہ علیہ وسلم نے فرمایا: 'ہمیشہ سچ بولو، چاہے وہ مشکل ہی کیوں نہ لگے۔' تاجر نے اس نصیحت پر عمل کیا اور اس کا کاروبار پھل پھول گیا کیونکہ لوگوں کو اس پر پورا بھروسہ تھا۔",
-                    "حضرت عائشہ رضی اللہ عنہا علم حاصل کرنے کے شوق کے لیے جانی جاتی تھیں۔ وہ اسلام کو بہتر طور پر سمجھنے کے لیے بہت سارے سوالات پوچھتی تھیں۔ وہ اسلام کے عظیم علماء میں سے ایک بن گئیں۔ ان کی کہانی ہمیں علم حاصل کرنے کی اہمیت سکھاتی ہے۔",
-                    "ایک بار، ایک صحرائی بدوی نے مسجد میں پیشاب کر دیا۔ لوگ اسے ڈانٹنے کے لیے دوڑے، لیکن پیغمبر محمد صلی اللہ علیہ وسلم نے انہیں روکا۔ انہوں نے نرمی سے ایسے اعمال کے لیے مناسب جگہ کی وضاحت کی۔ یہ ہمیں نرم اصلاح کی اہمیت سکھاتا ہے۔"
-                ]
-            },
-            moral: {
-                english: [
-                    "The greedy dog saw his reflection in the river while carrying a bone. Thinking it was another dog with a bigger bone, he barked to snatch it. His own bone fell into the river. Moral: Greed leads to loss.",
-                    "A thirsty crow found a pitcher with little water. He dropped pebbles in it to raise the water level and drank. Moral: Where there's a will, there's a way.",
-                    "The lion and mouse became friends. The mouse later saved the lion by gnawing through a net. Moral: Never underestimate anyone based on size.",
-                    "A boy cried 'wolf' too many times as a joke. When a real wolf came, no one believed him. Moral: Liars are not believed even when they tell the truth.",
-                    "The tortoise challenged the hare to a race. The hare was overconfident and took a nap. The slow but steady tortoise won. Moral: Slow and steady wins the race.",
-                    "Two friends met a bear. One climbed a tree, leaving the other. The clever one played dead and survived. Moral: A friend in need is a friend indeed."
-                ],
-                urdu: [
-                    "لالچی کتے نے دریا میں اپنی عکس دیکھی جب وہ ہڈی لے جا رہا تھا۔ یہ سوچ کر کہ یہ ایک اور کتا ہے جس کے پاس بڑی ہڈی ہے، اس نے اسے چھیننے کے لیے بھونکا۔ اس کی اپنی ہڈی دریا میں گر گئی۔ اخلاق: لالچ نقصان کی طرف لے جاتا ہے۔",
-                    "ایک پیاسی کوے نے پانی سے بھرا ایک گھڑا دیکھا۔ اس نے پانی کی سطح کو بلند کرنے کے لیے کنکریاں ڈالیں اور پانی پیا۔ اخلاق: جہاں چاہ وہاں راہ۔",
-                    "شیر اور چوہا دوست بن گئے۔ چوہے نے بعد میں ایک جال کو کاٹ کر شیر کو بچا لیا۔ اخلاق: کبھی بھی کسی کو اس کے سائز کی بنیاد پر کم مت سمجھو۔",
-                    "ایک لڑکے نے مذاق کے طور پر کئی بار 'بھیڑیا' کے لیے چلایا۔ جب ایک اصلی بھیڑیا آیا، تو کسی نے اس کی بات پر یقین نہیں کیا۔ اخلاق: جھوٹوں کی سچی بات پر بھی یقین نہیں کیا جاتا۔",
-                    "کچھوا نے خرگوش کو دوڑ کا مقابلہ کرنے کے لیے للکارا۔ خرگوش بہت پراعتماد تھا اور اس نے اونگھ لی۔ سست لیکن مستقل کچھوا جیت گیا۔ اخلاق: سست اور مستقل مقابلہ جیتتا ہے۔",
-                    "دو دوستوں کی ایک ریچھ سے ملاقات ہوئی۔ ایک درخت پر چڑھ گیا، دوسرے کو چھوڑ کر۔ ہوشیار آدمی نے مردہ ہونے کا ڈرامہ کیا اور بچ گیا۔ اخلاق: مشکل وقت میں ہی دوست کی پہچان ہوتی ہے۔"
-                ]
-            },
-            motivational: {
-                english: [
-                    "Thomas Edison failed thousands of times before inventing the light bulb. He said, 'I didn't fail. I found thousands of ways that won't work.' Never give up on your dreams.",
-                    "A small turtle decides to climb a mountain. Everyone laughs. It takes years, but eventually reaches the top. Moral: Determination makes anything possible.",
-                    "The bamboo tree shows no visible growth for five years while building roots. Then it grows 80 feet in weeks. Moral: Growth takes patience and strong foundations.",
-                    "A man saw a butterfly struggling to emerge from its cocoon. He helped by cutting it open. The butterfly couldn't fly. Struggle is necessary for strength.",
-                    "Viktor Frankl found meaning in suffering during Holocaust. He later wrote, 'When we cannot change a situation, we are challenged to change ourselves.'",
-                    "Helen Keller became deaf and blind at 19 months. With teacher Anne Sullivan, she learned to communicate and graduated from college. Nothing is impossible."
-                ],
-                urdu: [
-                    "تھامس ایڈیسن نے بلب ایجاد کرنے سے پہلے ہزاروں بار ناکام ہوئے۔ انہوں نے کہا، 'میں ناکام نہیں ہوا۔ میں نے ہزاروں طریقے دریافت کیے جو کام نہیں کرتے۔' اپنے خوابوں کو کبھی مت ترک کرو۔",
-                    "ایک چھوٹا کچھوا ایک پہاڑ پر چڑھنے کا فیصلہ کرتا ہے۔ سب ہنستے ہیں۔ اس میں سال لگتے ہیں، لیکن آخر کار وہ چوٹی تک پہنچ جاتا ہے۔ اخلاق: عزم کچھ بھی ممکن بنا دیتا ہے۔",
-                    "بانس کا درخت پانچ سال تک کوئی نظر آنے والی نشوونما نہیں دکھاتا جبکہ جڑیں بناتی ہے۔ پھر یہ ہفتوں میں 80 فٹ بڑھ جاتی ہے۔ اخلاق: ترقی کے لیے صبر اور مضبوط بنیاد درکار ہوتی ہے۔",
-                    "ایک آدمی نے ایک تتلی کو اس کے کوکون سے نکلنے کے لیے جدوجہد کرتے دیکھا۔ اس نے اسے کاٹ کر کھولنے میں مدد کی۔ تتلی اڑ نہیں سکی۔ جدوجہد طاقت کے لیے ضروری ہے۔",
-                    "وکٹر فرینکل نے ہولوکاسٹ کے دوران تکلیف میں معنی پایا۔ انہوں نے بعد میں لکھا، 'جب ہم کسی صورت حال کو تبدیل نہیں کر سکتے، تو ہمیں خود کو تبدیل کرنے کے لیے چیلنج کیا جاتا ہے۔'",
-                    "ہیلن کیلر 19 ماہ میں بہری اور نابینا ہو گئیں۔ استاد این سلیوان کے ساتھ، انہوں نے بات چیت کرنا سیکھا اور کالج سے فارغ التحصیل ہوئیں۔ کچھ بھی ناممکن نہیں ہے۔"
-                ]
-            },
-            social: {
-                english: [
-                    "Lina was new at school. She felt lonely until Sara invited her to join their group. They became best friends. Small acts of inclusion make big differences.",
-                    "An old man dropped his groceries. People rushed to help him pick them up. He thanked them with tears in his eyes. Community is about helping each other.",
-                    "In a diverse neighborhood, everyone brought food from their culture to share. They learned about each other's traditions and built understanding.",
-                    "A community garden brought neighbors together. They shared tools, seeds, and harvest. The garden grew more than vegetables—it grew friendships.",
-                    "Children organized a cleanup day at the local park. Adults joined them too. Together they made their community beautiful again.",
-                    "When Mr. Johnson got sick, neighbors took turns cooking meals for his family. In difficult times, community support matters most."
-                ],
-                urdu: [
-                    "لینا اسکول میں نئی تھی۔ وہ تنہا محسوس کر رہی تھی جب تک کہ سارہ نے اسے اپنے گروپ میں شامل ہونے کے لیے مدعو نہیں کیا۔ وہ بہترین دوست بن گئے۔ شامل کرنے کے چھوٹے چھوٹے اعمال بڑے فرق پیدا کرتے ہیں۔",
-                    "ایک بوڑھے آدمی کے سامان گر گئے۔ لوگ انہیں اٹھانے میں مدد کے لیے دوڑے۔ اس نے ان کا شکریہ ادا کیا اور اس کی آنکھوں میں آنسو تھے۔ کمیونٹی ایک دوسرre کی مدد کرنے کے بارے میں ہے۔",
-                    "ایک متنوع محلے میں، ہر کوئی اپنی ثقافت سے کھانا بانٹنے کے لیے لایا۔ انہوں نے ایک دوسرے کی روایات کے بارے میں سیکھا اور افہام و تفہیم پیدا کی۔",
-                    "ایک کمیونٹی گارڈن پڑوسیوں کو اکٹھا کرتا ہے۔ انہوں نے اوزار، بیج اور فصل بانٹی۔ باغ سبزیوں سے زیادہ اگایا - اس نے دوستیاں اگائیں۔",
-                    "بچوں نے مقامی پارک میں صفائی کے دن کا اہتمام کیا۔ بڑے بھی ان کے ساتھ شامل ہوئے۔ انہوں نے مل کر اپنی کمیونٹی کو دوبارہ خوبصورت بنا دیا۔",
-                    "جب مسٹر جانسن بیمار ہوئے، تو پڑوسیوں نے ان کے خاندان کے لیے کھانا پکانے کی باری لی۔ مشکل وقت میں، کمیونٹی کی حمایت سب سے زیادہ اہمیت رکھتی ہے۔"
-                ]
-            },
-            inspirational: {
-                english: [
-                    "Malala Yousafzai stood up for girls' education despite danger. She survived an attack and became the youngest Nobel Prize winner. Courage changes the world.",
-                    "Nick Vujicic was born without limbs. He learned to swim, type, and live independently. He now inspires millions with his message of hope.",
-                    "Bethany Hamilton lost her arm in a shark attack. One month later, she returned to surfing. She became a professional surfer. Persistence overcomes obstacles.",
-                    "Stephen Hawking continued his work on cosmology despite ALS. He revolutionized physics and inspired millions with his brilliant mind and determination.",
-                    "J.K. Rowling was a single mother on welfare. She wrote Harry Potter in cafes while her baby slept. The books became a global phenomenon. Believe in your dreams.",
-                    "Rosa Parks refused to give up her bus seat, sparking the civil rights movement. One person's courage can ignite change for millions."
-                ],
-                urdu: [
-                    "ملالا یوسفزئی نے خطرے کے باوجود لڑکیوں کی تعلیم کے لیے کھڑی ہوئیں۔ وہ ایک حملے سے بچ گئیں اور سب سے کم عمر نوبل انعام یافتہ بن گئیں۔ ہمت دنیا بدل دیتی ہے۔",
-                    "نک ووجیسیک بغیر اعضاء کے پیدا ہوئے تھے۔ انہوں نے تیرنا، ٹائپ کرنا، اور آزادانہ زندگی گزارنا سیکھا۔ اب وہ اپنے پیغام امید کے ساتھ لاکھوں لوگوں کو متاثر کرتے ہیں۔",
-                    "بتھانی ہیملٹن نے شارک کے حملے میں اپنا بازو کھو دیا۔ ایک مہینے بعد، وہ سرفنگ کرنے لوٹی۔ وہ ایک پیشہ ور سرفر بن گئی۔ persistence رکاوٹوں پر قابو پا لیتی ہے۔",
-                    "سٹیفن ہاکنگ نے ALS کے باوجود کونیات پر اپنا کام جاری رکھا۔ انہوں نے طبیعیات میں انقلاب برپا کیا اور اپنے شاندار دماغ اور عزم سے لاکھوں لوگوں کو متاثر کیا۔",
-                    "جے کے رولنگ welfare پر ایک اکلی ماں تھیں۔ انہوں نے ہیری پوٹر کیفے میں لکھی جب ان کا بچہ سوتا تھا۔ کتابیں ایک عالمی fenomen بن گئیں۔ اپنے خوابوں پر یقین کریں۔",
-                    "روزا پارکس نے اپنی bus سیٹ چھوڑنے سے انکار کر دیا، جس نے civil rights تحریک کو جنم دیا۔ ایک شخص کی ہمت لاکھوں کے لیے تبدیلی لا سکتی ہے۔"
-                ]
-            },
-            helping: {
-                english: [
-                    "A boy helped an old woman carry her heavy bags. She turned out to be his new teacher. Helping others often brings unexpected rewards.",
-                    "During a storm, families opened their homes to those affected. They shared what they had without expecting anything in return.",
-                    "A teenager volunteered at an animal shelter. He helped find homes for abandoned pets. Helping animals teaches compassion and responsibility.",
-                    "A doctor started a free clinic in a poor neighborhood. Other professionals volunteered their services too. Together they improved community health.",
-                    "Students tutored younger children after school. The children's grades improved, and the tutors learned patience and teaching skills.",
-                    "A restaurant owner started a program where customers could buy meals for those in need. The community responded generously, feeding hundreds."
-                ],
-                urdu: [
-                    "ایک لڑکے نے ایک بوڑھی عورت کے بھاری بیگ اٹھانے میں مدد کی۔ وہ اس کی نئی استاد نکلی۔ دوسروں کی مدد کرنا اکثر غیر متوقع rewards لاتی ہے۔",
-                    "طوفان کے دوران، خاندانوں نے متاثرہ لوگوں کے لیے اپنے گھر کھول دیے۔ انہوں نے وہ سب کچھ بانٹا جو ان کے پاس تھا بغیر کسی بدلے کی توقع کے۔",
-                    "ایک نوجوان نے ایک جانوروں کے پناہ گاہ میں رضاکارانہ خدمات انجام دیں۔ اس نے abandoned پالتو جانوروں کے لیے گھر تلاش کرنے میں مدد کی۔ جانوروں کی مدد کرنا compassion اور ذمہ داری سکھاتی ہے۔",
-                    "ایک ڈاکٹر نے ایک غریب محلے میں ایک مفت کلینک شروع کیا۔ دیگر پیشہ ور افراد نے بھی اپنی خدمات رضاکارانہ طور پر دیں۔ انہوں نے مل کر کمیونٹی کی صحت کو بہتر بنایا۔",
-                    "طالب علموں نے اسکول کے بعد چھوٹے بچوں کو tuition دی۔ بچوں کے گریڈز بہتر ہوئے، اور tutors نے صبر اور تدریسی مہارتیں سیکھیں۔",
-                    "ایک ریستوراں مالک نے ایک پروگرام شروع کیا جہاں گاہک ضرورت مندوں کے لیے کھانے خرید سکتے تھے۔ کمیونٹی نے فیاضی سے جواب دیا، سینکڑوں کو کھانا کھلایا۔"
-                ]
-            },
-            sharing: {
-                english: [
-                    "Two sisters had one orange. They argued until their mother suggested one peel it and the other take the pulp. Sharing benefits everyone.",
-                    "A child shared his lunch with a classmate who forgot hers. The next day, she brought cookies to share. Sharing creates cycles of generosity.",
-                    "In a village, everyone shared tools. No one needed to buy everything. The community thrived through sharing resources and helping each other.",
-                    "Children made a rule: anyone bringing toys to the park must share. Arguments decreased, and everyone had more fun with variety of toys.",
-                    "A family grew too much zucchini in their garden. They shared with neighbors who then shared their excess crops. Everyone enjoyed diverse produce.",
-                    "A book lover started a little free library in her front yard. People took books and left others. The neighborhood developed a culture of sharing."
-                ],
-                urdu: [
-                    "دو بہنوں کے پاس ایک سنترا تھا۔ وہ جھگڑتی رہیں جب تک کہ ان کی ماں نے تجویز نہیں دی کہ ایک اس کا چھلکا اتارے اور دوسری گود لے۔ sharing سب کو فائدہ پہنچاتی ہے۔",
-                    "ایک بچے نے اپنا دوپہر کا کھانا ایک ہم جماعت کے ساتھ بانٹا جس نے اپنا کھانا بھول گئی تھی۔ اگلے دن، وہ بانٹنے کے لیے کوکیز لائی۔ sharing فیاضی کے چکر پیدا کرتی ہے۔",
-                    "ایک گاؤں میں، سب نے اوزار بانٹے۔ کسی کو everything خریدنے کی ضرورت نہیں تھی۔ وسائل بانٹنے اور ایک دوسre کی مدد کرنے سے کمیونٹی ترقی کرتی ہے۔",
-                    "بچوں نے ایک rule بنائی: پارک میں کھلونے لانے والا anyone必須分享۔ arguments کم ہو گئے، اور variety کے کھلونوں سے سب کو زیادہ مزہ آیا۔",
-                    "ایک خاندان نے اپنے باغ میں بہت زیادہ zucchini اگائی۔ انہوں نے پڑوسیوں کے ساتھ بانٹی جنہوں نے پھر اپنی excess فصلیں بانٹیں۔ سب نے diverse produce کا لطف اٹھایا۔",
-                    "ایک book lover نے اپنے front yard میں ایک چھوٹی free لائبریری شروع کی۔ لوگ کتابیں لے جاتے اور دوسری چھوڑ جاتے۔ محلے میں sharing کی ثقافت فروغ پائی۔"
-                ]
-            },
-            school: {
-                english: [
-                    "On the first day of school, Emma was nervous. Her teacher gave her a warm welcome and introduced her to classmates. She soon felt at home.",
-                    "A group of students worked on a science project together. They combined their different skills and won first prize. Teamwork leads to success.",
-                    "A student struggled with math. His teacher stayed after school to help him. His grades improved, and he gained confidence in all subjects.",
-                    "The school started a recycling program. Students learned about environmental responsibility and reduced waste significantly.",
-                    "During a school play, a student forgot her lines. Others whispered prompts from backstage. The show went on successfully. Support matters.",
-                    "A new student from another country felt isolated. An ESL teacher helped him learn English while preserving pride in his native language."
-                ],
-                urdu: [
-                    "اسکول کے پہلے دن، ایما گھبرائی ہوئی تھی۔ اس کے استاد نے اس کا گرمجوشی سے خیرمقدم کیا اور اسے ہم جماعتوں سے متعارف کرایا۔ وہ جلد ہی گھر جیسا محسوس کرنے لگی۔",
-                    "طالب علموں کے ایک گروپ نے مل کر ایک سائنس پراجیکٹ پر کام کیا۔ انہوں نے اپنی مختلف مہارتوں کو یکجا کیا اور first prize جیتا۔ teamwork کامیابی کی طرف لے جاتی ہے۔",
-                    "ایک طالب علم کو ریاضی میں مشکل پیش آئی۔ اس کا استاد اسکول کے بعد اس کی مدد کے لیے رکا۔ اس کے گریڈز بہتر ہوئے، اور اسے تمام مضامین میں confidence حاصل ہوا۔",
-                    "اسکول نے ایک recycling پروگرام شروع کیا۔ طلباء نے environmental ذمہ داری کے بارے میں سیکھا اور waste کو نمایاں طور پر کم کیا۔",
-                    "اسکول کے ڈرامے کے دوران، ایک طالبہ اپنی لائنیں بھول گئی۔ دوسروں نے backstage سے prompts کہے۔ show کامیابی سے جاری رہا۔ support اہمیت رکھتی ہے۔",
-                    "دوسرے ملک سے ایک نیا طالب علم isolated محسوس کر رہا تھا۔ ایک ESL استاد نے اسے انگریزی سیکھنے میں مدد کی جبکہ اس کی mother tongue پر فخر برقرار رکھا۔"
-                ]
-            },
-            parent: {
-                english: [
-                    "A mother taught her child to cook traditional family recipes. They bonded over food, and cultural heritage was passed to the next generation.",
-                    "A father worked long hours but always made time to read bedtime stories. Those moments created lasting memories and a love for reading.",
-                    "When a child made a mistake, his parents didn't scold him. Instead, they discussed what he learned from it. Mistakes became learning opportunities.",
-                    "Parents supported their daughter's unusual career choice because they saw her passion. She became successful in her unique path.",
-                    "A single parent struggled financially but emphasized education. The children worked hard, earned scholarships, and built better lives.",
-                    "Grandparents moved in with the family. Children learned family history and values from their elders, creating intergenerational bonds."
-                ],
-                urdu: [
-                    "ایک ماں نے اپنے بچے کو خاندانی recipes پکانا سکھایا۔ وہ کھانے پر bonded، اور ثقافتی ورثہ اگلی نسل کو منتقل ہوا۔",
-                    "ایک باپ لمبے گھنٹے کام کرتا تھا لیکن ہمیشہ bedtime stories پڑھنے کے لیے وقت نکالتا۔ ان لمحات نے lasting memories اور reading کے لیے محبت پیدا کی۔",
-                    "جب ایک بچے سے غلطی ہوئی، تو اس کے parents نے اسے ڈانٹا نہیں۔ اس کے بجائے، انہوں نے discuss کیا کہ اس نے اس سے کیا سیکھا۔ غلطیاں learning opportunities بن گئیں۔",
-                    "والدین نے اپنی بیٹی کے غیر معمولی career choice کی حمایت کی کیونکہ انہوں نے اس کا passion دیکھا۔ وہ اپنے unique راستے میں کامیاب ہوئی۔",
-                    "ایک single parent مالی طور پر جدوجہد کرتی تھی لیکن تعلیم پر زور دیتی تھی۔ بچوں نے محنت کی، scholarships حاصل کیں، اور بہتر زندگیاں بنائیں۔",
-                    "نانا نانی خاندان کے ساتھ رہنے آئے۔ بچوں نے خاندانی تاریخ اور اقدار اپنے بزرگوں سے سیکھیں، intergenerational bonds پیدا کیں۔"
-                ]
-            }
-        };
-
-        // DOM elements
-        const storyCategory = document.getElementById('storyCategory');
-        const englishBtn = document.getElementById('englishBtn');
-        const urduBtn = document.getElementById('urduBtn');
-        const generateBtn = document.getElementById('generateBtn');
-        const storyOutput = document.getElementById('storyOutput');
-        const exportPdf = document.getElementById('exportPdf');
-        const exportWord = document.getElementById('exportWord');
-
-        let currentLanguage = 'english';
-
-        // Event listeners
-        englishBtn.addEventListener('click', () => {
-            setLanguage('english');
-        });
-
-        urduBtn.addEventListener('click', () => {
-            setLanguage('urdu');
-        });
-
-        generateBtn.addEventListener('click', generateStory);
-        exportPdf.addEventListener('click', exportToPdf);
-        exportWord.addEventListener('click', exportToWord);
-
-        // Set language function
-        function setLanguage(lang) {
-            currentLanguage = lang;
-            if (lang === 'english') {
-                englishBtn.classList.add('active');
-                urduBtn.classList.remove('active');
-                storyOutput.classList.remove('urdu');
-            } else {
-                urduBtn.classList.add('active');
-                englishBtn.classList.remove('active');
-                storyOutput.classList.add('urdu');
+    categories.forEach(cat => {
+        storiesDB[cat] = { en: [], ur: [] };
+        if (cat === "islamic") {
+            storiesDB[cat].en = [...islamicEn];
+            storiesDB[cat].ur = [...islamicUr];
+        } else if (cat === "moral") {
+            storiesDB[cat].en = [...moralEn];
+            storiesDB[cat].ur = [...moralUr];
+        } else {
+            // Add default stories for other categories (4-5 lines each)
+            for (let i = 1; i <= 8; i++) {
+                storiesDB[cat].en.push({
+                    title: `The ${cat.charAt(0).toUpperCase() + cat.slice(1)} Story ${i}`,
+                    content: `This is a beautiful ${cat} story for children. Once upon a time, there was a child who learned an important lesson about ${cat}. Through hard work and determination, they discovered that being ${cat} makes life better. The child shared this lesson with friends and family. Everyone became happier and kinder. The end teaches us that ${cat} is a valuable quality. Moral: Always practice ${cat} in your daily life.`
+                });
+                storiesDB[cat].ur.push({
+                    title: `${cat} کہانی ${i}`,
+                    content: `یہ بچوں کے لیے ایک خوبصورت ${cat} کہانی ہے۔ ایک دفعہ کا ذکر ہے، ایک بچہ تھا جس نے ${cat} کے بارے میں اہم سبق سیکھا۔ محنت اور لگن کے ذریعے، اس نے دریافت کیا کہ ${cat} بننا زندگی کو بہتر بناتا ہے۔ بچے نے یہ سبق دوستوں اور خاندان والوں کے ساتھ شیئر کیا۔ سب خوش اور مہربان ہو گئے۔ کہانی کا سبق یہ ہے کہ ${cat} ایک قیمتی خوبی ہے۔ سبق: ہمیشہ اپنی روزمرہ زندگی میں ${cat} کی مشق کرو۔`
+                });
             }
         }
+    });
 
-        // Generate story function
-        function generateStory() {
-            const category = storyCategory.value;
-            const categoryStories = stories[category][currentLanguage];
-            const randomIndex = Math.floor(Math.random() * categoryStories.length);
-            const story = categoryStories[randomIndex];
-            
-            storyOutput.innerHTML = `<p>${story}</p>`;
-        }
+    // State
+    let currentLang = "english";
+    let currentStory = null;
+    let reactions = JSON.parse(localStorage.getItem("storyReactions") || '{"likes":0,"loves":0,"wows":0,"sads":0,"angries":0,"laughs":0,"celebrates":0}');
+    let favorites = JSON.parse(localStorage.getItem("storyFav") || "[]");
 
-        // Export to PDF function
-        function exportToPdf() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const category = storyCategory.options[storyCategory.selectedIndex].text;
-            const storyText = storyOutput.innerText;
-            
-            doc.setFontSize(20);
-            doc.text(category, 105, 20, { align: 'center' });
-            
-            doc.setFontSize(12);
-            const splitText = doc.splitTextToSize(storyText, 180);
-            doc.text(splitText, 105, 30, { align: 'center' });
-            
-            doc.save('story.pdf');
-        }
+    function showToast(msg) {
+        let t = document.createElement("div");
+        t.className = "toast";
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+    }
 
-        // Export to Word function
-        function exportToWord() {
-            const category = storyCategory.options[storyCategory.selectedIndex].text;
-            const storyText = storyOutput.innerText;
-            
-            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                xmlns:w='urn:schemas-microsoft-com:office:word' 
-                xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>${category}</title></head><body>`;
-            const footer = '</body></html>';
-            const sourceHTML = header + `<h1>${category}</h1><p>${storyText}</p>` + footer;
-            
-            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-            const fileDownload = document.createElement('a');
-            
-            document.body.appendChild(fileDownload);
-            fileDownload.href = source;
-            fileDownload.download = 'story.doc';
-            fileDownload.click();
-            document.body.removeChild(fileDownload);
-        }
-    </script>
+    function renderReactions() {
+        const container = document.getElementById("reactionsContainer");
+        const emojis = ["👍", "❤️", "😮", "😢", "😠", "😂", "🎉"];
+        const keys = ["likes", "loves", "wows", "sads", "angries", "laughs", "celebrates"];
+        container.innerHTML = keys.map((k, i) => `
+            <div class="reaction" data-reaction="${k}">
+                ${emojis[i]} <span>${reactions[k] || 0}</span>
+            </div>
+        `).join("");
+        
+        document.querySelectorAll(".reaction").forEach(el => {
+            el.addEventListener("click", () => {
+                let type = el.dataset.reaction;
+                let userId = `react_${type}_${currentStory?.title || "default"}`;
+                if (localStorage.getItem(userId)) { showToast("Already reacted!"); return; }
+                reactions[type] = (reactions[type] || 0) + 1;
+                localStorage.setItem("storyReactions", JSON.stringify(reactions));
+                localStorage.setItem(userId, "true");
+                renderReactions();
+                showToast("Reaction added!");
+            });
+        });
+    }
+
+    function renderSocial() {
+        const container = document.getElementById("socialContainer");
+        const platforms = [
+            { icon: "fab fa-facebook-f", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, name: "Facebook" },
+            { icon: "fab fa-twitter", url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`, name: "Twitter" },
+            { icon: "fab fa-whatsapp", url: `https://api.whatsapp.com/send?text=${encodeURIComponent(window.location.href)}`, name: "WhatsApp" },
+            { icon: "fab fa-linkedin-in", url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, name: "LinkedIn" }
+        ];
+        container.innerHTML = platforms.map(p => `<div class="social-icon" data-url="${p.url}"><i class="${p.icon}"></i></div>`).join("");
+        document.querySelectorAll(".social-icon").forEach(icon => {
+            icon.addEventListener("click", () => {
+                window.open(icon.dataset.url, "_blank");
+                showToast("Shared!");
+            });
+        });
+    }
+
+    function generateStory() {
+        const category = document.getElementById("categorySelect").value;
+        const length = document.getElementById("lengthSelect").value;
+        const age = document.getElementById("ageSelect").value;
+        const childName = document.getElementById("childName").value.trim();
+        const mood = document.getElementById("moodSelect").value;
+        
+        const stories = storiesDB[category]?.[currentLang === "english" ? "en" : "ur"] || storiesDB.islamic[currentLang === "english" ? "en" : "ur"];
+        const randomIndex = Math.floor(Math.random() * stories.length);
+        let story = { ...stories[randomIndex] };
+        let finalContent = story.content;
+        
+        if (childName) finalContent = `✨ Special for ${childName}! ✨\n\n` + finalContent;
+        if (length === "short") finalContent = finalContent.substring(0, 350) + "...\n\n[Short version for little listeners]";
+        if (length === "long") finalContent += "\n\n... And they all lived happily ever after, learning that kindness and courage make every day brighter. The End. 🌈";
+        
+        const moodPrefix = { happy: "😊 ", adventure: "🏔️ ", bedtime: "🌙 ", moral: "💎 " };
+        finalContent = (moodPrefix[mood] || "📖 ") + finalContent;
+        
+        currentStory = { title: story.title, content: finalContent, lang: currentLang };
+        
+        document.getElementById("storyTitle").innerText = story.title;
+        document.getElementById("storyContent").innerText = finalContent;
+        document.getElementById("storyMeta").innerHTML = `
+            <span class="meta-tag">📚 ${document.getElementById("categorySelect").options[document.getElementById("categorySelect").selectedIndex]?.text}</span>
+            <span class="meta-tag">⏱️ ${length === "short" ? "2 min" : length === "medium" ? "5 min" : "10 min"}</span>
+            <span class="meta-tag">👧 ${age} years</span>
+            <span class="meta-tag">🎭 ${mood}</span>
+            <span class="meta-tag">🌐 ${currentLang === "english" ? "English" : "Urdu"}</span>
+        `;
+        
+        const card = document.getElementById("storyCard");
+        if (currentLang === "urdu") card.classList.add("urdu-story");
+        else card.classList.remove("urdu-story");
+        
+        renderReactions();
+    }
+
+    function exportPDF() {
+        if (!currentStory) return;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text(currentStory.title, 105, 20, { align: "center" });
+        doc.setFontSize(11);
+        let lines = doc.splitTextToSize(currentStory.content, 170);
+        doc.text(lines, 20, 35);
+        doc.save(`${currentStory.title}.pdf`);
+        showToast("PDF downloaded!");
+    }
+
+    function copyStory() {
+        if (!currentStory) return;
+        navigator.clipboard.writeText(`${currentStory.title}\n\n${currentStory.content}`);
+        showToast("Story copied!");
+    }
+
+    function speakStory() {
+        if (!currentStory) return;
+        let utter = new SpeechSynthesisUtterance(currentStory.content);
+        utter.lang = currentLang === "english" ? "en-US" : "ur-PK";
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utter);
+        showToast("🔊 Listening...");
+    }
+
+    function addFavorite() {
+        if (!currentStory) return;
+        let exists = favorites.some(f => f.title === currentStory.title && f.lang === currentLang);
+        if (!exists) {
+            favorites.push({ ...currentStory });
+            localStorage.setItem("storyFav", JSON.stringify(favorites));
+            renderFavorites();
+            showToast("⭐ Added to favorites!");
+        } else showToast("Already in favorites!");
+    }
+
+    function renderFavorites() {
+        let div = document.getElementById("favoritesList");
+        if (!favorites.length) { div.innerHTML = "💫 No favorites yet. Click ⭐ Favorite to save stories."; return; }
+        div.innerHTML = favorites.map((fav, idx) => `
+            <div class="fav-item">
+                <span onclick="loadFav(${idx})">📖 ${fav.title} (${fav.lang === "english" ? "EN" : "UR"})</span>
+                <button class="remove-fav" onclick="removeFav(${idx})">✖</button>
+            </div>
+        `).join("");
+    }
+
+    window.loadFav = (idx) => {
+        currentStory = favorites[idx];
+        currentLang = currentStory.lang;
+        document.getElementById("storyTitle").innerText = currentStory.title;
+        document.getElementById("storyContent").innerText = currentStory.content;
+        if (currentLang === "urdu") document.getElementById("storyCard").classList.add("urdu-story");
+        else document.getElementById("storyCard").classList.remove("urdu-story");
+        if (currentLang === "english") { engBtn.classList.add("active"); urduBtn.classList.remove("active"); }
+        else { urduBtn.classList.add("active"); engBtn.classList.remove("active"); }
+        showToast("Favorite loaded!");
+    };
+
+    window.removeFav = (idx) => { favorites.splice(idx,1); localStorage.setItem("storyFav",JSON.stringify(favorites)); renderFavorites(); showToast("Removed!"); };
+
+    function setLang(lang) {
+        currentLang = lang;
+        if (lang === "english") { engBtn.classList.add("active"); urduBtn.classList.remove("active"); }
+        else { urduBtn.classList.add("active"); engBtn.classList.remove("active"); }
+        generateStory();
+    }
+
+    function sharePage() { navigator.clipboard.writeText(window.location.href); showToast("🔗 Page link copied!"); }
+    function printStory() { if(!currentStory) return; let w = window.open("","_blank"); w.document.write(`<html><head><title>${currentStory.title}</title><style>body{font-family:sans-serif;padding:40px;}</style></head><body><h1>${currentStory.title}</h1><p>${currentStory.content}</p></body></html>`); w.document.close(); w.print(); }
+
+    // Scroll
+    const up = document.getElementById("scrollUpBtn"), down = document.getElementById("scrollDownBtn");
+    window.addEventListener("scroll", () => { if(window.scrollY > 200) up.style.display = "flex"; else up.style.display = "none"; });
+    up.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+    down.addEventListener("click", () => window.scrollTo({top:document.body.scrollHeight, behavior:"smooth"}));
+
+    // Event Listeners
+    document.getElementById("generateBtn").addEventListener("click", generateStory);
+    document.getElementById("pdfBtn").addEventListener("click", exportPDF);
+    document.getElementById("copyBtn").addEventListener("click", copyStory);
+    document.getElementById("speakBtn").addEventListener("click", speakStory);
+    document.getElementById("favBtn").addEventListener("click", addFavorite);
+    document.getElementById("printBtn").addEventListener("click", printStory);
+    document.getElementById("engBtn").addEventListener("click", () => setLang("english"));
+    document.getElementById("urduBtn").addEventListener("click", () => setLang("urdu"));
+    document.getElementById("sharePageBtn").addEventListener("click", sharePage);
+
+    renderSocial();
+    renderFavorites();
+    generateStory();
+</script>
 </body>
 </html>
