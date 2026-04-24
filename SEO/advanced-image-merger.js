@@ -1,698 +1,704 @@
-// Advanced Image Merger - Enhanced JavaScript
-class AdvancedImageMerger {
-    constructor() {
-        this.images = [null, null];
-        this.canvas = document.getElementById('aimCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.theme = 'light';
-        this.exportFormat = 'png';
-        this.exportQuality = 'original';
-        this.isPreviewMode = false;
-        this.init();
-    }
-
-    init() {
-        this.setupEventListeners();
-        this.setupTheme();
-        this.setupDragAndDrop();
-        this.updateAdvancedValues();
-    }
-
-    setupEventListeners() {
-        // File input events
-        document.getElementById('aimFile1').addEventListener('change', (e) => this.loadImage(e, 0));
-        document.getElementById('aimFile2').addEventListener('change', (e) => this.loadImage(e, 1));
-        
-        // Theme toggle
-        document.getElementById('themeBtn').addEventListener('click', () => this.toggleTheme());
-        
-        // Control events
-        document.getElementById('aimSpacing').addEventListener('input', (e) => {
-            document.getElementById('aimSpacingValue').textContent = e.target.value + 'px';
-        });
-
-        document.getElementById('aimBorder').addEventListener('input', (e) => {
-            document.getElementById('aimBorderValue').textContent = e.target.value + 'px';
-        });
-
-        document.getElementById('aimBorderRadius').addEventListener('input', (e) => {
-            document.getElementById('aimBorderRadiusValue').textContent = e.target.value + 'px';
-        });
-
-        // Advanced settings events
-        document.getElementById('aimBrightness').addEventListener('input', (e) => {
-            document.getElementById('aimBrightnessValue').textContent = e.target.value + '%';
-        });
-
-        document.getElementById('aimContrast').addEventListener('input', (e) => {
-            document.getElementById('aimContrastValue').textContent = e.target.value + '%';
-        });
-
-        document.getElementById('aimSaturation').addEventListener('input', (e) => {
-            document.getElementById('aimSaturationValue').textContent = e.target.value + '%';
-        });
-
-        document.getElementById('aimBlur').addEventListener('input', (e) => {
-            document.getElementById('aimBlurValue').textContent = e.target.value + 'px';
-        });
-
-        document.getElementById('aimOpacity').addEventListener('input', (e) => {
-            document.getElementById('aimOpacityValue').textContent = e.target.value + '%';
-        });
-
-        // AI apply button
-        document.querySelector('.ai-apply-btn').addEventListener('click', () => this.applyAISuggestion());
-    }
-
-    updateAdvancedValues() {
-        // Initialize advanced setting values
-        const advancedControls = ['brightness', 'contrast', 'saturation', 'blur', 'opacity'];
-        advancedControls.forEach(control => {
-            const element = document.getElementById(`aim${control.charAt(0).toUpperCase() + control.slice(1)}`);
-            const valueElement = document.getElementById(`aim${control.charAt(0).toUpperCase() + control.slice(1)}Value`);
-            if (element && valueElement) {
-                valueElement.textContent = element.value + (control === 'blur' ? 'px' : '%');
-            }
-        });
-    }
-
-    setupTheme() {
-        const savedTheme = localStorage.getItem('aim-theme') || 'light';
-        this.setTheme(savedTheme);
-    }
-
-    toggleTheme() {
-        this.theme = this.theme === 'light' ? 'dark' : 'light';
-        this.setTheme(this.theme);
-    }
-
-    setTheme(theme) {
-        this.theme = theme;
-        document.body.setAttribute('data-theme', theme);
-        localStorage.setItem('aim-theme', theme);
-        
-        const themeBtn = document.getElementById('themeBtn');
-        themeBtn.innerHTML = theme === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-    }
-
-    setupDragAndDrop() {
-        const uploadAreas = ['aimUploadArea1', 'aimUploadArea2'];
-        
-        uploadAreas.forEach((areaId, index) => {
-            const area = document.getElementById(areaId);
-            
-            area.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                area.style.borderColor = '#4361ee';
-                area.style.background = 'rgba(67, 97, 238, 0.1)';
-                area.style.transform = 'scale(1.02)';
-            });
-
-            area.addEventListener('dragleave', () => {
-                area.style.borderColor = '';
-                area.style.background = '';
-                area.style.transform = '';
-            });
-
-            area.addEventListener('drop', (e) => {
-                e.preventDefault();
-                area.style.borderColor = '';
-                area.style.background = '';
-                area.style.transform = '';
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0 && files[0].type.startsWith('image/')) {
-                    this.handleFileSelect(files[0], index);
-                }
-            });
-        });
-    }
-
-    loadImage(event, index) {
-        const file = event.target.files[0];
-        if (file) {
-            this.handleFileSelect(file, index);
-        }
-    }
-
-    handleFileSelect(file, index) {
-        const reader = new FileReader();
-        
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                this.images[index] = img;
-                this.displayPreview(img, index);
-                this.showNotification('Image loaded successfully!', 'success');
-                
-                // Auto preview if both images are loaded
-                if (this.images[0] && this.images[1]) {
-                    setTimeout(() => this.previewMerge(), 500);
-                }
-            };
-            img.src = e.target.result;
-        };
-        
-        reader.readAsDataURL(file);
-    }
-
-    displayPreview(img, index) {
-        const preview = document.getElementById(`aimPreview${index + 1}`);
-        preview.innerHTML = '';
-        
-        const previewImg = document.createElement('img');
-        previewImg.src = img.src;
-        previewImg.style.maxWidth = '100%';
-        previewImg.style.maxHeight = '200px';
-        previewImg.style.borderRadius = '8px';
-        preview.appendChild(previewImg);
-    }
-
-    applyAISuggestion() {
-        // Apply AI suggested settings
-        document.getElementById('aimLayout').value = 'collage';
-        document.getElementById('aimFilter').value = 'vintage';
-        document.getElementById('aimBgColor').value = '#f0f8ff';
-        document.getElementById('aimBorderRadius').value = '15';
-        document.getElementById('aimBorderRadiusValue').textContent = '15px';
-        
-        this.showNotification('AI settings applied!', 'success');
-        
-        // Trigger merge if both images are loaded
-        if (this.images[0] && this.images[1]) {
-            setTimeout(() => this.mergeImages(), 1000);
-        }
-    }
-
-    mergeImages() {
-        if (!this.images[0] || !this.images[1]) {
-            this.showNotification('Please upload both images first!', 'error');
-            return;
-        }
-
-        this.isPreviewMode = false;
-        this.processMerge();
-    }
-
-    previewMerge() {
-        if (!this.images[0] || !this.images[1]) {
-            this.showNotification('Please upload both images first!', 'error');
-            return;
-        }
-
-        this.isPreviewMode = true;
-        this.processMerge();
-        this.showNotification('Preview generated!', 'info');
-    }
-
-    processMerge() {
-        const layout = document.getElementById('aimLayout').value;
-        const spacing = parseInt(document.getElementById('aimSpacing').value);
-        const bgColor = document.getElementById('aimBgColor').value;
-        const border = parseInt(document.getElementById('aimBorder').value);
-        const borderRadius = parseInt(document.getElementById('aimBorderRadius').value);
-        
-        // Advanced settings
-        const brightness = parseInt(document.getElementById('aimBrightness').value) / 100;
-        const contrast = parseInt(document.getElementById('aimContrast').value) / 100;
-        const saturation = parseInt(document.getElementById('aimSaturation').value) / 100;
-        const blur = parseInt(document.getElementById('aimBlur').value);
-        const opacity = parseInt(document.getElementById('aimOpacity').value) / 100;
-
-        // Calculate canvas size based on layout
-        const canvasSize = this.calculateCanvasSize(layout, spacing);
-        this.canvas.width = canvasSize.width;
-        this.canvas.height = canvasSize.height;
-
-        // Clear canvas with background
-        this.ctx.fillStyle = bgColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Apply layout-specific merging
-        this.applyLayout(layout, spacing, border, borderRadius, brightness, contrast, saturation, blur, opacity);
-
-        // Add captions if provided
-        this.addCaptions();
-
-        // Apply filter
-        this.applyFilter();
-
-        // Enable download button
-        document.getElementById('aimDownloadBtn').disabled = false;
-
-        if (!this.isPreviewMode) {
-            this.showNotification('Images merged successfully!', 'success');
-        }
-    }
-
-    calculateCanvasSize(layout, spacing) {
-        const img1 = this.images[0];
-        const img2 = this.images[1];
-        
-        switch(layout) {
-            case 'horizontal':
-                return {
-                    width: img1.width + img2.width + spacing * 3,
-                    height: Math.max(img1.height, img2.height) + spacing * 2
-                };
-            case 'vertical':
-                return {
-                    width: Math.max(img1.width, img2.width) + spacing * 2,
-                    height: img1.height + img2.height + spacing * 3
-                };
-            case 'diagonal':
-                return {
-                    width: Math.max(img1.width, img2.width) * 1.5 + spacing * 2,
-                    height: Math.max(img1.height, img2.height) * 1.5 + spacing * 2
-                };
-            case 'collage':
-                return {
-                    width: Math.max(img1.width, img2.width) * 1.2 + spacing * 2,
-                    height: Math.max(img1.height, img2.height) * 1.2 + spacing * 2
-                };
-            case 'circle':
-                const maxSize = Math.max(img1.width, img1.height, img2.width, img2.height);
-                return {
-                    width: maxSize * 1.5 + spacing * 2,
-                    height: maxSize * 1.5 + spacing * 2
-                };
-            case 'overlay':
-                return {
-                    width: Math.max(img1.width, img2.width) + spacing * 2,
-                    height: Math.max(img1.height, img2.height) + spacing * 2
-                };
-            default:
-                return {
-                    width: img1.width + img2.width + spacing * 3,
-                    height: Math.max(img1.height, img2.height) + spacing * 2
-                };
-        }
-    }
-
-    applyLayout(layout, spacing, border, borderRadius, brightness, contrast, saturation, blur, opacity) {
-        const img1 = this.images[0];
-        const img2 = this.images[1];
-
-        // Save current context state
-        this.ctx.save();
-
-        // Apply advanced effects
-        this.applyAdvancedEffects(brightness, contrast, saturation, blur, opacity);
-
-        switch(layout) {
-            case 'horizontal':
-                this.drawHorizontalLayout(img1, img2, spacing, border, borderRadius);
-                break;
-            case 'vertical':
-                this.drawVerticalLayout(img1, img2, spacing, border, borderRadius);
-                break;
-            case 'diagonal':
-                this.drawDiagonalLayout(img1, img2, spacing, border, borderRadius);
-                break;
-            case 'collage':
-                this.drawCollageLayout(img1, img2, spacing, border, borderRadius);
-                break;
-            case 'circle':
-                this.drawCircleLayout(img1, img2, spacing, border);
-                break;
-            case 'polaroid':
-                this.drawPolaroidLayout(img1, img2, spacing, border);
-                break;
-            case 'overlay':
-                this.drawOverlayLayout(img1, img2, spacing, border, borderRadius, opacity);
-                break;
-            case 'mirror':
-                this.drawMirrorLayout(img1, img2, spacing, border, borderRadius);
-                break;
-            case 'split':
-                this.drawSplitLayout(img1, img2, spacing, border);
-                break;
-            case 'mosaic':
-                this.drawMosaicLayout(img1, img2, spacing, border);
-                break;
-        }
-
-        // Restore context state
-        this.ctx.restore();
-    }
-
-    drawHorizontalLayout(img1, img2, spacing, border, borderRadius) {
-        const x1 = spacing;
-        const y1 = (this.canvas.height - img1.height) / 2;
-        const x2 = x1 + img1.width + spacing;
-        const y2 = (this.canvas.height - img2.height) / 2;
-
-        this.drawImageWithStyle(img1, x1, y1, border, borderRadius);
-        this.drawImageWithStyle(img2, x2, y2, border, borderRadius);
-    }
-
-    drawVerticalLayout(img1, img2, spacing, border, borderRadius) {
-        const x1 = (this.canvas.width - img1.width) / 2;
-        const y1 = spacing;
-        const x2 = (this.canvas.width - img2.width) / 2;
-        const y2 = y1 + img1.height + spacing;
-
-        this.drawImageWithStyle(img1, x1, y1, border, borderRadius);
-        this.drawImageWithStyle(img2, x2, y2, border, borderRadius);
-    }
-
-    drawDiagonalLayout(img1, img2, spacing, border, borderRadius) {
-        const x1 = spacing;
-        const y1 = spacing;
-        const x2 = this.canvas.width - img2.width - spacing;
-        const y2 = this.canvas.height - img2.height - spacing;
-
-        this.drawImageWithStyle(img1, x1, y1, border, borderRadius);
-        this.drawImageWithStyle(img2, x2, y2, border, borderRadius);
-    }
-
-    drawCollageLayout(img1, img2, spacing, border, borderRadius) {
-        const angle1 = -5 * Math.PI / 180;
-        const angle2 = 5 * Math.PI / 180;
-
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        // Draw first image rotated
-        this.ctx.save();
-        this.ctx.translate(centerX - img1.width / 3, centerY - img1.height / 3);
-        this.ctx.rotate(angle1);
-        this.drawImageWithStyle(img1, -img1.width / 2, -img1.height / 2, border, borderRadius);
-        this.ctx.restore();
-
-        // Draw second image rotated
-        this.ctx.save();
-        this.ctx.translate(centerX + img2.width / 3, centerY + img2.height / 3);
-        this.ctx.rotate(angle2);
-        this.drawImageWithStyle(img2, -img2.width / 2, -img2.height / 2, border, borderRadius);
-        this.ctx.restore();
-    }
-
-    drawCircleLayout(img1, img2, spacing, border) {
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-        const radius = Math.min(this.canvas.width, this.canvas.height) / 3;
-
-        // Draw circular mask for first image
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.arc(centerX - radius / 2, centerY, radius, 0, Math.PI * 2);
-        this.ctx.closePath();
-        this.ctx.clip();
-        this.ctx.drawImage(img1, centerX - radius - radius / 2, centerY - radius, radius * 2, radius * 2);
-        this.ctx.restore();
-
-        // Draw circular mask for second image
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.arc(centerX + radius / 2, centerY, radius, 0, Math.PI * 2);
-        this.ctx.closePath();
-        this.ctx.clip();
-        this.ctx.drawImage(img2, centerX - radius + radius / 2, centerY - radius, radius * 2, radius * 2);
-        this.ctx.restore();
-
-        // Draw borders
-        if (border > 0) {
-            this.ctx.strokeStyle = '#ffffff';
-            this.ctx.lineWidth = border;
-            this.ctx.beginPath();
-            this.ctx.arc(centerX - radius / 2, centerY, radius, 0, Math.PI * 2);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.arc(centerX + radius / 2, centerY, radius, 0, Math.PI * 2);
-            this.ctx.stroke();
-        }
-    }
-
-    drawOverlayLayout(img1, img2, spacing, border, borderRadius, opacity) {
-        const x = spacing;
-        const y = spacing;
-        const width = this.canvas.width - spacing * 2;
-        const height = this.canvas.height - spacing * 2;
-
-        // Draw base image
-        this.drawImageWithStyle(img1, x, y, border, borderRadius);
-
-        // Draw overlay image with reduced opacity
-        this.ctx.globalAlpha = opacity;
-        this.drawImageWithStyle(img2, x + width * 0.1, y + height * 0.1, border, borderRadius, width * 0.8, height * 0.8);
-        this.ctx.globalAlpha = 1.0;
-    }
-
-    drawImageWithStyle(img, x, y, border, borderRadius, customWidth, customHeight) {
-        const width = customWidth || img.width;
-        const height = customHeight || img.height;
-
-        if (borderRadius > 0) {
-            this.ctx.save();
-            this.ctx.beginPath();
-            this.ctx.moveTo(x + borderRadius, y);
-            this.ctx.arcTo(x + width, y, x + width, y + height, borderRadius);
-            this.ctx.arcTo(x + width, y + height, x, y + height, borderRadius);
-            this.ctx.arcTo(x, y + height, x, y, borderRadius);
-            this.ctx.arcTo(x, y, x + width, y, borderRadius);
-            this.ctx.closePath();
-            this.ctx.clip();
-        }
-
-        this.ctx.drawImage(img, x, y, width, height);
-
-        if (borderRadius > 0) {
-            this.ctx.restore();
-        }
-
-        if (border > 0) {
-            this.ctx.strokeStyle = '#ffffff';
-            this.ctx.lineWidth = border;
-            this.ctx.strokeRect(x, y, width, height);
-        }
-    }
-
-    applyAdvancedEffects(brightness, contrast, saturation, blur, opacity) {
-        // Apply CSS filters to canvas
-        let filter = '';
-        
-        if (brightness !== 1) filter += `brightness(${brightness}) `;
-        if (contrast !== 1) filter += `contrast(${contrast}) `;
-        if (saturation !== 1) filter += `saturate(${saturation}) `;
-        if (blur > 0) filter += `blur(${blur}px) `;
-        
-        if (filter) {
-            this.canvas.style.filter = filter;
-        }
-    }
-
-    applyFilter() {
-        const filter = document.getElementById('aimFilter').value;
-        let filterValue = '';
-
-        switch(filter) {
-            case 'vintage':
-                filterValue = 'sepia(0.5) contrast(1.2) brightness(0.9)';
-                break;
-            case 'modern':
-                filterValue = 'contrast(1.3) saturate(1.2)';
-                break;
-            case 'artistic':
-                filterValue = 'hue-rotate(90deg) saturate(1.5)';
-                break;
-            case 'grayscale':
-                filterValue = 'grayscale(1)';
-                break;
-            case 'sepia':
-                filterValue = 'sepia(1)';
-                break;
-            case 'warm':
-                filterValue = 'sepia(0.3) saturate(1.4) brightness(1.1)';
-                break;
-            case 'cool':
-                filterValue = 'hue-rotate(180deg) saturate(0.8) brightness(1.1)';
-                break;
-            case 'dramatic':
-                filterValue = 'contrast(1.8) brightness(0.8)';
-                break;
-            case 'pastel':
-                filterValue = 'saturate(0.6) brightness(1.2)';
-                break;
-        }
-
-        if (filterValue) {
-            this.canvas.style.filter += ' ' + filterValue;
-        }
-    }
-
-    addCaptions() {
-        const caption1 = document.getElementById('aimCaption1').value.trim();
-        const caption2 = document.getElementById('aimCaption2').value.trim();
-
-        if (caption1) {
-            this.addTextToCanvas(caption1, 50, this.canvas.height - 30, 'left');
-        }
-
-        if (caption2) {
-            this.addTextToCanvas(caption2, this.canvas.width - 50, this.canvas.height - 30, 'right');
-        }
-    }
-
-    addTextToCanvas(text, x, y, align) {
-        this.ctx.save();
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.strokeStyle = '#000000';
-        this.ctx.lineWidth = 3;
-        this.ctx.textAlign = align;
-        this.ctx.textBaseline = 'bottom';
-
-        // Text shadow
-        this.ctx.strokeText(text, x, y);
-        this.ctx.fillText(text, x, y);
-        this.ctx.restore();
-    }
-
-    downloadImage() {
-        if (!this.images[0] || !this.images[1]) {
-            this.showNotification('No merged image to download!', 'error');
-            return;
-        }
-
-        const link = document.createElement('a');
-        let mimeType = 'image/png';
-        let quality = 1.0;
-
-        switch(this.exportFormat) {
-            case 'jpg':
-                mimeType = 'image/jpeg';
-                quality = this.exportQuality === 'high' ? 1.0 : 0.7;
-                break;
-            case 'webp':
-                mimeType = 'image/webp';
-                quality = this.exportQuality === 'high' ? 1.0 : 0.8;
-                break;
-        }
-
-        link.download = `merged-image-${new Date().getTime()}.${this.exportFormat}`;
-        link.href = this.canvas.toDataURL(mimeType, quality);
-        link.click();
-        
-        this.showNotification(`Image downloaded as ${this.exportFormat.toUpperCase()}!`, 'success');
-    }
-
-    clearAll() {
-        this.images = [null, null];
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Clear previews
-        document.getElementById('aimPreview1').innerHTML = '';
-        document.getElementById('aimPreview2').innerHTML = '';
-        
-        // Clear file inputs
-        document.getElementById('aimFile1').value = '';
-        document.getElementById('aimFile2').value = '';
-        
-        // Clear captions
-        document.getElementById('aimCaption1').value = '';
-        document.getElementById('aimCaption2').value = '';
-        
-        // Reset controls
-        document.getElementById('aimDownloadBtn').disabled = true;
-        
-        this.showNotification('All cleared! Ready for new images.', 'info');
-    }
-
-    showNotification(message, type = 'info') {
-        // Remove existing notifications
-        const existingNotifications = document.querySelectorAll('.aim-notification');
-        existingNotifications.forEach(notification => notification.remove());
-
-        // Create new notification
-        const notification = document.createElement('div');
-        notification.className = `aim-notification ${type}`;
-        
-        const icon = type === 'success' ? 'fa-check-circle' : 
-                    type === 'error' ? 'fa-exclamation-circle' : 
-                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-        
-        notification.innerHTML = `
-            <i class="fas ${icon}"></i>
-            <span>${message}</span>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 3000);
-    }
-}
-
-// Global functions for HTML onclick events
-let aimInstance;
-
-function aimMergeImages() {
-    if (!aimInstance) aimInstance = new AdvancedImageMerger();
-    aimInstance.mergeImages();
-}
-
-function aimPreviewMerge() {
-    if (!aimInstance) aimInstance = new AdvancedImageMerger();
-    aimInstance.previewMerge();
-}
-
-function aimDownloadImage() {
-    if (!aimInstance) aimInstance = new AdvancedImageMerger();
-    aimInstance.downloadImage();
-}
-
-function aimClearAll() {
-    if (!aimInstance) aimInstance = new AdvancedImageMerger();
-    aimInstance.clearAll();
-}
-
-function setExportFormat(format) {
-    if (!aimInstance) aimInstance = new AdvancedImageMerger();
-    aimInstance.exportFormat = format;
+/* ========================================
+   Advanced Image Merger - Complete JavaScript
+   MagicRills.com
+   ======================================== */
+
+// ========== Global Variables ==========
+let images = [null, null];
+let canvas = document.getElementById("finalCanvas");
+let ctx = canvas.getContext("2d");
+let textStyles = {
+    bold1: false, italic1: false, underline1: false,
+    bold2: false, italic2: false, underline2: false
+};
+let captionPositions = {1: "bottom-center", 2: "bottom-center"};
+
+// Tool ID for database tracking
+const TOOL_ID = "image-merger";
+const TOOL_NAME = "Advanced Image Merger";
+
+// ========== DOM Elements ==========
+const imageUpload1 = document.getElementById("imageUpload1");
+const imageUpload2 = document.getElementById("imageUpload2");
+const preview1 = document.getElementById("preview1");
+const preview2 = document.getElementById("preview2");
+const mergeBtn = document.getElementById("mergeBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const clearBtn = document.getElementById("clearBtn");
+const spacingInput = document.getElementById("spacing");
+const spacingValue = document.getElementById("spacingValue");
+
+// ========== Toast Notification System ==========
+function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
     
-    // Update active button
-    document.querySelectorAll('.aim-export-btn[data-format]').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.format === format) {
-            btn.classList.add('active');
-        }
-    });
+    let icon = "";
+    if (type === "success") icon = '<i class="fas fa-check-circle"></i>';
+    else if (type === "error") icon = '<i class="fas fa-exclamation-circle"></i>';
+    else if (type === "info") icon = '<i class="fas fa-info-circle"></i>';
+    
+    toast.innerHTML = `
+        ${icon}
+        <div class="toast-content">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = "slideInRight 0.3s ease reverse";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-function setExportQuality(quality) {
-    if (!aimInstance) aimInstance = new AdvancedImageMerger();
-    aimInstance.exportQuality = quality;
-    
-    // Update active button
-    document.querySelectorAll('.aim-export-btn[data-format]').forEach(btn => {
-        if (['high', 'medium', 'original'].includes(btn.dataset.format)) {
-            btn.classList.remove('active');
-            if (btn.dataset.format === quality) {
-                btn.classList.add('active');
-            }
-        }
-    });
-}
+// ========== Scroll Buttons ==========
+const scrollTopBtn = document.getElementById("scrollTopBtn");
+const scrollBottomBtn = document.getElementById("scrollBottomBtn");
 
-function toggleAdvancedSettings() {
-    const content = document.getElementById('advancedSettings');
-    const icon = document.getElementById('advancedIcon');
-    
-    if (content.style.display === 'none') {
-        content.style.display = 'grid';
-        icon.className = 'fas fa-chevron-up';
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 200) {
+        scrollTopBtn.classList.add("visible");
     } else {
-        content.style.display = 'none';
-        icon.className = 'fas fa-chevron-down';
+        scrollTopBtn.classList.remove("visible");
+    }
+});
+
+scrollTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    showToast("Scrolled to top", "info");
+});
+
+scrollBottomBtn.addEventListener("click", () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    showToast("Scrolled to bottom", "info");
+});
+
+// ========== Copy Page Link ==========
+document.getElementById("copyPageLink")?.addEventListener("click", async () => {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast("Link copied to clipboard!", "success");
+        
+        // Track share
+        trackShare("copy-link", window.location.href);
+    } catch (err) {
+        showToast("Failed to copy link", "error");
+    }
+});
+
+// ========== Social Share Buttons ==========
+document.querySelectorAll(".social-icon[data-platform]").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const platform = btn.dataset.platform;
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent("Advanced Image Merger - Merge images with captions");
+        
+        let shareUrl = "";
+        switch(platform) {
+            case "facebook":
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                break;
+            case "twitter":
+                shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+                break;
+            case "linkedin":
+                shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+                break;
+            case "whatsapp":
+                shareUrl = `https://wa.me/?text=${title}%20${url}`;
+                break;
+            case "email":
+                shareUrl = `mailto:?subject=${title}&body=${url}`;
+                break;
+        }
+        
+        if (shareUrl) {
+            window.open(shareUrl, "_blank", "width=600,height=400");
+            trackShare(platform, window.location.href);
+            showToast(`Shared on ${platform}!`, "success");
+        }
+    });
+});
+
+// ========== Track Share Function ==========
+async function trackShare(platform, pageUrl) {
+    try {
+        const response = await fetch("/api/share-tool", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                tool_id: TOOL_ID,
+                platform: platform,
+                page_url: pageUrl
+            })
+        });
+        
+        if (!response.ok) {
+            console.error("Share tracking failed");
+        }
+    } catch (error) {
+        console.error("Share tracking error:", error);
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    aimInstance = new AdvancedImageMerger();
+// ========== Track Usage ==========
+async function trackUsage() {
+    try {
+        const response = await fetch("/api/track-usage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tool_id: TOOL_ID, tool_name: TOOL_NAME })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("usageCount").textContent = data.total_uses || "0";
+        }
+    } catch (error) {
+        console.error("Usage tracking error:", error);
+    }
+}
+
+// ========== Load Usage Count ==========
+async function loadUsageCount() {
+    try {
+        const response = await fetch(`/api/tool-stats/${TOOL_ID}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("usageCount").textContent = data.usage_count || "0";
+        }
+    } catch (error) {
+        console.error("Load usage error:", error);
+    }
+}
+
+// ========== Load Reactions ==========
+async function loadReactions() {
+    try {
+        const response = await fetch(`/api/get-reactions/${TOOL_ID}`);
+        if (response.ok) {
+            const data = await response.json();
+            for (const [reaction, count] of Object.entries(data)) {
+                const countSpan = document.getElementById(`${reaction}Count`);
+                if (countSpan) countSpan.textContent = count;
+            }
+        }
+    } catch (error) {
+        console.error("Load reactions error:", error);
+    }
+}
+
+// ========== Add Reaction ==========
+async function addReaction(reactionType) {
+    try {
+        const response = await fetch("/api/add-reaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                tool_id: TOOL_ID,
+                reaction_type: reactionType
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const countSpan = document.getElementById(`${reactionType}Count`);
+            if (countSpan) countSpan.textContent = data.count;
+            showToast(`Reaction added! 👍`, "success");
+        } else if (response.status === 409) {
+            showToast(`You already reacted with ${reactionType}!`, "info");
+        }
+    } catch (error) {
+        console.error("Add reaction error:", error);
+    }
+}
+
+// ========== Reaction Button Listeners ==========
+document.querySelectorAll(".reaction-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const reaction = btn.dataset.reaction;
+        if (reaction) addReaction(reaction);
+    });
 });
+
+// ========== Image Load Functions ==========
+function loadImage(e, index) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    const preview = document.getElementById(`preview${index + 1}`);
+    preview.innerHTML = '<div class="loading"></div><span>Loading...</span>';
+    
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            images[index] = img;
+            preview.innerHTML = "";
+            const previewImg = document.createElement("img");
+            previewImg.src = event.target.result;
+            preview.appendChild(previewImg);
+            showToast(`Image ${index + 1} loaded successfully!`, "success");
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+imageUpload1.addEventListener("change", (e) => loadImage(e, 0));
+imageUpload2.addEventListener("change", (e) => loadImage(e, 1));
+
+// ========== Style Toggle ==========
+function toggleStyle(styleId) {
+    textStyles[styleId] = !textStyles[styleId];
+    const btn = document.getElementById(styleId);
+    if (btn) btn.classList.toggle("active");
+}
+
+document.querySelectorAll(".style-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const styleId = btn.id;
+        if (styleId) toggleStyle(styleId);
+    });
+});
+
+// ========== Caption Position ==========
+function setCaptionPos(btn, imgNum) {
+    const pos = btn.getAttribute("data-pos");
+    captionPositions[imgNum] = pos;
+    
+    const container = btn.parentElement;
+    container.querySelectorAll(".pos-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+}
+
+document.querySelectorAll(".caption-position").forEach(container => {
+    const imgNum = container.getAttribute("data-img");
+    container.querySelectorAll(".pos-btn").forEach(btn => {
+        btn.addEventListener("click", () => setCaptionPos(btn, imgNum));
+    });
+});
+
+// ========== Spacing Display ==========
+spacingInput.addEventListener("input", () => {
+    spacingValue.textContent = spacingInput.value + "px";
+});
+
+// ========== Apply Crop ==========
+function applyCrop(img, ratio) {
+    if (ratio === "none") return img;
+    
+    const ratios = {"1:1": 1, "4:3": 4/3, "16:9": 16/9, "3:4": 3/4};
+    const targetRatio = ratios[ratio];
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const imgRatio = img.width / img.height;
+    
+    let sx = 0, sy = 0, sw = img.width, sh = img.height;
+    
+    if ((ratio === "3:4" && imgRatio > targetRatio) || (ratio !== "3:4" && imgRatio > targetRatio)) {
+        sw = img.height * targetRatio;
+        sx = (img.width - sw) / 2;
+    } else if ((ratio === "3:4" && imgRatio < targetRatio) || (ratio !== "3:4" && imgRatio < targetRatio)) {
+        sh = img.width / targetRatio;
+        sy = (img.height - sh) / 2;
+    }
+    
+    canvas.width = ratio === "3:4" ? img.height * targetRatio : img.width;
+    canvas.height = ratio === "3:4" ? img.height : img.width / targetRatio;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    
+    const newImg = new Image();
+    newImg.src = canvas.toDataURL();
+    return newImg;
+}
+
+// ========== Resize Image ==========
+function resizeImage(img, width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, width, height);
+    const newImg = new Image();
+    newImg.src = canvas.toDataURL();
+    return newImg;
+}
+
+// ========== Apply Filter ==========
+function applyFilter(ctx, canvas, filter) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    if (filter === "grayscale") {
+        for (let i = 0; i < data.length; i += 4) {
+            const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+            data[i] = avg;
+            data[i + 1] = avg;
+            data[i + 2] = avg;
+        }
+    } else if (filter === "sepia") {
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+            data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+            data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+        }
+    } else if (filter === "brightness") {
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, data[i] * 1.2);
+            data[i + 1] = Math.min(255, data[i + 1] * 1.2);
+            data[i + 2] = Math.min(255, data[i + 2] * 1.2);
+        }
+    } else if (filter === "contrast") {
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, 128 + (data[i] - 128) * 1.5);
+            data[i + 1] = Math.min(255, 128 + (data[i + 1] - 128) * 1.5);
+            data[i + 2] = Math.min(255, 128 + (data[i + 2] - 128) * 1.5);
+        }
+    } else if (filter === "invert") {
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = 255 - data[i];
+            data[i + 1] = 255 - data[i + 1];
+            data[i + 2] = 255 - data[i + 2];
+        }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+}
+
+// ========== Draw Image with Border ==========
+function drawImageWithBorder(img, filter, borderStyle, borderColor, x, y) {
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCanvas.width = img.width;
+    tempCanvas.height = img.height;
+    tempCtx.drawImage(img, 0, 0);
+    
+    if (filter !== "none") {
+        applyFilter(tempCtx, tempCanvas, filter);
+    }
+    
+    if (borderStyle !== "none") {
+        tempCtx.strokeStyle = borderColor;
+        tempCtx.lineWidth = 3;
+        
+        if (borderStyle === "dashed") {
+            tempCtx.setLineDash([8, 8]);
+        } else if (borderStyle === "shadow") {
+            tempCtx.shadowColor = "rgba(0,0,0,0.5)";
+            tempCtx.shadowBlur = 10;
+            tempCtx.shadowOffsetX = 5;
+            tempCtx.shadowOffsetY = 5;
+        }
+        
+        tempCtx.strokeRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        if (borderStyle === "shadow") {
+            tempCtx.shadowColor = "transparent";
+        }
+    }
+    
+    ctx.drawImage(tempCanvas, x, y);
+}
+
+// ========== Draw Caption ==========
+function drawCaption(imgNum, imgWidth, imgHeight, offsetX, offsetY) {
+    const caption = document.getElementById(`caption${imgNum}`).value;
+    if (!caption) return;
+    
+    const fontFamily = document.getElementById(`font${imgNum}`).value;
+    const fontSize = parseInt(document.getElementById(`size${imgNum}`).value);
+    const color = document.getElementById(`color${imgNum}`).value;
+    const textBgColor = document.getElementById(`textBgColor${imgNum}`).value;
+    const textBgOpacity = parseFloat(document.getElementById(`textBgOpacity${imgNum}`)?.value || 0.5);
+    const bold = textStyles[`bold${imgNum}`];
+    const italic = textStyles[`italic${imgNum}`];
+    const underline = textStyles[`underline${imgNum}`];
+    const pos = captionPositions[imgNum];
+    
+    let fontStyle = "";
+    if (bold) fontStyle += "bold ";
+    if (italic) fontStyle += "italic ";
+    fontStyle += `${fontSize}px ${fontFamily}`;
+    
+    ctx.font = fontStyle;
+    ctx.fillStyle = color;
+    
+    const textMetrics = ctx.measureText(caption);
+    const textWidth = textMetrics.width;
+    
+    let x, y, textAlign, textBaseline;
+    
+    switch(pos) {
+        case "top-left":
+            x = offsetX + 15;
+            y = offsetY + fontSize + 10;
+            textAlign = "left";
+            textBaseline = "top";
+            break;
+        case "top-center":
+            x = offsetX + imgWidth / 2;
+            y = offsetY + fontSize + 10;
+            textAlign = "center";
+            textBaseline = "top";
+            break;
+        case "top-right":
+            x = offsetX + imgWidth - 15;
+            y = offsetY + fontSize + 10;
+            textAlign = "right";
+            textBaseline = "top";
+            break;
+        case "middle-left":
+            x = offsetX + 15;
+            y = offsetY + imgHeight / 2;
+            textAlign = "left";
+            textBaseline = "middle";
+            break;
+        case "middle-right":
+            x = offsetX + imgWidth - 15;
+            y = offsetY + imgHeight / 2;
+            textAlign = "right";
+            textBaseline = "middle";
+            break;
+        case "bottom-left":
+            x = offsetX + 15;
+            y = offsetY + imgHeight - 10;
+            textAlign = "left";
+            textBaseline = "bottom";
+            break;
+        case "bottom-center":
+            x = offsetX + imgWidth / 2;
+            y = offsetY + imgHeight - 10;
+            textAlign = "center";
+            textBaseline = "bottom";
+            break;
+        case "bottom-right":
+            x = offsetX + imgWidth - 15;
+            y = offsetY + imgHeight - 10;
+            textAlign = "right";
+            textBaseline = "bottom";
+            break;
+        default:
+            x = offsetX + imgWidth / 2;
+            y = offsetY + imgHeight - 10;
+            textAlign = "center";
+            textBaseline = "bottom";
+    }
+    
+    // Draw background with opacity
+    if (textBgColor !== "#ffffff00") {
+        const padding = 8;
+        const bgHeight = fontSize + padding * 2;
+        let bgY = y;
+        
+        if (textBaseline === "top") {
+            bgY = y - padding;
+        } else if (textBaseline === "middle") {
+            bgY = y - fontSize/2 - padding;
+        } else if (textBaseline === "bottom") {
+            bgY = y - fontSize - padding;
+        }
+        
+        ctx.save();
+        ctx.globalAlpha = textBgOpacity;
+        ctx.fillStyle = textBgColor;
+        
+        if (textAlign === "left") {
+            ctx.fillRect(x - padding, bgY, textWidth + padding * 2, bgHeight);
+        } else if (textAlign === "center") {
+            ctx.fillRect(x - textWidth/2 - padding, bgY, textWidth + padding * 2, bgHeight);
+        } else if (textAlign === "right") {
+            ctx.fillRect(x - textWidth - padding, bgY, textWidth + padding * 2, bgHeight);
+        }
+        
+        ctx.restore();
+    }
+    
+    ctx.textAlign = textAlign;
+    ctx.textBaseline = textBaseline;
+    ctx.fillStyle = color;
+    ctx.fillText(caption, x, y);
+    
+    // Draw underline
+    if (underline) {
+        const underlineY = y + 3;
+        let underlineX1 = x, underlineX2 = x;
+        
+        if (textAlign === "left") {
+            underlineX1 = x;
+            underlineX2 = x + textWidth;
+        } else if (textAlign === "center") {
+            underlineX1 = x - textWidth/2;
+            underlineX2 = x + textWidth/2;
+        } else if (textAlign === "right") {
+            underlineX1 = x - textWidth;
+            underlineX2 = x;
+        }
+        
+        ctx.beginPath();
+        ctx.moveTo(underlineX1, underlineY);
+        ctx.lineTo(underlineX2, underlineY);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+}
+
+// ========== Merge Images ==========
+async function mergeImages() {
+    if (!images[0] || !images[1]) {
+        showToast("Please upload both images first!", "error");
+        return;
+    }
+    
+    // Track usage when merge is performed
+    await trackUsage();
+    
+    const layout = document.querySelector("input[name='layout']:checked").value;
+    const ratio = document.getElementById("cropRatio").value;
+    const bgColor = document.getElementById("bgColor").value;
+    const filter = document.getElementById("imageFilter").value;
+    const borderStyle = document.getElementById("imageBorder").value;
+    const borderColor = document.getElementById("borderColor").value;
+    const spacing = parseInt(document.getElementById("spacing").value);
+    const equalSize = document.getElementById("equalSize").checked;
+    
+    let img1 = applyCrop(images[0], ratio);
+    let img2 = applyCrop(images[1], ratio);
+    let width, height;
+    
+    if (equalSize) {
+        const maxWidth = Math.max(img1.width, img2.width);
+        const maxHeight = Math.max(img1.height, img2.height);
+        img1 = resizeImage(img1, maxWidth, maxHeight);
+        img2 = resizeImage(img2, maxWidth, maxHeight);
+    }
+    
+    if (layout === "horizontal") {
+        width = img1.width + img2.width + spacing;
+        height = Math.max(img1.height, img2.height);
+    } else {
+        width = Math.max(img1.width, img2.width);
+        height = img1.height + img2.height + spacing;
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
+    
+    if (layout === "horizontal") {
+        drawImageWithBorder(img1, filter, borderStyle, borderColor, 0, (height - img1.height) / 2);
+        drawImageWithBorder(img2, filter, borderStyle, borderColor, img1.width + spacing, (height - img2.height) / 2);
+        drawCaption(1, img1.width, img1.height, 0, (height - img1.height) / 2);
+        drawCaption(2, img2.width, img2.height, img1.width + spacing, (height - img2.height) / 2);
+    } else {
+        drawImageWithBorder(img1, filter, borderStyle, borderColor, (width - img1.width) / 2, 0);
+        drawImageWithBorder(img2, filter, borderStyle, borderColor, (width - img2.width) / 2, img1.height + spacing);
+        drawCaption(1, img1.width, img1.height, (width - img1.width) / 2, 0);
+        drawCaption(2, img2.width, img2.height, (width - img2.width) / 2, img1.height + spacing);
+    }
+    
+    downloadBtn.disabled = false;
+    showToast("Images merged successfully!", "success");
+}
+
+// ========== Download Image ==========
+function downloadImage() {
+    const link = document.createElement("a");
+    link.download = `merged-image-${Date.now()}.png`;
+    link.href = canvas.toDataURL("image/png");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Image downloaded successfully!", "success");
+}
+
+// ========== Clear All ==========
+function clearAll() {
+    images = [null, null];
+    
+    // Clear previews
+    preview1.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Click to upload image</span>';
+    preview2.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Click to upload image</span>';
+    
+    // Clear file inputs
+    imageUpload1.value = "";
+    imageUpload2.value = "";
+    
+    // Clear captions
+    document.getElementById("caption1").value = "";
+    document.getElementById("caption2").value = "";
+    
+    // Reset text styles
+    textStyles = {
+        bold1: false, italic1: false, underline1: false,
+        bold2: false, italic2: false, underline2: false
+    };
+    document.querySelectorAll(".style-btn").forEach(btn => btn.classList.remove("active"));
+    
+    // Reset caption positions
+    captionPositions = {1: "bottom-center", 2: "bottom-center"};
+    document.querySelectorAll(".pos-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.getAttribute("data-pos") === "bottom-center") {
+            btn.classList.add("active");
+        }
+    });
+    
+    // Reset text background
+    document.getElementById("textBgColor1").value = "#ffffff";
+    document.getElementById("textBgColor2").value = "#ffffff";
+    if (document.getElementById("textBgOpacity1")) document.getElementById("textBgOpacity1").value = 0.5;
+    if (document.getElementById("textBgOpacity2")) document.getElementById("textBgOpacity2").value = 0.5;
+    
+    // Reset merge options
+    document.getElementById("layoutHorizontal").checked = true;
+    spacingInput.value = 10;
+    spacingValue.textContent = "10px";
+    document.getElementById("equalSize").checked = true;
+    document.getElementById("cropRatio").value = "none";
+    document.getElementById("bgColor").value = "#ffffff";
+    document.getElementById("imageFilter").value = "none";
+    document.getElementById("imageBorder").value = "none";
+    document.getElementById("borderColor").value = "#000000";
+    
+    // Reset fonts
+    document.getElementById("font1").value = "Arial";
+    document.getElementById("font2").value = "Arial";
+    document.getElementById("size1").value = "24";
+    document.getElementById("size2").value = "24";
+    document.getElementById("color1").value = "#000000";
+    document.getElementById("color2").value = "#000000";
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = 0;
+    canvas.height = 0;
+    
+    // Disable download button
+    downloadBtn.disabled = true;
+    
+    showToast("All data cleared!", "info");
+}
+
+// ========== Event Listeners ==========
+mergeBtn.addEventListener("click", mergeImages);
+downloadBtn.addEventListener("click", downloadImage);
+clearBtn.addEventListener("click", clearAll);
+
+// ========== Initialize ==========
+async function init() {
+    await loadUsageCount();
+    await loadReactions();
+    
+    // Preview click to upload
+    preview1.addEventListener("click", () => imageUpload1.click());
+    preview2.addEventListener("click", () => imageUpload2.click());
+    
+    showToast("Welcome to Advanced Image Merger! 🎨", "info");
+}
+
+init();
