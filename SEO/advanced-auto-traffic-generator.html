@@ -2,230 +2,212 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Auto Traffic Generator | MagicRills</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ultimate SEO Tool | Free Website Analyzer with TiDB Database</title>
     <link rel="stylesheet" href="advanced-auto-traffic-generator.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#6a1b9a">
+    <meta name="description" content="Free professional SEO tool - Analyze any website with 35+ features | Data stored in TiDB Cloud">
+    <!-- Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+    <!-- Scroll Buttons -->
+    <div class="scroll-buttons">
+        <button id="scrollUpBtn" class="scroll-btn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
+        <button id="scrollDownBtn" class="scroll-btn" title="Go to bottom"><i class="fas fa-arrow-down"></i></button>
+    </div>
+
     <div class="container">
-        <header class="header">
-            <div class="logo">
-                <h1>🚀 Advanced Auto Traffic Generator</h1>
-                <p class="subtitle">AI-Powered Realistic Website Traffic Simulation</p>
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <img src="https://cdn-icons-png.flaticon.com/128/14151/14151121.png" alt="logo" class="logo-img">
+                    <h1>Ultimate SEO Tool Suite</h1>
+                    <p class="subtitle">Professional Website Analyzer | 35+ Features | TiDB Cloud Database</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="themeToggle" class="theme-btn" title="Dark/Light Mode">🌓</button>
+                    <button id="installPWA" class="theme-btn" title="Install App">📱</button>
+                    <button id="pageShareBtn" class="theme-btn" title="Share this page"><i class="fas fa-share-alt"></i></button>
+                    <button id="backHomeBtn" class="theme-btn" title="Back to Home"><i class="fas fa-home"></i></button>
+                    <button id="adminBtn" class="theme-btn" title="Admin Panel"><i class="fas fa-lock"></i></button>
+                </div>
             </div>
-            <div class="theme-toggle">
-                <button id="theme-switcher" class="theme-btn">🌙 Dark Mode</button>
+            <div class="feature-badges">
+                <span class="badge">✓ SEO Analysis</span>
+                <span class="badge">✓ Security Scan</span>
+                <span class="badge">✓ Performance</span>
+                <span class="badge">✓ Mobile Test</span>
+                <span class="badge">✓ Core Web Vitals</span>
+                <span class="badge">✓ Readability</span>
+                <span class="badge">✓ Dark Mode</span>
+                <span class="badge">✓ PWA Ready</span>
+                <span class="badge">✓ TiDB Database</span>
+                <span class="badge">✓ Live Data</span>
             </div>
-        </header>
+            <div id="userInfo" style="margin-top: 15px; color: white; font-size: 13px;">
+                <span id="userStatus"><i class="fas fa-user-circle"></i> Guest Mode</span>
+                <button id="loginBtn" class="theme-btn" style="margin-left: 10px; padding: 5px 15px;">Login</button>
+            </div>
+        </div>
 
-        <div class="main-content">
-            <!-- Input Section -->
-            <div class="input-section">
-                <div class="card">
-                    <h2>📊 Traffic Configuration</h2>
-                    
-                    <div class="form-group">
-                        <label for="website-url">🌐 Website URL</label>
-                        <input type="url" id="website-url" placeholder="https://yourwebsite.com" required>
-                    </div>
+        <!-- Main Input Card -->
+        <div class="input-card">
+            <div class="url-input-group">
+                <input type="url" id="websiteUrl" placeholder="https://example.com" value="https://example.com" list="urlHistory">
+                <datalist id="urlHistory"></datalist>
+                <button id="analyzeBtn" class="btn-primary">🚀 Start Deep Analysis</button>
+            </div>
+            
+            <div class="scan-options">
+                <label class="scan-option">
+                    <input type="radio" name="scanType" value="quick" checked>
+                    <span>⚡ Quick Scan</span>
+                    <span class="scan-time">~5 sec</span>
+                </label>
+                <label class="scan-option">
+                    <input type="radio" name="scanType" value="deep">
+                    <span>🔬 Deep Scan</span>
+                    <span class="scan-time">~15 sec</span>
+                </label>
+                <label class="scan-option">
+                    <input type="radio" name="scanType" value="full">
+                    <span>🚀 Full Scan + Sitemap</span>
+                    <span class="scan-time">~30 sec</span>
+                </label>
+            </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="traffic-amount">👥 Visitors/Hour</label>
-                            <input type="number" id="traffic-amount" min="100" max="10000" value="1000">
-                        </div>
-                        <div class="form-group">
-                            <label for="traffic-duration">⏱️ Duration (Hours)</label>
-                            <input type="number" id="traffic-duration" min="1" max="24" value="1">
-                        </div>
-                    </div>
+            <!-- Advanced Tabs -->
+            <div class="advanced-tabs">
+                <button class="tab-btn active" data-tab="main">📊 Main Analysis</button>
+                <button class="tab-btn" data-tab="bulk">📁 Bulk URLs</button>
+                <button class="tab-btn" data-tab="keywords">🔑 Keyword Gap</button>
+                <button class="tab-btn" data-tab="sitemap">🗺️ Visual Sitemap</button>
+                <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
+                <button class="tab-btn" data-tab="history">📜 My History</button>
+            </div>
 
-                    <div class="form-group">
-                        <label for="traffic-type">🎯 Traffic Type</label>
-                        <select id="traffic-type">
-                            <option value="organic">🔍 Organic Search</option>
-                            <option value="social">📱 Social Media</option>
-                            <option value="direct">🎯 Direct Traffic</option>
-                            <option value="referral">🔗 Referral Traffic</option>
-                            <option value="custom">🎨 Custom Mix</option>
-                        </select>
-                    </div>
+            <!-- Bulk Panel -->
+            <div id="bulkPanel" class="tab-panel hidden">
+                <textarea id="bulkUrls" rows="4" placeholder="https://site1.com&#10;https://site2.com&#10;https://site3.com" style="width:100%; padding:12px; border-radius:12px;"></textarea>
+                <button id="bulkAnalyzeBtn" class="btn-secondary">📊 Analyze All (Max 10)</button>
+                <div id="bulkResults"></div>
+            </div>
 
-                    <div class="form-group">
-                        <label for="target-countries">🌍 Target Countries</label>
-                        <select id="target-countries" multiple size="5">
-                            <option value="all" selected>All Countries</option>
-                            <option value="us">🇺🇸 United States</option>
-                            <option value="gb">🇬🇧 United Kingdom</option>
-                            <option value="ca">🇨🇦 Canada</option>
-                            <option value="au">🇦🇺 Australia</option>
-                            <option value="in">🇮🇳 India</option>
-                        </select>
-                    </div>
+            <!-- Keyword Gap Panel -->
+            <div id="keywordsPanel" class="tab-panel hidden">
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <input type="url" id="kwYourSite" placeholder="Your Website" style="flex:1; padding:12px; border-radius:12px;">
+                    <input type="url" id="kwCompetitorSite" placeholder="Competitor Website" style="flex:1; padding:12px; border-radius:12px;">
+                    <button id="analyzeKeywordGapBtn" class="btn-secondary">🔎 Analyze Gap</button>
+                </div>
+                <div id="keywordGapResults"></div>
+            </div>
 
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="enable-bounce" checked>
-                            📊 Simulate Realistic Bounce Rates
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="enable-ai" checked>
-                            🤖 Enable AI-Powered Traffic Patterns
-                        </label>
-                    </div>
+            <!-- Sitemap Panel -->
+            <div id="sitemapPanel" class="tab-panel hidden">
+                <button id="generateSitemapBtn" class="btn-secondary">🌳 Generate Visual Sitemap</button>
+                <div id="sitemapTree" style="margin-top:20px; max-height:400px; overflow:auto;"></div>
+            </div>
 
-                    <button id="start-button" class="btn-primary">
-                        🚀 Start Traffic Generation
-                    </button>
+            <!-- Leaderboard Panel -->
+            <div id="leaderboardPanel" class="tab-panel hidden">
+                <div id="leaderboardContent" class="leaderboard-container">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading leaderboard...</div>
                 </div>
             </div>
 
-            <!-- Results Section -->
-            <div class="results-section">
-                <div id="results-placeholder" class="placeholder">
-                    <div class="placeholder-icon">📈</div>
-                    <h3>Ready to Generate Traffic!</h3>
-                    <p>Configure your settings and click Start to begin traffic simulation</p>
-                </div>
-
-                <div id="results-container" class="hidden">
-                    <!-- Real-time Stats -->
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-value" id="total-traffic">0</div>
-                            <div class="stat-label">Total Visitors</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">⚡</div>
-                            <div class="stat-value" id="current-speed">0</div>
-                            <div class="stat-label">Visitors/Min</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">⏱️</div>
-                            <div class="stat-value" id="avg-duration">0:00</div>
-                            <div class="stat-label">Avg. Duration</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">📊</div>
-                            <div class="stat-value" id="bounce-rate">0%</div>
-                            <div class="stat-label">Bounce Rate</div>
-                        </div>
-                    </div>
-
-                    <!-- Progress Section -->
-                    <div class="progress-section">
-                        <div class="progress-header">
-                            <span>Traffic Generation Progress</span>
-                            <span id="completion-status">0% Complete</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="generation-progress"></div>
-                        </div>
-                    </div>
-
-                    <!-- Traffic Animation -->
-                    <div class="traffic-animation" id="traffic-animation">
-                        <!-- Particles will be added here -->
-                    </div>
-
-                    <!-- Control Buttons -->
-                    <div class="control-buttons">
-                        <button class="btn-stop" id="stop-button">🛑 Stop</button>
-                        <button class="btn-pause" id="pause-button">⏸️ Pause</button>
-                        <button class="btn-boost" id="boost-button">🚀 Boost</button>
-                    </div>
-
-                    <!-- Analytics Tabs -->
-                    <div class="tabs-container">
-                        <div class="tabs">
-                            <button class="tab active" data-tab="analytics">📈 Analytics</button>
-                            <button class="tab" data-tab="geography">🌍 Geography</button>
-                            <button class="tab" data-tab="behavior">👤 Behavior</button>
-                            <button class="tab" data-tab="seo">🔍 SEO Impact</button>
-                        </div>
-
-                        <div class="tab-content active" id="analytics-tab">
-                            <div class="chart-container">
-                                <h3>📊 Traffic Sources Distribution</h3>
-                                <div class="sources-chart" id="sources-chart">
-                                    <div class="real-data-notice">🔄 Loading traffic data...</div>
-                                </div>
-                            </div>
-                            <div class="metrics-grid">
-                                <div class="metric-card">
-                                    <div class="metric-value" id="real-time-visitors">0</div>
-                                    <div class="metric-label">Active Visitors</div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-value" id="pages-per-visit">0.0</div>
-                                    <div class="metric-label">Pages/Visit</div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-value" id="conversion-rate">0%</div>
-                                    <div class="metric-label">Conversion Rate</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tab-content" id="geography-tab">
-                            <div class="chart-container">
-                                <h3>🌍 Geographical Distribution</h3>
-                                <div class="real-data-info">
-                                    <p>📍 Simulated visitor locations based on selected countries</p>
-                                </div>
-                                <div class="country-list" id="country-list">
-                                    <div class="real-data-notice">🔄 Loading country data...</div>
-                                </div>
-                            </div>
-                            <div class="map-placeholder">
-                                <div class="map-icon">🌍</div>
-                                <p>Real-time Visitor Map</p>
-                                <small>Showing simulated visitor locations</small>
-                            </div>
-                        </div>
-
-                        <div class="tab-content" id="behavior-tab">
-                            <div class="chart-container">
-                                <h3>👤 User Behavior Flow</h3>
-                                <div class="behavior-flow" id="behavior-flow">
-                                    <div class="real-data-notice">📈 Analyzing user behavior patterns...</div>
-                                </div>
-                            </div>
-                            <div class="popular-pages">
-                                <h3>🔥 Most Popular Pages</h3>
-                                <div id="popular-pages-list">
-                                    <div class="real-data-notice">🔄 Loading page analytics...</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tab-content" id="seo-tab">
-                            <div class="seo-score">
-                                <h3>🔍 SEO Impact Score</h3>
-                                <div class="score-circle">
-                                    <div class="score-value">0</div>
-                                    <div class="score-label">/100</div>
-                                </div>
-                            </div>
-                            <div class="seo-metrics">
-                                <div class="seo-metric">
-                                    <span>🚀 Traffic Impact</span>
-                                    <span class="metric-value positive">+0%</span>
-                                </div>
-                                <div class="seo-metric">
-                                    <span>📈 Engagement Rate</span>
-                                    <span class="metric-value positive">0%</span>
-                                </div>
-                                <div class="seo-metric">
-                                    <span>⏱️ Avg. Duration</span>
-                                    <span class="metric-value positive">0:00</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- History Panel -->
+            <div id="historyPanel" class="tab-panel hidden">
+                <div id="userHistoryContent" class="leaderboard-container">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading your history...</div>
                 </div>
             </div>
+
+            <div class="info-text">💡 35+ Features: SEO, Security, Performance, Readability, Screenshots, Social Preview & more! All data saved to TiDB Cloud Database.</div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="progress-section hidden">
+            <div class="progress-percent" id="progressPercent">0%</div>
+            <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+            <div class="progress-status" id="progressStatus">Connecting...</div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="resultsContainer" class="results-container"></div>
+
+        <!-- Reactions & Social Section -->
+        <div id="feedbackSection" class="input-card hidden">
+            <h3>⭐ Rate This Analysis Tool</h3>
+            <div class="reactions-container" id="toolReactions">
+                <button class="reaction-btn" data-reaction="like">👍 <span class="reaction-count" id="likeCount">0</span></button>
+                <button class="reaction-btn" data-reaction="love">❤️ <span class="reaction-count" id="loveCount">0</span></button>
+                <button class="reaction-btn" data-reaction="wow">😮 <span class="reaction-count" id="wowCount">0</span></button>
+                <button class="reaction-btn" data-reaction="sad">😢 <span class="reaction-count" id="sadCount">0</span></button>
+                <button class="reaction-btn" data-reaction="angry">😠 <span class="reaction-count" id="angryCount">0</span></button>
+                <button class="reaction-btn" data-reaction="laugh">😂 <span class="reaction-count" id="laughCount">0</span></button>
+                <button class="reaction-btn" data-reaction="celebrate">🎉 <span class="reaction-count" id="celebrateCount">0</span></button>
+            </div>
+            <div class="social-icons" id="toolSocialShare">
+                <h4 style="margin: 15px 0 10px 0;">Share This Tool:</h4>
+                <a class="social-icon facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i></a>
+                <a class="social-icon twitter" data-platform="twitter"><i class="fab fa-twitter"></i></a>
+                <a class="social-icon linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></a>
+                <a class="social-icon whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></a>
+                <a class="social-icon email" data-platform="email"><i class="fas fa-envelope"></i></a>
+            </div>
+            <div class="usage-counter" style="margin-top: 15px;">
+                <i class="fas fa-chart-line"></i>
+                <span>Tool Used <span id="toolUsageCount">0</span> times</span>
+                <span style="margin-left: 20px;"><i class="fas fa-share-alt"></i> Shared <span id="totalSharesCount">0</span> times</span>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="input-card hidden">
+            <h3><i class="fas fa-shield-alt"></i> Admin Dashboard</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="metric-card"><div class="metric-value" id="adminTotalUsage">0</div><div>Total Usage</div></div>
+                <div class="metric-card"><div class="metric-value" id="adminTotalShares">0</div><div>Total Shares</div></div>
+                <div class="metric-card"><div class="metric-value" id="adminTotalReactions">0</div><div>Total Reactions</div></div>
+                <div class="metric-card"><div class="metric-value" id="adminTotalAnalyses">0</div><div>Total Analyses</div></div>
+                <div class="metric-card"><div class="metric-value" id="adminTotalUsers">0</div><div>Total Users</div></div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="adminExportData" class="btn-secondary"><i class="fas fa-download"></i> Export All Data</button>
+                <button id="adminRefreshData" class="btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button id="adminCloseBtn" class="btn-secondary" style="background: linear-gradient(135deg, #6b7280, #4b5563);"><i class="fas fa-times"></i> Close Admin</button>
+            </div>
+            <div id="adminLogs" style="margin-top: 20px; max-height: 300px; overflow-y: auto; font-size: 12px; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 12px;"></div>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h3><i class="fas fa-sign-in-alt"></i> Login / Signup</h3>
+                <input type="text" id="loginUsername" placeholder="Username" style="width:100%; padding:12px; margin:10px 0; border-radius:12px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-primary);">
+                <input type="email" id="loginEmail" placeholder="Email (optional)" style="width:100%; padding:12px; margin:10px 0; border-radius:12px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-primary);">
+                <input type="password" id="loginPassword" placeholder="Password" style="width:100%; padding:12px; margin:10px 0; border-radius:12px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-primary);">
+                <button id="doLoginBtn" class="btn-primary" style="width:100%;"><i class="fas fa-paper-plane"></i> Login / Signup</button>
+                <p style="margin-top: 15px; font-size: 12px; color: var(--text-secondary); text-align: center;">
+                    <i class="fas fa-info-circle"></i> Demo: Use any username/password<br>Your data will be saved to TiDB Cloud
+                </p>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toastContainer" class="toast-container"></div>
+
+        <div class="footer">
+            <p>© 2025 Ultimate SEO Tool | Free Forever | Powered by TiDB Cloud | Real-time Database | Data is saved permanently</p>
         </div>
     </div>
 
