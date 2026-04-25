@@ -1,4 +1,8 @@
-// ==================== API Configuration ====================
+// ==================== API Configuration for TiDB ====================
+const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api' 
+    : '/api';  // Vercel will handle this automatically
+
 const TOOL_ID = 'image_converter_tool';
 
 // ==================== Global Variables ====================
@@ -40,63 +44,131 @@ function hideLoading() {
     document.getElementById('loadingSpinner').style.display = 'none';
 }
 
-// ==================== LocalStorage Data Management ====================
-function getStorageData() {
-    const key = `tool_${TOOL_ID}`;
-    return JSON.parse(localStorage.getItem(key) || '{}');
+// ==================== TiDB API Calls ====================
+async function apiCall(endpoint, method = 'GET', data = null) {
+    try {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        // Fallback to localStorage if API fails
+        return handleLocalStorageFallback(endpoint, method, data);
+    }
 }
 
-function setStorageData(data) {
-    const key = `tool_${TOOL_ID}`;
-    localStorage.setItem(key, JSON.stringify(data));
+// LocalStorage Fallback (when TiDB is not available)
+function handleLocalStorageFallback(endpoint, method, data) {
+    const storageKey = `tool_${TOOL_ID}`;
+    let storage = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    
+    if (endpoint.includes('/usage')) {
+        if (method === 'GET') {
+            return { count: storage.usageCount || 0 };
+        } else if (method === 'POST') {
+            storage.usageCount = (storage.usageCount || 0) + 1;
+            localStorage.setItem(storageKey, JSON.stringify(storage));
+            return { count: storage.usageCount, success: true };
+        }
+    }
+    
+    if (endpoint.includes('/reactions') && method === 'GET') {
+        return { reactions: storage.reactions || { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 } };
+    }
+    
+    if (endpoint.includes('/reaction') && method === 'POST') {
+        const emoji = data.emoji;
+        if (!storage.reactions) storage.reactions = {};
+        if (!storage.userReactions) storage.userReactions = {};
+        
+        if (storage.userReactions[userId] && storage.userReactions[userId][emoji]) {
+            return { success: false, already_reacted: true };
+        }
+        
+        storage.reactions[emoji] = (storage.reactions[emoji] || 0) + 1;
+        if (!storage.userReactions[userId]) storage.userReactions[userId] = {};
+        storage.userReactions[userId][emoji] = true;
+        
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        return { success: true };
+    }
+    
+    if (endpoint.includes('/shares') && method === 'GET') {
+        return { shares: storage.shares || { facebook: 0, twitter: 0, linkedin: 0, whatsapp: 0, email: 0 } };
+    }
+    
+    if (endpoint.includes('/share') && method === 'POST') {
+        const platform = data.platform;
+        if (!storage.shares) storage.shares = {};
+        storage.shares[platform] = (storage.shares[platform] || 0) + 1;
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        return { success: true };
+    }
+    
+    if (endpoint.includes('/page-share') && method === 'POST') {
+        storage.pageShares = (storage.pageShares || 0) + 1;
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        return { success: true };
+    }
+    
+    return { success: true };
 }
 
 // ==================== Usage Counter ====================
 async function incrementUsageCount() {
-    const storage = getStorageData();
-    storage.usageCount = (storage.usageCount || 0) + 1;
-    setStorageData(storage);
-    document.getElementById('usageCount').textContent = storage.usageCount;
-    showToast('✅ Tool usage recorded!');
+    const result = await apiCall(`/tool/${TOOL_ID}/usage`, 'POST', { user_id: userId });
+    if (result && result.count !== undefined) {
+        document.getElementById('usageCount').textContent = result.count;
+        showToast('✅ Tool usage recorded!');
+    }
 }
 
 async function loadUsageCount() {
-    const storage = getStorageData();
-    document.getElementById('usageCount').textContent = storage.usageCount || 0;
+    const result = await apiCall(`/tool/${TOOL_ID}/usage`);
+    if (result && result.count !== undefined) {
+        document.getElementById('usageCount').textContent = result.count;
+    }
 }
 
 // ==================== Reactions (7 Emojis) ====================
 async function loadReactions() {
-    const storage = getStorageData();
-    const reactions = storage.reactions || {
-        like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0
-    };
-    
-    for (const [emoji, count] of Object.entries(reactions)) {
-        const reactionDiv = document.querySelector(`.reaction[data-emoji="${emoji}"] .reaction-count`);
-        if (reactionDiv) reactionDiv.textContent = count;
+    const result = await apiCall(`/tool/${TOOL_ID}/reactions`);
+    if (result && result.reactions) {
+        for (const [emoji, count] of Object.entries(result.reactions)) {
+            const reactionDiv = document.querySelector(`.reaction[data-emoji="${emoji}"] .reaction-count`);
+            if (reactionDiv) reactionDiv.textContent = count;
+        }
     }
 }
 
 async function addReaction(emoji) {
-    const storage = getStorageData();
+    showLoading();
+    const result = await apiCall(`/tool/${TOOL_ID}/reaction`, 'POST', { 
+        user_id: userId, 
+        emoji: emoji 
+    });
+    hideLoading();
     
-    if (!storage.reactions) storage.reactions = {};
-    if (!storage.userReactions) storage.userReactions = {};
-    
-    if (storage.userReactions[userId] && storage.userReactions[userId][emoji]) {
+    if (result && result.success) {
+        await loadReactions();
+        showToast(`✨ ${getEmojiName(emoji)} reaction added!`);
+    } else if (result && result.already_reacted) {
         showToast(`⚠️ You already reacted with ${getEmojiName(emoji)}!`, 'error');
-        return;
     }
-    
-    storage.reactions[emoji] = (storage.reactions[emoji] || 0) + 1;
-    
-    if (!storage.userReactions[userId]) storage.userReactions[userId] = {};
-    storage.userReactions[userId][emoji] = true;
-    
-    setStorageData(storage);
-    await loadReactions();
-    showToast(`✨ ${getEmojiName(emoji)} reaction added!`);
 }
 
 function getEmojiName(emoji) {
@@ -114,23 +186,24 @@ function getEmojiName(emoji) {
 
 // ==================== Social Share ====================
 async function loadShareCounts() {
-    const storage = getStorageData();
-    const shares = storage.shares || {
-        facebook: 0, twitter: 0, linkedin: 0, whatsapp: 0, email: 0
-    };
-    
-    for (const [platform, count] of Object.entries(shares)) {
-        const shareSpan = document.querySelector(`.social-icon[data-social="${platform}"] .share-count`);
-        if (shareSpan) shareSpan.textContent = count;
+    const result = await apiCall(`/tool/${TOOL_ID}/shares`);
+    if (result && result.shares) {
+        for (const [platform, count] of Object.entries(result.shares)) {
+            const shareSpan = document.querySelector(`.social-icon[data-social="${platform}"] .share-count`);
+            if (shareSpan) shareSpan.textContent = count;
+        }
     }
 }
 
 async function recordShare(platform) {
-    const storage = getStorageData();
-    if (!storage.shares) storage.shares = {};
-    storage.shares[platform] = (storage.shares[platform] || 0) + 1;
-    setStorageData(storage);
-    await loadShareCounts();
+    const result = await apiCall(`/tool/${TOOL_ID}/share`, 'POST', {
+        user_id: userId,
+        platform: platform
+    });
+    
+    if (result && result.success) {
+        await loadShareCounts();
+    }
 }
 
 function shareOnSocial(platform) {
@@ -169,9 +242,7 @@ async function copyPageUrl() {
         await navigator.clipboard.writeText(window.location.href);
         showToast('🔗 Link copied to clipboard!');
         
-        const storage = getStorageData();
-        storage.pageShares = (storage.pageShares || 0) + 1;
-        setStorageData(storage);
+        await apiCall(`/tool/${TOOL_ID}/page-share`, 'POST', { user_id: userId });
     } catch (err) {
         showToast('Failed to copy link', 'error');
     }
@@ -230,10 +301,8 @@ function resizeAndConvert() {
     ctx.filter = 'none';
     ctx.drawImage(currentImage, 0, 0, width, height);
     
-    // Handle JPG same as JPEG
     if (format === 'jpg') format = 'jpeg';
     
-    // For BMP and GIF, quality doesn't apply
     let mimeType = `image/${format}`;
     let downloadFormat = format === 'jpeg' ? 'jpg' : format;
     
@@ -344,6 +413,21 @@ function scrollToTop() {
 
 function scrollToBottom() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+// ==================== Theme Switcher ====================
+function initThemeSwitcher() {
+    const savedTheme = localStorage.getItem('theme') || 'default';
+    document.body.className = `theme-${savedTheme}`;
+    
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const theme = btn.dataset.theme;
+            document.body.className = `theme-${theme}`;
+            localStorage.setItem('theme', theme);
+            showToast(`🎨 Theme changed to ${theme}!`);
+        });
+    });
 }
 
 // ==================== Event Listeners ====================
@@ -463,6 +547,7 @@ window.addEventListener('scroll', () => {
 // ==================== Initialize ====================
 async function init() {
     showLoading();
+    initThemeSwitcher();
     await loadUsageCount();
     await loadReactions();
     await loadShareCounts();
