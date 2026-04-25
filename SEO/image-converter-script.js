@@ -1,599 +1,473 @@
-// DOM Elements
-const themeSwitch = document.getElementById('themeSwitch');
-const uploadArea = document.getElementById('uploadArea');
-const uploadBtn = document.getElementById('uploadBtn');
-const imageInput = document.getElementById('imageInput');
-const imagePreview = document.getElementById('imagePreview');
-const previewImg = document.getElementById('previewImg');
-const imageInfo = document.getElementById('imageInfo');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const canvasPlaceholder = document.getElementById('canvasPlaceholder');
-const resizeWidth = document.getElementById('resizeWidth');
-const resizeHeight = document.getElementById('resizeHeight');
-const formatSelect = document.getElementById('formatSelect');
-const qualityRange = document.getElementById('qualityRange');
-const qualityValue = document.getElementById('qualityValue');
-const resizeConvertBtn = document.getElementById('resizeConvertBtn');
-const cropBtn = document.getElementById('cropBtn');
-const removeBgBtn = document.getElementById('removeBgBtn');
-const enhanceBtn = document.getElementById('enhanceBtn');
-const resetBtn = document.getElementById('resetBtn');
-const downloadBtn = document.getElementById('downloadBtn');
+// ==================== API Configuration ====================
+const TOOL_ID = 'image_converter_tool';
 
-// Global Variables
+// ==================== Global Variables ====================
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
 let originalImage = null;
-let currentImageData = null;
-let processing = false;
-let currentFileName = 'converted_image';
+let currentImage = null;
+let currentRotation = 0;
+let currentFlipH = false;
+let currentFlipV = false;
+let currentFilter = 'none';
+let userId = getUserId();
 
-// Initialize the application
-function init() {
-    // Set up event listeners
-    setupEventListeners();
-    
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-    
-    // Initialize tooltips and other UI elements
-    initializeUI();
+// ==================== Helper Functions ====================
+function getUserId() {
+    let id = localStorage.getItem('user_id');
+    if (!id) {
+        id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('user_id', id);
+    }
+    return id;
 }
 
-// Set up all event listeners
-function setupEventListeners() {
-    // Theme toggle
-    themeSwitch.addEventListener('click', toggleTheme);
-    
-    // Upload functionality
-    uploadBtn.addEventListener('click', () => imageInput.click());
-    uploadArea.addEventListener('click', () => imageInput.click());
-    uploadArea.addEventListener('dragover', handleDragOver);
-    uploadArea.addEventListener('dragleave', handleDragLeave);
-    uploadArea.addEventListener('drop', handleDrop);
-    imageInput.addEventListener('change', handleImageUpload);
-    
-    // Tool controls
-    qualityRange.addEventListener('input', updateQualityValue);
-    resizeConvertBtn.addEventListener('click', resizeAndConvert);
-    cropBtn.addEventListener('click', smartCrop);
-    removeBgBtn.addEventListener('click', removeBackground);
-    enhanceBtn.addEventListener('click', enhanceImage);
-    resetBtn.addEventListener('click', resetImage);
-    downloadBtn.addEventListener('click', handleDownload);
-    
-    // Auto-update height when width changes and vice versa (maintain aspect ratio)
-    resizeWidth.addEventListener('change', updateAspectRatio);
-    resizeHeight.addEventListener('change', updateAspectRatio);
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    toast.style.background = type === 'error' ? '#dc3545' : '#28a745';
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
 }
 
-// Initialize UI elements
-function initializeUI() {
-    // Add loading states to buttons
-    document.querySelectorAll('.btn-action, .btn-primary, .btn-secondary').forEach(btn => {
-        btn.addEventListener('click', function() {
-            if (this.id !== 'resetBtn' && !this.disabled && !processing) {
-                addLoadingState(this);
-            }
-        });
-    });
+function showLoading() {
+    document.getElementById('loadingSpinner').style.display = 'flex';
 }
 
-// Theme functionality
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+function hideLoading() {
+    document.getElementById('loadingSpinner').style.display = 'none';
+}
+
+// ==================== LocalStorage Data Management ====================
+function getStorageData() {
+    const key = `tool_${TOOL_ID}`;
+    return JSON.parse(localStorage.getItem(key) || '{}');
+}
+
+function setStorageData(data) {
+    const key = `tool_${TOOL_ID}`;
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+// ==================== Usage Counter ====================
+async function incrementUsageCount() {
+    const storage = getStorageData();
+    storage.usageCount = (storage.usageCount || 0) + 1;
+    setStorageData(storage);
+    document.getElementById('usageCount').textContent = storage.usageCount;
+    showToast('✅ Tool usage recorded!');
+}
+
+async function loadUsageCount() {
+    const storage = getStorageData();
+    document.getElementById('usageCount').textContent = storage.usageCount || 0;
+}
+
+// ==================== Reactions (7 Emojis) ====================
+async function loadReactions() {
+    const storage = getStorageData();
+    const reactions = storage.reactions || {
+        like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0
+    };
     
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-    
-    // Show theme change notification
-    showNotification(`Switched to ${newTheme} mode`, 'success');
-}
-
-function updateThemeIcon(theme) {
-    const icon = themeSwitch.querySelector('i');
-    icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-}
-
-// Upload functionality
-function handleDragOver(e) {
-    e.preventDefault();
-    uploadArea.classList.add('active');
-}
-
-function handleDragLeave(e) {
-    e.preventDefault();
-    uploadArea.classList.remove('active');
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    uploadArea.classList.remove('active');
-    
-    if (e.dataTransfer.files.length) {
-        processImageFile(e.dataTransfer.files[0]);
+    for (const [emoji, count] of Object.entries(reactions)) {
+        const reactionDiv = document.querySelector(`.reaction[data-emoji="${emoji}"] .reaction-count`);
+        if (reactionDiv) reactionDiv.textContent = count;
     }
 }
 
-function handleImageUpload(e) {
-    if (e.target.files.length) {
-        processImageFile(e.target.files[0]);
-    }
-}
-
-function processImageFile(file) {
-    if (!file.type.match('image.*')) {
-        showNotification('Please select a valid image file (PNG, JPG, WEBP, GIF)', 'error');
+async function addReaction(emoji) {
+    const storage = getStorageData();
+    
+    if (!storage.reactions) storage.reactions = {};
+    if (!storage.userReactions) storage.userReactions = {};
+    
+    if (storage.userReactions[userId] && storage.userReactions[userId][emoji]) {
+        showToast(`⚠️ You already reacted with ${getEmojiName(emoji)}!`, 'error');
         return;
     }
     
-    // Show loading state
-    addLoadingState(uploadBtn);
+    storage.reactions[emoji] = (storage.reactions[emoji] || 0) + 1;
     
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-            originalImage = img;
-            currentImageData = null;
-            currentFileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-            
-            // Update preview
-            previewImg.src = event.target.result;
-            imageInfo.textContent = `${img.width} × ${img.height}px | ${formatFileSize(file.size)} | ${file.type.split('/')[1].toUpperCase()}`;
-            
-            // Show preview and hide upload area
-            uploadArea.style.display = 'none';
-            imagePreview.style.display = 'block';
-            
-            // Initialize canvas
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            // Hide placeholder and show canvas
-            canvasPlaceholder.style.display = 'none';
-            canvas.style.display = 'block';
-            
-            // Enable download button
-            downloadBtn.disabled = false;
-            
-            // Set default resize values
-            resizeWidth.placeholder = img.width;
-            resizeHeight.placeholder = img.height;
-            
-            // Remove loading state
-            removeLoadingState(uploadBtn);
-            
-            // Show success message
-            showNotification('Image uploaded successfully!', 'success');
-            
-            // Initialize download manager
-            if (window.downloadManager) {
-                window.downloadManager.setOriginalImage(img);
-            }
-        }
-        img.onerror = function() {
-            showNotification('Error loading image. Please try another file.', 'error');
-            removeLoadingState(uploadBtn);
-        }
-        img.src = event.target.result;
-    }
-    reader.onerror = function() {
-        showNotification('Error reading file. Please try again.', 'error');
-        removeLoadingState(uploadBtn);
-    }
-    reader.readAsDataURL(file);
+    if (!storage.userReactions[userId]) storage.userReactions[userId] = {};
+    storage.userReactions[userId][emoji] = true;
+    
+    setStorageData(storage);
+    await loadReactions();
+    showToast(`✨ ${getEmojiName(emoji)} reaction added!`);
 }
 
-// Image processing functions
+function getEmojiName(emoji) {
+    const names = {
+        like: '👍 Like',
+        love: '❤️ Love',
+        wow: '😮 Wow',
+        sad: '😢 Sad',
+        angry: '😠 Angry',
+        laugh: '😂 Laugh',
+        celebrate: '🎉 Celebrate'
+    };
+    return names[emoji] || emoji;
+}
+
+// ==================== Social Share ====================
+async function loadShareCounts() {
+    const storage = getStorageData();
+    const shares = storage.shares || {
+        facebook: 0, twitter: 0, linkedin: 0, whatsapp: 0, email: 0
+    };
+    
+    for (const [platform, count] of Object.entries(shares)) {
+        const shareSpan = document.querySelector(`.social-icon[data-social="${platform}"] .share-count`);
+        if (shareSpan) shareSpan.textContent = count;
+    }
+}
+
+async function recordShare(platform) {
+    const storage = getStorageData();
+    if (!storage.shares) storage.shares = {};
+    storage.shares[platform] = (storage.shares[platform] || 0) + 1;
+    setStorageData(storage);
+    await loadShareCounts();
+}
+
+function shareOnSocial(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('Image Converter Pro - Free Image Editing Tool with 6 Formats');
+    let shareUrl = '';
+    
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${title}%20${url}`;
+            break;
+        case 'email':
+            shareUrl = `mailto:?subject=${title}&body=${url}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        recordShare(platform);
+        showToast(`📤 Shared on ${platform}!`);
+    }
+}
+
+// ==================== Page Share ====================
+async function copyPageUrl() {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('🔗 Link copied to clipboard!');
+        
+        const storage = getStorageData();
+        storage.pageShares = (storage.pageShares || 0) + 1;
+        setStorageData(storage);
+    } catch (err) {
+        showToast('Failed to copy link', 'error');
+    }
+}
+
+// ==================== Image Processing Functions ====================
+function drawImage() {
+    if (!currentImage) return;
+    
+    let width = currentImage.width;
+    let height = currentImage.height;
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    
+    let filterValue = 'none';
+    switch(currentFilter) {
+        case 'grayscale': filterValue = 'grayscale(100%)'; break;
+        case 'sepia': filterValue = 'sepia(100%)'; break;
+        case 'blur': filterValue = 'blur(3px)'; break;
+        case 'brightness': filterValue = 'brightness(1.3)'; break;
+        case 'contrast': filterValue = 'contrast(1.3)'; break;
+        default: filterValue = 'none';
+    }
+    ctx.filter = filterValue;
+    
+    ctx.translate(canvas.width/2, canvas.height/2);
+    
+    if (currentFlipH) ctx.scale(-1, 1);
+    if (currentFlipV) ctx.scale(1, -1);
+    
+    ctx.rotate(currentRotation * Math.PI / 180);
+    ctx.drawImage(currentImage, -width/2, -height/2, width, height);
+    ctx.restore();
+}
+
 function resizeAndConvert() {
-    if (!originalImage) {
-        showNotification('Please upload an image first', 'error');
+    if (!currentImage) {
+        showToast('Please upload an image first!', 'error');
         return;
     }
     
-    if (processing) return;
-    processing = true;
+    let format = document.getElementById('formatSelect').value;
+    let quality = document.getElementById('qualitySlider').value / 100;
+    const w = parseInt(document.getElementById('resizeWidth').value);
+    const h = parseInt(document.getElementById('resizeHeight').value);
     
-    const format = formatSelect.value;
-    const w = parseInt(resizeWidth.value) || originalImage.width;
-    const h = parseInt(resizeHeight.value) || originalImage.height;
-    const quality = qualityRange.value / 100;
+    let width = w || currentImage.width;
+    let height = h || currentImage.height;
     
-    // Validate dimensions
-    if (w <= 0 || h <= 0) {
-        showNotification('Please enter valid dimensions', 'error');
-        processing = false;
-        removeLoadingState(resizeConvertBtn);
-        return;
-    }
+    canvas.width = width;
+    canvas.height = height;
+    ctx.filter = 'none';
+    ctx.drawImage(currentImage, 0, 0, width, height);
     
-    // Show processing animation
-    addLoadingState(resizeConvertBtn);
+    // Handle JPG same as JPEG
+    if (format === 'jpg') format = 'jpeg';
     
-    // Use timeout to allow UI to update
-    setTimeout(() => {
-        // Update canvas
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(originalImage, 0, 0, w, h);
-        
-        // Store current image data for download
-        currentImageData = canvas.toDataURL(`image/${format}`, quality);
-        
-        // Update download manager
-        if (window.downloadManager) {
-            window.downloadManager.updateProcessedImage(canvas, format, quality);
-        }
-        
-        // Show success message
-        showNotification(`Image converted to ${format.toUpperCase()}!`, 'success');
-        
-        processing = false;
-        removeLoadingState(resizeConvertBtn);
-    }, 100);
+    // For BMP and GIF, quality doesn't apply
+    let mimeType = `image/${format}`;
+    let downloadFormat = format === 'jpeg' ? 'jpg' : format;
+    
+    const link = document.createElement('a');
+    link.download = `converted_image.${downloadFormat}`;
+    link.href = canvas.toDataURL(mimeType, quality);
+    link.click();
+    
+    let formatDisplay = format.toUpperCase();
+    if (format === 'jpeg') formatDisplay = 'JPEG';
+    showToast(`✅ Image converted to ${formatDisplay}!`);
+    incrementUsageCount();
 }
 
-function smartCrop() {
-    if (!originalImage) {
-        showNotification('Please upload an image first', 'error');
+function cropImage() {
+    if (!currentImage) {
+        showToast('Please upload an image first!', 'error');
         return;
     }
     
-    if (processing) return;
-    processing = true;
-    addLoadingState(cropBtn);
+    const side = Math.min(currentImage.width, currentImage.height);
+    const sx = (currentImage.width - side) / 2;
+    const sy = (currentImage.height - side) / 2;
     
-    setTimeout(() => {
-        const minSide = Math.min(originalImage.width, originalImage.height);
-        const sx = (originalImage.width - minSide) / 2;
-        const sy = (originalImage.height - minSide) / 2;
-        
-        canvas.width = minSide;
-        canvas.height = minSide;
-        ctx.drawImage(originalImage, sx, sy, minSide, minSide, 0, 0, minSide, minSide);
-        
-        // Store current image data for download
-        currentImageData = canvas.toDataURL('image/png');
-        
-        // Update download manager
-        if (window.downloadManager) {
-            window.downloadManager.updateProcessedImage(canvas, 'png', 1);
-        }
-        
-        // Update resize inputs
-        resizeWidth.value = minSide;
-        resizeHeight.value = minSide;
-        
-        showNotification('Image cropped to square format!', 'success');
-        processing = false;
-        removeLoadingState(cropBtn);
-    }, 100);
+    canvas.width = side;
+    canvas.height = side;
+    ctx.drawImage(currentImage, sx, sy, side, side, 0, 0, side, side);
+    
+    const img = new Image();
+    img.onload = function() {
+        currentImage = img;
+        currentRotation = 0;
+        currentFlipH = false;
+        currentFlipV = false;
+        currentFilter = 'none';
+        drawImage();
+    };
+    img.src = canvas.toDataURL();
+    
+    showToast('✂️ Image cropped to center square!');
 }
 
 function removeBackground() {
-    if (!originalImage) {
-        showNotification('Please upload an image first', 'error');
+    if (!currentImage) {
+        showToast('Please upload an image first!', 'error');
         return;
     }
     
-    if (processing) return;
-    processing = true;
-    addLoadingState(removeBgBtn);
-    
-    // Show progress bar
-    showProgressBar();
-    
-    // Simulate AI processing delay
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 5;
-        updateProgressBar(progress);
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            completeBackgroundRemoval();
-        }
-    }, 50);
-}
-
-function completeBackgroundRemoval() {
-    // Reset canvas to original image
-    canvas.width = originalImage.width;
-    canvas.height = originalImage.height;
-    ctx.drawImage(originalImage, 0, 0);
-    
-    // Get image data
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
-    
-    // Advanced background removal simulation
-    let pixelsProcessed = 0;
     
     for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // Remove white and light backgrounds (more sophisticated threshold)
-        if (r > 220 && g > 220 && b > 220) {
+        if (r > 200 && g > 200 && b > 200) {
             data[i + 3] = 0;
-            pixelsProcessed++;
-        }
-        // Remove very dark backgrounds
-        else if (r < 30 && g < 30 && b < 30) {
-            data[i + 3] = 0;
-            pixelsProcessed++;
-        }
-        // Remove common background colors (green screen-like)
-        else if (g > r * 1.2 && g > b * 1.2) {
-            data[i + 3] = 0;
-            pixelsProcessed++;
         }
     }
     
     ctx.putImageData(imageData, 0, 0);
-    
-    // Store current image data for download
-    currentImageData = canvas.toDataURL('image/png');
-    
-    // Update download manager
-    if (window.downloadManager) {
-        window.downloadManager.updateProcessedImage(canvas, 'png', 1);
-    }
-    
-    hideProgressBar();
-    showNotification(`Background removed! ${Math.round(pixelsProcessed/100)}% of pixels processed`, 'success');
-    processing = false;
-    removeLoadingState(removeBgBtn);
-}
-
-function enhanceImage() {
-    if (!originalImage) {
-        showNotification('Please upload an image first', 'error');
-        return;
-    }
-    
-    if (processing) return;
-    processing = true;
-    addLoadingState(enhanceBtn);
-    
-    // Show progress bar
-    showProgressBar();
-    
-    // Simulate AI enhancement processing
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 10;
-        updateProgressBar(progress);
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            completeEnhancement();
-        }
-    }, 60);
-}
-
-function completeEnhancement() {
-    // Reset canvas to original image
-    canvas.width = originalImage.width;
-    canvas.height = originalImage.height;
-    ctx.drawImage(originalImage, 0, 0);
-    
-    // Get image data
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    
-    // Simple enhancement: increase contrast and saturation
-    for (let i = 0; i < data.length; i += 4) {
-        // Increase contrast
-        const factor = 1.2;
-        data[i] = Math.min(255, data[i] * factor);     // Red
-        data[i + 1] = Math.min(255, data[i + 1] * factor); // Green
-        data[i + 2] = Math.min(255, data[i + 2] * factor); // Blue
-        
-        // Simple saturation increase
-        const gray = 0.2989 * data[i] + 0.5870 * data[i + 1] + 0.1140 * data[i + 2];
-        data[i] = Math.min(255, gray + (data[i] - gray) * 1.1);
-        data[i + 1] = Math.min(255, gray + (data[i + 1] - gray) * 1.1);
-        data[i + 2] = Math.min(255, gray + (data[i + 2] - gray) * 1.1);
-    }
-    
-    ctx.putImageData(imageData, 0, 0);
-    
-    // Store current image data for download
-    currentImageData = canvas.toDataURL('image/jpeg', 0.9);
-    
-    // Update download manager
-    if (window.downloadManager) {
-        window.downloadManager.updateProcessedImage(canvas, 'jpeg', 0.9);
-    }
-    
-    hideProgressBar();
-    showNotification('Image enhanced with AI!', 'success');
-    processing = false;
-    removeLoadingState(enhanceBtn);
+    showToast('🧹 White background removed!');
 }
 
 function resetImage() {
-    if (!originalImage) {
-        return;
+    if (originalImage) {
+        currentImage = originalImage;
+        currentRotation = 0;
+        currentFlipH = false;
+        currentFlipV = false;
+        currentFilter = 'none';
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.filter === 'none') btn.classList.add('active');
+        });
+        
+        drawImage();
+        showToast('🔄 Image reset to original!');
     }
+}
+
+function rotateLeft() {
+    currentRotation -= 90;
+    drawImage();
+}
+
+function rotateRight() {
+    currentRotation += 90;
+    drawImage();
+}
+
+function flipHorizontal() {
+    currentFlipH = !currentFlipH;
+    drawImage();
+}
+
+function flipVertical() {
+    currentFlipV = !currentFlipV;
+    drawImage();
+}
+
+// ==================== Scroll Functions ====================
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+// ==================== Event Listeners ====================
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
     
-    // Reset canvas to original image
-    canvas.width = originalImage.width;
-    canvas.height = originalImage.height;
-    ctx.drawImage(originalImage, 0, 0);
-    
-    // Reset form values
-    resizeWidth.value = '';
-    resizeHeight.value = '';
-    qualityRange.value = 90;
-    qualityValue.textContent = '90%';
-    formatSelect.value = 'png';
-    
-    // Store current image data for download
-    currentImageData = canvas.toDataURL('image/png');
-    
-    // Update download manager
-    if (window.downloadManager) {
-        window.downloadManager.updateProcessedImage(canvas, 'png', 1);
-    }
-    
-    showNotification('Image reset to original', 'info');
-}
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            originalImage = img;
+            currentImage = img;
+            currentRotation = 0;
+            currentFlipH = false;
+            currentFlipV = false;
+            currentFilter = 'none';
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            showToast('📸 Image uploaded successfully!');
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+});
 
-function handleDownload() {
-    if (!currentImageData) {
-        showNotification('Please process an image first', 'error');
-        return;
-    }
-    
-    if (window.downloadManager) {
-        window.downloadManager.downloadProcessedImage();
-    }
-}
+document.getElementById('uploadArea').addEventListener('click', () => {
+    document.getElementById('imageInput').click();
+});
 
-// Utility functions
-function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + ' bytes';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
-}
-
-function updateQualityValue() {
-    qualityValue.textContent = `${qualityRange.value}%`;
-}
-
-function updateAspectRatio() {
-    if (!originalImage) return;
-    
-    // If width is changed and height is empty, calculate height to maintain aspect ratio
-    if (resizeWidth.value && !resizeHeight.value) {
-        const ratio = originalImage.height / originalImage.width;
-        resizeHeight.value = Math.round(resizeWidth.value * ratio);
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#667eea';
+});
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.borderColor = '#ccc';
+});
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#ccc';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                originalImage = img;
+                currentImage = img;
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                showToast('📸 Image uploaded via drag & drop!');
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
     }
-    // If height is changed and width is empty, calculate width to maintain aspect ratio
-    else if (resizeHeight.value && !resizeWidth.value) {
-        const ratio = originalImage.width / originalImage.height;
-        resizeWidth.value = Math.round(resizeHeight.value * ratio);
-    }
-}
+});
 
-function addLoadingState(button) {
-    if (!button.querySelector('.loading-spinner')) {
-        const originalText = button.innerHTML;
-        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
-        button.setAttribute('data-original', originalText);
-        button.disabled = true;
-    }
-}
+// Buttons
+document.getElementById('convertBtn').addEventListener('click', resizeAndConvert);
+document.getElementById('cropBtn').addEventListener('click', cropImage);
+document.getElementById('removeBgBtn').addEventListener('click', removeBackground);
+document.getElementById('resetBtn').addEventListener('click', resetImage);
+document.getElementById('rotateLeftBtn').addEventListener('click', rotateLeft);
+document.getElementById('rotateRightBtn').addEventListener('click', rotateRight);
+document.getElementById('flipHorizontalBtn').addEventListener('click', flipHorizontal);
+document.getElementById('flipVerticalBtn').addEventListener('click', flipVertical);
+document.getElementById('pageShareBtn').addEventListener('click', copyPageUrl);
+document.getElementById('backHomeBtn').addEventListener('click', () => {
+    window.location.href = '/';
+});
 
-function removeLoadingState(button) {
-    const originalText = button.getAttribute('data-original');
-    if (originalText) {
-        button.innerHTML = originalText;
-        button.removeAttribute('data-original');
-        button.disabled = false;
-    }
-}
+document.getElementById('qualitySlider').addEventListener('input', (e) => {
+    document.getElementById('qualityValue').textContent = e.target.value;
+});
 
-function showProgressBar() {
-    let progressBar = document.getElementById('progressBar');
-    if (!progressBar) {
-        progressBar = document.createElement('div');
-        progressBar.id = 'progressBar';
-        progressBar.className = 'progress-bar';
-        progressBar.innerHTML = '<div class="progress-fill"></div>';
-        document.querySelector('.preview-section').appendChild(progressBar);
-    }
-    progressBar.style.display = 'block';
-    updateProgressBar(0);
-}
-
-function updateProgressBar(percent) {
-    const progressFill = document.querySelector('.progress-fill');
-    if (progressFill) {
-        progressFill.style.width = percent + '%';
-    }
-}
-
-function hideProgressBar() {
-    const progressBar = document.getElementById('progressBar');
-    if (progressBar) {
-        progressBar.style.display = 'none';
-    }
-}
-
-function showNotification(message, type) {
-    // Remove existing notifications
-    document.querySelectorAll('.notification').forEach(notification => {
-        notification.remove();
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        drawImage();
+        showToast(`🎨 ${btn.textContent} filter applied!`);
     });
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas fa-${getNotificationIcon(type)}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    // Style the notification
-    notification.style.position = 'fixed';
-    notification.style.top = '20px';
-    notification.style.right = '20px';
-    notification.style.padding = '15px 20px';
-    notification.style.borderRadius = '12px';
-    notification.style.color = 'white';
-    notification.style.fontWeight = '600';
-    notification.style.zIndex = '10000';
-    notification.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
-    notification.style.transform = 'translateX(100%)';
-    notification.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
-    notification.style.backdropFilter = 'blur(10px)';
-    notification.style.border = '1px solid rgba(255,255,255,0.1)';
-    
-    // Set background color based on type
-    if (type === 'success') {
-        notification.style.background = 'rgba(0, 200, 83, 0.9)';
-    } else if (type === 'error') {
-        notification.style.background = 'rgba(255, 23, 68, 0.9)';
+});
+
+document.querySelectorAll('.reaction').forEach(reaction => {
+    reaction.addEventListener('click', () => {
+        const emoji = reaction.dataset.emoji;
+        addReaction(emoji);
+    });
+});
+
+document.querySelectorAll('.social-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+        e.preventDefault();
+        const platform = icon.dataset.social;
+        shareOnSocial(platform);
+    });
+});
+
+document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
+document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
+
+window.addEventListener('scroll', () => {
+    const upBtn = document.getElementById('scrollUpBtn');
+    if (window.scrollY > 200) {
+        upBtn.style.display = 'flex';
     } else {
-        notification.style.background = 'rgba(108, 99, 255, 0.9)';
+        upBtn.style.display = 'none';
     }
-    
-    // Add to DOM
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 10);
-    
-    // Remove after 4 seconds
-    setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                document.body.removeChild(notification);
-            }
-        }, 400);
-    }, 4000);
+});
+
+// ==================== Initialize ====================
+async function init() {
+    showLoading();
+    await loadUsageCount();
+    await loadReactions();
+    await loadShareCounts();
+    hideLoading();
+    showToast('✨ Tool ready! 6 formats available - PNG, JPEG, WEBP, BMP, JPG, GIF');
 }
 
-function getNotificationIcon(type) {
-    switch(type) {
-        case 'success': return 'check-circle';
-        case 'error': return 'exclamation-circle';
-        case 'info': return 'info-circle';
-        default: return 'bell';
-    }
-}
-
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+init();
