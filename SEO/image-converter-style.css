@@ -9,6 +9,107 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 40px 20px;
+    transition: background 0.3s ease;
+}
+
+/* ==================== Theme Switcher ==================== */
+.theme-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 12px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+}
+
+.theme-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.theme-btn:hover {
+    transform: scale(1.1);
+}
+
+/* ==================== Theme Colors ==================== */
+body.theme-default {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.theme-dark {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.theme-green {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+body.theme-orange {
+    background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+}
+
+body.theme-blue {
+    background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+}
+
+/* Theme specific card gradients */
+body.theme-default .tool-card:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.theme-dark .tool-card:hover {
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 100%);
+}
+
+body.theme-green .tool-card:hover {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+body.theme-orange .tool-card:hover {
+    background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+}
+
+body.theme-blue .tool-card:hover {
+    background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+}
+
+/* Theme specific buttons */
+body.theme-default .btn-primary,
+body.theme-default .usage-counter,
+body.theme-default .scroll-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+body.theme-dark .btn-primary,
+body.theme-dark .usage-counter,
+body.theme-dark .scroll-btn {
+    background: linear-gradient(135deg, #0f0c29, #302b63);
+}
+
+body.theme-green .btn-primary,
+body.theme-green .usage-counter,
+body.theme-green .scroll-btn {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+body.theme-orange .btn-primary,
+body.theme-orange .usage-counter,
+body.theme-orange .scroll-btn {
+    background: linear-gradient(135deg, #f12711, #f5af19);
+}
+
+body.theme-blue .btn-primary,
+body.theme-blue .usage-counter,
+body.theme-blue .scroll-btn {
+    background: linear-gradient(135deg, #00b4db, #0083b0);
 }
 
 .main-container {
@@ -53,21 +154,40 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* Tool Card - Hover Effects */
+/* Tool Card - NEW HOVER EFFECT */
 .tool-card {
     background: white;
     border-radius: 24px;
     padding: 30px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
+/* New Hover Effect - Scale + Glow + Shadow */
 .tool-card:hover {
-    transform: translateY(-8px);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+    transform: translateY(-12px) scale(1.01);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
 }
 
+/* Glow effect on hover */
+.tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.tool-card:hover::before {
+    left: 100%;
+}
+
+/* Hover text effects */
 .tool-card:hover * {
     color: white !important;
 }
@@ -93,11 +213,21 @@ body {
 .tool-card:hover .filter-btn {
     background: rgba(255,255,255,0.2);
     color: white;
+    transform: scale(1.05);
 }
 
 .tool-card:hover .filter-btn.active {
     background: white;
-    color: #667eea;
+    color: inherit;
+}
+
+.tool-card:hover .reaction {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.08);
+}
+
+.tool-card:hover .social-icon {
+    transform: translateY(-5px) scale(1.05);
 }
 
 /* Usage Counter */
@@ -106,7 +236,6 @@ body {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border-radius: 50px;
     font-size: 0.9rem;
@@ -127,6 +256,7 @@ body {
 .upload-area:hover {
     border-color: #667eea;
     background: rgba(102, 126, 234, 0.05);
+    transform: scale(1.02);
 }
 
 .upload-area i {
@@ -153,6 +283,11 @@ canvas {
     max-width: 100%;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+canvas:hover {
+    transform: scale(1.02);
 }
 
 /* Controls Grid */
@@ -167,6 +302,12 @@ canvas {
     background: rgba(0,0,0,0.03);
     padding: 15px;
     border-radius: 12px;
+    transition: all 0.3s;
+}
+
+.control-group:hover {
+    background: rgba(0,0,0,0.06);
+    transform: translateY(-2px);
 }
 
 .control-group label {
@@ -222,8 +363,7 @@ input[type="range"] {
 }
 
 .filter-btn:hover {
-    background: #667eea;
-    color: white;
+    transform: scale(1.08);
 }
 
 .filter-btn.active {
@@ -240,7 +380,6 @@ input[type="range"] {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     padding: 12px 24px;
     border: none;
@@ -248,11 +387,12 @@ input[type="range"] {
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    transition: transform 0.2s;
+    transition: all 0.3s;
 }
 
 .btn-primary:hover {
-    transform: scale(1.05);
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
 .btn-secondary {
@@ -267,6 +407,7 @@ input[type="range"] {
 
 .btn-secondary:hover {
     background: #ddd;
+    transform: scale(1.05);
 }
 
 .btn-outline {
@@ -281,6 +422,7 @@ input[type="range"] {
 .btn-outline:hover {
     background: #667eea;
     color: white;
+    transform: scale(1.05);
 }
 
 /* Reactions Section */
@@ -314,10 +456,8 @@ input[type="range"] {
     transition: all 0.2s;
 }
 
-.reaction:hover {
-    transform: scale(1.1);
-    background: #667eea;
-    color: white;
+.reaction:active {
+    transform: scale(0.95);
 }
 
 .reaction i {
@@ -360,11 +500,11 @@ input[type="range"] {
     border-radius: 50px;
     text-decoration: none;
     color: white;
-    transition: transform 0.2s;
+    transition: all 0.2s;
 }
 
-.social-icon:hover {
-    transform: translateY(-3px);
+.social-icon:active {
+    transform: scale(0.95);
 }
 
 .social-icon.fb { background: #1877f2; }
@@ -396,7 +536,6 @@ input[type="range"] {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border: none;
     cursor: pointer;
@@ -409,7 +548,7 @@ input[type="range"] {
 }
 
 .scroll-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
 }
 
 #scrollUpBtn {
@@ -526,6 +665,18 @@ input[type="range"] {
     .badge {
         font-size: 10px;
         padding: 3px 8px;
+    }
+    
+    .theme-switcher {
+        top: 10px;
+        right: 10px;
+        gap: 5px;
+        padding: 5px 8px;
+    }
+    
+    .theme-btn {
+        width: 28px;
+        height: 28px;
     }
 }
 
