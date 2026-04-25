@@ -2,118 +2,138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Website Ping Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Advanced Website Ping Tool - Real-time website analysis, performance monitoring, and traffic insights">
+    <title>Advanced Website Ping Tool | Real-time Website Analyzer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="advanced-website-ping-tool.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-satellite-dish"></i>
-                    <h1>Advanced Website Ping Tool</h1>
-                </div>
-                <div class="theme-toggle">
-                    <button id="theme-toggle">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-            </div>
-            <p class="description">Check your website's availability, speed, and traffic statistics from around the world. Get instant insights into your website's performance.</p>
-        </header>
-        
-        <div class="tool-container">
-            <div class="input-section">
-                <h2><i class="fas fa-search"></i> Website Check</h2>
-                <div class="form-group">
-                    <label for="website-url">Website URL</label>
-                    <input id="website-url" placeholder="https://example.com" required type="url" />
-                </div>
-                <button id="ping-button" class="btn-primary">
-                    <i class="fas fa-broadcast-tower"></i> Ping Website
-                </button>
-                
-                <div class="form-group advanced-options">
-                    <label>Advanced Options</label>
-                    <div class="checkbox-group">
-                        <input checked id="check-speed" type="checkbox" />
-                        <label for="check-speed">Check Page Speed</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input checked id="check-traffic" type="checkbox" />
-                        <label for="check-traffic">Show Traffic Data</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input id="check-security" type="checkbox" />
-                        <label for="check-security">Security Scan</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="results-section">
-                <h2><i class="fas fa-chart-line"></i> Results</h2>
-                <div id="results-container">
-                    <div class="welcome-message">
-                        <i class="fas fa-globe"></i>
-                        <p>Enter a website URL and click "Ping Website" to get started.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-container" id="stats-container" style="display: none;">
+
+<!-- Scroll Buttons -->
+<button class="scroll-btn scroll-up" id="scrollUpBtn">
+    <i class="fas fa-arrow-up"></i>
+</button>
+<button class="scroll-btn scroll-down" id="scrollDownBtn">
+    <i class="fas fa-arrow-down"></i>
+</button>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Main Container -->
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🌐 Advanced Website Ping Tool</h1>
+        <p>Real-time Website Analysis | Live Data | User Counter | Reactions | 100% Free</p>
+        <div class="stats-bar">
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-label">Active Users (Now)</div>
-                <div class="stat-value" id="active-users">0</div>
+                <i class="fas fa-chart-line"></i> Total Pings
+                <span id="totalPings">0</span>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-eye"></i>
-                </div>
-                <div class="stat-label">Daily Visitors</div>
-                <div class="stat-value" id="daily-visitors">0</div>
+                <i class="fas fa-heart"></i> Reactions
+                <span id="totalReactions">0</span>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-mouse-pointer"></i>
-                </div>
-                <div class="stat-label">Organic Clicks</div>
-                <div class="stat-value" id="organic-clicks">0</div>
+                <i class="fas fa-share-alt"></i> Shares
+                <span id="totalShares">0</span>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-sign-out-alt"></i>
-                </div>
-                <div class="stat-label">Bounce Rate</div>
-                <div class="stat-value" id="bounce-rate">0%</div>
-            </div>
-        </div>
-        
-        <div class="map-container">
-            <h3 class="map-title"><i class="fas fa-map-marked-alt"></i> Global Traffic Distribution</h3>
-            <div id="world-map">
-                <div class="map-placeholder">
-                    <i class="fas fa-globe-americas"></i>
-                    <p>Traffic distribution map will appear after pinging a website</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="ai-insights" id="ai-insights" style="display: none;">
-            <h3><i class="fas fa-robot"></i> AI Performance Insights</h3>
-            <div id="insights-content"></div>
         </div>
     </div>
-    
-    <footer>
-        <p>Advanced Website Ping Tool © 2023 | Uses free APIs for demonstration purposes</p>
-    </footer>
 
-    <script src="advanced-website-ping-tool.js"></script>
+    <!-- Main Tool Card -->
+    <div class="tool-card" data-tool-id="ping-tool" data-tool-name="Website Ping Tool">
+        <h2><i class="fas fa-globe"></i> Website Analyzer</h2>
+        <p>Enter any website URL to get detailed performance analysis including uptime, speed, SSL, location, and more</p>
+        
+        <div class="form-group">
+            <label><i class="fas fa-link"></i> Website URL</label>
+            <input type="url" id="websiteUrl" placeholder="https://example.com">
+        </div>
+        
+        <button class="btn-primary" id="pingBtn">
+            <i class="fas fa-rocket"></i> Analyze Website
+        </button>
+        
+        <!-- Usage Counter -->
+        <div class="tool-usage">
+            <i class="fas fa-eye"></i> Tool Used: <span id="toolUsageCount">0</span> times
+        </div>
+        
+        <!-- Reactions (7 Emojis) -->
+        <div class="tool-reactions" data-tool-id="ping-tool">
+            <button class="reaction-btn" data-reaction="like">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count">0</span>
+            </button>
+            <button class="reaction-btn" data-reaction="love">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count">0</span>
+            </button>
+            <button class="reaction-btn" data-reaction="wow">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count">0</span>
+            </button>
+            <button class="reaction-btn" data-reaction="sad">
+                <span class="reaction-emoji">😢</span>
+                <span class="reaction-count">0</span>
+            </button>
+            <button class="reaction-btn" data-reaction="angry">
+                <span class="reaction-emoji">😠</span>
+                <span class="reaction-count">0</span>
+            </button>
+            <button class="reaction-btn" data-reaction="laugh">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count">0</span>
+            </button>
+            <button class="reaction-btn" data-reaction="celebrate">
+                <span class="reaction-emoji">🎉</span>
+                <span class="reaction-count">0</span>
+            </button>
+        </div>
+        
+        <!-- Social Share Icons -->
+        <div class="tool-social-shares" data-tool-id="ping-tool" data-tool-name="Website Ping Tool">
+            <button class="share-btn" data-platform="facebook">
+                <i class="fab fa-facebook-f"></i>
+            </button>
+            <button class="share-btn" data-platform="twitter">
+                <i class="fab fa-twitter"></i>
+            </button>
+            <button class="share-btn" data-platform="linkedin">
+                <i class="fab fa-linkedin-in"></i>
+            </button>
+            <button class="share-btn" data-platform="whatsapp">
+                <i class="fab fa-whatsapp"></i>
+            </button>
+            <button class="share-btn" data-platform="email">
+                <i class="fas fa-envelope"></i>
+            </button>
+        </div>
+        
+        <!-- Results Container -->
+        <div id="resultsContainer" style="margin-top: 25px;">
+            <div class="result-item" style="text-align: center; background: #f8f9fa;">
+                <i class="fas fa-search" style="font-size: 40px; color: #4285f4; margin-bottom: 10px; display: block;"></i>
+                <p>Enter a URL and click "Analyze Website" to get real-time data</p>
+                <p style="font-size: 12px; margin-top: 10px;">Includes: Uptime, Response Time, SSL, Server Location, PageSpeed, and more</p>
+            </div>
+        </div>
+        
+        <!-- Screenshot Preview -->
+        <div id="screenshotContainer" class="screenshot-preview"></div>
+    </div>
+    
+    <!-- Page Share Button -->
+    <div class="page-share-container">
+        <button class="btn-page-share" id="pageShareBtn">
+            <i class="fas fa-share-alt"></i> Share This Page
+        </button>
+    </div>
+</div>
+
+<script src="advanced-website-ping-tool.js"></script>
 </body>
 </html>
