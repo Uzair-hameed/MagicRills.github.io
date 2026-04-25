@@ -1,365 +1,463 @@
-// DOM Elements
-const fileInput = document.getElementById('file-input');
-const uploadArea = document.getElementById('upload-area');
-const imagePreview = document.getElementById('image-preview');
-const captionEditor = document.getElementById('caption-editor');
-const outputSection = document.getElementById('output-section');
-const outputContent = document.getElementById('output-content');
-const downloadBtn = document.getElementById('download-btn');
-const captionStyle = document.getElementById('caption-style');
-const themeSwitch = document.getElementById('theme-switch');
-const generateAICaption = document.getElementById('generate-ai-caption');
-const aiLoading = document.getElementById('ai-loading');
+// ============================================
+// FILE: image-caption-tool.js
+// TiDB CONNECTED - Real Database
+// ============================================
 
-// Global Variables
-let uploadedImage = null;
-let isDarkTheme = false;
-
-// Initialize the tool
 document.addEventListener('DOMContentLoaded', function() {
-    // Set up event listeners
+
+    // ========== API CONFIGURATION ==========
+    const API_BASE = '/api';
+    let sessionId = localStorage.getItem('caption_session');
+    if (!sessionId) {
+        sessionId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('caption_session', sessionId);
+    }
+
+    // ========== DOM ELEMENTS ==========
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const captionEditor = document.getElementById('captionEditor');
+    const generateBtn = document.getElementById('generateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    const downloadPNGBtn = document.getElementById('downloadPNGBtn');
+    const downloadJPGBtn = document.getElementById('downloadJPGBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const aiCaptionBtn = document.getElementById('aiCaptionBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const adminPanelBtn = document.getElementById('adminPanelBtn');
+    const pageShareBtn = document.getElementById('pageShareBtn');
+    const outputContainer = document.getElementById('outputContainer');
+    const outputContent = document.getElementById('outputContent');
+
+    let uploadedImageData = null;
+    let currentFilter = 'none';
+    let history = [];
+    let historyIndex = -1;
+
+    // ========== TOAST ==========
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ========== TIDB API CALLS ==========
+    async function callAPI(endpoint, method = 'GET', data = {}) {
+        try {
+            const url = new URL(`${API_BASE}/${endpoint}`);
+            if (method === 'GET') {
+                Object.keys(data).forEach(key => url.searchParams.append(key, data[key]));
+            }
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: method === 'POST' ? JSON.stringify({ ...data, session_id: sessionId }) : undefined
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async function loadStats() {
+        try {
+            const result = await callAPI('tool-stats', 'GET', { tool_id: 19 });
+            if (result.success) {
+                document.getElementById('totalCaptions').textContent = result.usage || 0;
+                document.getElementById('totalReactions').textContent = result.total_reactions || 0;
+                document.getElementById('totalShares').textContent = result.total_shares || 0;
+                document.getElementById('toolUsageCount').textContent = result.usage || 0;
+                updateReactionDisplay(result.reactions || {});
+            }
+        } catch (error) {
+            console.error('Failed to load stats:', error);
+        }
+    }
+
+    async function incrementUsage() {
+        try {
+            const result = await callAPI('increment-usage', 'POST', { tool_id: 19 });
+            if (result.success) {
+                document.getElementById('totalCaptions').textContent = result.total_usage;
+                document.getElementById('toolUsageCount').textContent = result.total_usage;
+                showToast('Caption generation recorded!');
+            }
+        } catch (error) {
+            showToast('Error recording usage', 'error');
+        }
+    }
+
+    async function addReactionToTiDB(reaction) {
+        try {
+            const result = await callAPI('add-reaction', 'POST', { tool_id: 19, reaction_type: reaction });
+            if (result.success) {
+                showToast(getEmoji(reaction) + ' Reaction added!');
+                await loadStats();
+                return true;
+            } else if (result.already_reacted) {
+                showToast('You already reacted with this emoji!', 'error');
+                return false;
+            }
+        } catch (error) {
+            showToast('Error adding reaction', 'error');
+            return false;
+        }
+    }
+
+    async function addShareToTiDB(platform) {
+        try {
+            await callAPI('add-share', 'POST', { tool_id: 19, platform: platform });
+            showToast(`Shared on ${platform}!`);
+            await loadStats();
+        } catch (error) {
+            showToast('Error sharing', 'error');
+        }
+    }
+
+    function updateReactionDisplay(reactions) {
+        document.querySelectorAll('.reaction-btn').forEach(btn => {
+            const reaction = btn.dataset.reaction;
+            const countSpan = btn.querySelector('.reaction-count');
+            if (countSpan && reactions[reaction] !== undefined) {
+                countSpan.textContent = reactions[reaction];
+            }
+        });
+        let total = Object.values(reactions).reduce((a, b) => a + b, 0);
+        document.getElementById('totalReactions').textContent = total;
+    }
+
+    function getEmoji(reaction) {
+        const emojis = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
+        return emojis[reaction] || '👍';
+    }
+
+    // ========== REACTIONS ==========
+    function initReactions() {
+        document.querySelectorAll('.reaction-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const reaction = btn.dataset.reaction;
+                await addReactionToTiDB(reaction);
+            });
+        });
+    }
+
+    // ========== SOCIAL SHARES ==========
+    function initSocialShares() {
+        document.querySelectorAll('.share-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const platform = btn.dataset.platform;
+                const url = window.location.href;
+                let shareUrl = '';
+                
+                switch(platform) {
+                    case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                    case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=Image%20Caption%20Tool&url=${encodeURIComponent(url)}`; break;
+                    case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; break;
+                    case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent('Image Caption Tool ' + url)}`; break;
+                    case 'email': shareUrl = `mailto:?subject=Image Caption Tool&body=${encodeURIComponent(url)}`; break;
+                }
+                
+                if (shareUrl) {
+                    window.open(shareUrl, '_blank');
+                    await addShareToTiDB(platform);
+                }
+            });
+        });
+    }
+
+    // ========== SCROLL BUTTONS ==========
+    const scrollUp = document.getElementById('scrollUpBtn');
+    const scrollDown = document.getElementById('scrollDownBtn');
+    
+    window.addEventListener('scroll', () => {
+        if (scrollUp) {
+            if (window.scrollY > 200) scrollUp.style.display = 'block';
+            else scrollUp.style.display = 'none';
+        }
+    });
+    scrollUp?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    scrollDown?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+    // ========== PAGE SHARE ==========
+    pageShareBtn?.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('Page link copied!');
+    });
+
+    // ========== DARK MODE ==========
+    darkModeToggle?.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        showToast('Theme changed!');
+    });
+
+    // ========== ADMIN PANEL ==========
+    adminPanelBtn?.addEventListener('click', async () => {
+        const panel = document.getElementById('adminPanel');
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            const stats = await callAPI('tool-stats', 'GET', { tool_id: 19 });
+            document.getElementById('adminStats').innerHTML = `
+                <p><strong>Total Captions:</strong> ${stats.usage || 0}</p>
+                <p><strong>Total Reactions:</strong> ${stats.total_reactions || 0}</p>
+                <p><strong>Total Shares:</strong> ${stats.total_shares || 0}</p>
+            `;
+            showToast('Admin Panel Opened');
+        } else {
+            panel.style.display = 'none';
+        }
+    });
+
+    // ========== IMAGE UPLOAD ==========
     uploadArea.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileUpload);
-    
-    // Drag and drop functionality
-    uploadArea.addEventListener('dragover', e => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--primary-color)';
-        uploadArea.style.transform = 'scale(1.02)';
-    });
-    
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.borderColor = 'var(--border-color)';
-        uploadArea.style.transform = 'scale(1)';
-    });
-    
+    uploadArea.addEventListener('dragover', e => e.preventDefault());
     uploadArea.addEventListener('drop', e => {
         e.preventDefault();
-        uploadArea.style.borderColor = 'var(--border-color)';
-        uploadArea.style.transform = 'scale(1)';
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
             handleFileUpload();
         }
     });
-    
-    // Theme toggle
-    themeSwitch.addEventListener('click', toggleTheme);
-    
-    // AI caption generation
-    generateAICaption.addEventListener('click', generateAICaptionHandler);
-    
-    // Initialize with placeholder text
-    captionEditor.addEventListener('focus', function() {
-        if (this.innerHTML === 'Start typing your caption here...') {
-            this.innerHTML = '';
-        }
-    });
-    
-    captionEditor.addEventListener('blur', function() {
-        if (this.innerHTML === '') {
-            this.innerHTML = 'Start typing your caption here...';
-        }
-    });
-});
 
-// Handle file upload
-function handleFileUpload() {
-    const file = fileInput.files[0];
-    if (file && file.type.match('image.*')) {
-        // Check file size (5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size exceeds 5MB limit. Please choose a smaller image.');
+    function handleFileUpload() {
+        const file = fileInput.files[0];
+        if (file && file.type.match('image.*')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImageData = e.target.result;
+                imagePreview.src = uploadedImageData;
+                imagePreview.style.display = 'block';
+                uploadArea.style.display = 'none';
+                showToast('Image uploaded!');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // ========== TEXT FORMATTING ==========
+    window.formatText = function(command, value = null) {
+        captionEditor.focus();
+        if (command === 'foreColor' || command === 'fontSize') {
+            document.execCommand(command, false, value);
+        } else {
+            document.execCommand(command, false, null);
+        }
+        saveToHistory();
+    };
+
+    // ========== HISTORY ==========
+    function saveToHistory() {
+        const content = captionEditor.innerHTML;
+        if (history[historyIndex] !== content) {
+            history = history.slice(0, historyIndex + 1);
+            history.push(content);
+            historyIndex++;
+        }
+    }
+
+    undoBtn?.addEventListener('click', () => {
+        if (historyIndex > 0) {
+            historyIndex--;
+            captionEditor.innerHTML = history[historyIndex];
+        }
+    });
+
+    redoBtn?.addEventListener('click', () => {
+        if (historyIndex < history.length - 1) {
+            historyIndex++;
+            captionEditor.innerHTML = history[historyIndex];
+        }
+    });
+
+    // ========== APPLY FILTER ==========
+    function applyFilterToImage(imgSrc, filter, callback) {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.filter = filter;
+            ctx.drawImage(img, 0, 0);
+            callback(canvas.toDataURL());
+        };
+        img.src = imgSrc;
+    }
+
+    // ========== AI CAPTION ==========
+    aiCaptionBtn?.addEventListener('click', () => {
+        const aiCaptions = [
+            "✨ Life is beautiful! ✨", "💫 Dream big, work hard! 💫",
+            "🌟 Make every moment count! 🌟", "💪 Stay positive, work hard! 💪",
+            "🎯 Focus on your goals! 🎯", "❤️ Spread love and kindness! ❤️",
+            "📸 Capturing memories! 📸", "🌈 Good vibes only! 🌈"
+        ];
+        const randomCaption = aiCaptions[Math.floor(Math.random() * aiCaptions.length)];
+        captionEditor.innerHTML = randomCaption;
+        saveToHistory();
+        showToast('AI caption generated!');
+    });
+
+    // ========== APPLY TEMPLATE ==========
+    function applyTemplate(style) {
+        const text = captionEditor.innerText || 'Your Caption Here';
+        let styledHtml = '';
+        switch(style) {
+            case 'modern':
+                styledHtml = `<div style="font-family: 'Poppins', sans-serif; font-weight: 600; text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 12px;">${text}</div>`;
+                break;
+            case 'vintage':
+                styledHtml = `<div style="font-family: 'Georgia', serif; font-style: italic; color: #8B7355; text-align: center; padding: 15px; background: #F5F0E8; border: 1px dashed #C4A882;">${text}</div>`;
+                break;
+            case 'elegant':
+                styledHtml = `<div style="font-family: 'Garamond', serif; color: #333; text-align: center; padding: 15px; letter-spacing: 2px; border-bottom: 2px solid #D4AF37;">${text}</div>`;
+                break;
+            case 'bold':
+                styledHtml = `<div style="font-family: 'Impact', sans-serif; color: white; text-align: center; padding: 15px; background: black; text-shadow: 2px 2px 4px #000;">${text}</div>`;
+                break;
+            case 'minimal':
+                styledHtml = `<div style="font-family: 'Helvetica', sans-serif; color: #666; text-align: center; padding: 10px; font-weight: 300; letter-spacing: 1px;">${text}</div>`;
+                break;
+            case 'fun':
+                styledHtml = `<div style="font-family: 'Comic Sans MS', cursive; color: #FF6B6B; text-align: center; padding: 15px; background: #FFF3E0; border-radius: 20px; border: 2px dotted #FFB347;">${text} 🎉</div>`;
+                break;
+            default:
+                styledHtml = `<div style="padding: 10px;">${text}</div>`;
+        }
+        captionEditor.innerHTML = styledHtml;
+        saveToHistory();
+        showToast(`Applied ${style} template!`);
+    }
+
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', () => applyTemplate(card.dataset.template));
+    });
+
+    // ========== GENERATE CAPTION ==========
+    generateBtn?.addEventListener('click', async () => {
+        if (!uploadedImageData) {
+            showToast('Please upload an image first!', 'error');
             return;
         }
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            uploadedImage = e.target.result;
-            imagePreview.src = uploadedImage;
-            imagePreview.classList.remove('hidden');
-            uploadArea.style.display = 'none';
-            
-            // Add animation to image preview
-            imagePreview.style.opacity = '0';
-            imagePreview.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                imagePreview.style.opacity = '1';
-                imagePreview.style.transform = 'scale(1)';
-            }, 100);
-        };
-        reader.readAsDataURL(file);
-    } else {
-        alert('Please select a valid image file (JPG, PNG, GIF).');
-    }
-}
-
-// Text formatting function
-function formatText(cmd, value = null) {
-    document.getElementById('caption-editor').focus();
-    
-    // Remove placeholder if it exists
-    if (captionEditor.innerHTML === 'Start typing your caption here...') {
-        captionEditor.innerHTML = '';
-    }
-    
-    if (cmd === 'insertHTML') {
-        document.execCommand('insertHTML', false, value);
-    } else {
-        document.execCommand(cmd, false, value);
-    }
-}
-
-// Apply caption styles
-function applyCaptionStyle(style, text) {
-    let styledText = text;
-    
-    switch (style) {
-        case 'modern':
-            styledText = `<div style="font-family:'Montserrat',sans-serif;font-weight:600;color:var(--text-color);text-align:center;padding:15px;background:rgba(255,255,255,0.9);border-left:4px solid var(--primary-color);border-radius:4px;margin:10px 0">${text}</div>`;
-            break;
-        case 'vintage':
-            styledText = `<div style="font-family:'Playfair Display',serif;font-style:italic;color:#5c4d3a;text-align:center;padding:15px;background:rgba(242,236,222,0.9);border:1px dashed #8b7d65;border-radius:4px;margin:10px 0">${text}</div>`;
-            break;
-        case 'elegant':
-            styledText = `<div style="font-family:'Garamond',serif;color:#444;text-align:center;padding:15px;letter-spacing:1px;background:rgba(255,255,255,0.8);border-bottom:2px solid #d4af37;border-radius:4px;margin:10px 0">${text}</div>`;
-            break;
-        case 'bold':
-            styledText = `<div style="font-family:'Impact',sans-serif;color:white;text-align:center;padding:15px;background:rgba(0,0,0,0.7);text-shadow:2px 2px 4px #000;border-radius:4px;margin:10px 0">${text}</div>`;
-            break;
-        case 'minimal':
-            styledText = `<div style="font-family:'Helvetica Neue',sans-serif;color:var(--text-light);text-align:center;padding:10px;font-weight:300;letter-spacing:2px;margin:10px 0">${text}</div>`;
-            break;
-        case 'fun':
-            styledText = `<div style="font-family:'Comic Sans MS',cursive;color:#e91e63;text-align:center;padding:15px;background:rgba(255,255,255,0.9);border-radius:10px;border:2px dotted #ff9800;margin:10px 0">${text}</div>`;
-            break;
-        default:
-            styledText = `<div style="padding:10px;margin:10px 0">${text}</div>`;
-    }
-    
-    return styledText;
-}
-
-// Generate output
-function generateOutput() {
-    if (!uploadedImage) {
-        showNotification('Please upload an image first', 'warning');
-        return;
-    }
-    
-    const captionHtml = captionEditor.innerHTML;
-    if (!captionHtml.replace(/<[^>]*>/g, '').trim() || 
-        captionHtml === 'Start typing your caption here...') {
-        showNotification('Please enter a caption', 'warning');
-        return;
-    }
-    
-    const selectedStyle = captionStyle.value;
-    const styledCaption = applyCaptionStyle(selectedStyle, captionHtml);
-    
-    outputContent.innerHTML = `
-        <div style="text-align:center;position:relative">
-            <img src="${uploadedImage}" style="max-width:100%;border-radius:8px;box-shadow:var(--shadow)">
-            <div style="margin-top:15px">${styledCaption}</div>
-        </div>
-    `;
-    
-    outputSection.classList.remove('hidden');
-    downloadBtn.disabled = false;
-    
-    // Add animation to output
-    outputSection.style.opacity = '0';
-    outputSection.style.transform = 'translateY(20px)';
-    setTimeout(() => {
-        outputSection.style.opacity = '1';
-        outputSection.style.transform = 'translateY(0)';
-    }, 100);
-    
-    showNotification('Caption generated successfully!', 'success');
-}
-
-// Clear all function
-function clearAll() {
-    fileInput.value = '';
-    uploadedImage = null;
-    imagePreview.src = '';
-    imagePreview.classList.add('hidden');
-    uploadArea.style.display = 'flex';
-    captionEditor.innerHTML = 'Start typing your caption here...';
-    outputContent.innerHTML = '';
-    outputSection.classList.add('hidden');
-    downloadBtn.disabled = true;
-    captionStyle.value = 'none';
-    
-    showNotification('All fields cleared', 'info');
-}
-
-// Download image function
-async function downloadImage() {
-    if (!outputContent.innerHTML) return;
-    
-    try {
-        downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        downloadBtn.disabled = true;
+        const captionHtml = captionEditor.innerHTML;
+        if (!captionHtml.replace(/<[^>]*>/g, '').trim()) {
+            showToast('Please enter a caption!', 'error');
+            return;
+        }
         
+        outputContainer.style.display = 'block';
+        outputContent.innerHTML = '<div class="spinner"></div>';
+        
+        let filterValue = 'none';
+        switch(currentFilter) {
+            case 'grayscale': filterValue = 'grayscale(100%)'; break;
+            case 'sepia': filterValue = 'sepia(100%)'; break;
+            case 'blur': filterValue = 'blur(2px)'; break;
+            case 'brightness': filterValue = 'brightness(1.2)'; break;
+            case 'contrast': filterValue = 'contrast(1.5)'; break;
+            default: filterValue = 'none';
+        }
+        
+        applyFilterToImage(uploadedImageData, filterValue, (filteredImg) => {
+            outputContent.innerHTML = `
+                <div style="text-align:center;">
+                    <img src="${filteredImg}" style="max-width:100%; border-radius:12px;">
+                    <div style="margin-top:15px;">${captionHtml}</div>
+                </div>
+            `;
+            incrementUsage();
+            showToast('Caption generated successfully!');
+        });
+    });
+
+    // ========== FILTERS ==========
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            if (uploadedImageData) {
+                let filterValue = 'none';
+                switch(currentFilter) {
+                    case 'grayscale': filterValue = 'grayscale(100%)'; break;
+                    case 'sepia': filterValue = 'sepia(100%)'; break;
+                    case 'blur': filterValue = 'blur(2px)'; break;
+                    case 'brightness': filterValue = 'brightness(1.2)'; break;
+                    case 'contrast': filterValue = 'contrast(1.5)'; break;
+                    default: filterValue = 'none';
+                }
+                applyFilterToImage(uploadedImageData, filterValue, (filteredImg) => {
+                    imagePreview.src = filteredImg;
+                });
+            }
+            showToast(`Applied ${currentFilter} filter`);
+        });
+    });
+
+    // ========== DOWNLOAD FUNCTIONS ==========
+    downloadPNGBtn?.addEventListener('click', async () => {
+        if (!outputContent.innerHTML || outputContent.innerHTML.includes('spinner')) {
+            showToast('Generate caption first!', 'error');
+            return;
+        }
         const canvas = await html2canvas(outputContent);
         const link = document.createElement('a');
         link.download = 'captioned-image.png';
-        link.href = canvas.toDataURL('image/png');
-        document.body.appendChild(link);
+        link.href = canvas.toDataURL();
         link.click();
-        document.body.removeChild(link);
-        
-        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        downloadBtn.disabled = false;
-        
-        showNotification('Image downloaded successfully!', 'success');
-    } catch (error) {
-        console.error('Error generating image:', error);
-        showNotification('Error generating image. Please try again.', 'error');
-        
-        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        downloadBtn.disabled = false;
-    }
-}
-
-// Theme toggle function
-function toggleTheme() {
-    isDarkTheme = !isDarkTheme;
-    document.body.classList.toggle('dark-theme');
-    
-    if (isDarkTheme) {
-        themeSwitch.innerHTML = '<i class="fas fa-sun"></i>';
-        themeSwitch.title = 'Switch to Light Mode';
-    } else {
-        themeSwitch.innerHTML = '<i class="fas fa-moon"></i>';
-        themeSwitch.title = 'Switch to Dark Mode';
-    }
-    
-    // Save theme preference to localStorage
-    localStorage.setItem('imageCaptionToolTheme', isDarkTheme ? 'dark' : 'light');
-}
-
-// AI Caption Generation (Simulated)
-function generateAICaptionHandler() {
-    if (!uploadedImage) {
-        showNotification('Please upload an image first', 'warning');
-        return;
-    }
-    
-    generateAICaption.disabled = true;
-    aiLoading.classList.remove('hidden');
-    
-    // Simulate AI processing time
-    setTimeout(() => {
-        // Sample AI-generated captions based on "image content"
-        const sampleCaptions = [
-            "A beautiful moment captured in time",
-            "Memories that will last forever",
-            "The beauty of nature in one frame",
-            "A story told through a single image",
-            "Capturing life's precious moments",
-            "Where dreams and reality meet",
-            "A glimpse into a perfect world"
-        ];
-        
-        const randomCaption = sampleCaptions[Math.floor(Math.random() * sampleCaptions.length)];
-        
-        // Apply the caption
-        captionEditor.innerHTML = randomCaption;
-        
-        generateAICaption.disabled = false;
-        aiLoading.classList.add('hidden');
-        
-        showNotification('AI caption generated!', 'success');
-    }, 2000);
-}
-
-// Notification system
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => {
-        notification.remove();
+        showToast('PNG downloaded!');
     });
-    
-    // Create new notification
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas fa-${getNotificationIcon(type)}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    // Add styles for notification
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${getNotificationColor(type)};
-        color: white;
-        padding: 15px 20px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        animation: slideInRight 0.3s ease;
-        max-width: 300px;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
 
-function getNotificationIcon(type) {
-    switch(type) {
-        case 'success': return 'check-circle';
-        case 'warning': return 'exclamation-triangle';
-        case 'error': return 'times-circle';
-        default: return 'info-circle';
-    }
-}
+    downloadJPGBtn?.addEventListener('click', async () => {
+        if (!outputContent.innerHTML || outputContent.innerHTML.includes('spinner')) {
+            showToast('Generate caption first!', 'error');
+            return;
+        }
+        const canvas = await html2canvas(outputContent);
+        const link = document.createElement('a');
+        link.download = 'captioned-image.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+        showToast('JPG downloaded!');
+    });
 
-function getNotificationColor(type) {
-    switch(type) {
-        case 'success': return '#4CAF50';
-        case 'warning': return '#FF9800';
-        case 'error': return '#F44336';
-        default: return '#2196F3';
-    }
-}
+    copyBtn?.addEventListener('click', async () => {
+        if (!outputContent.innerHTML || outputContent.innerHTML.includes('spinner')) {
+            showToast('Generate caption first!', 'error');
+            return;
+        }
+        const canvas = await html2canvas(outputContent);
+        canvas.toBlob(blob => {
+            navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            showToast('Image copied to clipboard!');
+        });
+    });
 
-// Add CSS for notification animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
+    // ========== CLEAR ALL ==========
+    clearBtn?.addEventListener('click', () => {
+        fileInput.value = '';
+        uploadedImageData = null;
+        imagePreview.style.display = 'none';
+        uploadArea.style.display = 'flex';
+        captionEditor.innerHTML = '';
+        outputContainer.style.display = 'none';
+        outputContent.innerHTML = '';
+        showToast('All cleared!');
+    });
 
-// Load saved theme preference
-window.addEventListener('load', function() {
-    const savedTheme = localStorage.getItem('imageCaptionToolTheme');
-    if (savedTheme === 'dark') {
-        isDarkTheme = true;
-        document.body.classList.add('dark-theme');
-        themeSwitch.innerHTML = '<i class="fas fa-sun"></i>';
-    }
+    // ========== INITIALIZE ==========
+    initReactions();
+    initSocialShares();
+    loadStats();
+    saveToHistory();
+    showToast('Image Caption Tool Ready! Connected to TiDB', 'success');
 });
