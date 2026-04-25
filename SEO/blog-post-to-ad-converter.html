@@ -2,256 +2,115 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Blog to Ad Converter Pro | MagicRills</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Blog to Ad Converter Pro | AI Ad Creator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="blog-post-to-ad-converter.css">
 </head>
-<body class="light-theme">
-    <!-- Theme Toggle -->
-    <div class="theme-toggle">
-        <button id="themeToggle" class="btn-theme">
-            <i class="fas fa-moon"></i>
-            <span>Dark Mode</span>
-        </button>
-    </div>
+<body>
 
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loader">
-            <div class="loader-spinner"></div>
-            <p>Loading Advanced Blog to Ad Converter...</p>
+<button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
+<button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
+<div id="toastContainer" class="toast-container"></div>
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-magic"></i> Blog to Ad Converter Pro</h1>
+        <p>Transform blog posts into stunning social media ads | Live Analytics</p>
+        <div class="stats-bar">
+            <div class="stat-card"><i class="fas fa-chart-line"></i> Conversions <span id="totalConversions">0</span></div>
+            <div class="stat-card"><i class="fas fa-heart"></i> Reactions <span id="totalReactions">0</span></div>
+            <div class="stat-card"><i class="fas fa-share-alt"></i> Shares <span id="totalShares">0</span></div>
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Animated Header -->
-        <header class="animated-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo">
-                        <i class="fas fa-magic"></i>
-                        <span>MagicRills</span>
-                    </div>
-                    <h1 class="title-gradient">Advanced Blog to Ad Converter Pro</h1>
+    <div class="tool-card" data-tool-id="17" data-tool-name="Blog to Ad Converter">
+        <div class="converter-layout">
+            <div class="input-panel">
+                <h2><i class="fas fa-edit"></i> Blog Content</h2>
+                <div class="form-group">
+                    <label>Blog Title</label>
+                    <input type="text" id="blogTitle" placeholder="Enter your blog post title...">
                 </div>
-                <div class="header-stats">
-                    <div class="stat">
-                        <i class="fas fa-bolt"></i>
-                        <span>AI Powered</span>
-                    </div>
-                    <div class="stat">
-                        <i class="fas fa-palette"></i>
-                        <span>110+ Templates</span>
-                    </div>
-                    <div class="stat">
-                        <i class="fas fa-rocket"></i>
-                        <span>Fast Conversion</span>
+                <div class="form-group">
+                    <label>Blog Content</label>
+                    <textarea id="blogContent" rows="6" placeholder="Paste your blog content here..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ad Template</label>
+                    <select id="adTemplate">
+                        <option value="modern">Modern Gradient</option>
+                        <option value="minimal">Minimal White</option>
+                        <option value="bold">Bold Colors</option>
+                        <option value="professional">Professional</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="platformSelect">
+                        <option value="facebook">Facebook (1200x630)</option>
+                        <option value="instagram">Instagram (1080x1080)</option>
+                        <option value="twitter">Twitter (1200x675)</option>
+                        <option value="story">Instagram Story (1080x1920)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Brand Color</label>
+                    <div class="brand-colors">
+                        <div class="color-option" style="background:#4361ee" onclick="setBrandColor('#4361ee')"></div>
+                        <div class="color-option" style="background:#e74c3c" onclick="setBrandColor('#e74c3c')"></div>
+                        <div class="color-option" style="background:#2ecc71" onclick="setBrandColor('#2ecc71')"></div>
+                        <div class="color-option" style="background:#f39c12" onclick="setBrandColor('#f39c12')"></div>
+                        <input type="color" id="customColor" value="#4361ee" onchange="setBrandColor(this.value)">
                     </div>
                 </div>
-            </div>
-        </header>
-
-        <!-- Dashboard Navigation -->
-        <nav class="dashboard-nav">
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-tab="converter">
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Converter</span>
-                </button>
-                <button class="nav-tab" data-tab="templates">
-                    <i class="fas fa-images"></i>
-                    <span>Templates</span>
-                </button>
-                <button class="nav-tab" data-tab="analytics">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Analytics</span>
-                </button>
-                <button class="nav-tab" data-tab="settings">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Converter Tab -->
-            <div class="tab-content active" id="converterTab">
-                <div class="converter-grid">
-                    <!-- Input Section -->
-                    <section class="input-section card">
-                        <div class="section-header">
-                            <h2><i class="fas fa-edit"></i> Content Input</h2>
-                            <div class="section-actions">
-                                <button class="btn-icon" title="Clear All">
-                                    <i class="fas fa-eraser"></i>
-                                </button>
-                                <button class="btn-icon" title="Save Draft">
-                                    <i class="fas fa-save"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="blogTitle">Blog Title</label>
-                            <input type="text" id="blogTitle" placeholder="Enter your captivating blog title..." class="input-field">
-                        </div>
-
-                        <div class="input-group">
-                            <label for="blogContent">Blog Content</label>
-                            <div class="textarea-container">
-                                <textarea id="blogContent" placeholder="Paste your blog content here... Our AI will transform it into stunning ads!" class="input-field"></textarea>
-                                <div class="word-count">
-                                    <span id="wordCount">0</span> words
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Formatting Tools -->
-                        <div class="formatting-tools">
-                            <div class="tools-group">
-                                <button class="format-btn" data-format="bold" title="Bold">
-                                    <i class="fas fa-bold"></i>
-                                </button>
-                                <button class="format-btn" data-format="italic" title="Italic">
-                                    <i class="fas fa-italic"></i>
-                                </button>
-                                <button class="format-btn" data-format="underline" title="Underline">
-                                    <i class="fas fa-underline"></i>
-                                </button>
-                            </div>
-                            <div class="tools-group">
-                                <button class="format-btn" data-format="heading1" title="Heading 1">
-                                    <i class="fas fa-heading"></i>1
-                                </button>
-                                <button class="format-btn" data-format="heading2" title="Heading 2">
-                                    <i class="fas fa-heading"></i>2
-                                </button>
-                                <button class="format-btn" data-format="quote" title="Quote">
-                                    <i class="fas fa-quote-right"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- AI Features -->
-                        <div class="ai-features-section">
-                            <h3><i class="fas fa-robot"></i> AI Enhancements</h3>
-                            <div class="ai-grid">
-                                <div class="ai-card" data-action="summarize">
-                                    <div class="ai-icon">
-                                        <i class="fas fa-compress-alt"></i>
-                                    </div>
-                                    <h4>Smart Summarize</h4>
-                                    <p>Extract key points automatically</p>
-                                    <div class="ai-badge">AI</div>
-                                </div>
-                                <div class="ai-card" data-action="hashtags">
-                                    <div class="ai-icon">
-                                        <i class="fas fa-hashtag"></i>
-                                    </div>
-                                    <h4>Generate Hashtags</h4>
-                                    <p>Boost social media reach</p>
-                                    <div class="ai-badge">AI</div>
-                                </div>
-                                <div class="ai-card" data-action="cta">
-                                    <div class="ai-icon">
-                                        <i class="fas fa-bullhorn"></i>
-                                    </div>
-                                    <h4>Add Call-to-Action</h4>
-                                    <p>Increase engagement rates</p>
-                                    <div class="ai-badge">AI</div>
-                                </div>
-                                <div class="ai-card" data-action="optimize">
-                                    <div class="ai-icon">
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4>SEO Optimize</h4>
-                                    <p>Improve discoverability</p>
-                                    <div class="ai-badge">AI</div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Output Section -->
-                    <section class="output-section card">
-                        <div class="section-header">
-                            <h2><i class="fas fa-eye"></i> Output Preview</h2>
-                            <div class="output-actions">
-                                <button class="btn btn-primary" id="generateBtn">
-                                    <i class="fas fa-magic"></i>
-                                    Generate Ad
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Output Tabs -->
-                        <div class="output-tabs">
-                            <div class="output-tab-nav">
-                                <button class="output-tab active" data-tab="preview">
-                                    <i class="fas fa-desktop"></i>
-                                    Preview
-                                </button>
-                                <button class="output-tab" data-tab="designer">
-                                    <i class="fas fa-pencil-alt"></i>
-                                    Designer
-                                </button>
-                                <button class="output-tab" data-tab="social">
-                                    <i class="fas fa-share-alt"></i>
-                                    Social
-                                </button>
-                                <button class="output-tab" data-tab="analytics">
-                                    <i class="fas fa-chart-line"></i>
-                                    Analytics
-                                </button>
-                            </div>
-
-                            <div class="output-tab-content">
-                                <!-- Preview Tab -->
-                                <div class="tab-pane active" id="previewPane">
-                                    <div class="preview-container">
-                                        <canvas id="outputCanvas"></canvas>
-                                    </div>
-                                    <div class="download-options">
-                                        <button class="btn-download" data-format="png">
-                                            <i class="fas fa-download"></i>
-                                            PNG
-                                        </button>
-                                        <button class="btn-download" data-format="jpg">
-                                            <i class="fas fa-download"></i>
-                                            JPG
-                                        </button>
-                                        <button class="btn-download" data-format="pdf">
-                                            <i class="fas fa-file-pdf"></i>
-                                            PDF
-                                        </button>
-                                        <button class="btn-download" data-format="copy">
-                                            <i class="fas fa-copy"></i>
-                                            Copy
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Other tabs content would go here -->
-                            </div>
-                        </div>
-                    </section>
+                
+                <button class="btn-primary btn-block" id="generateBtn"><i class="fas fa-magic"></i> Generate Ad</button>
+                
+                <div class="tool-usage"><i class="fas fa-eye"></i> Used: <span class="usage-count" id="toolUsageCount">0</span> times</div>
+                
+                <div class="tool-reactions" data-tool-id="17">
+                    <button class="reaction-btn" data-reaction="like">👍 <span class="reaction-count">0</span></button>
+                    <button class="reaction-btn" data-reaction="love">❤️ <span class="reaction-count">0</span></button>
+                    <button class="reaction-btn" data-reaction="wow">😮 <span class="reaction-count">0</span></button>
+                    <button class="reaction-btn" data-reaction="sad">😢 <span class="reaction-count">0</span></button>
+                    <button class="reaction-btn" data-reaction="angry">😠 <span class="reaction-count">0</span></button>
+                    <button class="reaction-btn" data-reaction="laugh">😂 <span class="reaction-count">0</span></button>
+                    <button class="reaction-btn" data-reaction="celebrate">🎉 <span class="reaction-count">0</span></button>
+                </div>
+                
+                <div class="tool-social-shares" data-tool-id="17" data-tool-name="Blog to Ad Converter">
+                    <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                    <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                    <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                    <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                    <button class="share-btn" data-platform="email"><i class="fas fa-envelope"></i></button>
                 </div>
             </div>
-
-            <!-- Other tabs content would be here -->
-        </main>
+            
+            <div class="output-panel">
+                <h2><i class="fas fa-eye"></i> Ad Preview</h2>
+                <div class="output-container">
+                    <canvas id="adCanvas"></canvas>
+                </div>
+                <div class="download-options">
+                    <button class="btn-success" onclick="downloadAd('png')"><i class="fas fa-download"></i> PNG</button>
+                    <button class="btn-success" onclick="downloadAd('jpg')"><i class="fas fa-download"></i> JPG</button>
+                    <button class="btn" onclick="copyAdToClipboard()"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-share-container">
+            <button class="btn-page-share" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
+        </div>
     </div>
+</div>
 
-    <!-- Toast Notifications -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Scripts -->
-    <script src="blog-post-to-ad-converter.js"></script>
-    <script src="blog-post-to-ad-converter-dashboard.js"></script>
-    <script src="blog-post-to-ad-converter-ai.js"></script>
+<script src="blog-post-to-ad-converter.js"></script>
 </body>
 </html>
