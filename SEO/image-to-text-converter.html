@@ -2,189 +2,249 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Image to Text Converter | MagicRills</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Image to Text Converter - Magic Rills</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="image-to-text-converter.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo-animation">
-                        <div class="logo-icon">📷</div>
-                        <div class="logo-text">
-                            <h1>Image to Text Converter</h1>
-                            <p>AI-Powered OCR Tool</p>
-                        </div>
-                    </div>
+
+<!-- Scroll Buttons -->
+<button class="scroll-btn scroll-up" id="scrollUpBtn" style="display: none;">
+    <i class="fas fa-arrow-up"></i>
+</button>
+<button class="scroll-btn scroll-down" id="scrollDownBtn">
+    <i class="fas fa-arrow-down"></i>
+</button>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Main Container -->
+<div class="container">
+    <!-- Header with User Counter -->
+    <header>
+        <div class="header-top">
+            <a href="/" class="home-link">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <button class="page-share-btn" id="pageShareBtn">
+                <i class="fas fa-share-alt"></i> Share Page
+            </button>
+        </div>
+        
+        <h1>
+            <i class="fas fa-image"></i>
+            Image to Text Converter
+        </h1>
+        
+        <div class="usage-stats">
+            <i class="fas fa-chart-line"></i>
+            Used <span id="usageCount">0</span> times
+        </div>
+        
+        <p class="description">Extract text from images, photos, and scanned documents with high accuracy. 100% client-side processing - your data never leaves your device.</p>
+    </header>
+
+    <!-- Tool Container -->
+    <div class="tool-card">
+        <div class="preview-section">
+            <h3><i class="fas fa-image"></i> Image Preview</h3>
+            
+            <div class="upload-area">
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & Drop or Click to Upload</p>
+                    <input type="file" id="fileInput" accept="image/*,application/pdf" multiple style="display:none">
+                    <button class="btn btn-primary" id="uploadBtn">Choose File</button>
+                    <button class="btn btn-outline" id="pasteBtn">Paste from Clipboard</button>
                 </div>
-                <div class="header-stats">
-                    <div class="stat-item">
-                        <span class="stat-number" id="processedCount">0</span>
-                        <span class="stat-label">Images Processed</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="accuracyRate">98%</span>
-                        <span class="stat-label">Accuracy Rate</span>
+                
+                <div class="image-preview-container" id="imagePreviewContainer" style="display:none">
+                    <canvas id="imageCanvas"></canvas>
+                    <img id="imagePreview" style="display:none">
+                    <div class="image-tools">
+                        <button class="tool-icon" id="rotateBtn" title="Rotate"><i class="fas fa-rotate-right"></i></button>
+                        <button class="tool-icon" id="cropBtn" title="Crop"><i class="fas fa-crop"></i></button>
+                        <button class="tool-icon" id="enhanceBtn" title="Auto Enhance"><i class="fas fa-magic"></i></button>
+                        <button class="tool-icon" id="grayscaleBtn" title="Grayscale"><i class="fas fa-adjust"></i></button>
+                        <button class="tool-icon" id="thresholdBtn" title="Threshold"><i class="fas fa-circle-half-stroke"></i></button>
+                        <button class="tool-icon" id="deskewBtn" title="Deskew"><i class="fas fa-arrow-rotate-left"></i></button>
+                        <button class="tool-icon" id="noiseReduceBtn" title="Noise Reduction"><i class="fas fa-filter"></i></button>
+                        <button class="tool-icon" id="sharpenBtn" title="Sharpen"><i class="fas fa-eye"></i></button>
+                        <button class="tool-icon" id="resizeBtn" title="Resize"><i class="fas fa-expand"></i></button>
+                        <button class="tool-icon danger" id="clearImageBtn" title="Clear"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
             </div>
-        </header>
-
-        <!-- Main Dashboard -->
-        <main class="dashboard">
-            <!-- Upload Section -->
-            <section class="dashboard-card upload-section">
-                <div class="card-header">
-                    <h2><span class="icon">📁</span> Upload Image</h2>
+            
+            <div class="batch-container" id="batchContainer" style="display:none">
+                <h4><i class="fas fa-layer-group"></i> Batch Files (<span id="batchCount">0</span>)</h4>
+                <div class="batch-list" id="batchList"></div>
+                <button class="btn btn-secondary" id="processAllBtn">
+                    <i class="fas fa-play-circle"></i> Process All (<span id="processAllCount">0</span>)
+                </button>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-sliders-h"></i> OCR Settings</h3>
+            
+            <div class="setting-group">
+                <label><i class="fas fa-language"></i> Language</label>
+                <select id="languageSelect">
+                    <option value="eng">English</option>
+                    <option value="urd">Urdu</option>
+                    <option value="ara">Arabic</option>
+                    <option value="chi_sim">Chinese (Simplified)</option>
+                    <option value="fra">French</option>
+                    <option value="deu">German</option>
+                    <option value="hin">Hindi</option>
+                    <option value="spa">Spanish</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <label><i class="fas fa-sun"></i> Brightness</label>
+                <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
+                <span id="brightnessValue">0</span>
+            </div>
+            
+            <div class="setting-group">
+                <label><i class="fas fa-adjust"></i> Contrast</label>
+                <input type="range" id="contrastSlider" min="0" max="200" value="100">
+                <span id="contrastValue">100</span>
+            </div>
+            
+            <div class="setting-group">
+                <label><i class="fas fa-magnifying-glass"></i> Resolution Factor</label>
+                <input type="range" id="resizeFactor" min="1" max="4" step="0.5" value="1">
+                <span id="resizeFactorValue">1x</span>
+            </div>
+            
+            <button class="btn btn-success" id="extractBtn">
+                <i class="fas fa-microphone-alt"></i> Extract Text
+            </button>
+            
+            <div class="progress-container" id="progressContainer" style="display:none">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressText">Initializing OCR...</p>
+            </div>
+            
+            <!-- QR Result -->
+            <div class="qr-result" id="qrResult" style="display:none">
+                <i class="fas fa-qrcode"></i>
+                <span>QR Detected: <span id="qrData"></span></span>
+            </div>
+        </div>
+        
+        <div class="output-section">
+            <h3><i class="fas fa-file-alt"></i> Extracted Text</h3>
+            
+            <div class="text-tools">
+                <div class="format-tools">
+                    <button class="tool-icon" id="boldBtn" title="Bold"><b>B</b></button>
+                    <button class="tool-icon" id="italicBtn" title="Italic"><i>I</i></button>
+                    <button class="tool-icon" id="underlineBtn" title="Underline"><u>U</u></button>
+                    <select id="fontFamilySelect">
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                    </select>
+                    <select id="fontSizeSelect">
+                        <option value="14px">Small</option>
+                        <option value="16px" selected>Medium</option>
+                        <option value="18px">Large</option>
+                    </select>
                 </div>
                 
-                <div class="upload-interface">
-                    <!-- Drop Zone -->
-                    <div class="drop-zone" id="dropZone">
-                        <div class="drop-content">
-                            <div class="drop-icon">📁</div>
-                            <h3>Drop your image here</h3>
-                            <p>or</p>
-                            <button class="btn-primary" id="browseBtn">Browse Files</button>
-                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                        </div>
-                    </div>
-
-                    <!-- Image Preview -->
-                    <div class="image-preview-container" id="previewContainer" style="display: none;">
-                        <div class="preview-header">
-                            <h3>Image Preview</h3>
-                            <div class="preview-actions">
-                                <button class="btn-small" id="rotateBtn">🔄 Rotate</button>
-                                <button class="btn-small" id="enhanceBtn">✨ Enhance</button>
-                                <button class="btn-small btn-danger" id="clearBtn">🗑️ Clear</button>
-                            </div>
-                        </div>
-                        <div class="preview-content">
-                            <img id="imagePreview" alt="Preview">
-                            <div class="preview-overlay">
-                                <div class="preview-info">
-                                    <span id="imageName">No image selected</span>
-                                    <span id="imageSize">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Processing Section -->
-            <section class="dashboard-card processing-section">
-                <div class="card-header">
-                    <h2><span class="icon">⚙️</span> Processing Options</h2>
-                </div>
-                
-                <div class="processing-options">
-                    <!-- Language Selection -->
-                    <div class="option-group">
-                        <label for="languageSelect">OCR Language</label>
-                        <select id="languageSelect" class="styled-select">
-                            <option value="eng">English</option>
-                            <option value="urd">Urdu</option>
-                            <option value="ara">Arabic</option>
-                            <option value="spa">Spanish</option>
-                            <option value="fra">French</option>
-                        </select>
-                    </div>
-
-                    <!-- Image Adjustments -->
-                    <div class="adjustment-grid">
-                        <div class="adjustment-item">
-                            <label>Brightness: <span id="brightnessValue">0</span></label>
-                            <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
-                        </div>
-                        <div class="adjustment-item">
-                            <label>Contrast: <span id="contrastValue">100</span></label>
-                            <input type="range" id="contrastSlider" min="0" max="200" value="100">
-                        </div>
-                    </div>
-
-                    <!-- Extract Button -->
-                    <button class="btn-extract" id="extractBtn">
-                        <span class="btn-icon">🔍</span>
-                        <span class="btn-text">Extract Text</span>
-                        <div class="btn-loading" id="extractLoading"></div>
-                    </button>
-
-                    <!-- Progress -->
-                    <div class="progress-container" id="progressContainer" style="display: none;">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                        <div class="progress-text" id="progressText">Initializing...</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Output Section -->
-            <section class="dashboard-card output-section">
-                <div class="card-header">
-                    <h2><span class="icon">📝</span> Extracted Text</h2>
-                    <div class="output-stats">
-                        <div class="stat-badge" id="confidenceBadge">
-                            <span class="stat-label">Confidence</span>
-                            <span class="stat-value" id="confidenceValue">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="output-controls">
-                    <div class="action-tools">
-                        <button class="btn-action" id="copyBtn">
-                            <span>📋</span> Copy
-                        </button>
-                        <button class="btn-action" id="downloadTxtBtn">
-                            <span>📄</span> TXT
-                        </button>
-                        <button class="btn-action" id="downloadPdfBtn">
-                            <span>📑</span> PDF
-                        </button>
-                        <button class="btn-action btn-clear" id="clearTextBtn">
-                            <span>🗑️</span> Clear
-                        </button>
-                    </div>
-                </div>
-
-                <div class="text-output-container">
-                    <textarea id="textOutput" placeholder="Extracted text will appear here..."></textarea>
-                    <div class="text-overlay" id="textOverlay">
-                        <div class="overlay-content">
-                            <div class="empty-state">
-                                <div class="empty-icon">📄</div>
-                                <h3>No Text Extracted Yet</h3>
-                                <p>Upload an image and click 'Extract Text' to get started</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Footer -->
-        <footer class="app-footer">
-            <div class="footer-content">
-                <div class="footer-info">
-                    <p>🔒 100% Client-side Processing - Your data never leaves your device</p>
-                </div>
-                <div class="footer-actions">
-                    <button class="btn-theme" id="themeToggle">
-                        <span id="themeIcon">🌙</span>
-                    </button>
+                <div class="action-tools">
+                    <button class="tool-icon" id="findReplaceBtn" title="Find & Replace"><i class="fas fa-search"></i></button>
+                    <button class="tool-icon" id="wordCountBtn" title="Word Count"><i class="fas fa-calculator"></i></button>
+                    <button class="tool-icon" id="spellCheckBtn" title="Spell Check"><i class="fas fa-spell-check"></i></button>
+                    <button class="tool-icon" id="ttsBtn" title="Text to Speech"><i class="fas fa-volume-up"></i></button>
+                    <button class="tool-icon" id="copyBtn" title="Copy"><i class="fas fa-copy"></i></button>
+                    <button class="tool-icon" id="clearTextBtn" title="Clear"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
-        </footer>
+            
+            <div class="export-tools">
+                <button class="btn btn-outline" id="exportTxtBtn"><i class="fas fa-file-alt"></i> TXT</button>
+                <button class="btn btn-outline" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn btn-outline" id="exportDocxBtn"><i class="fas fa-file-word"></i> DOCX</button>
+                <button class="btn btn-outline" id="exportCsvBtn"><i class="fas fa-file-csv"></i> CSV</button>
+                <button class="btn btn-outline" id="exportHtmlBtn"><i class="fas fa-code"></i> HTML</button>
+                <button class="btn btn-outline" id="exportMdBtn"><i class="fab fa-markdown"></i> MD</button>
+                <button class="btn btn-outline" id="exportJsonBtn"><i class="fab fa-js"></i> JSON</button>
+                <button class="btn btn-outline" id="exportSearchablePdfBtn"><i class="fas fa-file-pdf"></i> Searchable PDF</button>
+            </div>
+            
+            <div class="find-replace-panel" id="findReplacePanel" style="display:none">
+                <input type="text" id="findText" placeholder="Find...">
+                <input type="text" id="replaceText" placeholder="Replace with...">
+                <button class="btn btn-primary" id="replaceBtn">Replace</button>
+                <button class="btn btn-primary" id="replaceAllBtn">Replace All</button>
+            </div>
+            
+            <div class="stats-panel" id="statsPanel" style="display:none">
+                <span>Characters: <span id="charCount">0</span></span>
+                <span>Words: <span id="wordCount">0</span></span>
+                <span>Lines: <span id="lineCount">0</span></span>
+            </div>
+            
+            <textarea id="textOutput" placeholder="Extracted text will appear here..." readonly></textarea>
+            
+            <div class="confidence-display" id="confidenceDisplay" style="display:none">
+                <i class="fas fa-chart-line"></i>
+                Confidence: <span id="confidenceValue">0</span>%
+            </div>
+        </div>
     </div>
+    
+    <!-- Reactions Section -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-heart"></i> What do you think?</h3>
+        <div class="reactions" id="reactionsContainer">
+            <button class="reaction" data-reaction="like"><i class="far fa-thumbs-up"></i> <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="love"><i class="far fa-heart"></i> <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="wow"><i class="far fa-surprise"></i> <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="sad"><i class="far fa-frown"></i> <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="angry"><i class="far fa-angry"></i> <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="laugh"><i class="far fa-laugh-squint"></i> <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="celebrate"><i class="fas fa-glass-cheers"></i> <span class="reaction-count">0</span></button>
+        </div>
+    </div>
+    
+    <!-- Social Share Section -->
+    <div class="social-share">
+        <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
+        <div class="share-buttons">
+            <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+            <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
+            <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+            <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button class="share-btn" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        </div>
+    </div>
+    
+    <!-- Privacy Notice -->
+    <div class="privacy-notice">
+        <i class="fas fa-lock"></i>
+        Your privacy is protected. All processing happens in your browser. No images or extracted text are sent to any server.
+    </div>
+</div>
 
-    <script src="image-to-text-converter.js"></script>
+<!-- Keyboard Shortcuts Help -->
+<div class="shortcuts-help">
+    <i class="fas fa-keyboard"></i> Shortcuts: Ctrl+V (Paste), Ctrl+Enter (Extract), Ctrl+C (Copy), Ctrl+S (Save)
+</div>
+
+<script src="image-to-text-converter.js"></script>
 </body>
 </html>
