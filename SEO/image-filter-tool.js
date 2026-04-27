@@ -1,627 +1,656 @@
-// Image Filter Tool - Advanced JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
-    const fileInput = document.getElementById('fileInput');
-    const dropArea = document.getElementById('dropArea');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const imagePreview = document.getElementById('imagePreview');
-    const imageCanvas = document.getElementById('imageCanvas');
-    const ctx = imageCanvas.getContext('2d');
-    const themeToggle = document.getElementById('themeToggle');
-    const loading = document.getElementById('loading');
-    const notification = document.getElementById('notification');
-    const notificationText = document.getElementById('notificationText');
-    
-    // Filter Controls
-    const brightness = document.getElementById('brightness');
-    const contrast = document.getElementById('contrast');
-    const saturation = document.getElementById('saturation');
-    const temperature = document.getElementById('temperature');
-    const exposure = document.getElementById('exposure');
-    const grayscale = document.getElementById('grayscale');
-    const sepia = document.getElementById('sepia');
-    const hue = document.getElementById('hue');
-    const invert = document.getElementById('invert');
-    const vibrance = document.getElementById('vibrance');
-    
-    // Buttons
-    const resetBtn = document.getElementById('resetBtn');
-    const savePresetBtn = document.getElementById('savePresetBtn');
-    const cropBtn = document.getElementById('cropBtn');
-    const applyCropBtn = document.getElementById('applyCropBtn');
-    const cancelCropBtn = document.getElementById('cancelCropBtn');
-    const cropControls = document.getElementById('cropControls');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const zoomInBtn = document.getElementById('zoomInBtn');
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    const rotateBtn = document.getElementById('rotateBtn');
-    const originalBtn = document.getElementById('originalBtn');
-    const aiButtons = document.querySelectorAll('.ai-btn');
-    const presetBtns = document.querySelectorAll('.preset-btn');
-    const formatOptions = document.querySelectorAll('input[name="format"]');
-    
-    // State Variables
-    let originalImage = null;
-    let isCropping = false;
-    let cropX = 0, cropY = 0, cropWidth = 0, cropHeight = 0;
-    let startX = 0, startY = 0;
-    let currentZoom = 1;
-    let currentRotation = 0;
-    let editHistory = [];
-    let currentFilter = '';
-    
-    // Initialize the tool
-    function init() {
-        setupEventListeners();
-        updateSliderValues();
-        applyTheme();
+// ==================== TiDB API Configuration ====================
+const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api' 
+    : '/api';  // Vercel will handle this automatically
+
+const TOOL_ID = 'image_filter_tool';
+
+// ==================== Global Variables ====================
+let userId = getUserId();
+let originalImage = null;
+let currentImage = null;
+let history = [];
+let historyIndex = -1;
+let isComparing = false;
+let originalFilters = null;
+let currentRotation = 0;
+let currentFlipH = false;
+let currentFlipV = false;
+
+// DOM Elements
+const fileInput = document.getElementById('fileInput');
+const uploadArea = document.getElementById('uploadArea');
+const imageCanvas = document.getElementById('imageCanvas');
+const ctx = imageCanvas.getContext('2d');
+
+// Filter elements
+const brightness = document.getElementById('brightness');
+const contrast = document.getElementById('contrast');
+const saturation = document.getElementById('saturation');
+const temperature = document.getElementById('temperature');
+const grayscale = document.getElementById('grayscale');
+const sepia = document.getElementById('sepia');
+const hue = document.getElementById('hue');
+const invert = document.getElementById('invert');
+const blur = document.getElementById('blur');
+
+// ==================== Helper Functions ====================
+function getUserId() {
+    let id = localStorage.getItem('user_id');
+    if (!id) {
+        id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('user_id', id);
     }
-    
-    // Set up all event listeners
-    function setupEventListeners() {
-        // File handling
-        uploadBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-        
-        // Drag and drop
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('active');
-        });
-        
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('active');
-        });
-        
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('active');
-            handleFiles(e.dataTransfer.files);
-        });
-        
-        // Theme toggle
-        themeToggle.addEventListener('click', toggleTheme);
-        
-        // Filter controls
-        brightness.addEventListener('input', () => updateSliderValue(brightness, 'brightnessValue', '%'));
-        contrast.addEventListener('input', () => updateSliderValue(contrast, 'contrastValue', '%'));
-        saturation.addEventListener('input', () => updateSliderValue(saturation, 'saturationValue', '%'));
-        temperature.addEventListener('input', () => updateSliderValue(temperature, 'temperatureValue'));
-        exposure.addEventListener('input', () => updateSliderValue(exposure, 'exposureValue'));
-        grayscale.addEventListener('input', () => updateSliderValue(grayscale, 'grayscaleValue', '%'));
-        sepia.addEventListener('input', () => updateSliderValue(sepia, 'sepiaValue', '%'));
-        hue.addEventListener('input', () => updateSliderValue(hue, 'hueValue', '°'));
-        invert.addEventListener('input', () => updateSliderValue(invert, 'invertValue', '%'));
-        vibrance.addEventListener('input', () => updateSliderValue(vibrance, 'vibranceValue'));
-        
-        // Action buttons
-        resetBtn.addEventListener('click', resetFilters);
-        savePresetBtn.addEventListener('click', savePreset);
-        cropBtn.addEventListener('click', startCrop);
-        applyCropBtn.addEventListener('click', applyCrop);
-        cancelCropBtn.addEventListener('click', cancelCrop);
-        downloadBtn.addEventListener('click', downloadImage);
-        
-        // Preview controls
-        zoomInBtn.addEventListener('click', () => adjustZoom(0.1));
-        zoomOutBtn.addEventListener('click', () => adjustZoom(-0.1));
-        rotateBtn.addEventListener('click', rotateImage);
-        originalBtn.addEventListener('click', toggleOriginal);
-        
-        // AI and preset buttons
-        aiButtons.forEach(btn => {
-            btn.addEventListener('click', () => applyAISuggestion(btn.dataset.ai));
-        });
-        
-        presetBtns.forEach(btn => {
-            btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
-        });
-        
-        // Canvas events for cropping
-        imageCanvas.addEventListener('mousedown', startCropSelection);
-    }
-    
-    // Handle file selection
-    function handleFiles(files) {
-        if (files.length === 0) return;
-        
-        const file = files[0];
-        if (!file.type.match('image.*')) {
-            showNotification('Please select an image file', 'error');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            originalImage = new Image();
-            originalImage.onload = function() {
-                resetFilters();
-                imageCanvas.width = originalImage.width;
-                imageCanvas.height = originalImage.height;
-                imagePreview.src = e.target.result;
-                imagePreview.style.display = 'block';
-                redrawCanvas();
-                addToHistory('Original Image');
-                showNotification('Image loaded successfully');
-            };
-            originalImage.src = e.target.result;
+    return id;
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    toast.style.background = type === 'error' ? '#dc3545' : '#28a745';
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function showLoading(show) {
+    const spinner = document.getElementById('loadingSpinner');
+    spinner.style.display = show ? 'flex' : 'none';
+}
+
+function updateSliderValue(element, valueElement, suffix = '') {
+    valueElement.textContent = element.value + suffix;
+    applyFilters();
+    saveToHistory();
+}
+
+// ==================== TiDB API Calls with LocalStorage Fallback ====================
+async function apiCall(endpoint, method = 'GET', data = null) {
+    try {
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
         };
-        reader.readAsDataURL(file);
-    }
-    
-    // Update slider value display
-    function updateSliderValue(slider, valueId, suffix = '') {
-        document.getElementById(valueId).textContent = slider.value + suffix;
-        applyFilters();
-    }
-    
-    // Update all slider values
-    function updateSliderValues() {
-        updateSliderValue(brightness, 'brightnessValue', '%');
-        updateSliderValue(contrast, 'contrastValue', '%');
-        updateSliderValue(saturation, 'saturationValue', '%');
-        updateSliderValue(temperature, 'temperatureValue');
-        updateSliderValue(exposure, 'exposureValue');
-        updateSliderValue(grayscale, 'grayscaleValue', '%');
-        updateSliderValue(sepia, 'sepiaValue', '%');
-        updateSliderValue(hue, 'hueValue', '°');
-        updateSliderValue(invert, 'invertValue', '%');
-        updateSliderValue(vibrance, 'vibranceValue');
-    }
-    
-    // Apply all filters to the image
-    function applyFilters() {
-        if (!originalImage) return;
-        
-        // Save current state to history
-        saveStateToHistory();
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
-        
-        // Apply transformations
-        ctx.save();
-        
-        // Apply rotation
-        if (currentRotation !== 0) {
-            ctx.translate(imageCanvas.width / 2, imageCanvas.height / 2);
-            ctx.rotate(currentRotation * Math.PI / 180);
-            ctx.translate(-imageCanvas.width / 2, -imageCanvas.height / 2);
+        if (data) {
+            options.body = JSON.stringify(data);
         }
         
-        // Draw the image
-        ctx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
         
-        // Apply filters
-        let filterString = '';
-        
-        // Basic adjustments
-        filterString += `brightness(${brightness.value}%) `;
-        filterString += `contrast(${contrast.value}%) `;
-        filterString += `saturate(${saturation.value}%) `;
-        
-        // Color filters
-        filterString += `grayscale(${grayscale.value}%) `;
-        filterString += `sepia(${sepia.value}%) `;
-        filterString += `hue-rotate(${hue.value}deg) `;
-        filterString += `invert(${invert.value}%) `;
-        
-        // Apply the filter
-        ctx.filter = filterString;
-        
-        // Redraw with filters
-        ctx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
-        
-        // Apply temperature and exposure (these require more complex processing)
-        applyTemperatureAndExposure();
-        
-        ctx.restore();
-        
-        // Update the preview
-        imagePreview.src = imageCanvas.toDataURL();
-    }
-    
-    // Apply temperature and exposure adjustments
-    function applyTemperatureAndExposure() {
-        // This is a simplified implementation
-        // In a real application, you would use more complex algorithms
-        const imageData = ctx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
-        const data = imageData.data;
-        
-        // Temperature adjustment (warm/cool)
-        const tempValue = temperature.value / 100;
-        for (let i = 0; i < data.length; i += 4) {
-            // Red channel (warmth)
-            data[i] = clamp(data[i] * (1 + tempValue * 0.3), 0, 255);
-            // Blue channel (coolness)
-            data[i + 2] = clamp(data[i + 2] * (1 - tempValue * 0.3), 0, 255);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
         }
         
-        // Exposure adjustment
-        const expValue = exposure.value / 100;
-        for (let i = 0; i < data.length; i += 4) {
-            data[i] = clamp(data[i] * (1 + expValue), 0, 255);
-            data[i + 1] = clamp(data[i + 1] * (1 + expValue), 0, 255);
-            data[i + 2] = clamp(data[i + 2] * (1 + expValue), 0, 255);
+        return await response.json();
+    } catch (error) {
+        console.warn('API Error, using localStorage fallback:', error);
+        return handleLocalStorageFallback(endpoint, method, data);
+    }
+}
+
+// LocalStorage Fallback Handler
+function handleLocalStorageFallback(endpoint, method, data) {
+    const storageKey = `tool_${TOOL_ID}`;
+    let storage = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    
+    // Usage Counter
+    if (endpoint.includes('/usage')) {
+        if (method === 'GET') {
+            return { count: storage.usageCount || 0 };
+        } else if (method === 'POST') {
+            storage.usageCount = (storage.usageCount || 0) + 1;
+            localStorage.setItem(storageKey, JSON.stringify(storage));
+            return { count: storage.usageCount, success: true };
         }
-        
-        // Vibrance adjustment
-        const vibValue = vibrance.value / 100;
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i + 1], b = data[i + 2];
-            const max = Math.max(r, g, b);
-            if (max > 128) {
-                data[i] = clamp(r * (1 + vibValue), 0, 255);
-                data[i + 1] = clamp(g * (1 + vibValue), 0, 255);
-                data[i + 2] = clamp(b * (1 + vibValue), 0, 255);
-            }
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
     }
     
-    // Clamp value between min and max
-    function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
+    // Reactions
+    if (endpoint.includes('/reactions') && method === 'GET') {
+        return { reactions: storage.reactions || { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 } };
     }
     
-    // Reset all filters to default
-    function resetFilters() {
+    if (endpoint.includes('/reaction') && method === 'POST') {
+        const emoji = data.emoji;
+        if (!storage.reactions) storage.reactions = {};
+        if (!storage.userReactions) storage.userReactions = {};
+        
+        if (storage.userReactions[userId] && storage.userReactions[userId][emoji]) {
+            return { success: false, already_reacted: true };
+        }
+        
+        storage.reactions[emoji] = (storage.reactions[emoji] || 0) + 1;
+        if (!storage.userReactions[userId]) storage.userReactions[userId] = {};
+        storage.userReactions[userId][emoji] = true;
+        
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        return { success: true };
+    }
+    
+    // Social Shares
+    if (endpoint.includes('/shares') && method === 'GET') {
+        return { shares: storage.shares || { facebook: 0, twitter: 0, linkedin: 0, whatsapp: 0, email: 0 } };
+    }
+    
+    if (endpoint.includes('/share') && method === 'POST') {
+        const platform = data.platform;
+        if (!storage.shares) storage.shares = {};
+        storage.shares[platform] = (storage.shares[platform] || 0) + 1;
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        return { success: true };
+    }
+    
+    // Page Share
+    if (endpoint.includes('/page-share') && method === 'POST') {
+        storage.pageShares = (storage.pageShares || 0) + 1;
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        return { success: true };
+    }
+    
+    return { success: true };
+}
+
+// ==================== Usage Counter (TiDB Connected) ====================
+async function incrementUsageCount() {
+    const result = await apiCall(`/tool/${TOOL_ID}/usage`, 'POST', { user_id: userId });
+    if (result && result.count !== undefined) {
+        document.getElementById('usageCount').textContent = result.count;
+        showToast('✅ Usage recorded!');
+    }
+}
+
+async function loadUsageCount() {
+    const result = await apiCall(`/tool/${TOOL_ID}/usage`);
+    if (result && result.count !== undefined) {
+        document.getElementById('usageCount').textContent = result.count;
+    }
+}
+
+// ==================== Reactions (7 Emojis) - TiDB Connected ====================
+async function loadReactions() {
+    const result = await apiCall(`/tool/${TOOL_ID}/reactions`);
+    if (result && result.reactions) {
+        for (const [emoji, count] of Object.entries(result.reactions)) {
+            const reactionDiv = document.querySelector(`.reaction[data-emoji="${emoji}"] .reaction-count`);
+            if (reactionDiv) reactionDiv.textContent = count;
+        }
+    }
+}
+
+async function addReaction(emoji) {
+    showLoading(true);
+    const result = await apiCall(`/tool/${TOOL_ID}/reaction`, 'POST', { 
+        user_id: userId, 
+        emoji: emoji 
+    });
+    showLoading(false);
+    
+    if (result && result.success) {
+        await loadReactions();
+        showToast(`✨ ${getEmojiName(emoji)} reaction added!`);
+    } else if (result && result.already_reacted) {
+        showToast(`⚠️ You already reacted with ${getEmojiName(emoji)}!`, 'error');
+    }
+}
+
+function getEmojiName(emoji) {
+    const names = {
+        like: '👍 Like', love: '❤️ Love', wow: '😮 Wow',
+        sad: '😢 Sad', angry: '😠 Angry', laugh: '😂 Laugh', celebrate: '🎉 Celebrate'
+    };
+    return names[emoji] || emoji;
+}
+
+// ==================== Social Share (TiDB Connected) ====================
+async function loadShareCounts() {
+    const result = await apiCall(`/tool/${TOOL_ID}/shares`);
+    if (result && result.shares) {
+        for (const [platform, count] of Object.entries(result.shares)) {
+            const shareSpan = document.querySelector(`.social-icon[data-social="${platform}"] .share-count`);
+            if (shareSpan) shareSpan.textContent = count;
+        }
+    }
+}
+
+async function recordShare(platform) {
+    const result = await apiCall(`/tool/${TOOL_ID}/share`, 'POST', {
+        user_id: userId,
+        platform: platform
+    });
+    
+    if (result && result.success) {
+        await loadShareCounts();
+    }
+}
+
+function shareOnSocial(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('Image Filter Pro - Advanced Photo Filter Tool');
+    let shareUrl = '';
+    
+    switch(platform) {
+        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`; break;
+        case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}`; break;
+        case 'whatsapp': shareUrl = `https://wa.me/?text=${title}%20${url}`; break;
+        case 'email': shareUrl = `mailto:?subject=${title}&body=${url}`; break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        recordShare(platform);
+        showToast(`📤 Shared on ${platform}!`);
+    }
+}
+
+// ==================== Page Share (TiDB Connected) ====================
+async function copyPageUrl() {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('🔗 Link copied to clipboard!');
+        await apiCall(`/tool/${TOOL_ID}/page-share`, 'POST', { user_id: userId });
+    } catch (err) {
+        showToast('Failed to copy link', 'error');
+    }
+}
+
+// ==================== Image Processing Functions ====================
+function handleFiles(files) {
+    if (!files.length) return;
+    const file = files[0];
+    if (!file.type.match('image.*')) {
+        showToast('Please select an image file!', 'error');
+        return;
+    }
+    
+    showLoading(true);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        originalImage = new Image();
+        originalImage.onload = function() {
+            currentImage = originalImage;
+            currentRotation = 0;
+            currentFlipH = false;
+            currentFlipV = false;
+            imageCanvas.width = originalImage.width;
+            imageCanvas.height = originalImage.height;
+            drawImage();
+            showLoading(false);
+            showToast('📸 Image uploaded successfully!');
+            incrementUsageCount();
+            saveToHistory();
+        };
+        originalImage.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function drawImage() {
+    if (!currentImage) return;
+    
+    let width = currentImage.width;
+    let height = currentImage.height;
+    
+    imageCanvas.width = width;
+    imageCanvas.height = height;
+    
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    
+    let filterString = getFilterString();
+    ctx.filter = filterString;
+    
+    ctx.translate(width/2, height/2);
+    
+    if (currentFlipH) ctx.scale(-1, 1);
+    if (currentFlipV) ctx.scale(1, -1);
+    
+    ctx.rotate(currentRotation * Math.PI / 180);
+    ctx.drawImage(currentImage, -width/2, -height/2, width, height);
+    ctx.restore();
+}
+
+function getFilterString() {
+    const brightnessVal = `brightness(${brightness.value}%)`;
+    const contrastVal = `contrast(${contrast.value}%)`;
+    const saturationVal = `saturate(${saturation.value}%)`;
+    const grayscaleVal = grayscale.value > 0 ? `grayscale(${grayscale.value}%)` : '';
+    const sepiaVal = sepia.value > 0 ? `sepia(${sepia.value}%)` : '';
+    const hueVal = hue.value > 0 ? `hue-rotate(${hue.value}deg)` : '';
+    const invertVal = invert.value > 0 ? `invert(${invert.value}%)` : '';
+    const blurVal = blur.value > 0 ? `blur(${blur.value}px)` : '';
+    
+    let filter = `${brightnessVal} ${contrastVal} ${saturationVal}`;
+    if (grayscaleVal) filter += ` ${grayscaleVal}`;
+    if (sepiaVal) filter += ` ${sepiaVal}`;
+    if (hueVal) filter += ` ${hueVal}`;
+    if (invertVal) filter += ` ${invertVal}`;
+    if (blurVal) filter += ` ${blurVal}`;
+    
+    const tempVal = parseInt(temperature.value);
+    if (tempVal !== 0) {
+        const temp = Math.abs(tempVal) / 100;
+        if (tempVal > 0) filter += ` sepia(${temp}) hue-rotate(-30deg) saturate(1.5)`;
+        else filter += ` sepia(${temp}) hue-rotate(30deg)`;
+    }
+    
+    return filter;
+}
+
+function applyFilters() {
+    if (!currentImage) return;
+    drawImage();
+}
+
+function resetFilters() {
+    brightness.value = 100;
+    contrast.value = 100;
+    saturation.value = 100;
+    temperature.value = 0;
+    grayscale.value = 0;
+    sepia.value = 0;
+    hue.value = 0;
+    invert.value = 0;
+    blur.value = 0;
+    currentRotation = 0;
+    currentFlipH = false;
+    currentFlipV = false;
+    
+    document.getElementById('brightnessValue').textContent = '100%';
+    document.getElementById('contrastValue').textContent = '100%';
+    document.getElementById('saturationValue').textContent = '100%';
+    document.getElementById('temperatureValue').textContent = '0';
+    document.getElementById('grayscaleValue').textContent = '0%';
+    document.getElementById('sepiaValue').textContent = '0%';
+    document.getElementById('hueValue').textContent = '0°';
+    document.getElementById('invertValue').textContent = '0%';
+    document.getElementById('blurValue').textContent = '0px';
+    
+    applyFilters();
+    showToast('🔄 All filters reset!');
+    saveToHistory();
+}
+
+// History (Undo/Redo)
+function saveToHistory() {
+    if (!currentImage) return;
+    
+    const state = {
+        brightness: brightness.value,
+        contrast: contrast.value,
+        saturation: saturation.value,
+        temperature: temperature.value,
+        grayscale: grayscale.value,
+        sepia: sepia.value,
+        hue: hue.value,
+        invert: invert.value,
+        blur: blur.value,
+        rotation: currentRotation,
+        flipH: currentFlipH,
+        flipV: currentFlipV
+    };
+    
+    if (historyIndex < history.length - 1) {
+        history = history.slice(0, historyIndex + 1);
+    }
+    
+    history.push(state);
+    historyIndex = history.length - 1;
+}
+
+function undo() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        loadHistoryState(history[historyIndex]);
+        showToast('↩️ Undo successful!');
+    } else {
+        showToast('Nothing to undo!', 'error');
+    }
+}
+
+function redo() {
+    if (historyIndex < history.length - 1) {
+        historyIndex++;
+        loadHistoryState(history[historyIndex]);
+        showToast('↪️ Redo successful!');
+    } else {
+        showToast('Nothing to redo!', 'error');
+    }
+}
+
+function loadHistoryState(state) {
+    brightness.value = state.brightness;
+    contrast.value = state.contrast;
+    saturation.value = state.saturation;
+    temperature.value = state.temperature;
+    grayscale.value = state.grayscale;
+    sepia.value = state.sepia;
+    hue.value = state.hue;
+    invert.value = state.invert;
+    blur.value = state.blur;
+    currentRotation = state.rotation;
+    currentFlipH = state.flipH;
+    currentFlipV = state.flipV;
+    
+    document.getElementById('brightnessValue').textContent = state.brightness + '%';
+    document.getElementById('contrastValue').textContent = state.contrast + '%';
+    document.getElementById('saturationValue').textContent = state.saturation + '%';
+    document.getElementById('temperatureValue').textContent = state.temperature;
+    document.getElementById('grayscaleValue').textContent = state.grayscale + '%';
+    document.getElementById('sepiaValue').textContent = state.sepia + '%';
+    document.getElementById('hueValue').textContent = state.hue + '°';
+    document.getElementById('invertValue').textContent = state.invert + '%';
+    document.getElementById('blurValue').textContent = state.blur + 'px';
+    
+    applyFilters();
+}
+
+// Compare Original
+function toggleCompare() {
+    if (!originalImage) {
+        showToast('Please upload an image first!', 'error');
+        return;
+    }
+    
+    if (!isComparing) {
+        originalFilters = {
+            brightness: brightness.value,
+            contrast: contrast.value,
+            saturation: saturation.value,
+            temperature: temperature.value,
+            grayscale: grayscale.value,
+            sepia: sepia.value,
+            hue: hue.value,
+            invert: invert.value,
+            blur: blur.value
+        };
+        
         brightness.value = 100;
         contrast.value = 100;
         saturation.value = 100;
         temperature.value = 0;
-        exposure.value = 0;
         grayscale.value = 0;
         sepia.value = 0;
         hue.value = 0;
         invert.value = 0;
-        vibrance.value = 0;
-        currentZoom = 1;
-        currentRotation = 0;
+        blur.value = 0;
         
-        updateSliderValues();
-        redrawCanvas();
-        showNotification('Filters reset');
-    }
-    
-    // Redraw the canvas
-    function redrawCanvas() {
-        if (!originalImage) return;
-        
-        imageCanvas.width = originalImage.width;
-        imageCanvas.height = originalImage.height;
-        ctx.drawImage(originalImage, 0, 0);
         applyFilters();
-    }
-    
-    // Apply AI suggestion
-    function applyAISuggestion(type) {
-        showLoading();
-        
-        // Simulate AI processing
-        setTimeout(() => {
-            switch(type) {
-                case 'enhance':
-                    brightness.value = 110;
-                    contrast.value = 115;
-                    saturation.value = 105;
-                    vibrance.value = 10;
-                    break;
-                case 'portrait':
-                    brightness.value = 105;
-                    contrast.value = 110;
-                    saturation.value = 95;
-                    temperature.value = 5;
-                    break;
-                case 'landscape':
-                    brightness.value = 105;
-                    saturation.value = 120;
-                    vibrance.value = 15;
-                    temperature.value = -5;
-                    break;
-                case 'vintage':
-                    saturation.value = 85;
-                    sepia.value = 30;
-                    temperature.value = 15;
-                    break;
-            }
+        isComparing = true;
+        document.getElementById('compareBtn').innerHTML = '<i class="fas fa-eye"></i> Show Filtered';
+        showToast('👁️ Showing original image');
+    } else {
+        if (originalFilters) {
+            brightness.value = originalFilters.brightness;
+            contrast.value = originalFilters.contrast;
+            saturation.value = originalFilters.saturation;
+            temperature.value = originalFilters.temperature;
+            grayscale.value = originalFilters.grayscale;
+            sepia.value = originalFilters.sepia;
+            hue.value = originalFilters.hue;
+            invert.value = originalFilters.invert;
+            blur.value = originalFilters.blur;
             
-            updateSliderValues();
             applyFilters();
-            hideLoading();
-            showNotification(`AI ${type} filter applied`);
-        }, 1000);
-    }
-    
-    // Apply preset filter
-    function applyPreset(preset) {
-        switch(preset) {
-            case 'vintage':
-                brightness.value = 95;
-                contrast.value = 90;
-                saturation.value = 80;
-                sepia.value = 40;
-                temperature.value = 20;
-                break;
-            case 'blackWhite':
-                grayscale.value = 100;
-                contrast.value = 120;
-                break;
-            case 'cool':
-                temperature.value = -30;
-                saturation.value = 110;
-                break;
-            case 'warm':
-                temperature.value = 30;
-                saturation.value = 110;
-                break;
-            case 'dramatic':
-                brightness.value = 90;
-                contrast.value = 130;
-                saturation.value = 85;
-                break;
-            case 'cinematic':
-                brightness.value = 85;
-                contrast.value = 120;
-                saturation.value = 95;
-                vibrance.value = 10;
-                break;
         }
-        
-        updateSliderValues();
-        applyFilters();
-        showNotification(`${preset} preset applied`);
+        isComparing = false;
+        document.getElementById('compareBtn').innerHTML = '<i class="fas fa-eye-slash"></i> Compare Original';
+        showToast('🎨 Showing filtered image');
+    }
+}
+
+// Preset Filters
+function applyPreset(preset) {
+    switch(preset) {
+        case 'vintage':
+            brightness.value = 110; contrast.value = 90; saturation.value = 85;
+            temperature.value = 20; sepia.value = 60; break;
+        case 'blackWhite':
+            brightness.value = 100; contrast.value = 120; saturation.value = 0;
+            grayscale.value = 100; break;
+        case 'cool':
+            brightness.value = 100; contrast.value = 100; saturation.value = 120;
+            temperature.value = -50; hue.value = 200; break;
+        case 'warm':
+            brightness.value = 110; contrast.value = 110; saturation.value = 120;
+            temperature.value = 50; sepia.value = 20; hue.value = 30; break;
+        case 'dramatic':
+            brightness.value = 90; contrast.value = 130; saturation.value = 90;
+            grayscale.value = 30; invert.value = 10; break;
     }
     
-    // Save current filter settings as a preset
-    function savePreset() {
-        const presetName = prompt('Enter a name for your preset:');
-        if (presetName) {
-            // In a real application, you would save this to localStorage or a database
-            showNotification(`Preset "${presetName}" saved`);
-        }
+    document.getElementById('brightnessValue').textContent = brightness.value + '%';
+    document.getElementById('contrastValue').textContent = contrast.value + '%';
+    document.getElementById('saturationValue').textContent = saturation.value + '%';
+    document.getElementById('temperatureValue').textContent = temperature.value;
+    document.getElementById('grayscaleValue').textContent = grayscale.value + '%';
+    document.getElementById('sepiaValue').textContent = sepia.value + '%';
+    document.getElementById('hueValue').textContent = hue.value + '°';
+    document.getElementById('invertValue').textContent = invert.value + '%';
+    
+    applyFilters();
+    showToast(`✨ ${preset} filter applied!`);
+    saveToHistory();
+}
+
+// Transform Functions
+function rotateLeft() { currentRotation -= 90; drawImage(); saveToHistory(); showToast('🔄 Rotated Left'); }
+function rotateRight() { currentRotation += 90; drawImage(); saveToHistory(); showToast('🔄 Rotated Right'); }
+function flipHorizontal() { currentFlipH = !currentFlipH; drawImage(); saveToHistory(); showToast('🪞 Flipped Horizontal'); }
+function flipVertical() { currentFlipV = !currentFlipV; drawImage(); saveToHistory(); showToast('🪞 Flipped Vertical'); }
+
+// Download Image
+function downloadImage() {
+    if (!currentImage) {
+        showToast('Please upload an image first!', 'error');
+        return;
     }
     
-    // Start cropping mode
-    function startCrop() {
-        isCropping = true;
-        cropControls.style.display = 'block';
-        showNotification('Click and drag to select crop area');
-    }
+    const format = document.querySelector('input[name="format"]:checked').value;
+    let mimeType = `image/${format === 'jpg' ? 'jpeg' : format}`;
+    let ext = format === 'jpg' ? 'jpg' : format;
     
-    // Start crop selection
-    function startCropSelection(e) {
-        if (!isCropping) return;
-        
-        const rect = imageCanvas.getBoundingClientRect();
-        startX = e.clientX - rect.left;
-        startY = e.clientY - rect.top;
-        
-        imageCanvas.addEventListener('mousemove', updateCropSelection);
-        imageCanvas.addEventListener('mouseup', endCropSelection);
-    }
+    const link = document.createElement('a');
+    link.download = `filtered-image.${ext}`;
+    link.href = imageCanvas.toDataURL(mimeType, 0.9);
+    link.click();
     
-    // Update crop selection
-    function updateCropSelection(e) {
-        const rect = imageCanvas.getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
-        
-        cropX = Math.min(startX, currentX);
-        cropY = Math.min(startY, currentY);
-        cropWidth = Math.abs(currentX - startX);
-        cropHeight = Math.abs(currentY - startY);
-        
-        // Draw selection rectangle
-        redrawCanvas();
-        ctx.strokeStyle = '#4285f4';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(cropX, cropY, cropWidth, cropHeight);
-        ctx.setLineDash([]);
-    }
+    showToast(`📥 Image downloaded as ${format.toUpperCase()}!`);
+}
+
+// Theme Switcher
+function initThemeSwitcher() {
+    const savedTheme = localStorage.getItem('theme') || 'default';
+    document.body.className = `theme-${savedTheme}`;
     
-    // End crop selection
-    function endCropSelection() {
-        imageCanvas.removeEventListener('mousemove', updateCropSelection);
-        imageCanvas.removeEventListener('mouseup', endCropSelection);
-    }
-    
-    // Apply the crop
-    function applyCrop() {
-        if (cropWidth > 0 && cropHeight > 0) {
-            // Create a new canvas with the cropped dimensions
-            const croppedCanvas = document.createElement('canvas');
-            croppedCanvas.width = cropWidth;
-            croppedCanvas.height = cropHeight;
-            const croppedCtx = croppedCanvas.getContext('2d');
-            
-            // Draw the cropped portion
-            croppedCtx.drawImage(
-                imageCanvas, 
-                cropX, cropY, cropWidth, cropHeight,
-                0, 0, cropWidth, cropHeight
-            );
-            
-            // Update the original image and canvas
-            originalImage = new Image();
-            originalImage.onload = function() {
-                imageCanvas.width = cropWidth;
-                imageCanvas.height = cropHeight;
-                redrawCanvas();
-                addToHistory('Crop Applied');
-            };
-            originalImage.src = croppedCanvas.toDataURL();
-        }
-        
-        cancelCrop();
-    }
-    
-    // Cancel cropping
-    function cancelCrop() {
-        isCropping = false;
-        cropControls.style.display = 'none';
-        redrawCanvas();
-    }
-    
-    // Adjust zoom level
-    function adjustZoom(amount) {
-        currentZoom = Math.max(0.1, Math.min(5, currentZoom + amount));
-        updateZoomDisplay();
-        showNotification(`Zoom: ${Math.round(currentZoom * 100)}%`);
-    }
-    
-    // Update zoom display
-    function updateZoomDisplay() {
-        document.getElementById('zoomInfo').textContent = `${Math.round(currentZoom * 100)}%`;
-        imagePreview.style.transform = `scale(${currentZoom})`;
-    }
-    
-    // Rotate image
-    function rotateImage() {
-        currentRotation = (currentRotation + 90) % 360;
-        redrawCanvas();
-        showNotification(`Image rotated ${currentRotation}°`);
-    }
-    
-    // Toggle original image view
-    function toggleOriginal() {
-        if (imagePreview.style.display === 'block') {
-            imagePreview.style.display = 'none';
-            imageCanvas.style.display = 'block';
-            originalBtn.innerHTML = '<i class="fas fa-eye"></i> Filtered';
-        } else {
-            imagePreview.style.display = 'block';
-            imageCanvas.style.display = 'none';
-            originalBtn.innerHTML = '<i class="fas fa-eye"></i> Original';
-        }
-    }
-    
-    // Download the processed image
-    function downloadImage() {
-        if (!originalImage) {
-            showNotification('Please upload an image first', 'error');
-            return;
-        }
-        
-        // Get selected format
-        let format = 'jpg';
-        formatOptions.forEach(option => {
-            if (option.checked) format = option.value;
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const theme = btn.dataset.theme;
+            document.body.className = `theme-${theme}`;
+            localStorage.setItem('theme', theme);
+            showToast(`🎨 Theme changed to ${theme}!`);
         });
-        
-        // Create download link
-        const link = document.createElement('a');
-        link.download = `filtered-image.${format}`;
-        link.href = imageCanvas.toDataURL(`image/${format}`);
-        link.click();
-        
-        showNotification('Image downloaded successfully');
-    }
-    
-    // Add action to history
-    function addToHistory(action) {
-        const historyItem = {
-            action,
-            timestamp: new Date().toLocaleTimeString(),
-            preview: imageCanvas.toDataURL()
-        };
-        
-        editHistory.push(historyItem);
-        updateHistoryDisplay();
-    }
-    
-    // Save current state to history
-    function saveStateToHistory() {
-        // Limit history to 10 items
-        if (editHistory.length > 10) {
-            editHistory.shift();
-        }
-    }
-    
-    // Update history display
-    function updateHistoryDisplay() {
-        const historyList = document.getElementById('historyList');
-        
-        if (editHistory.length === 0) {
-            historyList.innerHTML = `
-                <div class="history-empty">
-                    <i class="fas fa-clock"></i>
-                    <p>Your edit history will appear here</p>
-                </div>
-            `;
-            return;
-        }
-        
-        historyList.innerHTML = editHistory.map(item => `
-            <div class="history-item">
-                <img src="${item.preview}" alt="${item.action}">
-                <div class="history-info">
-                    <p>${item.action}</p>
-                    <span>${item.timestamp}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-    
-    // Toggle theme
-    function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        
-        // Update theme button icon
-        const icon = themeToggle.querySelector('i');
-        icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        
-        showNotification(`${newTheme === 'dark' ? 'Dark' : 'Light'} theme activated`);
-    }
-    
-    // Apply saved theme
-    function applyTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        // Update theme button icon
-        const icon = themeToggle.querySelector('i');
-        icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    }
-    
-    // Show loading indicator
-    function showLoading() {
-        loading.style.display = 'flex';
-    }
-    
-    // Hide loading indicator
-    function hideLoading() {
-        loading.style.display = 'none';
-    }
-    
-    // Show notification
-    function showNotification(message, type = 'success') {
-        notificationText.textContent = message;
-        
-        // Set color based on type
-        if (type === 'error') {
-            notification.style.background = 'var(--accent-color)';
-        } else if (type === 'warning') {
-            notification.style.background = 'var(--warning-color)';
-            notification.style.color = '#333';
-        } else {
-            notification.style.background = 'var(--secondary-color)';
-        }
-        
-        notification.style.display = 'block';
-        
-        // Auto hide after 3 seconds
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 3000);
-    }
-    
-    // Initialize the tool
-    init();
+    });
+}
+
+// Scroll Functions
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+
+// ==================== Event Listeners ====================
+document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('active'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('active'));
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('active');
+    handleFiles(e.dataTransfer.files);
 });
+
+// Sliders
+brightness.addEventListener('input', () => updateSliderValue(brightness, document.getElementById('brightnessValue'), '%'));
+contrast.addEventListener('input', () => updateSliderValue(contrast, document.getElementById('contrastValue'), '%'));
+saturation.addEventListener('input', () => updateSliderValue(saturation, document.getElementById('saturationValue'), '%'));
+temperature.addEventListener('input', () => updateSliderValue(temperature, document.getElementById('temperatureValue')));
+grayscale.addEventListener('input', () => updateSliderValue(grayscale, document.getElementById('grayscaleValue'), '%'));
+sepia.addEventListener('input', () => updateSliderValue(sepia, document.getElementById('sepiaValue'), '%'));
+hue.addEventListener('input', () => updateSliderValue(hue, document.getElementById('hueValue'), '°'));
+invert.addEventListener('input', () => updateSliderValue(invert, document.getElementById('invertValue'), '%'));
+blur.addEventListener('input', () => updateSliderValue(blur, document.getElementById('blurValue'), 'px'));
+
+// Buttons
+document.getElementById('resetBtn').addEventListener('click', resetFilters);
+document.getElementById('undoBtn').addEventListener('click', undo);
+document.getElementById('redoBtn').addEventListener('click', redo);
+document.getElementById('compareBtn').addEventListener('click', toggleCompare);
+document.getElementById('rotateLeftBtn').addEventListener('click', rotateLeft);
+document.getElementById('rotateRightBtn').addEventListener('click', rotateRight);
+document.getElementById('flipHorizontalBtn').addEventListener('click', flipHorizontal);
+document.getElementById('flipVerticalBtn').addEventListener('click', flipVertical);
+document.getElementById('downloadBtn').addEventListener('click', downloadImage);
+document.getElementById('pageShareBtn').addEventListener('click', copyPageUrl);
+document.getElementById('backHomeBtn').addEventListener('click', () => window.location.href = '/');
+document.getElementById('shareToolBtn').addEventListener('click', copyPageUrl);
+
+// Preset buttons
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+});
+
+// Reactions
+document.querySelectorAll('.reaction').forEach(reaction => {
+    reaction.addEventListener('click', () => addReaction(reaction.dataset.emoji));
+});
+
+// Social share
+document.querySelectorAll('.social-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+        e.preventDefault();
+        shareOnSocial(icon.dataset.social);
+    });
+});
+
+// Scroll buttons
+document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
+document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
+
+window.addEventListener('scroll', () => {
+    const upBtn = document.getElementById('scrollUpBtn');
+    upBtn.style.display = window.scrollY > 200 ? 'flex' : 'none';
+});
+
+document.getElementById('cropBtn').addEventListener('click', () => showToast('Crop feature coming soon!', 'info'));
+
+// ==================== Initialize ====================
+async function init() {
+    showLoading(true);
+    initThemeSwitcher();
+    await loadUsageCount();
+    await loadReactions();
+    await loadShareCounts();
+    showLoading(false);
+    showToast('✨ Image Filter Pro is ready! Upload an image to start.');
+}
+
+init();
