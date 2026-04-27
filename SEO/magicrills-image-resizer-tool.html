@@ -2,297 +2,346 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magicrills Image Resizer - Advanced Tool</title>
-    <link rel="stylesheet" href="magicrills-image-resizer-styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MagicRills Image Resizer - 40+ Features | Professional Image Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="magicrills-image-resizer-tool.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
-    <div class="magicrills-container">
-        <!-- Animated Header -->
-        <header class="magicrills-header">
-            <div class="magicrills-logo">
-                <div class="magicrills-logo-icon">🖼️</div>
-                <h1>Magicrills Image Resizer</h1>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="/" class="nav-link"><i class="fas fa-arrow-left"></i> Back</a>
+            <button class="page-share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
+        </div>
+        
+        <div class="logo-area">
+            <i class="fas fa-expand-alt"></i>
+            <h1>MagicRills Image Resizer <span class="badge">40+ Features</span></h1>
+        </div>
+        
+        <div class="usage-stats">
+            <i class="fas fa-chart-line"></i>
+            Used <span id="usageCount">0</span> times
+        </div>
+        
+        <p class="description">Professional image resizer with resize, compress, filters, watermark, batch processing & more. 100% free & client-side.</p>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+        <!-- Upload Section -->
+        <div class="card">
+            <h3><i class="fas fa-cloud-upload-alt"></i> Upload Images</h3>
+            
+            <div class="drop-zone" id="dropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & Drop Images Here</p>
+                <button class="btn btn-primary" id="browseBtn"><i class="fas fa-folder-open"></i> Browse Files</button>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display: none">
             </div>
-            <p class="magicrills-tagline">Resize, Compress & Optimize Images Like Magic!</p>
-            <div class="theme-toggle">
-                <button id="magicrills-theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+            
+            <div class="file-info" id="fileInfo" style="display: none;">
+                <i class="fas fa-images"></i>
+                <span id="fileCount">0</span> file(s) selected
+                <button class="btn-icon" id="clearFilesBtn"><i class="fas fa-trash"></i></button>
             </div>
-        </header>
-
-        <!-- Main Dashboard -->
-        <div class="magicrills-dashboard">
-            <!-- Upload Section -->
-            <div class="magicrills-upload-section">
-                <div class="section-header">
-                    <h2>📁 Upload Images</h2>
-                    <div class="file-counter" id="magicrills-file-counter">0 files</div>
-                </div>
-                
-                <div class="magicrills-drag-area" id="magicrills-drag-area">
-                    <div class="drag-content">
-                        <div class="upload-icon">📤</div>
-                        <h3>Drag & Drop Your Images</h3>
-                        <p>Supports JPG, PNG, WebP, GIF</p>
-                        <button class="magicrills-btn magicrills-btn-primary" id="magicrills-browse-btn">
-                            Browse Files
-                        </button>
-                        <input type="file" id="magicrills-file-input" multiple accept="image/*" style="display: none;">
-                    </div>
-                </div>
-
-                <div class="magicrills-file-list" id="magicrills-file-list">
-                    <!-- Files will appear here -->
-                </div>
-            </div>
-
-            <!-- Resize Options Section -->
-            <div class="magicrills-options-section">
-                <div class="section-header">
-                    <h2>⚙️ Resize Options</h2>
-                    <button class="magicrills-btn magicrills-btn-outline" id="magicrills-reset-btn">Reset</button>
-                </div>
-
-                <!-- Resize Mode Selection -->
-                <div class="magicrills-option-group">
-                    <label class="magicrills-label">Resize Mode</label>
-                    <div class="magicrills-radio-group">
-                        <label class="magicrills-radio">
-                            <input type="radio" name="resize-mode" value="percentage" checked>
-                            <span class="radio-custom"></span>
-                            Percentage Scale
-                        </label>
-                        <label class="magicrills-radio">
-                            <input type="radio" name="resize-mode" value="dimensions">
-                            <span class="radio-custom"></span>
-                            Custom Dimensions
-                        </label>
-                        <label class="magicrills-radio">
-                            <input type="radio" name="resize-mode" value="width">
-                            <span class="radio-custom"></span>
-                            Fit to Width
-                        </label>
-                        <label class="magicrills-radio">
-                            <input type="radio" name="resize-mode" value="height">
-                            <span class="radio-custom"></span>
-                            Fit to Height
-                        </span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Percentage Scale -->
-                <div class="magicrills-option-group" id="magicrills-percentage-group">
-                    <label class="magicrills-label">
-                        Scale: <span id="magicrills-percentage-value">100%</span>
-                    </label>
-                    <div class="magicrills-range-container">
-                        <input type="range" id="magicrills-percentage" min="1" max="200" value="100" class="magicrills-range">
-                        <div class="range-ticks">
-                            <span>1%</span>
-                            <span>50%</span>
-                            <span>100%</span>
-                            <span>150%</span>
-                            <span>200%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom Dimensions -->
-                <div class="magicrills-option-group" id="magicrills-dimensions-group" style="display: none;">
-                    <label class="magicrills-label">Custom Dimensions (px)</label>
-                    <div class="dimensions-inputs">
-                        <div class="input-group">
-                            <label>Width</label>
-                            <input type="number" id="magicrills-width" min="1" placeholder="Auto" class="magicrills-input">
-                        </div>
-                        <div class="input-group">
-                            <label>Height</label>
-                            <input type="number" id="magicrills-height" min="1" placeholder="Auto" class="magicrills-input">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fit to Width/Height -->
-                <div class="magicrills-option-group" id="magicrills-width-group" style="display: none;">
-                    <label class="magicrills-label">Target Width (px)</label>
-                    <input type="number" id="magicrills-target-width" min="1" class="magicrills-input">
-                </div>
-
-                <div class="magicrills-option-group" id="magicrills-height-group" style="display: none;">
-                    <label class="magicrills-label">Target Height (px)</label>
-                    <input type="number" id="magicrills-target-height" min="1" class="magicrills-input">
-                </div>
-
-                <!-- Aspect Ratio Toggle -->
-                <div class="magicrills-option-group">
-                    <label class="magicrills-checkbox">
-                        <input type="checkbox" id="magicrills-maintain-aspect" checked>
-                        <span class="checkmark"></span>
-                        Maintain Aspect Ratio
-                        <span class="magicrills-tooltip">ℹ️
-                            <span class="tooltip-text">Keep original proportions when resizing</span>
-                        </span>
-                    </label>
-                </div>
-
-                <!-- Advanced Options Toggle -->
-                <div class="magicrills-advanced-toggle">
-                    <button class="magicrills-btn magicrills-btn-ghost" id="magicrills-toggle-advanced">
-                        <span>🔧 Advanced Options</span>
-                        <span class="toggle-arrow">▼</span>
-                    </button>
-                </div>
-
-                <!-- Advanced Options -->
-                <div class="magicrills-advanced-options" id="magicrills-advanced-options" style="display: none;">
-                    <!-- Format Selection -->
-                    <div class="magicrills-option-group">
-                        <label class="magicrills-label">Output Format</label>
-                        <div class="magicrills-format-grid">
-                            <label class="format-option">
-                                <input type="radio" name="output-format" value="original" checked>
-                                <div class="format-card">
-                                    <span class="format-icon">📄</span>
-                                    <span>Original</span>
-                                </div>
-                            </label>
-                            <label class="format-option">
-                                <input type="radio" name="output-format" value="jpeg">
-                                <div class="format-card">
-                                    <span class="format-icon">🖼️</span>
-                                    <span>JPEG</span>
-                                </div>
-                            </label>
-                            <label class="format-option">
-                                <input type="radio" name="output-format" value="png">
-                                <div class="format-card">
-                                    <span class="format-icon">🖌️</span>
-                                    <span>PNG</span>
-                                </div>
-                            </label>
-                            <label class="format-option">
-                                <input type="radio" name="output-format" value="webp">
-                                <div class="format-card">
-                                    <span class="format-icon">⚡</span>
-                                    <span>WebP</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Quality Settings -->
-                    <div class="magicrills-option-group" id="magicrills-quality-group">
-                        <label class="magicrills-label">
-                            Quality: <span id="magicrills-quality-value">80%</span>
-                        </label>
-                        <div class="magicrills-range-container">
-                            <input type="range" id="magicrills-quality" min="1" max="100" value="80" class="magicrills-range">
-                            <div class="range-labels">
-                                <span>Small</span>
-                                <span>Balanced</span>
-                                <span>Best</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Watermark Options -->
-                    <div class="magicrills-option-group">
-                        <label class="magicrills-checkbox">
-                            <input type="checkbox" id="magicrills-add-watermark">
-                            <span class="checkmark"></span>
-                            Add Watermark
-                        </label>
-                    </div>
-
-                    <div class="magicrills-watermark-options" id="magicrills-watermark-options" style="display: none;">
-                        <div class="magicrills-option-group">
-                            <label class="magicrills-label">Watermark Text</label>
-                            <input type="text" id="magicrills-watermark-text" placeholder="Your watermark" class="magicrills-input">
-                        </div>
-                        
-                        <div class="magicrills-option-group">
-                            <label class="magicrills-label">Position</label>
-                            <div class="position-grid">
-                                <label class="position-option">
-                                    <input type="radio" name="watermark-position" value="top-left" checked>
-                                    <div class="position-card">↖️</div>
-                                </label>
-                                <label class="position-option">
-                                    <input type="radio" name="watermark-position" value="top-right">
-                                    <div class="position-card">↗️</div>
-                                </label>
-                                <label class="position-option">
-                                    <input type="radio" name="watermark-position" value="center">
-                                    <div class="position-card">⏺️</div>
-                                </label>
-                                <label class="position-option">
-                                    <input type="radio" name="watermark-position" value="bottom-left">
-                                    <div class="position-card">↙️</div>
-                                </label>
-                                <label class="position-option">
-                                    <input type="radio" name="watermark-position" value="bottom-right">
-                                    <div class="position-card">↘️</div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="magicrills-option-group">
-                            <label class="magicrills-label">
-                                Opacity: <span id="magicrills-opacity-value">50%</span>
-                            </label>
-                            <input type="range" id="magicrills-watermark-opacity" min="1" max="100" value="50" class="magicrills-range">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Process Button -->
-                <button class="magicrills-btn magicrills-btn-success magicrills-process-btn" id="magicrills-process-btn">
-                    <span class="btn-icon">✨</span>
-                    Process Images
-                </button>
+            
+            <div id="batchListDiv"></div>
+            
+            <!-- EXIF Info Panel -->
+            <div id="exifPanel" style="display: none;" class="exif-panel">
+                <h4><i class="fas fa-info-circle"></i> Image Information</h4>
+                <div id="exifData"></div>
             </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="magicrills-results-section" id="magicrills-results-section" style="display: none;">
-            <div class="section-header">
-                <h2>📊 Results</h2>
-                <div class="results-stats">
-                    <span id="magicrills-processed-count">0</span> images processed
+        <!-- Options Section -->
+        <div class="card">
+            <h3><i class="fas fa-sliders-h"></i> Resize & Edit Options</h3>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="resize">Resize</button>
+                <button class="tab-btn" data-tab="filters">Filters</button>
+                <button class="tab-btn" data-tab="transform">Transform</button>
+                <button class="tab-btn" data-tab="watermark">Watermark</button>
+            </div>
+
+            <!-- Tab 1: Resize -->
+            <div id="tabResize" class="tab-content active">
+                <div class="form-group">
+                    <label>Resize Mode</label>
+                    <select id="resizeMode" class="form-control">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="dimensions">Custom Dimensions</option>
+                        <option value="preset">Preset Sizes</option>
+                        <option value="width">Fit to Width</option>
+                        <option value="height">Fit to Height</option>
+                        <option value="filesize">Target File Size (KB)</option>
+                    </select>
+                </div>
+
+                <div id="percentageMode">
+                    <div class="form-group">
+                        <label>Scale: <span id="percentageValue">100</span>%</label>
+                        <input type="range" id="percentageSlider" min="1" max="200" value="100" class="form-control">
+                    </div>
+                </div>
+
+                <div id="dimensionsMode" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Width (px)</label>
+                            <input type="number" id="targetWidth" class="form-control" placeholder="Auto">
+                        </div>
+                        <div class="form-group">
+                            <label>Height (px)</label>
+                            <input type="number" id="targetHeight" class="form-control" placeholder="Auto">
+                        </div>
+                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="maintainAspect" checked> Maintain Aspect Ratio
+                    </label>
+                </div>
+
+                <div id="presetMode" style="display: none;">
+                    <div class="form-group">
+                        <label>Social Media Presets</label>
+                        <select id="presetSelect" class="form-control">
+                            <option value="">Select preset...</option>
+                            <option value="instagram_post">📸 Instagram Post (1080x1080)</option>
+                            <option value="instagram_story">📱 Instagram Story (1080x1920)</option>
+                            <option value="facebook_post">👍 Facebook Post (1200x630)</option>
+                            <option value="twitter_post">🐦 Twitter Post (1600x900)</option>
+                            <option value="youtube_thumbnail">🎬 YouTube Thumbnail (1280x720)</option>
+                            <option value="linkedin_post">💼 LinkedIn Post (1200x627)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="widthMode" style="display: none;">
+                    <div class="form-group">
+                        <label>Target Width (px)</label>
+                        <input type="number" id="fitWidth" class="form-control">
+                    </div>
+                </div>
+
+                <div id="heightMode" style="display: none;">
+                    <div class="form-group">
+                        <label>Target Height (px)</label>
+                        <input type="number" id="fitHeight" class="form-control">
+                    </div>
+                </div>
+
+                <div id="filesizeMode" style="display: none;">
+                    <div class="form-group">
+                        <label>Target Size (KB)</label>
+                        <input type="number" id="targetSizeKB" class="form-control" placeholder="e.g., 100">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Output Format</label>
+                    <div class="format-buttons">
+                        <button type="button" class="format-btn active" data-format="original">Original</button>
+                        <button type="button" class="format-btn" data-format="jpeg">JPEG</button>
+                        <button type="button" class="format-btn" data-format="png">PNG</button>
+                        <button type="button" class="format-btn" data-format="webp">WebP</button>
+                    </div>
+                    <input type="hidden" id="outputFormat" value="original">
+                </div>
+
+                <div class="form-group" id="qualityGroup" style="display: none;">
+                    <label>Quality: <span id="qualityValue">80</span>%</label>
+                    <input type="range" id="qualitySlider" min="1" max="100" value="80" class="form-control">
                 </div>
             </div>
 
-            <div class="magicrills-progress-container" id="magicrills-progress-container">
+            <!-- Tab 2: Filters -->
+            <div id="tabFilters" class="tab-content" style="display: none;">
+                <div class="form-group">
+                    <label>Apply Filter</label>
+                    <div class="filter-buttons">
+                        <button type="button" class="filter-btn active" data-filter="none">None</button>
+                        <button type="button" class="filter-btn" data-filter="grayscale">Grayscale</button>
+                        <button type="button" class="filter-btn" data-filter="sepia">Sepia</button>
+                        <button type="button" class="filter-btn" data-filter="blur">Blur</button>
+                        <button type="button" class="filter-btn" data-filter="brightness">Brightness</button>
+                        <button type="button" class="filter-btn" data-filter="contrast">Contrast</button>
+                        <button type="button" class="filter-btn" data-filter="invert">Invert</button>
+                        <button type="button" class="filter-btn" data-filter="saturate">Saturate</button>
+                    </div>
+                    <input type="hidden" id="selectedFilter" value="none">
+                </div>
+
+                <div id="filterDetailOptions" style="display: none;">
+                    <div class="form-group">
+                        <label>Brightness: <span id="brightnessVal">0</span></label>
+                        <input type="range" id="brightnessFilter" min="-100" max="100" value="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Contrast: <span id="contrastVal">0</span></label>
+                        <input type="range" id="contrastFilter" min="-100" max="100" value="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Blur: <span id="blurVal">0</span>px</label>
+                        <input type="range" id="blurFilter" min="0" max="10" value="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Saturate: <span id="saturateVal">100</span>%</label>
+                        <input type="range" id="saturateFilter" min="0" max="200" value="100" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Transform -->
+            <div id="tabTransform" class="tab-content" style="display: none;">
+                <div class="form-group">
+                    <label>Rotate</label>
+                    <div class="transform-row">
+                        <button type="button" class="transform-btn" data-rotate="90">Rotate 90°</button>
+                        <button type="button" class="transform-btn" data-rotate="180">Rotate 180°</button>
+                        <button type="button" class="transform-btn" data-rotate="270">Rotate 270°</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Flip</label>
+                    <div class="transform-row">
+                        <button type="button" class="transform-btn" data-flip="horizontal">Flip Horizontal</button>
+                        <button type="button" class="transform-btn" data-flip="vertical">Flip Vertical</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="batchRename"> Batch Rename (image_1, image_2...)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tab 4: Watermark -->
+            <div id="tabWatermark" class="tab-content" style="display: none;">
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="addWatermark"> Enable Watermark
+                    </label>
+                </div>
+                <div id="watermarkDetailOptions">
+                    <div class="form-group">
+                        <label>Watermark Text</label>
+                        <input type="text" id="watermarkText" value="© MagicRills" class="form-control">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Position</label>
+                            <select id="watermarkPosition" class="form-control">
+                                <option value="bottom-right">Bottom Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="top-left">Top Left</option>
+                                <option value="center">Center</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Opacity: <span id="opacityValue">50</span>%</label>
+                            <input type="range" id="watermarkOpacity" min="10" max="100" value="50" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Font Size (px)</label>
+                        <input type="number" id="watermarkFontSize" value="20" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-success btn-block" id="processBtn">
+                <i class="fas fa-magic"></i> Process Images
+            </button>
+
+            <div id="progressContainer" style="display: none;">
                 <div class="progress-bar">
-                    <div class="progress-fill" id="magicrills-progress-fill"></div>
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div class="progress-text" id="magicrills-progress-text">Processing...</div>
+                <div class="progress-text" id="progressText">Processing...</div>
             </div>
-
-            <div class="magicrills-preview-grid" id="magicrills-preview-grid">
-                <!-- Processed images will appear here -->
-            </div>
-
-            <div class="magicrills-batch-actions">
-                <button class="magicrills-btn magicrills-btn-primary" id="magicrills-download-all">
-                    <span class="btn-icon">💾</span>
-                    Download All Images
-                </button>
-                <button class="magicrills-btn magicrills-btn-outline" id="magicrills-clear-results">
-                    <span class="btn-icon">🗑️</span>
-                    Clear Results
-                </button>
-            </div>
-        </div>
-
-        <!-- Loading Spinner -->
-        <div class="magicrills-spinner" id="magicrills-spinner">
-            <div class="spinner-circle"></div>
-            <p>Processing your images...</p>
         </div>
     </div>
 
-    <script src="magicrills-image-resizer-script.js"></script>
+    <!-- Comparison Section -->
+    <div id="comparisonSection" style="display: none;" class="comparison-section">
+        <h3><i class="fas fa-chart-line"></i> Before/After Comparison</h3>
+        <div id="comparisonContainer" class="comparison-container"></div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" style="display: none;">
+        <div class="section-header">
+            <h3><i class="fas fa-images"></i> Processed Images <span id="resultsCount">0</span></h3>
+            <div class="result-actions">
+                <button class="btn btn-primary" id="downloadAllBtn"><i class="fas fa-download"></i> ZIP Download</button>
+                <button class="btn btn-outline" id="copyAllBtn"><i class="fas fa-copy"></i> Copy All</button>
+                <button class="btn btn-outline" id="printAllBtn"><i class="fas fa-print"></i> Print</button>
+                <button class="btn btn-danger" id="clearResultsBtn"><i class="fas fa-trash"></i> Clear</button>
+            </div>
+        </div>
+        <div class="image-grid" id="imageGrid"></div>
+    </div>
+
+    <!-- Reactions Section -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-heart"></i> What do you think?</h3>
+        <div class="reactions">
+            <button class="reaction" data-reaction="like">👍 <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="love">❤️ <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="wow">😮 <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="sad">😢 <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="angry">😠 <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="laugh">😂 <span class="reaction-count">0</span></button>
+            <button class="reaction" data-reaction="celebrate">🎉 <span class="reaction-count">0</span></button>
+        </div>
+    </div>
+
+    <!-- Social Share -->
+    <div class="social-share">
+        <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
+        <div class="share-buttons">
+            <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+            <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
+            <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+            <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button class="share-btn" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        </div>
+    </div>
+
+    <!-- Shortcuts -->
+    <div class="shortcuts-bar">
+        <i class="fas fa-keyboard"></i> Keyboard Shortcuts: 
+        <kbd>Ctrl+P</kbd> Process | 
+        <kbd>Ctrl+D</kbd> Download All | 
+        <kbd>Ctrl+Z</kbd> Reset | 
+        <kbd>Ctrl+S</kbd> Save Settings
+    </div>
+
+    <div class="privacy-notice">
+        <i class="fas fa-lock"></i> Your privacy is protected. All processing happens in your browser. No images are uploaded to any server.
+    </div>
+</div>
+
+<!-- Scroll Buttons -->
+<button class="scroll-btn scroll-up" id="scrollUpBtn" style="display: none;"><i class="fas fa-arrow-up"></i></button>
+<button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="magicrills-image-resizer-tool.js"></script>
 </body>
 </html>
