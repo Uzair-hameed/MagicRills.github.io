@@ -1,333 +1,659 @@
-// === Pro JS with Latest API & Multi Features ===
-document.addEventListener('DOMContentLoaded', () => {
-  const textInput = document.getElementById('text-input');
-  const highlight = document.getElementById('highlight');
-  const checkBtn = document.getElementById('check');
-  const clearBtn = document.getElementById('clear');
-  const autoFixBtn = document.getElementById('auto-fix');
-  const downloadBtn = document.getElementById('download');
-  const exportTxt = document.getElementById('export-txt');
-  const exportHtml = document.getElementById('export-html');
-  const exportPdf = document.getElementById('export-pdf');
+/* ============================================
+   ADVANCED GRAMMAR CHECKING TOOL - JAVASCRIPT
+   Complete JS with all 40+ features
+   ============================================ */
 
-  const resultDiv = document.getElementById('result');
-  const initialDiv = document.getElementById('initial');
-  const loadingDiv = document.getElementById('loading');
-  const issueList = document.getElementById('issue-list');
-  const issueCount = document.getElementById('issue-count');
-  const percent = document.getElementById('percent');
-  const qualityText = document.getElementById('quality-text');
-  const readScore = document.getElementById('read-score');
-  const readLevel = document.getElementById('read-level');
-  const toneTags = document.getElementById('tone-tags');
-  const circle = document.getElementById('circle');
+// ============================================
+// DOM Elements
+// ============================================
+const textInput = document.getElementById('textInput');
+const checkBtn = document.getElementById('checkBtn');
+const clearBtn = document.getElementById('clearBtn');
+const copyBtn = document.getElementById('copyBtn');
+const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+const shareResultsBtn = document.getElementById('shareResultsBtn');
+const darkModeBtn = document.getElementById('darkModeBtn');
+const listenBtn = document.getElementById('listenBtn');
+const pageShareBtn = document.getElementById('pageShareBtn');
+const scrollUpBtn = document.getElementById('scrollUpBtn');
+const scrollDownBtn = document.getElementById('scrollDownBtn');
+const resultsDiv = document.getElementById('results');
+const issuesListDiv = document.getElementById('issuesList');
+const summaryDiv = document.getElementById('summaryDiv');
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toastMessage');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const autoSaveInfo = document.getElementById('autoSaveInfo');
 
-  let issues = [];
-  let originalText = '';
-  let aiResponse = '';
+// Counters
+const wordCountSpan = document.getElementById('wordCount');
+const charCountSpan = document.getElementById('charCount');
+const issueCountSpan = document.getElementById('issueCount');
+const scoreValueSpan = document.getElementById('scoreValue');
+const readabilityScoreSpan = document.getElementById('readabilityScore');
+const usageCountSpan = document.getElementById('usageCount');
 
-  // Latest API Config (2025 Updated)
-  const API_KEY = "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";
-  const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-  const MODEL = "deepseek/deepseek-chat"; // Confirmed available
+// Reactions
+const reactionBtns = document.querySelectorAll('.reaction-btn');
+const reactionCounts = {
+    like: document.getElementById('likeCount'),
+    love: document.getElementById('loveCount'),
+    wow: document.getElementById('wowCount'),
+    sad: document.getElementById('sadCount'),
+    angry: document.getElementById('angryCount'),
+    laugh: document.getElementById('laughCount'),
+    celebrate: document.getElementById('celebrateCount')
+};
 
-  // Update Stats & Animate Dashboard
-  function updateStats() {
-    const text = textInput.value;
-    const words = text.trim().split(/\s+/).filter(w => w).length;
-    const chars = text.length;
-    document.getElementById('words').textContent = words;
-    document.getElementById('chars').textContent = chars;
-    document.getElementById('issues').textContent = issues.length;
-    const score = Math.max(50, 100 - issues.length * 6);
-    document.getElementById('score').textContent = score + '%';
-    circle.classList.add('animate'); // Animate score circle
-  }
+// ============================================
+// Variables
+// ============================================
+let currentResults = null;
+let autoSaveTimer = null;
+let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+localStorage.setItem('userId', userId);
 
-  // Highlight with Shake Animation
-  function highlightText() {
-    const text = textInput.value;
-    if (!text || issues.length === 0) {
-      highlight.textContent = text;
-      return;
-    }
-    let html = '';
-    let last = 0;
-    issues.sort((a, b) => a.start - b.start).forEach(issue => {
-      if (issue.start > last) html += escapeHtml(text.substring(last, issue.start));
-      const part = escapeHtml(text.substring(issue.start, issue.start + issue.length));
-      const className = issue.type === 'error' ? 'error' : 'warning';
-      html += `<span class="highlight ${className}">${part}</span>`;
-      last = issue.start + issue.length;
-    });
-    if (last < text.length) html += escapeHtml(text.substring(last));
-    highlight.innerHTML = html;
-  }
+const TOOL_ID = 'advanced-grammar-checking-tool';
+const TOOL_NAME = 'Advanced Grammar Checking Tool';
+const TOOL_CATEGORY = 'student';
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
+// ============================================
+// API Endpoints (Your existing TiDB APIs)
+// ============================================
+const API_BASE = '/api'; // Change to your actual API base URL
 
-  // AI Grammar Check with Latest Model
-  async function checkGrammar() {
-    const text = textInput.value.trim();
-    if (!text) return alert('Enter text for AI check!');
-    originalText = text;
-    issues = [];
-    showLoading();
-
+async function incrementUsageCount() {
     try {
-      const prompt = `Analyze this text STRICTLY for grammar errors (verbs, prepositions, articles, subject-verb agreement, sentence structure, spelling). Detect EVERY issue. Return ONLY JSON:
-{
-  "issues": [
-    {
-      "type": "error|warning",
-      "message": "Short description",
-      "suggestion": "Exact fix",
-      "start": number,
-      "length": number
+        const response = await fetch(`${API_BASE}/usage/increment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_id: TOOL_ID,
+                tool_name: TOOL_NAME,
+                category: TOOL_CATEGORY,
+                user_id: userId
+            })
+        });
+        const data = await response.json();
+        if (usageCountSpan) {
+            usageCountSpan.textContent = data.count || (parseInt(usageCountSpan.textContent) + 1);
+        }
+        return data;
+    } catch (error) {
+        console.error('Usage increment failed:', error);
+        // Fallback: increment locally
+        if (usageCountSpan) {
+            usageCountSpan.textContent = parseInt(usageCountSpan.textContent) + 1;
+        }
     }
-  ],
-  "readability": {"score": number, "level": "Grade X"},
-  "tone": ["Tone1", "Tone2"],
-  "quality": number
 }
 
-Text: "${text.replace(/"/g, '\\"')}"`;
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "HTTP-Referer": "https://magicrills.com",
-          "X-Title": "MagicRills Grammar Pro",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          "model": MODEL,
-          "messages": [{ "role": "user", "content": prompt }],
-          "max_tokens": 1500
-        })
-      });
-
-      if (!response.ok) throw new Error(`Status: ${response.status}`);
-      const data = await response.json();
-      const content = data.choices[0].message.content;
-
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const result = JSON.parse(jsonMatch[0]);
-        issues = result.issues || [];
-        aiResponse = content;
-        processResults(result);
-      } else {
-        throw new Error('JSON parse failed - using fallback');
-      }
-    } catch (error) {
-      console.error('AI Error:', error);
-      fallbackCheck(text);
-    }
-  }
-
-  function processResults(data) {
-    updateStats();
-    displayIssues();
-    const score = data.quality || Math.max(50, 100 - issues.length * 6);
-    percent.textContent = score + '%';
-    qualityText.textContent = score >= 85 ? 'Pro Level! 🎉' : score >= 70 ? 'Strong, Polish It' : 'Good Start, Fix Issues';
-    
-    if (data.readability) {
-      readScore.textContent = data.readability.score;
-      readLevel.textContent = data.readability.level;
-      document.getElementById('readability').classList.remove('hidden');
-    }
-    
-    if (data.tone && data.tone.length) {
-      toneTags.innerHTML = '';
-      data.tone.forEach(t => {
-        const span = document.createElement('span');
-        span.className = 'tone-tag';
-        span.textContent = t;
-        toneTags.appendChild(span);
-      });
-      document.getElementById('tone').classList.remove('hidden');
-    }
-    
-    highlightText();
-    autoFixBtn.classList.remove('hidden');
-    hideLoading();
-    circle.classList.remove('animate');
-  }
-
-  // Pro Fallback with 50+ Rules (Multi Features)
-  function fallbackCheck(text) {
-    issues = [];
-    const advancedChecks = [
-      { regex: /\b(you|they|we) (goes|does|has|is|are|was|were)\b/gi, msg: "Subject-verb mismatch", sug: "Use base form (go/do/have/am/are/were)", type: "error" },
-      { regex: /\b(he|she|it) (go|do|have|am|are|was|were)\b/gi, msg: "Singular verb needed", sug: "Add 's/es' (goes/does/has/is/was)", type: "error" },
-      { regex: /\bgo to (home|school|bed)\b/gi, msg: "Preposition error", sug: "Use 'go home/school/bed'", type: "warning" },
-      { regex: /\b(a) (university|hour|honest|European)\b/gi, msg: "Article vowel sound", sug: "Use 'an' before vowel sound", type: "error" },
-      { regex: /\b(an) (cat|dog|book)\b/gi, msg: "Article consonant", sug: "Use 'a' before consonant", type: "error" },
-      { regex: /\bteh\b|\brecieve\b|\bseperate\b|\balot\b|\bdefinately\b/gi, msg: "Common spelling", sug: "the/receive/separate/a lot/definitely", type: "error" },
-      { regex: /^([a-z])|(\.)([a-z])/gm, msg: "Capitalization", sug: "Capitalize sentence start", type: "warning" },
-      { regex: /\b(their|there|they're)\b/gi, msg: "Homophone confusion", sug: "Check 'their/there/they're' usage", type: "warning" },
-      { regex: /\b(was|were) (I|he|she|it)\b/gi, msg: "Tense agreement", sug: "Use 'was' for singular", type: "error" },
-      { regex: /\b(and|but|or|so) ( [A-Z]|\n[A-Z])/gi, msg: "Comma splice", sug: "Add comma before conjunction", type: "warning" }
-      // Add 40+ more rules if needed for even more multi-features
-    ];
-    advancedChecks.forEach(check => {
-      let match;
-      while ((match = check.regex.exec(text)) !== null) {
-        issues.push({
-          type: check.type,
-          message: check.msg,
-          suggestion: check.sug,
-          start: match.index,
-          length: match[0].length
+async function addReaction(emoji) {
+    try {
+        const response = await fetch(`${API_BASE}/reactions/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_id: TOOL_ID,
+                emoji: emoji,
+                user_id: userId
+            })
         });
-      }
-    });
-    processResults({ 
-      issues, 
-      quality: Math.max(50, 100 - issues.length * 5), 
-      readability: {score: Math.floor(Math.random() * 30 + 70), level: "Grade " + (Math.floor(Math.random() * 5) + 7)}, 
-      tone: ["Neutral", "Informal"] 
-    });
-  }
-
-  function displayIssues() {
-    issueList.innerHTML = '';
-    issueCount.textContent = issues.length;
-    if (issues.length === 0) {
-      issueList.innerHTML = '<li class="warning"><strong>✅ Perfect! No AI issues detected.</strong><br><span class="suggestion">Your writing is pro-level. Share on MagicRills!</span></li>';
-      return;
+        const data = await response.json();
+        if (reactionCounts[emoji]) {
+            reactionCounts[emoji].textContent = data.count;
+        }
+        showToast(`${getEmojiText(emoji)} reaction added!`);
+        return data;
+    } catch (error) {
+        console.error('Reaction failed:', error);
+        // Fallback: increment locally
+        if (reactionCounts[emoji]) {
+            reactionCounts[emoji].textContent = parseInt(reactionCounts[emoji].textContent) + 1;
+        }
+        showToast(`${getEmojiText(emoji)} reaction added!`, 'success');
     }
-    issues.forEach((issue, i) => {
-      const li = document.createElement('li');
-      li.className = issue.type;
-      li.innerHTML = `
-        <strong>${i+1}. ${issue.message}</strong><br>
-        <em>"${originalText.substring(Math.max(0, issue.start-20), issue.start + issue.length + 20)}"</em><br>
-        <span class="suggestion">→ ${issue.suggestion}</span>
-      `;
-      li.onclick = () => {
-        textInput.focus();
-        textInput.setSelectionRange(issue.start, issue.start + issue.length);
-        textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      };
-      issueList.appendChild(li);
+}
+
+async function trackShare(platform, shareType = 'tool') {
+    try {
+        const response = await fetch(`${API_BASE}/shares/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_id: TOOL_ID,
+                platform: platform,
+                share_type: shareType,
+                user_id: userId
+            })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Share tracking failed:', error);
+    }
+}
+
+async function loadToolStats() {
+    try {
+        const response = await fetch(`${API_BASE}/tools/stats?tool_id=${TOOL_ID}`);
+        const data = await response.json();
+        
+        if (usageCountSpan) usageCountSpan.textContent = data.usage_count || 0;
+        if (reactionCounts.like) reactionCounts.like.textContent = data.reactions?.like || 0;
+        if (reactionCounts.love) reactionCounts.love.textContent = data.reactions?.love || 0;
+        if (reactionCounts.wow) reactionCounts.wow.textContent = data.reactions?.wow || 0;
+        if (reactionCounts.sad) reactionCounts.sad.textContent = data.reactions?.sad || 0;
+        if (reactionCounts.angry) reactionCounts.angry.textContent = data.reactions?.angry || 0;
+        if (reactionCounts.laugh) reactionCounts.laugh.textContent = data.reactions?.laugh || 0;
+        if (reactionCounts.celebrate) reactionCounts.celebrate.textContent = data.reactions?.celebrate || 0;
+        
+    } catch (error) {
+        console.error('Load stats failed:', error);
+    }
+}
+
+// ============================================
+// Grammar Check Function
+// ============================================
+async function checkGrammar() {
+    const text = textInput.value.trim();
+    
+    if (text === '') {
+        showToast('Please enter some text to check', 'error');
+        return;
+    }
+    
+    if (text.length > 5000) {
+        showToast('Text exceeds 5000 character limit', 'error');
+        return;
+    }
+    
+    // Show loading
+    loadingOverlay.classList.remove('hidden');
+    checkBtn.disabled = true;
+    
+    // Increment usage count
+    await incrementUsageCount();
+    
+    try {
+        // Call your Cloudflare Worker API
+        const response = await fetch('/api/grammar-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        
+        const data = await response.json();
+        currentResults = data;
+        
+        // Display results
+        displayResults(data);
+        
+        // Auto-save draft
+        saveDraft();
+        
+        showToast('Grammar check completed!', 'success');
+        
+    } catch (error) {
+        console.error('Grammar check failed:', error);
+        showToast('Grammar check failed. Please try again.', 'error');
+    } finally {
+        loadingOverlay.classList.add('hidden');
+        checkBtn.disabled = false;
+    }
+}
+
+function displayResults(data) {
+    resultsDiv.classList.remove('hidden');
+    
+    // Update score
+    if (scoreValueSpan) {
+        scoreValueSpan.textContent = data.score || '85';
+    }
+    
+    // Update readability
+    if (readabilityScoreSpan) {
+        readabilityScoreSpan.textContent = data.readability || 'Good';
+    }
+    
+    // Update issue count
+    if (issueCountSpan) {
+        issueCountSpan.textContent = data.issues?.length || 0;
+    }
+    
+    // Display tone tags
+    displayToneTags(data.tone || ['Professional', 'Neutral']);
+    
+    // Display style suggestions
+    displayStyleSuggestions(data.style || 'Informal', data.styleSuggestions || []);
+    
+    // Display issues
+    displayIssues(data.issues || []);
+    
+    // Display summary
+    if (summaryDiv) {
+        summaryDiv.innerHTML = `<strong>📊 Summary:</strong> ${data.summary || 'Your text has been analyzed successfully.'}`;
+    }
+}
+
+function displayToneTags(toneList) {
+    const toneTagsDiv = document.getElementById('toneTags');
+    if (!toneTagsDiv) return;
+    
+    toneTagsDiv.innerHTML = '';
+    toneList.forEach(tone => {
+        const tag = document.createElement('span');
+        tag.className = 'tone-tag';
+        tag.textContent = tone;
+        toneTagsDiv.appendChild(tag);
     });
-  }
+}
 
-  function showLoading() {
-    initialDiv.classList.add('hidden');
-    resultDiv.classList.add('hidden');
-    loadingDiv.classList.remove('hidden');
-  }
+function displayStyleSuggestions(style, suggestions) {
+    const styleBadge = document.getElementById('styleBadge');
+    const styleSuggestionsDiv = document.getElementById('styleSuggestions');
+    
+    if (styleBadge) {
+        styleBadge.innerHTML = `<i class="fas fa-tag"></i> Detected: ${style}`;
+    }
+    
+    if (styleSuggestionsDiv && suggestions.length > 0) {
+        styleSuggestionsDiv.innerHTML = suggestions.map(s => 
+            `<div><i class="fas fa-lightbulb"></i> ${s}</div>`
+        ).join('');
+    }
+}
 
-  function hideLoading() {
-    loadingDiv.classList.add('hidden');
-    resultDiv.classList.remove('hidden');
-  }
-
-  // Enhanced Auto-Fix (Multi Feature)
-  autoFixBtn.onclick = () => {
-    let fixed = originalText;
-    issues.slice().reverse().forEach(issue => { // Reverse to avoid index shift
-      const before = fixed.substring(0, issue.start);
-      const after = fixed.substring(issue.start + issue.length);
-      const fix = issue.suggestion.split('→ ')[1] || issue.suggestion.replace(/Use |Check /gi, '');
-      fixed = before + fix + after;
+function displayIssues(issues) {
+    if (!issuesListDiv) return;
+    
+    if (issues.length === 0) {
+        issuesListDiv.innerHTML = '<div style="padding: 20px; text-align: center; background: #d4edda; border-radius: 12px; color: #155724;">✅ No issues found! Your text looks great.</div>';
+        return;
+    }
+    
+    let html = '';
+    issues.forEach(issue => {
+        let severityClass = '';
+        if (issue.severity === 'error') severityClass = '';
+        else if (issue.severity === 'warning') severityClass = 'warning';
+        else severityClass = 'info';
+        
+        html += `
+            <div class="issue-item ${severityClass}" onclick="scrollToPosition(${issue.position || 0}, ${issue.length || 5})">
+                <div class="issue-type">${(issue.type || 'grammar').toUpperCase()} ${issue.severity || 'info'}</div>
+                <div>${issue.message || 'Issue found in your text'}</div>
+                <div class="issue-suggestion">💡 ${issue.suggestion || 'Review this part carefully'}</div>
+            </div>
+        `;
     });
-    textInput.value = fixed;
-    issues = []; // Clear after fix
-    updateStats();
-    highlightText();
-    displayIssues();
-    alert(`AI fixed ${issues.length} issues! Review the text.`);
-  };
+    issuesListDiv.innerHTML = html;
+}
 
-  // Pro Report Generation (Multi Export)
-  function generateReport() {
-    return `=== MagicRills AI Grammar Pro Report ===
-Date: ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' })}
-Original Text: ${originalText}
-AI Score: ${percent.textContent}
-Issues Found: ${issues.length}
+// ============================================
+// Helper Functions
+// ============================================
+function scrollToPosition(position, length) {
+    textInput.focus();
+    textInput.setSelectionRange(position, position + length);
+    textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 
-AI Analysis: ${aiResponse ? aiResponse.substring(0, 400) + '...' : 'Fallback mode used'}
+function getEmojiText(emoji) {
+    const emojis = {
+        like: '👍 Like',
+        love: '❤️ Love',
+        wow: '😮 Wow',
+        sad: '😢 Sad',
+        angry: '😠 Angry',
+        laugh: '😂 Laugh',
+        celebrate: '🎉 Celebrate'
+    };
+    return emojis[emoji] || emoji;
+}
 
-Detailed Issues:
-${issues.map((i, idx) => `${idx+1}. ${i.message}\n   Context: "${originalText.substring(i.start - 10, i.start + i.length + 10)}"\n   AI Fix: ${i.suggestion}\n`).join('\n')}
+function showToast(message, type = 'success') {
+    toastMessage.textContent = message;
+    toast.classList.remove('hidden');
+    toast.style.background = type === 'error' ? '#f56565' : '#333';
+    
+    setTimeout(() => {
+        toast.classList.add('hidden');
+    }, 3000);
+}
 
-Generated by DeepSeek AI on MagicRills.com
-`;
-  }
+// ============================================
+// Copy Function
+// ============================================
+async function copyCorrectedText() {
+    const text = textInput.value;
+    if (!text) {
+        showToast('Nothing to copy', 'error');
+        return;
+    }
+    
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast('Text copied to clipboard!');
+    } catch (error) {
+        showToast('Failed to copy text', 'error');
+    }
+}
 
-  downloadBtn.onclick = () => {
-    const blob = new Blob([generateReport()], { type: 'text/plain' });
+// ============================================
+// Download Functions
+// ============================================
+function downloadAsTXT() {
+    const text = textInput.value;
+    if (!text) {
+        showToast('Nothing to download', 'error');
+        return;
+    }
+    
+    const report = generateReport(text);
+    const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `magicrills-grammar-report-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `grammar-report-${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
+    showToast('Report downloaded as TXT!');
+}
 
-  exportTxt.onclick = () => {
-    const blob = new Blob([textInput.value], { type: 'text/plain' });
-    downloadBlob(blob, 'ai-corrected-text.txt');
-  };
+function downloadAsPDF() {
+    const text = textInput.value;
+    if (!text) {
+        showToast('Nothing to download', 'error');
+        return;
+    }
+    
+    // Simple PDF generation using browser print
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head><title>Grammar Report</title></head>
+        <body>
+            <h1>Grammar Check Report</h1>
+            <p>Date: ${new Date().toLocaleString()}</p>
+            <h2>Original Text:</h2>
+            <p>${text.replace(/\n/g, '<br>')}</p>
+            <h2>Score: ${scoreValueSpan?.textContent || 'N/A'}%</h2>
+            <h2>Issues Found:</h2>
+            <div>${issuesListDiv?.innerHTML || 'No issues'}</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    showToast('Report downloaded as PDF!');
+}
 
-  exportHtml.onclick = () => {
-    const htmlContent = `<!DOCTYPE html><html><head><title>AI Corrected Text - MagicRills</title><style>body{font-family:Inter,sans-serif;padding:20px;} .error{background:rgba(220,38,38,0.1);padding:2px;border-radius:3px;}</style></head><body><h1>AI Corrected Text</h1><pre>${highlight.innerHTML}</pre></body></html>`;
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    downloadBlob(blob, 'ai-corrected-text.html');
-  };
+function generateReport(text) {
+    return `GRAMMAR CHECK REPORT
+Generated: ${new Date().toLocaleString()}
+Tool: Advanced Grammar Checking Tool
 
-  exportPdf.onclick = () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('MagicRills AI Grammar Report', 20, 20);
-    doc.setFontSize(12);
-    doc.text(generateReport().split('\n').slice(0, 40).join('\n'), 20, 40, { maxWidth: 170 });
-    doc.save('magicrills-ai-report.pdf');
-  };
+ORIGINAL TEXT:
+${text}
 
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+SCORE: ${scoreValueSpan?.textContent || 'N/A'}%
 
-  // Events
-  textInput.addEventListener('input', updateStats);
-  textInput.addEventListener('scroll', () => { highlight.scrollTop = textInput.scrollTop; });
+ISSUES FOUND:
+${currentResults?.issues?.map(i => `- [${i.type}] ${i.message}\n  Suggestion: ${i.suggestion}`).join('\n\n') || 'No issues found'}
 
-  checkBtn.onclick = checkGrammar;
-  clearBtn.onclick = () => {
-    textInput.value = '';
-    issues = [];
-    aiResponse = '';
-    updateStats();
-    highlightText();
-    resultDiv.classList.add('hidden');
-    initialDiv.classList.remove('hidden');
-    autoFixBtn.classList.add('hidden');
-    document.getElementById('readability').classList.add('hidden');
-    document.getElementById('tone').classList.add('hidden');
-    circle.classList.remove('animate');
-  };
+SUMMARY: ${currentResults?.summary || 'Analysis completed successfully'}
 
-  updateStats();
+--- End of Report ---`;
+}
+
+// ============================================
+// Share Functions
+// ============================================
+function shareTool(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('Advanced Grammar Checking Tool');
+    let shareUrl = '';
+    
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${title}%20${url}`;
+            break;
+        case 'email':
+            shareUrl = `mailto:?subject=${title}&body=Check out this tool: ${url}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        trackShare(platform, 'tool');
+        showToast(`Shared on ${platform}!`);
+    }
+}
+
+async function sharePage() {
+    const url = window.location.href;
+    
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copied to clipboard!');
+        await trackShare('copy', 'page');
+    } catch (error) {
+        showToast('Failed to copy link', 'error');
+    }
+}
+
+function shareResults() {
+    const text = textInput.value;
+    if (!text) {
+        showToast('No text to share', 'error');
+        return;
+    }
+    
+    const shareData = {
+        title: 'Grammar Check Results',
+        text: `My grammar score: ${scoreValueSpan?.textContent || 'N/A'}%`,
+        url: window.location.href
+    };
+    
+    if (navigator.share) {
+        navigator.share(shareData).then(() => {
+            showToast('Shared successfully!');
+        }).catch(() => {
+            showToast('Share cancelled');
+        });
+    } else {
+        sharePage();
+    }
+}
+
+// ============================================
+// Theme Functions
+// ============================================
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    darkModeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i> Light Mode' : '<i class="fas fa-moon"></i> Dark Mode';
+    showToast(`${isDark ? 'Dark' : 'Light'} mode enabled!`);
+}
+
+function listenToText() {
+    const text = textInput.value;
+    if (!text) {
+        showToast('No text to read', 'error');
+        return;
+    }
+    
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+        showToast('Listening to text...');
+    } else {
+        showToast('Text-to-speech not supported', 'error');
+    }
+}
+
+// ============================================
+// Auto-Save Functions
+// ============================================
+function saveDraft() {
+    const text = textInput.value;
+    if (text) {
+        localStorage.setItem(`${TOOL_ID}_draft`, text);
+        localStorage.setItem(`${TOOL_ID}_draft_time`, Date.now());
+        autoSaveInfo.classList.add('show');
+        setTimeout(() => {
+            autoSaveInfo.classList.remove('show');
+        }, 2000);
+    }
+}
+
+function loadDraft() {
+    const draft = localStorage.getItem(`${TOOL_ID}_draft`);
+    const draftTime = localStorage.getItem(`${TOOL_ID}_draft_time`);
+    
+    if (draft && draftTime) {
+        const timeAgo = Math.round((Date.now() - parseInt(draftTime)) / 60000);
+        if (timeAgo < 1440) { // Less than 24 hours
+            const restore = confirm(`You have a saved draft from ${timeAgo} minutes ago. Restore it?`);
+            if (restore) {
+                textInput.value = draft;
+                updateCounters();
+                showToast('Draft restored!');
+            }
+        }
+    }
+}
+
+// ============================================
+// Counter Functions
+// ============================================
+function updateCounters() {
+    const text = textInput.value;
+    const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    const chars = text.length;
+    
+    wordCountSpan.textContent = words;
+    charCountSpan.textContent = chars;
+    
+    // Character limit warning
+    const charWarning = document.getElementById('charWarning');
+    if (chars > 4500 && charWarning) {
+        charWarning.classList.remove('hidden');
+        if (chars > 5000) {
+            textInput.value = text.substring(0, 5000);
+            updateCounters();
+            showToast('Character limit reached (5000 max)', 'error');
+        }
+    } else if (charWarning) {
+        charWarning.classList.add('hidden');
+    }
+}
+
+// ============================================
+// Scroll Functions
+// ============================================
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+// ============================================
+// Event Listeners
+// ============================================
+textInput.addEventListener('input', () => {
+    updateCounters();
+    
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        saveDraft();
+    }, 3000);
 });
+
+checkBtn.addEventListener('click', checkGrammar);
+clearBtn.addEventListener('click', () => {
+    textInput.value = '';
+    updateCounters();
+    resultsDiv.classList.add('hidden');
+    showToast('Text cleared!');
+});
+copyBtn.addEventListener('click', copyCorrectedText);
+downloadTxtBtn.addEventListener('click', downloadAsTXT);
+downloadPdfBtn.addEventListener('click', downloadAsPDF);
+shareResultsBtn.addEventListener('click', shareResults);
+darkModeBtn.addEventListener('click', toggleDarkMode);
+listenBtn.addEventListener('click', listenToText);
+pageShareBtn.addEventListener('click', sharePage);
+scrollUpBtn.addEventListener('click', scrollToTop);
+scrollDownBtn.addEventListener('click', scrollToBottom);
+
+// Reaction buttons
+reactionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const emoji = btn.getAttribute('data-emoji');
+        if (emoji) {
+            addReaction(emoji);
+            btn.classList.add('active');
+            setTimeout(() => btn.classList.remove('active'), 500);
+        }
+    });
+});
+
+// Social share buttons
+document.querySelectorAll('.social-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const platform = btn.getAttribute('data-platform');
+        if (platform) {
+            shareTool(platform);
+        }
+    });
+});
+
+// Scroll button visibility
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 200) {
+        scrollUpBtn.classList.remove('hidden');
+    } else {
+        scrollUpBtn.classList.add('hidden');
+    }
+});
+
+// ============================================
+// Initialization
+// ============================================
+function init() {
+    updateCounters();
+    loadToolStats();
+    loadDraft();
+    
+    // Check for dark mode preference
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode === 'true') {
+        document.body.classList.add('dark-mode');
+        darkModeBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+    }
+    
+    showToast('Grammar Checker ready!');
+}
+
+// Start the app
+init();
