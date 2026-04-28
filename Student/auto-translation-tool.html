@@ -1,98 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MagicRills #3 - Auto Translation Tool</title>
-  <link rel="stylesheet" href="auto-translation-tool.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Translation Tool | AI-Powered Translator with 12+ Languages</title>
+    <meta name="description" content="AI-powered translation tool supporting 12+ languages. Translate English to Urdu, Hindi, Arabic, Spanish, French, German and more with pronunciation guides, transliteration, and voice input.">
+    <link rel="stylesheet" href="auto-translation-tool.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body data-theme="light">
-  <div class="container" id="app">
-    <header class="header">
-      <h1>MagicRills Auto Translator</h1>
-      <button id="themeToggle" class="theme-btn">Dark Mode</button>
-    </header>
+<body>
 
-    <div class="feature-tabs">
-      <button class="tab active" data-tab="translation">Translation</button>
-      <button class="tab" data-tab="grammar">Grammar Check</button>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-language"></i> Auto Translation Tool</h1>
+        <p>AI-powered translator with 12+ languages | Pronunciation | Transliteration | Voice Input</p>
     </div>
 
-    <!-- Translation Tab -->
-    <div class="tab-content active" id="translation-tab">
-      <div class="lang-display">
-        <span id="fromLangDisplay">English</span>
-        <span class="arrow">→</span>
-        <span id="toLangDisplay">Urdu</span>
-      </div>
-
-      <div class="input-group">
-        <textarea id="inputText" placeholder="Type or paste text to translate..."></textarea>
-        <div class="char-count"><span id="charCount">0</span> chars</div>
-      </div>
-
-      <div class="controls">
-        <select id="fromLang">
-          <option value="en">English</option>
-          <option value="ur">Urdu</option>
-          <option value="hi">Hindi</option>
-          <option value="ar">Arabic</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-        </select>
-
-        <button id="swapBtn" class="swap-btn">Swap</button>
-
-        <select id="toLang">
-          <option value="ur">Urdu</option>
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="ar">Arabic</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-        </select>
-
-        <button id="translateBtn" class="action-btn primary">Translate Now</button>
-      </div>
-
-      <div class="output-box">
-        <div class="output-header">
-          <span>Translation Result</span>
-          <div class="actions">
-            <button class="icon-btn" title="Copy" onclick="copyText('outputBox')">Copy</button>
-            <button class="icon-btn" title="Speak" onclick="speakText('outputBox')">Speak</button>
-            <button class="icon-btn" title="Download" onclick="downloadText('outputBox')">Download</button>
-          </div>
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-eye"></i></div>
+            <div class="stat-value" id="usageCount">0</div>
+            <div class="stat-label">Times Used</div>
         </div>
-        <div id="outputBox" class="output-text">Translation will appear here...</div>
-        <div class="loader" id="translationLoader"></div>
-      </div>
-    </div>
-
-    <!-- Grammar Tab -->
-    <div class="tab-content" id="grammar-tab">
-      <div class="input-group">
-        <textarea id="grammarInput" placeholder="Paste text to check grammar..."></textarea>
-        <div class="char-count"><span id="grammarCharCount">0</span> chars</div>
-      </div>
-
-      <div class="controls">
-        <button id="checkGrammarBtn" class="action-btn primary">Check Grammar</button>
-      </div>
-
-      <div class="output-box">
-        <div class="output-header">
-          <span>Corrected Text</span>
-          <button class="icon-btn" title="Copy" onclick="copyText('grammarOutput')">Copy</button>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-language"></i></div>
+            <div class="stat-value" id="langSupported">12+</div>
+            <div class="stat-label">Languages</div>
         </div>
-        <div id="grammarOutput" class="output-text">Grammar results will appear here...</div>
-        <div id="grammarSuggestions" class="suggestions"></div>
-        <div class="loader" id="grammarLoader"></div>
-      </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-history"></i></div>
+            <div class="stat-value" id="translationCount">0</div>
+            <div class="stat-label">Translations</div>
+        </div>
     </div>
-  </div>
 
-  <script src="auto-translation-tool.js"></script>
+    <!-- Main Card -->
+    <div class="main-card">
+        <!-- Smart Tabs -->
+        <div class="smart-tabs">
+            <button class="smart-tab active" data-tab="translate"><i class="fas fa-exchange-alt"></i> Translate</button>
+            <button class="smart-tab" data-tab="history"><i class="fas fa-history"></i> History</button>
+            <button class="smart-tab" data-tab="favorites"><i class="fas fa-star"></i> Favorites</button>
+            <button class="smart-tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+        </div>
+
+        <!-- Translate Tab -->
+        <div id="translate-tab" class="tab-panel active">
+            <!-- Language Selection Bar -->
+            <div class="language-bar">
+                <div class="lang-selector">
+                    <select id="fromLang" class="lang-dropdown">
+                        <option value="auto">🔍 Auto Detect</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ur">🇵🇰 اردو (Urdu)</option>
+                        <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                        <option value="ar">🇸🇦 العربية (Arabic)</option>
+                        <option value="es">🇪🇸 Español (Spanish)</option>
+                        <option value="fr">🇫🇷 Français (French)</option>
+                        <option value="de">🇩🇪 Deutsch (German)</option>
+                        <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                        <option value="fa">🇮🇷 فارسی (Persian)</option>
+                        <option value="zh">🇨🇳 中文 (Chinese)</option>
+                        <option value="ru">🇷🇺 Русский (Russian)</option>
+                        <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+                    </select>
+                    
+                    <button id="swapBtn" class="swap-btn"><i class="fas fa-arrow-right-arrow-left"></i></button>
+                    
+                    <select id="toLang" class="lang-dropdown">
+                        <option value="ur">🇵🇰 اردو (Urdu)</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                        <option value="ar">🇸🇦 العربية (Arabic)</option>
+                        <option value="es">🇪🇸 Español (Spanish)</option>
+                        <option value="fr">🇫🇷 Français (French)</option>
+                        <option value="de">🇩🇪 Deutsch (German)</option>
+                        <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                        <option value="fa">🇮🇷 فارسی (Persian)</option>
+                        <option value="zh">🇨🇳 中文 (Chinese)</option>
+                        <option value="ru">🇷🇺 Русский (Russian)</option>
+                        <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="section-header">
+                    <span><i class="fas fa-file-alt"></i> Source Text</span>
+                    <div class="section-actions">
+                        <button id="clearInputBtn" class="icon-btn" title="Clear"><i class="fas fa-trash-alt"></i></button>
+                        <button id="micBtn" class="icon-btn" title="Voice Input"><i class="fas fa-microphone"></i></button>
+                        <button id="speakSourceBtn" class="icon-btn" title="Listen"><i class="fas fa-volume-up"></i></button>
+                    </div>
+                </div>
+                <textarea id="sourceText" placeholder="Type or paste text here..."></textarea>
+                <div class="char-counter" id="charCounter">0 characters</div>
+                <div id="detectedLang" class="detected-lang" style="display:none;"><i class="fas fa-globe"></i> Detected: <span id="detectedLangName"></span></div>
+            </div>
+
+            <!-- Translate Button -->
+            <div class="translate-btn-container">
+                <button id="translateBtn" class="btn-primary"><i class="fas fa-language"></i> Translate</button>
+                <div id="translateLoader" class="loader" style="display:none;"></div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="output-section">
+                <div class="section-header">
+                    <span><i class="fas fa-file-alt"></i> Translation</span>
+                    <div class="section-actions">
+                        <button id="copyBtn" class="icon-btn" title="Copy"><i class="fas fa-copy"></i></button>
+                        <button id="speakTargetBtn" class="icon-btn" title="Listen"><i class="fas fa-volume-up"></i></button>
+                        <button id="downloadTxtBtn" class="icon-btn" title="Download TXT"><i class="fas fa-download"></i></button>
+                        <button id="favoriteBtn" class="icon-btn" title="Save to Favorites"><i class="fas fa-star"></i></button>
+                    </div>
+                </div>
+                <div id="targetText" class="output-text"></div>
+                
+                <!-- Pronunciation & Transliteration -->
+                <div id="pronunciationBox" class="pronunciation-box" style="display:none;">
+                    <div class="pronunciation-item">
+                        <i class="fas fa-microphone-alt"></i>
+                        <span>Pronunciation:</span>
+                        <strong id="pronunciationText"></strong>
+                    </div>
+                    <div class="pronunciation-item">
+                        <i class="fas fa-font"></i>
+                        <span>Transliteration:</span>
+                        <strong id="transliterationText"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history-tab" class="tab-panel">
+            <div class="history-header">
+                <h3><i class="fas fa-history"></i> Translation History</h3>
+                <button id="clearHistoryBtn" class="btn-small btn-danger">Clear All</button>
+            </div>
+            <div id="historyList" class="history-list">
+                <div class="empty-state">No translations yet. Start translating!</div>
+            </div>
+        </div>
+
+        <!-- Favorites Tab -->
+        <div id="favorites-tab" class="tab-panel">
+            <div class="history-header">
+                <h3><i class="fas fa-star"></i> Favorite Translations</h3>
+                <button id="clearFavoritesBtn" class="btn-small btn-danger">Clear All</button>
+            </div>
+            <div id="favoritesList" class="history-list">
+                <div class="empty-state">No favorites yet. Save translations you love!</div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-panel">
+            <div class="settings-section">
+                <h3><i class="fas fa-palette"></i> Appearance</h3>
+                <div class="setting-row">
+                    <span>Dark Mode</span>
+                    <button id="darkModeToggle" class="toggle-switch">Off</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-cog"></i> Translation Settings</h3>
+                <div class="setting-row">
+                    <span>Show Pronunciation</span>
+                    <button id="pronunciationToggle" class="toggle-switch active">On</button>
+                </div>
+                <div class="setting-row">
+                    <span>Show Transliteration</span>
+                    <button id="transliterationToggle" class="toggle-switch active">On</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-database"></i> Data Management</h3>
+                <div class="setting-row">
+                    <span>Export All Data</span>
+                    <button id="exportDataBtn" class="btn-small">Export</button>
+                </div>
+                <div class="setting-row">
+                    <span>Import Data</span>
+                    <button id="importDataBtn" class="btn-small">Import</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none;">
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-info-circle"></i> About</h3>
+                <p>Powered by Groq AI & Google Translate API</p>
+                <p>Supports 12+ languages with pronunciation guides</p>
+                <p>Version 2.0 - Fully AI Integrated</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reactions Section - 7 Emojis -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-smile"></i> Was this translation helpful?</h3>
+        <div class="reactions">
+            <button class="reaction" data-emoji="like">👍 <span id="likeCount">0</span></button>
+            <button class="reaction" data-emoji="love">❤️ <span id="loveCount">0</span></button>
+            <button class="reaction" data-emoji="wow">😮 <span id="wowCount">0</span></button>
+            <button class="reaction" data-emoji="sad">😢 <span id="sadCount">0</span></button>
+            <button class="reaction" data-emoji="angry">😠 <span id="angryCount">0</span></button>
+            <button class="reaction" data-emoji="laugh">😂 <span id="laughCount">0</span></button>
+            <button class="reaction" data-emoji="celebrate">🎉 <span id="celebrateCount">0</span></button>
+        </div>
+    </div>
+
+    <!-- Social Share Section -->
+    <div class="social-section">
+        <div class="social-buttons">
+            <button class="social-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
+            <button class="social-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Share</button>
+            <button class="social-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
+            <button class="social-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
+            <button class="social-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        </div>
+    </div>
+
+    <!-- Page Share -->
+    <div class="page-share">
+        <button id="pageShareBtn" class="page-share-btn"><i class="fas fa-link"></i> Share This Tool</button>
+    </div>
+
+    <div class="footer">
+        <p>🚀 Powered by Groq AI | 12+ Languages | Urdu/Hindi/Arabic Support | Free Translation Tool</p>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"><span id="toastMsg"></span></div>
+
+<!-- Scroll Buttons -->
+<button id="scrollUpBtn" class="scroll-btn scroll-up hidden"><i class="fas fa-arrow-up"></i></button>
+<button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+<script src="auto-translation-tool.js"></script>
 </body>
 </html>
