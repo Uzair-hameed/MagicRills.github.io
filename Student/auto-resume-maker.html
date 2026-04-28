@@ -3,164 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Resume Maker</title>
+    <title>Auto Resume Maker | Professional AI Resume Builder</title>
+    <meta name="description" content="AI-powered professional resume builder with ATS-friendly templates, real-time preview, and expert suggestions.">
     <link rel="stylesheet" href="auto-resume-maker.css">
-    <!-- Clean, reliable libraries only -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Auto Resume Maker</h1>
-            <div class="theme-toggle">
-                <button id="themeToggle">🌙 Dark Mode</button>
-            </div>
-        </header>
+<body class="theme-default font-arial">
 
-        <div class="dashboard">
-            <!-- Sidebar with Templates & Export -->
-            <div class="sidebar">
-                <div class="template-selector">
-                    <h3>Resume Templates</h3>
-                    <div class="template-options">
-                        <div class="template active" data-template="professional">
-                            <div class="template-preview"></div>
-                            <span>Professional</span>
-                        </div>
-                        <div class="template" data-template="modern">
-                            <div class="template-preview"></div>
-                            <span>Modern</span>
-                        </div>
-                        <div class="template" data-template="creative">
-                            <div class="template-preview"></div>
-                            <span>Creative</span>
-                        </div>
-                        <div class="template" data-template="executive">
-                            <div class="template-preview"></div>
-                            <span>Executive</span>
-                        </div>
-                    </div>
-                </div>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-file-alt"></i> Auto Resume Maker</h1>
+        <p>AI-powered professional resume builder with ATS-friendly templates</p>
+    </div>
 
-                <div class="export-options">
-                    <h3>Export Resume</h3>
-                    <button id="exportPdf" class="export-btn">📄 Export as PDF</button>
-                    <button id="exportWord" class="export-btn">📝 Export as Word</button>
-                    <button id="exportPrint" class="export-btn">🖨️ Print Resume</button>
-                </div>
-                
-                <div class="tips-section">
-                    <h3>Pro Tips</h3>
-                    <ul>
-                        <li>Use action verbs</li>
-                        <li>Quantify achievements</li>
-                        <li>Keep it 1-2 pages</li>
-                        <li>Tailor to job description</li>
-                        <li>Proofread carefully</li>
-                    </ul>
-                </div>
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-eye"></i></div>
+            <div class="stat-value" id="usageCount">0</div>
+            <div class="stat-label">Times Used</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-value" id="atsScore">--</div>
+            <div class="stat-label">ATS Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-star"></i></div>
+            <div class="stat-value" id="resumeScore">--</div>
+            <div class="stat-label">Resume Score</div>
+        </div>
+    </div>
+
+    <!-- AI Optimization Bar -->
+    <div class="ai-bar" id="aiBar" style="display: none;">
+        <div class="ai-suggestions">
+            <i class="fas fa-robot"></i>
+            <span id="aiSuggestionText">AI suggests improvements</span>
+            <button class="btn-small" id="applyAiSuggestionBtn">Apply</button>
+            <button class="btn-small" id="dismissAiBtn">Dismiss</button>
+        </div>
+    </div>
+
+    <div class="resume-maker">
+        <!-- Editor Panel -->
+        <div class="editor-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="personal"><i class="fas fa-user"></i> Personal</div>
+                <div class="tab" data-tab="experience"><i class="fas fa-briefcase"></i> Experience</div>
+                <div class="tab" data-tab="education"><i class="fas fa-graduation-cap"></i> Education</div>
+                <div class="tab" data-tab="skills"><i class="fas fa-code"></i> Skills</div>
+                <div class="tab" data-tab="customization"><i class="fas fa-palette"></i> Style</div>
+                <div class="tab" data-tab="ai"><i class="fas fa-robot"></i> AI Optimize</div>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="main-content">
-                <!-- Form Section -->
-                <div class="form-section">
-                    <div class="section personal-info">
-                        <div class="section-header">
-                            <h2>👤 Personal Information</h2>
-                            <button class="section-toggle">−</button>
+            <!-- Personal Info Tab -->
+            <div class="tab-content active" id="personal-tab">
+                <div class="section">
+                    <h2 class="section-title">Personal Information</h2>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" id="full-name" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-briefcase"></i> Professional Title</label>
+                        <input type="text" id="job-title" placeholder="Senior Software Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="email" placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone</label>
+                        <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> Address/Location</label>
+                        <input type="text" id="address" placeholder="New York, NY">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-file-alt"></i> Professional Summary</label>
+                        <textarea id="summary" placeholder="Write a compelling professional summary..."></textarea>
+                        <div class="char-counter"><span id="summaryChars">0</span> characters</div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> Profile Image</label>
+                        <div class="upload-btn-wrapper">
+                            <button class="upload-btn" type="button">Upload Image</button>
+                            <input type="file" id="profile-image" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fab fa-linkedin"></i> Social Links</label>
+                        <div id="social-links" class="social-links"></div>
+                        <button class="btn-secondary add-item-btn" type="button" id="add-social"><i class="fas fa-plus"></i> Add Social Link</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Experience Tab -->
+            <div class="tab-content" id="experience-tab">
+                <div class="section">
+                    <h2 class="section-title">Work Experience</h2>
+                    <div id="experience-items" class="item-list"></div>
+                    <button class="btn-secondary add-item-btn" type="button" id="add-experience"><i class="fas fa-plus"></i> Add Experience</button>
+                    <button class="btn-secondary" type="button" id="optimizeExperienceBtn"><i class="fas fa-magic"></i> AI Optimize Experience</button>
+                </div>
+            </div>
+
+            <!-- Education Tab -->
+            <div class="tab-content" id="education-tab">
+                <div class="section">
+                    <h2 class="section-title">Education</h2>
+                    <div id="education-items" class="item-list"></div>
+                    <button class="btn-secondary add-item-btn" type="button" id="add-education"><i class="fas fa-plus"></i> Add Education</button>
+                </div>
+            </div>
+
+            <!-- Skills Tab -->
+            <div class="tab-content" id="skills-tab">
+                <div class="section">
+                    <h2 class="section-title">Skills</h2>
+                    <div id="skill-items" class="item-list"></div>
+                    <button class="btn-secondary add-item-btn" type="button" id="add-skill"><i class="fas fa-plus"></i> Add Skill</button>
+                    <button class="btn-secondary" type="button" id="suggestSkillsBtn"><i class="fas fa-lightbulb"></i> AI Suggest Skills</button>
+                </div>
+            </div>
+
+            <!-- Customization Tab -->
+            <div class="tab-content" id="customization-tab">
+                <div class="section">
+                    <h2 class="section-title">Template Selection</h2>
+                    <div class="template-options" id="templateOptions">
+                        <div class="template-option selected" data-template="template-standard"><div class="template-preview"><div style="text-align:center;"><div style="width:80%;height:10px;background:var(--primary);margin:5px auto;"></div></div></div><div class="template-name">Standard</div></div>
+                        <div class="template-option" data-template="template-classic"><div class="template-preview"><div style="display:flex;gap:5px;padding:5px;"><div style="width:20px;height:20px;background:var(--primary);border-radius:50%;"></div><div><div style="width:40px;height:8px;background:var(--primary);"></div></div></div></div><div class="template-name">Classic</div></div>
+                        <div class="template-option" data-template="template-modern"><div class="template-preview"><div style="background:var(--primary);height:20px;"></div><div style="padding:5px;"><div style="width:60%;height:6px;background:#ddd;"></div></div></div><div class="template-name">Modern</div></div>
+                        <div class="template-option" data-template="template-executive"><div class="template-preview"><div style="display:flex;gap:5px;padding:5px;"><div style="width:25px;height:25px;background:var(--primary);border-radius:50%;"></div><div><div style="width:50px;height:8px;background:var(--primary);"></div></div></div></div><div class="template-name">Executive</div></div>
+                        <div class="template-option" data-template="template-minimalist"><div class="template-preview"><div style="text-align:center;padding:5px;"><div style="width:40px;height:6px;background:#333;margin:3px auto;"></div><div style="width:30px;height:4px;background:#666;margin:3px auto;"></div></div></div><div class="template-name">Minimalist</div></div>
+                        <div class="template-option" data-template="template-two-column"><div class="template-preview"><div style="display:flex;height:100%;"><div style="width:30%;background:var(--primary);"></div><div style="width:70%;padding:5px;"><div style="width:80%;height:4px;background:var(--primary);"></div></div></div></div><div class="template-name">Two Column</div></div>
+                    </div>
+                </div>
+                <div class="section">
+                    <h2 class="section-title">Theme Colors</h2>
+                    <div class="theme-options" id="themeOptions">
+                        <div class="theme-option selected" data-theme="theme-default" style="background:#3498db;"></div>
+                        <div class="theme-option" data-theme="theme-professional" style="background:#2c3e50;"></div>
+                        <div class="theme-option" data-theme="theme-modern" style="background:#9b59b6;"></div>
+                        <div class="theme-option" data-theme="theme-creative" style="background:#e67e22;"></div>
+                        <div class="theme-option" data-theme="theme-minimal" style="background:#95a5a6;"></div>
+                        <div class="theme-option" data-theme="custom" style="background:conic-gradient(red,yellow,blue,green);"></div>
+                    </div>
+                    <div id="custom-color-picker" style="display:none; margin-top:15px;">
+                        <div class="color-group"><label>Primary Color</label><input type="color" id="primary-color" value="#3498db"></div>
+                        <div class="color-group"><label>Secondary Color</label><input type="color" id="secondary-color" value="#2980b9"></div>
+                        <div class="color-group"><label>Header Color</label><input type="color" id="header-color" value="#2c3e50"></div>
+                    </div>
+                </div>
+                <div class="section">
+                    <h2 class="section-title">Font Style</h2>
+                    <div class="font-options" id="fontOptions">
+                        <div class="font-option selected" data-font="font-arial">Arial</div>
+                        <div class="font-option" data-font="font-times">Times</div>
+                        <div class="font-option" data-font="font-georgia">Georgia</div>
+                        <div class="font-option" data-font="font-verdana">Verdana</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Optimize Tab -->
+            <div class="tab-content" id="ai-tab">
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-robot"></i> AI Resume Optimization</h2>
+                    <div class="ai-optimize-panel">
+                        <div class="form-group">
+                            <label>Target Job Title</label>
+                            <input type="text" id="target-job" placeholder="e.g., Frontend Developer, Marketing Manager">
                         </div>
                         <div class="form-group">
-                            <input type="text" id="fullName" placeholder="Full Name">
-                            <input type="text" id="jobTitle" placeholder="Job Title">
-                            <input type="email" id="email" placeholder="Email">
-                            <input type="tel" id="phone" placeholder="Phone">
-                            <input type="text" id="location" placeholder="Location">
-                            <textarea id="summary" placeholder="Professional Summary" rows="4"></textarea>
-                            
-                            <div class="image-upload">
-                                <label for="profileImage">📷 Upload Profile Image (Optional)</label>
-                                <input type="file" id="profileImage" accept="image/*">
-                                <div class="image-preview">
-                                    <span>No image selected</span>
-                                </div>
-                            </div>
+                            <label>Industry</label>
+                            <select id="target-industry">
+                                <option value="">Select Industry</option>
+                                <option>Technology</option>
+                                <option>Healthcare</option>
+                                <option>Finance</option>
+                                <option>Education</option>
+                                <option>Marketing</option>
+                                <option>Sales</option>
+                                <option>Engineering</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <div class="section experience">
-                        <div class="section-header">
-                            <h2>💼 Work Experience</h2>
-                            <button class="section-toggle">−</button>
-                        </div>
-                        <div id="experienceContainer">
-                            <!-- Experience items will be added here -->
-                        </div>
-                        <button id="addExperience" class="add-btn">+ Add Experience</button>
-                    </div>
-
-                    <div class="section education">
-                        <div class="section-header">
-                            <h2>🎓 Education</h2>
-                            <button class="section-toggle">−</button>
-                        </div>
-                        <div id="educationContainer">
-                            <!-- Education items will be added here -->
-                        </div>
-                        <button id="addEducation" class="add-btn">+ Add Education</button>
-                    </div>
-
-                    <div class="section skills">
-                        <div class="section-header">
-                            <h2>🛠️ Skills</h2>
-                            <button class="section-toggle">−</button>
-                        </div>
-                        <div id="skillsContainer">
-                            <!-- Skill items will be added here -->
-                        </div>
-                        <button id="addSkill" class="add-btn">+ Add Skill</button>
-                    </div>
-                    
-                    <div class="section additional">
-                        <div class="section-header">
-                            <h2>📚 Additional Information</h2>
-                            <button class="section-toggle">−</button>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="languages" placeholder="Languages (e.g., English, Spanish)">
-                            <input type="text" id="certifications" placeholder="Certifications">
-                            <textarea id="projects" placeholder="Notable Projects" rows="3"></textarea>
-                            <textarea id="interests" placeholder="Interests & Hobbies" rows="2"></textarea>
+                        <button class="btn-primary" type="button" id="fullOptimizeBtn"><i class="fas fa-magic"></i> Full AI Resume Optimization</button>
+                        <div class="ai-score-box" id="aiScoreBox" style="display:none;">
+                            <div class="ai-score-header">ATS Compatibility Score</div>
+                            <div class="ai-score-meter"><div class="ai-score-fill" id="atsScoreFill" style="width:0%"></div></div>
+                            <div class="ai-score-value" id="atsScoreValue">0%</div>
+                            <div class="ai-keywords" id="aiKeywords"></div>
+                            <div class="ai-suggestions-list" id="aiSuggestionsList"></div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Preview Section -->
-                <div class="preview-section">
-                    <div class="preview-header">
-                        <h2>👁️ Resume Preview</h2>
-                        <div class="preview-actions">
-                            <button id="zoomOut" class="preview-btn">−</button>
-                            <span id="zoomLevel">100%</span>
-                            <button id="zoomIn" class="preview-btn">+</button>
-                        </div>
-                    </div>
-                    <div id="resumePreview" class="resume-preview">
-                        <!-- Preview will be generated here -->
-                        <div class="preview-placeholder">
-                            <h3>Your Resume Preview</h3>
-                            <p>Start filling the form to see your resume appear here in real-time!</p>
-                        </div>
-                    </div>
-                </div>
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn-primary" type="button" id="preview-btn"><i class="fas fa-eye"></i> Preview</button>
+                <button class="btn-primary" type="button" id="download-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn-secondary" type="button" id="download-doc"><i class="fas fa-file-word"></i> DOC</button>
+                <button class="btn-secondary" type="button" id="print-btn"><i class="fas fa-print"></i> Print</button>
+                <button class="btn" type="button" id="reset-btn"><i class="fas fa-undo"></i> Reset</button>
+            </div>
+
+            <div class="auto-save-status" id="autoSaveStatus">Auto-saved</div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2><i class="fas fa-eye"></i> Live Resume Preview</h2>
+                <button class="btn-small" type="button" id="refreshPreviewBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+            <div id="resumePreview" class="resume-preview template-standard">
+                <div class="resume-header"><h1 class="resume-name">Your Name</h1><div class="resume-title">Professional Title</div></div>
+                <div class="resume-section"><h2 class="resume-section-title">Professional Summary</h2><p>Enter your details to see preview</p></div>
             </div>
         </div>
     </div>
 
-    <!-- Load JavaScript files -->
-    <script src="auto-resume-maker.js"></script>
-    <script src="auto-resume-maker-pdf.js"></script>
-    <script src="auto-resume-maker-word.js"></script>
+    <!-- Reactions Section -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-smile"></i> Did this tool help you?</h3>
+        <div class="reactions">
+            <button class="reaction-btn" data-emoji="like">👍 <span id="likeCount">0</span></button>
+            <button class="reaction-btn" data-emoji="love">❤️ <span id="loveCount">0</span></button>
+            <button class="reaction-btn" data-emoji="wow">😮 <span id="wowCount">0</span></button>
+            <button class="reaction-btn" data-emoji="sad">😢 <span id="sadCount">0</span></button>
+            <button class="reaction-btn" data-emoji="angry">😠 <span id="angryCount">0</span></button>
+            <button class="reaction-btn" data-emoji="laugh">😂 <span id="laughCount">0</span></button>
+            <button class="reaction-btn" data-emoji="celebrate">🎉 <span id="celebrateCount">0</span></button>
+        </div>
+    </div>
+
+    <!-- Social Share Section -->
+    <div class="social-section">
+        <div class="social-buttons">
+            <button class="social-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
+            <button class="social-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Share</button>
+            <button class="social-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
+            <button class="social-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
+            <button class="social-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        </div>
+    </div>
+
+    <!-- Page Share -->
+    <div class="page-share">
+        <button id="pageShareBtn" class="page-share-btn"><i class="fas fa-link"></i> Share This Page</button>
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button id="darkModeBtn" class="theme-btn"><i class="fas fa-moon"></i> Dark Mode</button>
+    </div>
+
+    <div class="footer">
+        <p>Powered by Groq AI | Professional Resume Builder</p>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"><span id="toastMessage"></span></div>
+
+<!-- Scroll Buttons -->
+<button id="scrollUpBtn" class="scroll-btn scroll-up hidden"><i class="fas fa-arrow-up"></i></button>
+<button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+<!-- Loading -->
+<div id="loadingOverlay" class="loading-overlay hidden"><div class="spinner"></div><p>Processing...</p></div>
+
+<script src="auto-resume-maker.js"></script>
 </body>
 </html>
