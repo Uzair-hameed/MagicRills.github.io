@@ -1,90 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Grammar Checker Pro - MagicRills</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="advanced-grammar-checking-tool.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Grammar Checking Tool | Professional AI Grammar Checker</title>
+    <meta name="description" content="Free AI-powered grammar checking tool with 40+ features. Check grammar, spelling, punctuation, style, tone, and readability instantly.">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="advanced-grammar-checking-tool.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="container">
+
+<div class="container">
+    <!-- Header -->
     <div class="header">
-      <h1>AI Grammar Pro</h1>
-      <p>DeepSeek AI • Real-Time Fixes • Verb, Preposition, Articles • MagicRills Exclusive</p>
+        <h1><i class="fas fa-spell-check"></i> Advanced Grammar Checking Tool</h1>
+        <p>Professional AI-powered grammar, spelling, punctuation, and style checker</p>
     </div>
 
-    <div class="dashboard">
-      <div class="stat-card"><div class="stat-value" id="words">0</div><div class="stat-label">Words</div></div>
-      <div class="stat-card"><div class="stat-value" id="chars">0</div><div class="stat-label">Characters</div></div>
-      <div class="stat-card"><div class="stat-value" id="issues">0</div><div class="stat-label">AI Issues</div></div>
-      <div class="stat-card"><div class="stat-value" id="score">—</div><div class="stat-label">Quality Score</div></div>
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-eye"></i></div>
+            <div class="stat-value" id="usageCount">0</div>
+            <div class="stat-label">Times Used</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-value" id="scoreValue">--</div>
+            <div class="stat-label">Quality Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+            <div class="stat-value" id="readabilityScore">--</div>
+            <div class="stat-label">Readability</div>
+        </div>
     </div>
 
-    <div class="main">
-      <div class="editor">
-        <h2>Enter Text for AI Check</h2>
-        <div class="input-wrapper">
-          <div id="highlight"></div>
-          <textarea id="text-input" placeholder="Paste your text here... AI will check grammar, verbs, prepositions, and more!"></textarea>
-        </div>
-        <div class="controls">
-          <button class="btn btn-primary" id="check">🔍 AI Analyze</button>
-          <button class="btn btn-outline" id="clear">🗑️ Clear All</button>
-          <button class="btn btn-success hidden" id="auto-fix">✨ AI Auto-Fix</button>
-        </div>
-        <div class="legend">
-          <span><span class="color error"></span> Grammar Error</span>
-          <span><span class="color warning"></span> Style Warning</span>
-        </div>
-      </div>
-
-      <div class="results">
-        <div class="results-header">
-          <h2>AI Results</h2>
-          <button class="btn btn-download" id="download">📊 Export Report</button>
+    <!-- Main Card -->
+    <div class="main-card">
+        <!-- Word & Character Count -->
+        <div class="counters">
+            <div class="counter-box">
+                <span class="counter-icon"><i class="fas fa-word-simple"></i></span>
+                <span class="counter-value" id="wordCount">0</span>
+                <span class="counter-label">Words</span>
+            </div>
+            <div class="counter-box">
+                <span class="counter-icon"><i class="fas fa-font"></i></span>
+                <span class="counter-value" id="charCount">0</span>
+                <span class="counter-label">Characters</span>
+            </div>
+            <div class="counter-box">
+                <span class="counter-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                <span class="counter-value" id="issueCount">0</span>
+                <span class="counter-label">Issues</span>
+            </div>
         </div>
 
-        <div id="initial">Ready for AI analysis? Click "AI Analyze" to start.</div>
+        <!-- Text Input -->
+        <textarea id="textInput" placeholder="Type or paste your text here...&#10;&#10;Example:&#10;She go to school everyday. He don't like coffee. The boy run fast.&#10;&#10;The team are working hard. Each of the players are ready."></textarea>
 
-        <div class="loading hidden" id="loading">
-          <div class="spinner"></div>
-          <p>DeepSeek AI is processing... (Advanced grammar detection)</p>
+        <!-- Character Warning -->
+        <div id="charWarning" class="char-warning hidden">
+            <i class="fas fa-exclamation-circle"></i> Character limit approaching (5000/5000)
         </div>
 
-        <div id="result" class="hidden">
-          <div class="score-circle">
-            <div class="circle" id="circle"><span id="percent">0%</span></div>
-            <div><h3>AI Quality Score</h3><p id="quality-text">Processing...</p></div>
-          </div>
-
-          <div id="readability" class="info-box hidden">
-            <h3>Readability Analysis</h3>
-            <p><strong>Score:</strong> <span id="read-score">—</span> / 100</p>
-            <p><span id="read-level">—</span></p>
-          </div>
-
-          <div id="tone" class="info-box hidden">
-            <h3>Tone Detection</h3>
-            <div id="tone-tags"></div>
-          </div>
-
-          <div id="issues-section">
-            <h3>AI Detected Issues (<span id="issue-count">0</span>)</h3>
-            <ul id="issue-list"></ul>
-          </div>
-
-          <div class="export-buttons">
-            <button id="export-txt">📄 TXT</button>
-            <button id="export-html">🌐 HTML</button>
-            <button id="export-pdf">📑 PDF</button>
-          </div>
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn btn-primary" id="checkBtn">
+                <i class="fas fa-magic"></i> Check Grammar
+            </button>
+            <button class="btn btn-secondary" id="clearBtn">
+                <i class="fas fa-trash-alt"></i> Clear
+            </button>
+            <button class="btn btn-secondary" id="copyBtn">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+            <button class="btn btn-secondary" id="downloadTxtBtn">
+                <i class="fas fa-file-alt"></i> TXT
+            </button>
+            <button class="btn btn-secondary" id="downloadPdfBtn">
+                <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button class="btn btn-secondary" id="shareResultsBtn">
+                <i class="fas fa-share-alt"></i> Share
+            </button>
         </div>
-      </div>
+
+        <!-- Theme Toggle -->
+        <div class="theme-toggle">
+            <button id="darkModeBtn" class="theme-btn">
+                <i class="fas fa-moon"></i> Dark Mode
+            </button>
+            <button id="listenBtn" class="theme-btn">
+                <i class="fas fa-volume-up"></i> Listen
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results hidden">
+            <!-- Tone Tags -->
+            <div class="tone-section" id="toneSection">
+                <h3><i class="fas fa-chart-line"></i> Tone Analysis</h3>
+                <div class="tone-tags" id="toneTags"></div>
+            </div>
+
+            <!-- Style Section -->
+            <div class="style-section" id="styleSection">
+                <h3><i class="fas fa-pen-fancy"></i> Style Suggestions</h3>
+                <div class="style-badge" id="styleBadge"></div>
+                <div id="styleSuggestions" class="style-suggestions"></div>
+            </div>
+
+            <!-- Issues List -->
+            <div class="issues-list">
+                <h3><i class="fas fa-list"></i> Issues Found</h3>
+                <div id="issuesList"></div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary" id="summaryDiv"></div>
+
+            <!-- Auto-save info -->
+            <div class="auto-save-info" id="autoSaveInfo">
+                <i class="fas fa-save"></i> Draft auto-saved
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="advanced-grammar-checking-tool.js"></script>
+    <!-- Reactions Section -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-smile"></i> Did this tool help you?</h3>
+        <div class="reactions">
+            <button class="reaction-btn" data-emoji="like">
+                👍 <span id="likeCount">0</span>
+            </button>
+            <button class="reaction-btn" data-emoji="love">
+                ❤️ <span id="loveCount">0</span>
+            </button>
+            <button class="reaction-btn" data-emoji="wow">
+                😮 <span id="wowCount">0</span>
+            </button>
+            <button class="reaction-btn" data-emoji="sad">
+                😢 <span id="sadCount">0</span>
+            </button>
+            <button class="reaction-btn" data-emoji="angry">
+                😠 <span id="angryCount">0</span>
+            </button>
+            <button class="reaction-btn" data-emoji="laugh">
+                😂 <span id="laughCount">0</span>
+            </button>
+            <button class="reaction-btn" data-emoji="celebrate">
+                🎉 <span id="celebrateCount">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Social Share Section -->
+    <div class="social-section">
+        <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
+        <div class="social-buttons">
+            <button class="social-btn facebook" data-platform="facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </button>
+            <button class="social-btn twitter" data-platform="twitter">
+                <i class="fab fa-twitter"></i> Twitter
+            </button>
+            <button class="social-btn linkedin" data-platform="linkedin">
+                <i class="fab fa-linkedin-in"></i> LinkedIn
+            </button>
+            <button class="social-btn whatsapp" data-platform="whatsapp">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </button>
+            <button class="social-btn email" data-platform="email">
+                <i class="fas fa-envelope"></i> Email
+            </button>
+        </div>
+    </div>
+
+    <!-- Page Share -->
+    <div class="page-share">
+        <button id="pageShareBtn" class="page-share-btn">
+            <i class="fas fa-link"></i> Share This Page
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Powered by Cloudflare Workers AI | Free Advanced Grammar Checking Tool</p>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden">
+    <span id="toastMessage"></span>
+</div>
+
+<!-- Scroll Buttons -->
+<button id="scrollUpBtn" class="scroll-btn scroll-up hidden">
+    <i class="fas fa-arrow-up"></i>
+</button>
+<button id="scrollDownBtn" class="scroll-btn scroll-down">
+    <i class="fas fa-arrow-down"></i>
+</button>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p>Analyzing your text with AI...</p>
+</div>
+
+<!-- JavaScript -->
+<script src="advanced-grammar-checking-tool.js"></script>
+
 </body>
 </html>
