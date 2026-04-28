@@ -1,686 +1,253 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/6193/6193980.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/6193/6193980.png" style="display: none;" width="200" /></a></div>
-
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"></meta>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
-    <title>English Language Quiz Challenge</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>English Language Quiz Challenge | AI-Powered | Grok API | 66 Features</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --accent: #4895ef;
-            --danger: #f72585;
-            --success: #4cc9f0;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --warning: #f8961e;
-            --info: #43aa8b;
+            --bg-primary: #f0f4f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            --hover-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --primary-gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --danger: #ef233c;
+            --premium: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
         }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f7fa;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            color: var(--primary);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        .header p {
-            color: var(--secondary);
-            font-size: 1.1rem;
-        }
-        .quiz-container {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            padding: 30px;
-            margin-bottom: 20px;
-        }
-        .question-container {
-            margin-bottom: 20px;
-        }
-        .question {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        .options {
-            margin-bottom: 20px;
-        }
-        .option {
-            background-color: var(--light);
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .option:hover {
-            background-color: #e9ecef;
-            border-color: var(--accent);
-        }
-        .option.correct {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        .option.incorrect {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-        .option.disabled {
-            pointer-events: none;
-        }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: var(--secondary);
-        }
-        .btn-success {
-            background-color: var(--success);
-            color: #fff;
-        }
-        .btn-success:hover {
-            background-color: #38b6db;
-        }
-        .btn-danger {
-            background-color: var(--danger);
-            color: #fff;
-        }
-        .btn-danger:hover {
-            background-color: #e5177e;
-        }
-        .timer {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--danger);
-        }
-        .score-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .score {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .level-indicator {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .level-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            background-color: var(--accent);
-            color: #fff;
-        }
-        .progress-container {
-            margin-bottom: 20px;
-        }
-        .progress-bar {
-            height: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress {
-            height: 100%;
-            background-color: var(--primary);
-            transition: width 0.3s ease;
-        }
-        .result-container {
-            text-align: center;
-            display: none;
-        }
-        .result-container h2 {
-            margin-bottom: 20px;
-            color: var(--primary);
-        }
-        .result-score {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--danger);
-            margin-bottom: 20px;
-        }
-        .restart-btn {
-            margin-top: 20px;
-        }
-        .difficulty-selector {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .difficulty-btn {
-            padding: 8px 15px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .difficulty-btn.active {
-            background-color: var(--primary);
-            color: #fff;
-        }
-        .start-screen {
-            text-align: center;
-        }
-        .start-screen h2 {
-            margin-bottom: 20px;
-            color: var(--primary);
-        }
-        .start-btn {
-            margin-top: 20px;
-        }
-        .category-selector {
-            margin-bottom: 20px;
-        }
-        .category-btn {
-            display: inline-block;
-            padding: 8px 15px;
-            margin: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #e9ecef;
-            font-weight: 600;
-        }
-        .category-btn.active {
-            background-color: var(--primary);
-            color: #fff;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); transition: all 0.3s ease; min-height: 100vh; }
+        .app-container { max-width: 1400px; margin: 0 auto; padding: 20px; position: relative; }
+        
+        /* Header */
+        .main-header { background: var(--bg-secondary); border-radius: 24px; padding: 20px 30px; margin-bottom: 30px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area i { font-size: 32px; background: var(--primary-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo-area h1 { font-size: 24px; font-weight: 700; }
+        .header-actions { display: flex; gap: 12px; }
+        .theme-toggle, .stats-btn, .streak-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 10px 16px; cursor: pointer; transition: all 0.3s; color: var(--text-primary); }
+        .theme-toggle:hover, .stats-btn:hover, .streak-btn:hover { transform: scale(1.05); background: var(--primary-gradient); color: white; }
+        .stats-badge, .streak-btn span { background: var(--primary-gradient); border-radius: 20px; padding: 2px 8px; margin-left: 8px; font-size: 12px; color: white; }
+        .tagline { margin-top: 12px; font-size: 14px; color: var(--text-secondary); text-align: center; }
+        
+        /* Stats Bar - Always Visible */
+        .stats-bar { background: var(--bg-secondary); border-radius: 20px; padding: 15px 25px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid var(--border-color); }
+        .stats-item { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+        .stats-item i { font-size: 20px; color: var(--info); }
+        .reactions-bar { display: flex; gap: 15px; flex-wrap: wrap; }
+        .reaction-mini-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 16px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+        .reaction-mini-btn:hover { transform: scale(1.05); background: var(--warning); color: white; }
+        .share-mini-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 16px; cursor: pointer; transition: all 0.3s; }
+        .share-mini-btn:hover { transform: scale(1.05); background: var(--info); color: white; }
+        
+        /* Mode Selection */
+        .mode-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 30px; }
+        .mode-card { background: var(--bg-secondary); border-radius: 24px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid var(--border-color); }
+        .mode-card:hover { transform: translateY(-5px); box-shadow: var(--hover-shadow); }
+        .mode-icon i { font-size: 48px; margin-bottom: 15px; }
+        .mode-card h3 { margin-bottom: 8px; }
+        .mode-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
+        .mode-select-btn { background: var(--primary-gradient); color: white; border: none; border-radius: 40px; padding: 8px 20px; cursor: pointer; width: 100%; }
+        
+        /* Setup */
+        .setup-container { background: var(--bg-secondary); border-radius: 28px; padding: 30px; margin-bottom: 30px; display: none; }
+        .setup-card { margin-bottom: 25px; }
+        .setup-card h3 { margin-bottom: 15px; }
+        .btn-group, .category-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .difficulty-btn, .category-btn { padding: 8px 20px; border-radius: 40px; border: 1px solid var(--border-color); background: var(--bg-primary); cursor: pointer; transition: all 0.3s; }
+        .difficulty-btn.active, .category-btn.active { background: var(--primary-gradient); color: white; border-color: transparent; }
+        .start-quiz-btn { width: 100%; padding: 14px; font-size: 16px; background: var(--primary-gradient); color: white; border: none; border-radius: 40px; cursor: pointer; margin-top: 20px; }
+        
+        /* Quiz Container */
+        .quiz-container { background: var(--bg-secondary); border-radius: 28px; padding: 30px; border: 1px solid var(--border-color); display: none; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
+        .quiz-info { display: flex; gap: 12px; }
+        .quiz-mode, .quiz-level { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .quiz-mode { background: var(--primary-gradient); color: white; }
+        .quiz-level { background: var(--bg-primary); }
+        .quiz-timer { font-size: 20px; font-weight: 700; color: var(--warning); }
+        .quiz-lives { color: var(--danger); font-weight: 600; }
+        .quiz-score { color: var(--success); font-weight: 600; }
+        .progress-bar-container { background: var(--border-color); border-radius: 10px; height: 8px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar-fill { background: var(--primary-gradient); height: 100%; width: 0%; transition: width 0.3s ease; }
+        
+        .audio-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        .read-aloud-btn, .speech-answer-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 10px 16px; cursor: pointer; transition: all 0.3s; }
+        .read-aloud-btn:hover, .speech-answer-btn:hover { background: var(--info); color: white; }
+        
+        .question-text { font-size: 22px; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
+        .phonetic-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-family: monospace; }
+        .options-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .option { background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 16px; padding: 16px 20px; cursor: pointer; transition: all 0.3s; font-weight: 500; }
+        .option:hover { border-color: var(--info); transform: translateX(4px); }
+        .option.selected { background: var(--info); color: white; }
+        .option.correct { background: var(--success); color: white; }
+        .option.incorrect { background: var(--error); color: white; }
+        .option.disabled { pointer-events: none; opacity: 0.6; }
+        
+        .explanation-box { background: var(--bg-primary); border-radius: 20px; padding: 20px; margin: 20px 0; border-left: 4px solid var(--info); display: none; }
+        .explanation-header { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
+        .translation-box { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); }
+        
+        .quiz-footer { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+        .powerups { display: flex; gap: 10px; flex-wrap: wrap; }
+        .powerup-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
+        .powerup-btn.premium { background: var(--premium); color: white; }
+        .premium-badge { position: absolute; top: -8px; right: -8px; background: gold; color: #333; font-size: 8px; padding: 2px 6px; border-radius: 10px; }
+        .next-btn { background: var(--primary-gradient); color: white; border: none; border-radius: 40px; padding: 12px 28px; font-weight: 600; cursor: pointer; }
+        .next-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Results */
+        .results-container { background: var(--bg-secondary); border-radius: 28px; padding: 30px; text-align: center; display: none; }
+        .score-circle { width: 150px; height: 150px; background: var(--primary-gradient); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; color: white; }
+        .score-value { font-size: 48px; font-weight: 800; }
+        .badge-earned { background: var(--primary-gradient); color: white; padding: 10px 24px; border-radius: 40px; display: inline-block; margin: 20px 0; }
+        .weak-areas-section { margin: 20px 0; text-align: left; }
+        .weak-area-tag { background: var(--error); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 5px; }
+        .progress-chart-container { margin: 20px 0; max-width: 100%; overflow-x: auto; }
+        .action-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .try-again-btn, .change-mode-btn { padding: 12px 24px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .try-again-btn { background: var(--primary-gradient); color: white; border: none; }
+        .change-mode-btn { background: transparent; border: 2px solid var(--primary-gradient); color: var(--text-primary); }
+        
+        /* Loading */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; display: none; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Scroll Buttons */
+        .scroll-btn { position: fixed; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary-gradient); border: none; color: white; cursor: pointer; z-index: 99; }
+        .scroll-up { bottom: 80px; display: none; }
+        .scroll-down { bottom: 20px; }
+        
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; }
+        .modal-content { background: var(--bg-secondary); border-radius: 28px; padding: 40px; max-width: 450px; width: 90%; text-align: center; position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; }
+        
+        /* Toast */
+        .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
+        .toast { background: var(--bg-secondary); padding: 12px 24px; border-radius: 40px; margin-bottom: 10px; animation: slideUp 0.3s ease; border-left: 4px solid var(--success); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            .question {
-                font-size: 1.1rem;
-            }
-            .option {
-                padding: 10px 12px;
-            }
-            .btn {
-                padding: 8px 15px;
-            }
-            .timer {
-                font-size: 1rem;
-            }
-        }
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-20px);
-            }
-            60% {
-                transform: translateY(-10px);
-            }
-        }
-        .bounce {
-            animation: bounce 1s;
-        }
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-        @keyframes confetti-fall {
-            0% {
-                transform: translateY(-100px) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            animation: confetti-fall 5s linear forwards;
+            .app-container { padding: 12px; }
+            .mode-container { grid-template-columns: 1fr; }
+            .quiz-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .stats-bar { flex-direction: column; align-items: stretch; }
+            .quiz-footer { flex-direction: column; }
+            .next-btn { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>English Language Quiz Challenge</h1>
-            <p>Test your grammar knowledge across multiple levels!</p>
-        </div>
-        <div class="start-screen quiz-container" id="start-screen">
-            <h2>Select Difficulty</h2>
-            <div class="difficulty-selector">
-                <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
-                <button class="difficulty-btn" data-difficulty="average">Average</button>
-                <button class="difficulty-btn" data-difficulty="hard">Hard</button>
-            </div>
-            <h3>Select Categories</h3>
-            <div class="category-selector">
-                <button class="category-btn active" data-category="grammar">Grammar</button>
-                <button class="category-btn active" data-category="sentence">Sentence Completion</button>
-                <button class="category-btn active" data-category="synonyms">Synonyms</button>
-                <button class="category-btn active" data-category="antonyms">Antonyms</button>
-                <button class="category-btn" data-category="word">Word Meaning</button>
-                <button class="category-btn" data-category="punctuation">Punctuation</button>
-                <button class="category-btn" data-category="verbs">Verbs</button>
-                <button class="category-btn" data-category="nouns">Nouns</button>
-                <button class="category-btn" data-category="pronouns">Pronouns</button>
-                <button class="category-btn" data-category="adverbs">Adverbs</button>
-                <button class="category-btn" data-category="adjectives">Adjectives</button>
-                <button class="category-btn" data-category="voice">Active/Passive</button>
-                <button class="category-btn" data-category="narration">Narration</button>
-            </div>
-            <button class="btn btn-primary start-btn" id="start-btn">Start Quiz</button>
-        </div>
-        <div class="quiz-container" id="quiz-screen" style="display: none;">
-            <div class="level-indicator">
-                <span class="level-badge">Level 1</span>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress" style="width: 0%;"></div>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <div class="logo-area"><i class="fas fa-language"></i><h1>English Quiz Challenge</h1></div>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+                    <button class="stats-btn" id="statsBtn"><i class="fas fa-chart-line"></i><span class="stats-badge" id="globalUsageCount">0</span></button>
+                    <button class="streak-btn" id="streakBtn"><i class="fas fa-fire"></i><span id="streakCount">0</span></button>
                 </div>
             </div>
-            <div class="question-container">
-                <div class="question" id="question"></div>
-                <div class="options" id="options"></div>
+            <p class="tagline">AI-Powered by Grok API | 10,000+ Questions | 66 Features | Speak • Write • Learn</p>
+        </header>
+
+        <!-- Stats Bar with Reactions & Share - Always Visible -->
+        <div class="stats-bar">
+            <div class="stats-item"><i class="fas fa-users"></i> <span id="totalUsersCount">1,234</span> Active Learners</div>
+            <div class="stats-item"><i class="fas fa-question-circle"></i> <span id="totalQuestionsCount">10,000+</span> Questions</div>
+            <div class="reactions-bar" id="mainReactionsBar">
+                <button class="reaction-mini-btn" data-emoji="like">👍 <span id="reactionLike">0</span></button>
+                <button class="reaction-mini-btn" data-emoji="love">❤️ <span id="reactionLove">0</span></button>
+                <button class="reaction-mini-btn" data-emoji="wow">😮 <span id="reactionWow">0</span></button>
+                <button class="reaction-mini-btn" data-emoji="sad">😢 <span id="reactionSad">0</span></button>
+                <button class="reaction-mini-btn" data-emoji="laugh">😂 <span id="reactionLaugh">0</span></button>
+                <button class="reaction-mini-btn" data-emoji="celebrate">🎉 <span id="reactionCelebrate">0</span></button>
             </div>
-            <div class="controls">
-                <div class="timer">Time: <span id="time">30</span>s</div>
-                <button class="btn btn-primary" disabled="" id="next-btn">Next Question</button>
+            <div class="share-buttons-bar">
+                <button class="share-mini-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
+                <button class="share-mini-btn" data-platform="twitter"><i class="fab fa-twitter"></i> Tweet</button>
+                <button class="share-mini-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
+                <button class="share-mini-btn" id="copyPageUrlBtn"><i class="fas fa-link"></i> Copy Link</button>
             </div>
-            <div class="score-container">Score: <span class="score" id="score">0</span></div>
         </div>
-        <div class="result-container quiz-container" id="result-screen">
-            <h2>Quiz Completed!</h2>
-            <div class="result-score">Your Score: <span id="final-score">0</span></div>
-            <div id="level-completion"></div>
-            <button class="btn btn-primary restart-btn" id="restart-btn">Play Again</button>
+
+        <!-- Mode Selection -->
+        <div class="mode-container" id="modeContainer">
+            <div class="mode-card" data-mode="classic"><div class="mode-icon"><i class="fas fa-book-open"></i></div><h3>Classic Mode</h3><p>35 AI-generated questions with timer</p><button class="mode-select-btn">Select</button></div>
+            <div class="mode-card" data-mode="practice"><div class="mode-icon"><i class="fas fa-graduation-cap"></i></div><h3>Practice Mode</h3><p>No timer, learn at your pace</p><button class="mode-select-btn">Select</button></div>
+            <div class="mode-card" data-mode="timeattack"><div class="mode-icon"><i class="fas fa-stopwatch"></i></div><h3>Time Attack</h3><p>60 seconds - max questions!</p><button class="mode-select-btn">Select</button></div>
+            <div class="mode-card" data-mode="vocabulary"><div class="mode-icon"><i class="fas fa-book"></i></div><h3>Vocabulary Builder</h3><p>Synonyms & Antonyms focus</p><button class="mode-select-btn">Select</button></div>
         </div>
+
+        <!-- Setup -->
+        <div class="setup-container" id="setupContainer">
+            <div class="setup-card"><h3><i class="fas fa-chart-line"></i> Select Difficulty</h3><div class="btn-group"><button class="difficulty-btn active" data-diff="easy">Easy</button><button class="difficulty-btn" data-diff="average">Average</button><button class="difficulty-btn" data-diff="hard">Hard</button></div></div>
+            <div class="setup-card"><h3><i class="fas fa-tags"></i> Select Categories (35+ Questions Each)</h3><div class="category-group"><button class="category-btn active" data-cat="grammar">Grammar</button><button class="category-btn active" data-cat="sentence">Sentence Completion</button><button class="category-btn active" data-cat="synonyms">Synonyms</button><button class="category-btn active" data-cat="antonyms">Antonyms</button><button class="category-btn" data-cat="word">Word Meaning</button><button class="category-btn" data-cat="punctuation">Punctuation</button><button class="category-btn" data-cat="verbs">Verbs</button><button class="category-btn" data-cat="nouns">Nouns</button><button class="category-btn" data-cat="voice">Active/Passive</button><button class="category-btn" data-cat="narration">Narration</button></div></div>
+            <button class="start-quiz-btn" id="startQuizBtn"><i class="fas fa-play"></i> Start Quiz (35 Questions)</button>
+        </div>
+
+        <!-- Quiz Container -->
+        <div class="quiz-container" id="quizContainer">
+            <div class="quiz-header">
+                <div class="quiz-info"><span class="quiz-mode" id="quizMode">Classic</span><span class="quiz-level" id="quizLevel">Easy</span></div>
+                <div class="quiz-timer" id="quizTimer"><i class="fas fa-hourglass-half"></i> <span id="timerDisplay">30</span>s</div>
+                <div class="quiz-progress"><span id="currentQuestionNum">1</span>/<span id="totalQuestions">35</span></div>
+                <div class="quiz-lives"><i class="fas fa-heart"></i> <span id="livesCount">3</span></div>
+                <div class="quiz-score"><i class="fas fa-star"></i> <span id="scoreCount">0</span></div>
+            </div>
+            <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+            <div class="audio-controls"><button class="read-aloud-btn" id="readAloudBtn"><i class="fas fa-volume-up"></i> Read Aloud</button><button class="speech-answer-btn" id="speechAnswerBtn"><i class="fas fa-microphone"></i> Speak Answer</button></div>
+            <div class="question-text" id="questionText">Loading questions from AI...</div>
+            <div class="phonetic-text" id="phoneticText"></div>
+            <div class="options-list" id="optionsList"></div>
+            <div class="explanation-box" id="explanationBox"><div class="explanation-header"><i class="fas fa-lightbulb"></i><span>Explanation & Grammar Tip</span></div><div class="explanation-text" id="explanationText"></div><div class="factoid-text" id="factoidText"></div><div class="translation-box" id="translationBox"><i class="fas fa-language"></i> <span id="translationText"></span></div></div>
+            <div class="quiz-footer"><div class="powerups"><button class="powerup-btn" data-powerup="fifty" id="fiftyBtn"><i class="fas fa-cut"></i><span class="powerup-count">3</span><span>50/50</span></button><button class="powerup-btn premium" data-powerup="time" id="timeBtn"><i class="fas fa-clock"></i><span class="powerup-count">3</span><span>+30s</span><span class="premium-badge">PRO</span></button><button class="powerup-btn premium" data-powerup="hint" id="hintBtn"><i class="fas fa-lightbulb"></i><span class="powerup-count">3</span><span>Hint</span><span class="premium-badge">PRO</span></button><button class="powerup-btn" data-powerup="skip" id="skipBtn"><i class="fas fa-forward"></i><span class="powerup-count">3</span><span>Skip</span></button></div><button class="next-btn" id="nextBtn" disabled>Next Question</button></div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-container" id="resultsContainer">
+            <div class="results-card"><i class="fas fa-trophy" id="trophyIcon"></i><h2>Quiz Complete!</h2>
+            <div class="score-circle"><span class="score-value" id="finalScoreValue">0</span><span class="score-label">Score</span></div>
+            <div class="badge-earned" id="badgeEarned">English Learner</div>
+            <div class="weak-areas-section"><h4><i class="fas fa-chart-line"></i> Areas to Improve</h4><div id="weakAreasList"></div><button class="practice-weak-btn" id="practiceWeakBtn">Practice Weak Areas</button></div>
+            <div class="progress-chart-container"><canvas id="progressChart" width="300" height="150"></canvas></div>
+            <div class="action-buttons"><button class="try-again-btn" id="tryAgainBtn"><i class="fas fa-redo"></i> Try Again</button><button class="change-mode-btn" id="changeModeBtn"><i class="fas fa-exchange-alt"></i> Change Mode</button></div></div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><p id="loadingMessage">AI is generating 35 questions from Grok API...</p></div>
+
+        <!-- Scroll Buttons -->
+        <button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-chevron-up"></i></button>
+        <button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-chevron-down"></i></button>
+
+        <!-- Premium Modal -->
+        <div class="modal" id="premiumModal"><div class="modal-content"><span class="close-modal" id="closeModalBtn">&times;</span><div class="modal-icon"><i class="fas fa-crown"></i></div><h2>Upgrade to Premium</h2><p>Unlock all features!</p><ul><li><i class="fas fa-check-circle"></i> Unlimited Hints</li><li><i class="fas fa-check-circle"></i> Time Boost</li><li><i class="fas fa-check-circle"></i> Speech-to-Text</li></ul><button class="upgrade-btn" id="upgradeBtn">Upgrade ($4.99/month)</button><button class="maybe-later-btn" id="maybeLaterBtn">Maybe Later</button></div></div>
+
+        <!-- Toast -->
+        <div class="toast-container" id="toastContainer"></div>
     </div>
-    <script>
-        // Game variables
-        let currentLevel = 1;
-        let score = 0;
-        let timer;
-        let timeLeft = 30;
-        let currentQuestionIndex = 0;
-        let questions = [];
-        let selectedCategories = ['grammar', 'sentence', 'synonyms', 'antonyms'];
-        let difficulty = 'easy';
 
-        // DOM elements
-        const startScreen = document.getElementById('start-screen');
-        const quizScreen = document.getElementById('quiz-screen');
-        const resultScreen = document.getElementById('result-screen');
-        const questionElement = document.getElementById('question');
-        const optionsElement = document.getElementById('options');
-        const timeElement = document.getElementById('time');
-        const scoreElement = document.getElementById('score');
-        const finalScoreElement = document.getElementById('final-score');
-        const nextButton = document.getElementById('next-btn');
-        const startButton = document.getElementById('start-btn');
-        const restartButton = document.getElementById('restart-btn');
-        const levelCompletionElement = document.getElementById('level-completion');
-        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-        const categoryButtons = document.querySelectorAll('.category-btn');
-
-        // Questions database - Expanded to ensure all difficulty levels have questions
-        const questionBank = [
-            // Level 1 - Easy
-            {level:1, question:"Which word is a noun in the sentence: 'The quick brown fox jumps over the lazy dog'?", options:["quick", "fox", "jumps", "lazy"], answer:1, category:"nouns", difficulty:"easy"},
-            {level:1, question:"Choose the correct punctuation for this sentence: 'What time is it_'", options:["?", "!", ".", ":"], answer:0, category:"punctuation", difficulty:"easy"},
-            {level:1, question:"What is the synonym of 'happy'?", options:["joyful", "sad", "angry", "tired"], answer:0, category:"synonyms", difficulty:"easy"},
-            {level:1, question:"Which sentence is in active voice?", options:["The book was read by Sarah.", "Sarah read the book.", "The book is being read by Sarah.", "The book has been read by Sarah."], answer:1, category:"voice", difficulty:"easy"},
-            {level:1, question:"Identify the verb in: 'She sings beautifully.'", options:["She", "sings", "beautifully", "."], answer:1, category:"verbs", difficulty:"easy"},
-            {level:1, question:"What is the antonym of 'hot'?", options:["warm", "cold", "spicy", "boiling"], answer:1, category:"antonyms", difficulty:"easy"},
-            {level:1, question:"Complete the sentence: 'If it rains, we _____ cancel the picnic.'", options:["will", "would", "shall", "should"], answer:0, category:"sentence", difficulty:"easy"},
-            {level:1, question:"Which word is an adjective: 'The red car is fast.'?", options:["red", "car", "is", "fast"], answer:0, category:"adjectives", difficulty:"easy"},
-            {level:1, question:"What is the plural of 'child'?", options:["childs", "children", "childes", "child"], answer:1, category:"nouns", difficulty:"easy"},
-            {level:1, question:"Which is correct: 'There/Their/They're house is beautiful.'?", options:["There", "Their", "They're", "All are correct"], answer:1, category:"grammar", difficulty:"easy"},
-            {level:1, question:"Identify the pronoun: 'She gave the book to him.'", options:["She", "gave", "book", "him"], answer:3, category:"pronouns", difficulty:"easy"},
-            {level:1, question:"What is the adverb in: 'He ran quickly.'?", options:["He", "ran", "quickly", "none"], answer:2, category:"adverbs", difficulty:"easy"},
-            {level:1, question:"Choose the correct sentence:", options:["Their going to the park.", "There going to the park.", "They're going to the park.", "Theyre going to the park."], answer:2, category:"grammar", difficulty:"easy"},
-            {level:1, question:"What is the meaning of 'big'?", options:["small", "large", "tiny", "medium"], answer:1, category:"word", difficulty:"easy"},
-            {level:1, question:"Which is a complete sentence?", options:["Running in the park", "The dog barked loudly", "After the rain stopped", "Because I was tired"], answer:1, category:"sentence", difficulty:"easy"},
-
-            // Level 1 - Average
-            {level:1, question:"Which sentence uses correct punctuation?", options:["What a beautiful day?", "What a beautiful day!", "what a beautiful day.", "What a beautiful day"], answer:1, category:"punctuation", difficulty:"average"},
-            {level:1, question:"Identify the helping verb: 'She has finished her work.'", options:["She", "has", "finished", "work"], answer:1, category:"verbs", difficulty:"average"},
-            {level:1, question:"What is the synonym of 'angry'?", options:["happy", "furious", "calm", "sad"], answer:1, category:"synonyms", difficulty:"average"},
-            {level:1, question:"Change to passive voice: 'The cat chased the mouse.'", options:["The mouse was chased by the cat.", "The mouse is chased by the cat.", "The mouse chased the cat.", "The cat was chased by the mouse."], answer:0, category:"voice", difficulty:"average"},
-            {level:1, question:"What is the antonym of 'begin'?", options:["start", "continue", "end", "pause"], answer:2, category:"antonyms", difficulty:"average"},
-            {level:1, question:"Complete: 'Neither John nor his friends _____ going to the party.'", options:["is", "are", "was", "has"], answer:1, category:"sentence", difficulty:"average"},
-            {level:1, question:"Which is the abstract noun?", options:["table", "happiness", "water", "book"], answer:1, category:"nouns", difficulty:"average"},
-            {level:1, question:"What is the meaning of 'generous'?", options:["selfish", "giving", "angry", "happy"], answer:1, category:"word", difficulty:"average"},
-            {level:1, question:"Correct the sentence: 'She don't like apples.'", options:["She doesn't like apples.", "She don't likes apples.", "She not like apples.", "She didn't like apples."], answer:0, category:"grammar", difficulty:"average"},
-            {level:1, question:"Identify the preposition: 'The book is on the table.'", options:["book", "is", "on", "table"], answer:2, category:"grammar", difficulty:"average"},
-
-            // Level 1 - Hard
-            {level:1, question:"Change to indirect speech: 'She said, \"I am happy.\"'", options:["She said that she is happy.", "She said that she was happy.", "She said that I am happy.", "She said that I was happy."], answer:1, category:"narration", difficulty:"hard"},
-            {level:1, question:"Identify the conjunction: 'I wanted to go, but it was raining.'", options:["I", "wanted", "but", "raining"], answer:2, category:"grammar", difficulty:"hard"},
-            {level:1, question:"What is the synonym of 'ephemeral'?", options:["permanent", "temporary", "ancient", "modern"], answer:1, category:"synonyms", difficulty:"hard"},
-            {level:1, question:"Correct the punctuation: 'The students books were left on the desk.'", options:["The student's books were left on the desk.", "The students' books were left on the desk.", "The students books' were left on the desk.", "The students books were left on the desk."], answer:1, category:"punctuation", difficulty:"hard"},
-            {level:1, question:"Which is the correct comparative form: 'She is _____ than her sister.'", options:["intelligenter", "more intelligent", "intelligentest", "most intelligent"], answer:1, category:"adjectives", difficulty:"hard"},
-            {level:1, question:"What is the antonym of 'verbose'?", options:["wordy", "talkative", "concise", "silent"], answer:2, category:"antonyms", difficulty:"hard"},
-            {level:1, question:"Complete: 'Had I known about the problem, I _____ it.'", options:["would fix", "would have fixed", "will fix", "fixed"], answer:1, category:"sentence", difficulty:"hard"},
-            {level:1, question:"Identify the gerund: 'Swimming is good exercise.'", options:["Swimming", "is", "good", "exercise"], answer:0, category:"verbs", difficulty:"hard"},
-            {level:1, question:"What is the meaning of 'ubiquitous'?", options:["rare", "present everywhere", "ancient", "hidden"], answer:1, category:"word", difficulty:"hard"},
-            {level:1, question:"Which is correct: 'The committee _____ divided in their opinions.'", options:["is", "are", "was", "were"], answer:1, category:"grammar", difficulty:"hard"},
-
-            // Level 2-5 questions continue with similar structure...
-            // (In a real implementation, you would include all levels here)
-        ];
-
-        // Event listeners
-        startButton.addEventListener('click', startQuiz);
-        restartButton.addEventListener('click', restartQuiz);
-        nextButton.addEventListener('click', nextQuestion);
-        
-        difficultyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                difficulty = button.dataset.difficulty;
-            });
-        });
-        
-        categoryButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                button.classList.toggle('active');
-                updateSelectedCategories();
-            });
-        });
-
-        // Functions
-        function updateSelectedCategories() {
-            selectedCategories = Array.from(document.querySelectorAll('.category-btn.active')).map(btn => btn.dataset.category);
-        }
-
-        function startQuiz() {
-            startScreen.style.display = 'none';
-            quizScreen.style.display = 'block';
-            loadQuestions();
-            showQuestion();
-            startTimer();
-        }
-
-        function loadQuestions() {
-            // First try to get questions for the exact difficulty
-            let levelQuestions = questionBank.filter(q => 
-                q.level === currentLevel && 
-                selectedCategories.includes(q.category) && 
-                q.difficulty === difficulty
-            );
-            
-            // If not enough questions, try to get questions for any difficulty
-            if (levelQuestions.length < 5) {
-                levelQuestions = questionBank.filter(q => 
-                    q.level === currentLevel && 
-                    selectedCategories.includes(q.category)
-                );
-            }
-            
-            // If still not enough questions, show an error
-            if (levelQuestions.length === 0) {
-                alert(`No questions available for Level ${currentLevel} with the selected categories. Please try different settings.`);
-                startScreen.style.display = 'block';
-                quizScreen.style.display = 'none';
-                return;
-            }
-            
-            questions = shuffleArray(levelQuestions).slice(0, Math.min(10, levelQuestions.length));
-            currentQuestionIndex = 0;
-            score = 0;
-            updateScore();
-            updateProgress();
-        }
-
-        function shuffleArray(array) {
-            return array.sort(() => Math.random() - 0.5);
-        }
-
-        function showQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                endQuiz();
-                return;
-            }
-            
-            const question = questions[currentQuestionIndex];
-            questionElement.textContent = question.question;
-            optionsElement.innerHTML = '';
-            
-            question.options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.classList.add('option');
-                optionElement.textContent = option;
-                optionElement.dataset.index = index;
-                optionElement.addEventListener('click', selectAnswer);
-                optionsElement.appendChild(optionElement);
-            });
-            
-            nextButton.disabled = true;
-            timeLeft = 30;
-            updateTimer();
-        }
-
-        function selectAnswer(e) {
-            const selectedOption = e.target;
-            const question = questions[currentQuestionIndex];
-            const options = Array.from(optionsElement.children);
-            
-            options.forEach(option => {
-                option.classList.add('disabled');
-                if (parseInt(option.dataset.index) === question.answer) {
-                    option.classList.add('correct');
-                } else {
-                    option.classList.add('incorrect');
-                }
-            });
-            
-            if (parseInt(selectedOption.dataset.index) === question.answer) {
-                selectedOption.classList.add('correct');
-                score += 10;
-                updateScore();
-                playSound(true);
-                selectedOption.classList.add('bounce');
-            } else {
-                selectedOption.classList.add('incorrect');
-                playSound(false);
-            }
-            
-            nextButton.disabled = false;
-            clearInterval(timer);
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            updateProgress();
-            
-            if (currentQuestionIndex < questions.length) {
-                showQuestion();
-                startTimer();
-            } else {
-                endQuiz();
-            }
-        }
-
-        function startTimer() {
-            clearInterval(timer);
-            timer = setInterval(() => {
-                timeLeft--;
-                updateTimer();
-                
-                if (timeLeft <= 0) {
-                    timeUp();
-                }
-            }, 1000);
-        }
-
-        function updateTimer() {
-            timeElement.textContent = timeLeft;
-            
-            if (timeLeft <= 10) {
-                timeElement.style.color = '#f72585';
-                timeElement.classList.add('pulse');
-            } else {
-                timeElement.style.color = 'inherit';
-                timeElement.classList.remove('pulse');
-            }
-        }
-
-        function timeUp() {
-            clearInterval(timer);
-            const options = Array.from(optionsElement.children);
-            const question = questions[currentQuestionIndex];
-            
-            options.forEach(option => {
-                option.classList.add('disabled');
-                if (parseInt(option.dataset.index) === question.answer) {
-                    option.classList.add('correct');
-                }
-            });
-            
-            nextButton.disabled = false;
-        }
-
-        function updateScore() {
-            scoreElement.textContent = score;
-        }
-
-        function updateProgress() {
-            const progress = (currentQuestionIndex / questions.length) * 100;
-            document.querySelector('.progress').style.width = `${progress}%`;
-            document.querySelector('.level-badge').textContent = `Level ${currentLevel}`;
-        }
-
-        function endQuiz() {
-            clearInterval(timer);
-            quizScreen.style.display = 'none';
-            resultScreen.style.display = 'block';
-            finalScoreElement.textContent = score;
-            
-            let message = '';
-            if (score >= 80) {
-                message = `<p>Excellent! You've mastered Level ${currentLevel}!</p>`;
-                if (currentLevel < 5) {
-                    message += `<button id="next-level-btn" class="btn btn-success">Proceed to Level ${currentLevel+1}</button>`;
-                }
-            } else if (score >= 50) {
-                message = `<p>Good job! You passed Level ${currentLevel}!</p>`;
-                if (currentLevel < 5) {
-                    message += `<button id="next-level-btn" class="btn btn-success">Try Level ${currentLevel+1}</button>`;
-                }
-            } else {
-                message = `<p>You need more practice with Level ${currentLevel}.</p><button id="retry-btn" class="btn btn-primary">Retry Level ${currentLevel}</button>`;
-            }
-            
-            levelCompletionElement.innerHTML = message;
-            
-            if (document.getElementById('next-level-btn')) {
-                document.getElementById('next-level-btn').addEventListener('click', nextLevel);
-            }
-            
-            if (document.getElementById('retry-btn')) {
-                document.getElementById('retry-btn').addEventListener('click', retryLevel);
-            }
-            
-            if (score >= 80) {
-                createConfetti();
-            }
-        }
-
-        function nextLevel() {
-            currentLevel++;
-            resultScreen.style.display = 'none';
-            quizScreen.style.display = 'block';
-            loadQuestions();
-            showQuestion();
-            startTimer();
-        }
-
-        function retryLevel() {
-            resultScreen.style.display = 'none';
-            quizScreen.style.display = 'block';
-            loadQuestions();
-            showQuestion();
-            startTimer();
-        }
-
-        function restartQuiz() {
-            currentLevel = 1;
-            resultScreen.style.display = 'none';
-            startScreen.style.display = 'block';
-        }
-
-        function playSound(isCorrect) {
-            // In a real implementation, you would use actual sound files
-            // This is just a placeholder as base64 sounds weren't working
-            console.log(isCorrect ? 'Correct answer sound' : 'Wrong answer sound');
-        }
-
-        function createConfetti() {
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.classList.add('confetti');
-                confetti.style.left = `${Math.random() * 100}vw`;
-                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
-                document.body.appendChild(confetti);
-                
-                setTimeout(() => {
-                    confetti.remove();
-                }, 5000);
-            }
-        }
-    </script>
+    <script src="english-language-quiz-challenge.js"></script>
 </body>
 </html>
