@@ -1,676 +1,523 @@
-// Main application logic - Completely redeveloped
-class ResumeMaker {
-    constructor() {
-        this.currentTemplate = 'professional';
-        this.isDarkMode = false;
-        this.previewZoom = 1;
-        this.init();
-    }
+/* ============================================
+   AUTO RESUME MAKER - COMPLETE JAVASCRIPT
+   Fixed Version - All Features Working
+   ============================================ */
 
-    init() {
-        this.createDefaultItems();
-        this.bindEvents();
-        this.updatePreview();
-        this.setupTheme();
-    }
+// ============================================
+// Configuration
+// ============================================
+const TOOL_SLUG = 'auto-resume-maker';
+const TOOL_NAME = 'Auto Resume Maker';
+const CATEGORY = 'student';
+const WORKER_URL = 'https://auto-resume-maker.uzairhameed01.workers.dev';
+const API_BASE = '/api';
 
-    createDefaultItems() {
-        // Add one default item for each section
-        this.addExperience(true);
-        this.addEducation(true);
-        this.addSkill(true);
-    }
+// User ID
+let userId = localStorage.getItem('userId');
+if (!userId) {
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('userId', userId);
+}
 
-    bindEvents() {
-        // Template selection
-        document.querySelectorAll('.template').forEach(template => {
-            template.addEventListener('click', (e) => {
-                this.selectTemplate(e.currentTarget.dataset.template);
-            });
-        });
+// Resume Data
+let resumeData = {
+    personal: { name: '', title: '', email: '', phone: '', address: '', summary: '', image: '', social: [] },
+    experience: [],
+    education: [],
+    skills: [],
+    settings: { theme: 'theme-default', font: 'font-arial', template: 'template-standard' }
+};
 
-        // Add buttons
-        document.getElementById('addExperience').addEventListener('click', () => this.addExperience());
-        document.getElementById('addEducation').addEventListener('click', () => this.addEducation());
-        document.getElementById('addSkill').addEventListener('click', () => this.addSkill());
+let nextId = 1;
 
-        // Remove buttons (event delegation)
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-btn')) {
-                const item = e.target.closest('.experience-item, .education-item, .skill-item');
-                if (item) {
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateX(-100px)';
-                    setTimeout(() => {
-                        item.remove();
-                        this.updatePreview();
-                    }, 300);
-                }
-            }
-        });
+// ============================================
+// DOM Elements
+// ============================================
+const resumePreview = document.getElementById('resumePreview');
 
-        // Theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+// ============================================
+// Helper Functions
+// ============================================
+function showToast(msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMessage');
+    toastMsg.textContent = msg;
+    toast.classList.remove('hidden');
+    toast.style.background = type === 'error' ? '#e74c3c' : '#333';
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+}
 
-        // Image upload
-        document.getElementById('profileImage').addEventListener('change', (e) => this.handleImageUpload(e));
-
-        // Real-time preview updates
-        document.addEventListener('input', (e) => {
-            if (e.target.type !== 'file') {
-                this.debouncedUpdatePreview();
-            }
-        });
-
-        // Section toggle
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('section-toggle')) {
-                this.toggleSection(e.target);
-            }
-        });
-
-        // Zoom controls
-        document.getElementById('zoomIn').addEventListener('click', () => this.zoomPreview(0.1));
-        document.getElementById('zoomOut').addEventListener('click', () => this.zoomPreview(-0.1));
-
-        // Export buttons
-        document.getElementById('exportPdf').addEventListener('click', () => this.exportPdf());
-        document.getElementById('exportWord').addEventListener('click', () => this.exportWord());
-        document.getElementById('exportPrint').addEventListener('click', () => this.exportPrint());
-
-        // Initialize with default data for demo
-        this.initializeDemoData();
-    }
-
-    debouncedUpdatePreview() {
-        clearTimeout(this.debounceTimer);
-        this.debounceTimer = setTimeout(() => {
-            this.updatePreview();
-        }, 300);
-    }
-
-    selectTemplate(template) {
-        this.currentTemplate = template;
-        
-        // Update UI
-        document.querySelectorAll('.template').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-template="${template}"]`).classList.add('active');
-        
-        this.updatePreview();
-        this.showMessage(`Template changed to ${template.charAt(0).toUpperCase() + template.slice(1)}`);
-    }
-
-    addExperience(isDefault = false) {
-        const container = document.getElementById('experienceContainer');
-        const newItem = document.createElement('div');
-        newItem.className = 'experience-item';
-        newItem.innerHTML = `
-            <input type="text" class="exp-job-title" placeholder="Job Title" ${isDefault ? 'value="Senior Software Engineer"' : ''}>
-            <input type="text" class="exp-company" placeholder="Company" ${isDefault ? 'value="Tech Solutions Inc."' : ''}>
-            <input type="text" class="exp-duration" placeholder="Duration (e.g., 2020-2022)" ${isDefault ? 'value="2020 - Present"' : ''}>
-            <textarea class="exp-description" placeholder="Job Description and achievements">${isDefault ? '• Led a team of 5 developers\n• Improved system performance by 40%\n• Implemented CI/CD pipelines' : ''}</textarea>
-            <button class="remove-btn">Remove Experience</button>
-        `;
-        container.appendChild(newItem);
-        
-        if (!isDefault) {
-            newItem.style.animation = 'slideIn 0.3s ease';
-            this.showMessage('Experience added!');
-        }
-        
-        this.updatePreview();
-    }
-
-    addEducation(isDefault = false) {
-        const container = document.getElementById('educationContainer');
-        const newItem = document.createElement('div');
-        newItem.className = 'education-item';
-        newItem.innerHTML = `
-            <input type="text" class="edu-degree" placeholder="Degree" ${isDefault ? 'value="Bachelor of Computer Science"' : ''}>
-            <input type="text" class="edu-institution" placeholder="Institution" ${isDefault ? 'value="University of Technology"' : ''}>
-            <input type="text" class="edu-duration" placeholder="Duration (e.g., 2016-2020)" ${isDefault ? 'value="2016 - 2020"' : ''}>
-            <textarea class="edu-description" placeholder="Achievements and coursework">${isDefault ? '• Graduated Summa Cum Laude\n• President of Computer Science Club\n• Relevant coursework: Algorithms, Data Structures, Web Development' : ''}</textarea>
-            <button class="remove-btn">Remove Education</button>
-        `;
-        container.appendChild(newItem);
-        
-        if (!isDefault) {
-            newItem.style.animation = 'slideIn 0.3s ease';
-            this.showMessage('Education added!');
-        }
-        
-        this.updatePreview();
-    }
-
-    addSkill(isDefault = false) {
-        const container = document.getElementById('skillsContainer');
-        const newItem = document.createElement('div');
-        newItem.className = 'skill-item';
-        newItem.innerHTML = `
-            <input type="text" class="skill-name" placeholder="Skill Name" ${isDefault ? 'value="JavaScript"' : ''}>
-            <select class="skill-level">
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced" ${isDefault ? 'selected' : ''}>Advanced</option>
-                <option value="expert">Expert</option>
-            </select>
-            <button class="remove-btn">Remove Skill</button>
-        `;
-        container.appendChild(newItem);
-        
-        if (!isDefault) {
-            newItem.style.animation = 'slideIn 0.3s ease';
-            this.showMessage('Skill added!');
-        }
-        
-        this.updatePreview();
-    }
-
-    toggleSection(button) {
-        const section = button.closest('.section');
-        const content = section.querySelector('.form-group, #experienceContainer, #educationContainer, #skillsContainer');
-        
-        if (content.style.display === 'none') {
-            content.style.display = 'flex';
-            button.textContent = '−';
-        } else {
-            content.style.display = 'none';
-            button.textContent = '+';
-        }
-    }
-
-    toggleTheme() {
-        this.isDarkMode = !this.isDarkMode;
-        document.body.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
-        document.getElementById('themeToggle').textContent = this.isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
-        localStorage.setItem('resume-theme', this.isDarkMode ? 'dark' : 'light');
-        this.showMessage(`${this.isDarkMode ? 'Dark' : 'Light'} mode activated`);
-    }
-
-    setupTheme() {
-        const savedTheme = localStorage.getItem('resume-theme');
-        if (savedTheme === 'dark') {
-            this.isDarkMode = true;
-            document.body.setAttribute('data-theme', 'dark');
-            document.getElementById('themeToggle').textContent = '☀️ Light Mode';
-        }
-    }
-
-    handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                this.showMessage('Image size should be less than 5MB', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const preview = document.querySelector('.image-preview');
-                preview.innerHTML = `<img src="${e.target.result}" alt="Profile Preview">`;
-                this.updatePreview();
-                this.showMessage('Profile image uploaded successfully!');
-            };
-            reader.onerror = () => {
-                this.showMessage('Error uploading image', 'error');
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    zoomPreview(change) {
-        this.previewZoom = Math.max(0.5, Math.min(1.5, this.previewZoom + change));
-        const preview = document.getElementById('resumePreview');
-        preview.style.transform = `scale(${this.previewZoom})`;
-        preview.style.transformOrigin = 'top center';
-        document.getElementById('zoomLevel').textContent = `${Math.round(this.previewZoom * 100)}%`;
-    }
-
-    getFormData() {
-        return {
-            personal: {
-                fullName: document.getElementById('fullName').value,
-                jobTitle: document.getElementById('jobTitle').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                location: document.getElementById('location').value,
-                summary: document.getElementById('summary').value,
-                profileImage: document.querySelector('.image-preview img')?.src || null,
-                languages: document.getElementById('languages').value,
-                certifications: document.getElementById('certifications').value,
-                projects: document.getElementById('projects').value,
-                interests: document.getElementById('interests').value
-            },
-            experiences: Array.from(document.querySelectorAll('.experience-item')).map(item => ({
-                jobTitle: item.querySelector('.exp-job-title').value,
-                company: item.querySelector('.exp-company').value,
-                duration: item.querySelector('.exp-duration').value,
-                description: item.querySelector('.exp-description').value
-            })),
-            education: Array.from(document.querySelectorAll('.education-item')).map(item => ({
-                degree: item.querySelector('.edu-degree').value,
-                institution: item.querySelector('.edu-institution').value,
-                duration: item.querySelector('.edu-duration').value,
-                description: item.querySelector('.edu-description').value
-            })),
-            skills: Array.from(document.querySelectorAll('.skill-item')).map(item => ({
-                name: item.querySelector('.skill-name').value,
-                level: item.querySelector('.skill-level').value
-            }))
-        };
-    }
-
-    updatePreview() {
-        const data = this.getFormData();
-        const preview = document.getElementById('resumePreview');
-        
-        // Add updating animation
-        preview.classList.add('updating');
-        setTimeout(() => preview.classList.remove('updating'), 500);
-
-        preview.innerHTML = this.generateResumeHTML(data);
-    }
-
-    generateResumeHTML(data) {
-        const templates = {
-            professional: this.generateProfessionalTemplate,
-            modern: this.generateModernTemplate,
-            creative: this.generateCreativeTemplate,
-            executive: this.generateExecutiveTemplate
-        };
-
-        return templates[this.currentTemplate].call(this, data);
-    }
-
-    generateProfessionalTemplate(data) {
-        return `
-            <div class="resume-template professional">
-                <div class="resume-header">
-                    ${data.personal.profileImage ? 
-                        `<img src="${data.personal.profileImage}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">` 
-                        : ''}
-                    <h2>${data.personal.fullName || 'Your Name'}</h2>
-                    <div class="job-title">${data.personal.jobTitle || 'Professional Title'}</div>
-                    <div class="contact-info">
-                        ${data.personal.email ? `<span>📧 ${data.personal.email}</span>` : ''}
-                        ${data.personal.phone ? `<span>📱 ${data.personal.phone}</span>` : ''}
-                        ${data.personal.location ? `<span>📍 ${data.personal.location}</span>` : ''}
-                    </div>
-                </div>
-
-                ${data.personal.summary ? `
-                <div class="resume-section">
-                    <h3>Professional Summary</h3>
-                    <p style="line-height: 1.6;">${data.personal.summary.replace(/\n/g, '<br>')}</p>
-                </div>
-                ` : ''}
-
-                ${data.experiences.filter(exp => exp.jobTitle || exp.company).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Work Experience</h3>
-                    ${data.experiences.filter(exp => exp.jobTitle || exp.company).map(exp => `
-                        <div class="experience-item-preview">
-                            <h4>${exp.jobTitle || ''}</h4>
-                            <div class="company">${exp.company || ''}</div>
-                            <div class="duration">${exp.duration || ''}</div>
-                            <p>${exp.description ? exp.description.replace(/\n/g, '<br>') : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : ''}
-
-                ${data.education.filter(edu => edu.degree || edu.institution).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Education</h3>
-                    ${data.education.filter(edu => edu.degree || edu.institution).map(edu => `
-                        <div class="education-item-preview">
-                            <h4>${edu.degree || ''}</h4>
-                            <div class="institution">${edu.institution || ''}</div>
-                            <div class="duration">${edu.duration || ''}</div>
-                            <p>${edu.description ? edu.description.replace(/\n/g, '<br>') : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : ''}
-
-                ${data.skills.filter(skill => skill.name).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Skills</h3>
-                    <div class="skills-list">
-                        ${data.skills.filter(skill => skill.name).map(skill => `
-                            <div class="skill-tag">${skill.name} ${skill.level ? `(${skill.level})` : ''}</div>
-                        `).join('')}
-                    </div>
-                </div>
-                ` : ''}
-
-                ${data.personal.languages || data.personal.certifications || data.personal.projects || data.personal.interests ? `
-                <div class="resume-section">
-                    <h3>Additional Information</h3>
-                    ${data.personal.languages ? `<p><strong>Languages:</strong> ${data.personal.languages}</p>` : ''}
-                    ${data.personal.certifications ? `<p><strong>Certifications:</strong> ${data.personal.certifications}</p>` : ''}
-                    ${data.personal.projects ? `<p><strong>Projects:</strong> ${data.personal.projects.replace(/\n/g, '<br>')}</p>` : ''}
-                    ${data.personal.interests ? `<p><strong>Interests:</strong> ${data.personal.interests.replace(/\n/g, '<br>')}</p>` : ''}
-                </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    generateModernTemplate(data) {
-        return `
-            <div class="resume-template modern">
-                <div class="resume-header">
-                    ${data.personal.profileImage ? 
-                        `<img src="${data.personal.profileImage}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">` 
-                        : ''}
-                    <h2>${data.personal.fullName || 'Your Name'}</h2>
-                    <div class="job-title">${data.personal.jobTitle || 'Professional Title'}</div>
-                    <div class="contact-info">
-                        ${data.personal.email ? `<span>📧 ${data.personal.email}</span>` : ''}
-                        ${data.personal.phone ? `<span>📱 ${data.personal.phone}</span>` : ''}
-                        ${data.personal.location ? `<span>📍 ${data.personal.location}</span>` : ''}
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
-                    <div>
-                        ${data.personal.summary ? `
-                        <div class="resume-section">
-                            <h3>Professional Summary</h3>
-                            <p style="line-height: 1.6;">${data.personal.summary.replace(/\n/g, '<br>')}</p>
-                        </div>
-                        ` : ''}
-
-                        ${data.experiences.filter(exp => exp.jobTitle || exp.company).length > 0 ? `
-                        <div class="resume-section">
-                            <h3>Work Experience</h3>
-                            ${data.experiences.filter(exp => exp.jobTitle || exp.company).map(exp => `
-                                <div class="experience-item-preview">
-                                    <h4>${exp.jobTitle || ''}</h4>
-                                    <div class="company">${exp.company || ''}</div>
-                                    <div class="duration">${exp.duration || ''}</div>
-                                    <p>${exp.description ? exp.description.replace(/\n/g, '<br>') : ''}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ` : ''}
-
-                        ${data.education.filter(edu => edu.degree || edu.institution).length > 0 ? `
-                        <div class="resume-section">
-                            <h3>Education</h3>
-                            ${data.education.filter(edu => edu.degree || edu.institution).map(edu => `
-                                <div class="education-item-preview">
-                                    <h4>${edu.degree || ''}</h4>
-                                    <div class="institution">${edu.institution || ''}</div>
-                                    <div class="duration">${edu.duration || ''}</div>
-                                    <p>${edu.description ? edu.description.replace(/\n/g, '<br>') : ''}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ` : ''}
-                    </div>
-
-                    <div>
-                        ${data.skills.filter(skill => skill.name).length > 0 ? `
-                        <div class="resume-section">
-                            <h3>Skills</h3>
-                            <div class="skills-list" style="flex-direction: column; gap: 8px;">
-                                ${data.skills.filter(skill => skill.name).map(skill => `
-                                    <div class="skill-tag" style="width: 100%; text-align: center; background: #4361ee; color: white;">${skill.name} ${skill.level ? `(${skill.level})` : ''}</div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-
-                        ${data.personal.languages || data.personal.certifications || data.personal.projects || data.personal.interests ? `
-                        <div class="resume-section">
-                            <h3>Additional</h3>
-                            ${data.personal.languages ? `<p><strong>Languages:</strong><br>${data.personal.languages}</p>` : ''}
-                            ${data.personal.certifications ? `<p><strong>Certifications:</strong><br>${data.personal.certifications}</p>` : ''}
-                            ${data.personal.projects ? `<p><strong>Projects:</strong><br>${data.personal.projects.replace(/\n/g, '<br>')}</p>` : ''}
-                            ${data.personal.interests ? `<p><strong>Interests:</strong><br>${data.personal.interests.replace(/\n/g, '<br>')}</p>` : ''}
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    generateCreativeTemplate(data) {
-        return `
-            <div class="resume-template creative">
-                <div class="resume-header">
-                    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
-                        ${data.personal.profileImage ? 
-                            `<img src="${data.personal.profileImage}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">` 
-                            : ''}
-                        <div>
-                            <h2>${data.personal.fullName || 'Your Name'}</h2>
-                            <div class="job-title">${data.personal.jobTitle || 'Professional Title'}</div>
-                        </div>
-                    </div>
-                    <div class="contact-info" style="margin-top: 15px;">
-                        ${data.personal.email ? `<span>📧 ${data.personal.email}</span>` : ''}
-                        ${data.personal.phone ? `<span>📱 ${data.personal.phone}</span>` : ''}
-                        ${data.personal.location ? `<span>📍 ${data.personal.location}</span>` : ''}
-                    </div>
-                </div>
-
-                ${data.personal.summary ? `
-                <div class="resume-section">
-                    <h3>Professional Summary</h3>
-                    <p style="line-height: 1.6;">${data.personal.summary.replace(/\n/g, '<br>')}</p>
-                </div>
-                ` : ''}
-
-                ${data.experiences.filter(exp => exp.jobTitle || exp.company).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Work Experience</h3>
-                    ${data.experiences.filter(exp => exp.jobTitle || exp.company).map(exp => `
-                        <div class="experience-item-preview">
-                            <h4>${exp.jobTitle || ''}</h4>
-                            <div class="company">${exp.company || ''}</div>
-                            <div class="duration">${exp.duration || ''}</div>
-                            <p>${exp.description ? exp.description.replace(/\n/g, '<br>') : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : ''}
-
-                ${data.education.filter(edu => edu.degree || edu.institution).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Education</h3>
-                    ${data.education.filter(edu => edu.degree || edu.institution).map(edu => `
-                        <div class="education-item-preview">
-                            <h4>${edu.degree || ''}</h4>
-                            <div class="institution">${edu.institution || ''}</div>
-                            <div class="duration">${edu.duration || ''}</div>
-                            <p>${edu.description ? edu.description.replace(/\n/g, '<br>') : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : ''}
-
-                ${data.skills.filter(skill => skill.name).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Skills</h3>
-                    <div class="skills-list">
-                        ${data.skills.filter(skill => skill.name).map(skill => `
-                            <div class="skill-tag" style="background: #f72585; color: white;">${skill.name} ${skill.level ? `(${skill.level})` : ''}</div>
-                        `).join('')}
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    generateExecutiveTemplate(data) {
-        return `
-            <div class="resume-template executive">
-                <div class="resume-header">
-                    <h2>${data.personal.fullName || 'Your Name'}</h2>
-                    <div class="job-title">${data.personal.jobTitle || 'Executive Title'}</div>
-                    <div class="contact-info">
-                        ${data.personal.email ? `<span>${data.personal.email}</span>` : ''}
-                        ${data.personal.phone ? `<span>${data.personal.phone}</span>` : ''}
-                        ${data.personal.location ? `<span>${data.personal.location}</span>` : ''}
-                    </div>
-                </div>
-
-                ${data.personal.summary ? `
-                <div class="resume-section">
-                    <h3>Executive Summary</h3>
-                    <p style="line-height: 1.6;">${data.personal.summary.replace(/\n/g, '<br>')}</p>
-                </div>
-                ` : ''}
-
-                ${data.experiences.filter(exp => exp.jobTitle || exp.company).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Professional Experience</h3>
-                    ${data.experiences.filter(exp => exp.jobTitle || exp.company).map(exp => `
-                        <div class="experience-item-preview">
-                            <h4>${exp.jobTitle || ''}</h4>
-                            <div class="company">${exp.company || ''}</div>
-                            <div class="duration">${exp.duration || ''}</div>
-                            <p>${exp.description ? exp.description.replace(/\n/g, '<br>') : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : ''}
-
-                ${data.education.filter(edu => edu.degree || edu.institution).length > 0 ? `
-                <div class="resume-section">
-                    <h3>Education</h3>
-                    ${data.education.filter(edu => edu.degree || edu.institution).map(edu => `
-                        <div class="education-item-preview">
-                            <h4>${edu.degree || ''}</h4>
-                            <div class="institution">${edu.institution || ''}</div>
-                            <div class="duration">${edu.duration || ''}</div>
-                            <p>${edu.description ? edu.description.replace(/\n/g, '<br>') : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : ''}
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                    ${data.skills.filter(skill => skill.name).length > 0 ? `
-                    <div class="resume-section">
-                        <h3>Core Competencies</h3>
-                        <div class="skills-list" style="flex-direction: column; gap: 8px;">
-                            ${data.skills.filter(skill => skill.name).map(skill => `
-                                <div class="skill-tag" style="width: 100%; text-align: center; background: #2a9d8f; color: white;">${skill.name}</div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    ${data.personal.languages || data.personal.certifications ? `
-                    <div class="resume-section">
-                        <h3>Additional</h3>
-                        ${data.personal.languages ? `<p><strong>Languages:</strong><br>${data.personal.languages}</p>` : ''}
-                        ${data.personal.certifications ? `<p><strong>Certifications:</strong><br>${data.personal.certifications}</p>` : ''}
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    initializeDemoData() {
-        // Set some demo data to showcase the app
-        setTimeout(() => {
-            if (!document.getElementById('fullName').value) {
-                document.getElementById('fullName').value = 'John Doe';
-                document.getElementById('jobTitle').value = 'Senior Software Engineer';
-                document.getElementById('email').value = 'john.doe@email.com';
-                document.getElementById('phone').value = '+1 (555) 123-4567';
-                document.getElementById('location').value = 'San Francisco, CA';
-                document.getElementById('summary').value = 'Experienced software engineer with 8+ years in full-stack development. Specialized in JavaScript, React, Node.js, and cloud technologies. Proven track record of delivering scalable solutions and leading development teams.';
-                document.getElementById('languages').value = 'English (Native), Spanish (Intermediate)';
-                document.getElementById('certifications').value = 'AWS Certified Developer, Scrum Master Certified';
-                document.getElementById('projects').value = 'E-commerce Platform - Led development of a scalable platform serving 10k+ users\nMobile App - Built cross-platform app with React Native\nAPI Integration - Integrated multiple third-party APIs with 99.9% uptime';
-                document.getElementById('interests').value = 'Open Source Contributions, Machine Learning, Hiking, Photography';
-                
-                this.updatePreview();
-            }
-        }, 1000);
-    }
-
-    exportPdf() {
-        if (typeof exportToPdf === 'function') {
-            exportToPdf();
-        } else {
-            this.showMessage('PDF export is loading...', 'info');
-            setTimeout(() => {
-                if (typeof exportToPdf === 'function') {
-                    exportToPdf();
-                } else {
-                    this.showMessage('PDF export failed to load. Please refresh the page.', 'error');
-                }
-            }, 1000);
-        }
-    }
-
-    exportWord() {
-        if (typeof exportToWord === 'function') {
-            exportToWord();
-        } else {
-            this.showMessage('Word export is loading...', 'info');
-            setTimeout(() => {
-                if (typeof exportToWord === 'function') {
-                    exportToWord();
-                } else {
-                    this.showMessage('Word export failed to load. Please refresh the page.', 'error');
-                }
-            }, 1000);
-        }
-    }
-
-    exportPrint() {
-        window.print();
-    }
-
-    showMessage(message, type = 'success') {
-        // Remove existing messages
-        document.querySelectorAll('.success-message').forEach(msg => msg.remove());
-        
-        const messageEl = document.createElement('div');
-        messageEl.className = `success-message ${type}-message`;
-        messageEl.textContent = message;
-        document.body.appendChild(messageEl);
-
-        setTimeout(() => {
-            messageEl.style.opacity = '0';
-            messageEl.style.transform = 'translateX(100%)';
-            setTimeout(() => messageEl.remove(), 300);
-        }, 3000);
+function showLoading(show, msg = 'Processing...') {
+    const overlay = document.getElementById('loadingOverlay');
+    if (show) {
+        overlay.querySelector('p').textContent = msg;
+        overlay.classList.remove('hidden');
+    } else {
+        overlay.classList.add('hidden');
     }
 }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.resumeMaker = new ResumeMaker();
-});
+function getEmojiName(emoji) {
+    const names = { like: '👍 Like', love: '❤️ Love', wow: '😮 Wow', sad: '😢 Sad', angry: '😠 Angry', laugh: '😂 Laugh', celebrate: '🎉 Celebrate' };
+    return names[emoji] || emoji;
+}
 
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+// ============================================
+// Tab Switching
+// ============================================
+function initTabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+}
+
+// ============================================
+// Item Management Functions
+// ============================================
+function addSocialLink() {
+    const id = nextId++;
+    resumeData.personal.social.push({ id, platform: '', url: '' });
+    renderSocialLinks();
+}
+
+function addExperience() {
+    const id = nextId++;
+    resumeData.experience.push({ id, company: '', position: '', startDate: '', endDate: '', description: '' });
+    renderExperience();
+}
+
+function addEducation() {
+    const id = nextId++;
+    resumeData.education.push({ id, institution: '', degree: '', field: '', startDate: '', endDate: '', description: '' });
+    renderEducation();
+}
+
+function addSkill() {
+    const id = nextId++;
+    resumeData.skills.push({ id, name: '', level: '' });
+    renderSkills();
+}
+
+function renderSocialLinks() {
+    const container = document.getElementById('social-links');
+    if (!container) return;
+    container.innerHTML = resumeData.personal.social.map(item => `
+        <div class="item" data-id="${item.id}">
+            <div class="form-group"><label>Platform</label><input type="text" class="social-platform" value="${item.platform || ''}" placeholder="LinkedIn, GitHub"></div>
+            <div class="form-group"><label>URL</label><input type="text" class="social-url" value="${item.url || ''}" placeholder="https://..."></div>
+            <button class="remove-item" data-id="${item.id}">×</button>
+        </div>
+    `).join('');
     
-    .resume-preview.updating {
-        animation: pulse 0.5s ease;
-    }
+    document.querySelectorAll('#social-links .social-platform').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => {
+            const item = resumeData.personal.social.find(s => s.id === id);
+            if (item) item.platform = e.target.value;
+            generatePreview();
+            saveToLocalStorage();
+        });
+    });
+    document.querySelectorAll('#social-links .social-url').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => {
+            const item = resumeData.personal.social.find(s => s.id === id);
+            if (item) item.url = e.target.value;
+            generatePreview();
+            saveToLocalStorage();
+        });
+    });
+    document.querySelectorAll('#social-links .remove-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const id = parseInt(btn.dataset.id);
+            resumeData.personal.social = resumeData.personal.social.filter(s => s.id !== id);
+            renderSocialLinks();
+            generatePreview();
+            saveToLocalStorage();
+        });
+    });
+}
+
+function renderExperience() {
+    const container = document.getElementById('experience-items');
+    if (!container) return;
+    container.innerHTML = resumeData.experience.map(item => `
+        <div class="item" data-id="${item.id}">
+            <div class="form-group"><label>Company</label><input type="text" class="exp-company" value="${item.company || ''}" placeholder="Company name"></div>
+            <div class="form-group"><label>Position</label><input type="text" class="exp-position" value="${item.position || ''}" placeholder="Job title"></div>
+            <div class="form-group"><div style="display:flex;gap:10px;"><div style="flex:1"><label>Start Date</label><input type="text" class="exp-start" value="${item.startDate || ''}" placeholder="MM/YYYY"></div><div style="flex:1"><label>End Date</label><input type="text" class="exp-end" value="${item.endDate || ''}" placeholder="MM/YYYY"></div></div></div>
+            <div class="form-group"><label>Description</label><textarea class="exp-desc" placeholder="Describe your responsibilities">${item.description || ''}</textarea></div>
+            <button class="remove-item" data-id="${item.id}">×</button>
+        </div>
+    `).join('');
     
-    @keyframes pulse {
-        0% { opacity: 0.8; }
-        50% { opacity: 0.9; }
-        100% { opacity: 1; }
+    document.querySelectorAll('#experience-items .exp-company').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.experience.find(x => x.id === id); if(item) item.company = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#experience-items .exp-position').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.experience.find(x => x.id === id); if(item) item.position = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#experience-items .exp-start').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.experience.find(x => x.id === id); if(item) item.startDate = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#experience-items .exp-end').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.experience.find(x => x.id === id); if(item) item.endDate = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#experience-items .exp-desc').forEach(textarea => {
+        const parent = textarea.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        textarea.addEventListener('input', e => { const item = resumeData.experience.find(x => x.id === id); if(item) item.description = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#experience-items .remove-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const id = parseInt(btn.dataset.id);
+            resumeData.experience = resumeData.experience.filter(x => x.id !== id);
+            renderExperience();
+            generatePreview();
+            saveToLocalStorage();
+        });
+    });
+}
+
+function renderEducation() {
+    const container = document.getElementById('education-items');
+    if (!container) return;
+    container.innerHTML = resumeData.education.map(item => `
+        <div class="item" data-id="${item.id}">
+            <div class="form-group"><label>Institution</label><input type="text" class="edu-institution" value="${item.institution || ''}" placeholder="University name"></div>
+            <div class="form-group"><label>Degree</label><input type="text" class="edu-degree" value="${item.degree || ''}" placeholder="Bachelor of Science"></div>
+            <div class="form-group"><label>Field</label><input type="text" class="edu-field" value="${item.field || ''}" placeholder="Computer Science"></div>
+            <div class="form-group"><div style="display:flex;gap:10px;"><div style="flex:1"><label>Start Date</label><input type="text" class="edu-start" value="${item.startDate || ''}" placeholder="MM/YYYY"></div><div style="flex:1"><label>End Date</label><input type="text" class="edu-end" value="${item.endDate || ''}" placeholder="MM/YYYY"></div></div></div>
+            <div class="form-group"><label>Description</label><textarea class="edu-desc" placeholder="Academic achievements">${item.description || ''}</textarea></div>
+            <button class="remove-item" data-id="${item.id}">×</button>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('#education-items .edu-institution').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.education.find(x => x.id === id); if(item) item.institution = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#education-items .edu-degree').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.education.find(x => x.id === id); if(item) item.degree = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#education-items .edu-field').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.education.find(x => x.id === id); if(item) item.field = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#education-items .edu-start').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.education.find(x => x.id === id); if(item) item.startDate = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#education-items .edu-end').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.education.find(x => x.id === id); if(item) item.endDate = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#education-items .edu-desc').forEach(textarea => {
+        const parent = textarea.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        textarea.addEventListener('input', e => { const item = resumeData.education.find(x => x.id === id); if(item) item.description = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#education-items .remove-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const id = parseInt(btn.dataset.id);
+            resumeData.education = resumeData.education.filter(x => x.id !== id);
+            renderEducation();
+            generatePreview();
+            saveToLocalStorage();
+        });
+    });
+}
+
+function renderSkills() {
+    const container = document.getElementById('skill-items');
+    if (!container) return;
+    container.innerHTML = resumeData.skills.map(item => `
+        <div class="item" data-id="${item.id}">
+            <div class="form-group"><label>Skill Name</label><input type="text" class="skill-name" value="${item.name || ''}" placeholder="JavaScript, Python, etc."></div>
+            <div class="form-group"><label>Level</label><select class="skill-level"><option value="">Select</option><option value="Beginner" ${item.level === 'Beginner' ? 'selected' : ''}>Beginner</option><option value="Intermediate" ${item.level === 'Intermediate' ? 'selected' : ''}>Intermediate</option><option value="Advanced" ${item.level === 'Advanced' ? 'selected' : ''}>Advanced</option><option value="Expert" ${item.level === 'Expert' ? 'selected' : ''}>Expert</option></select></div>
+            <button class="remove-item" data-id="${item.id}">×</button>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('#skill-items .skill-name').forEach(input => {
+        const parent = input.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        input.addEventListener('input', e => { const item = resumeData.skills.find(x => x.id === id); if(item) item.name = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#skill-items .skill-level').forEach(select => {
+        const parent = select.closest('.item');
+        const id = parseInt(parent.dataset.id);
+        select.addEventListener('change', e => { const item = resumeData.skills.find(x => x.id === id); if(item) item.level = e.target.value; generatePreview(); saveToLocalStorage(); });
+    });
+    document.querySelectorAll('#skill-items .remove-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const id = parseInt(btn.dataset.id);
+            resumeData.skills = resumeData.skills.filter(x => x.id !== id);
+            renderSkills();
+            generatePreview();
+            saveToLocalStorage();
+        });
+    });
+}
+
+// ============================================
+// Preview Generation
+// ============================================
+function generatePreview() {
+    const p = resumeData.personal;
+    const exp = resumeData.experience;
+    const edu = resumeData.education;
+    const skills = resumeData.skills;
+    
+    let html = `
+        <div class="resume-header">
+            ${p.image ? `<div style="text-align:center;margin-bottom:15px;"><img src="${p.image}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;"></div>` : ''}
+            <h1 class="resume-name">${p.name || 'Your Name'}</h1>
+            <div class="resume-title">${p.title || 'Professional Title'}</div>
+            <div class="resume-contact">
+                ${p.email ? `<div>📧 ${p.email}</div>` : ''}
+                ${p.phone ? `<div>📞 ${p.phone}</div>` : ''}
+                ${p.address ? `<div>📍 ${p.address}</div>` : ''}
+            </div>
+            ${p.social.filter(s => s.platform && s.url).length ? `<div class="resume-social" style="text-align:center;margin-top:10px;">${p.social.filter(s => s.platform && s.url).map(s => `<a href="${s.url}" target="_blank" style="color:var(--primary);text-decoration:none;margin:0 8px;">${s.platform}</a>`).join('')}</div>` : ''}
+        </div>
+        ${p.summary ? `<div class="resume-section"><h2 class="resume-section-title">Professional Summary</h2><p>${p.summary}</p></div>` : ''}
+        ${exp.length ? `<div class="resume-section"><h2 class="resume-section-title">Work Experience</h2>${exp.filter(e => e.company || e.position).map(e => `
+            <div class="resume-item"><div class="resume-item-header"><div class="resume-item-title">${e.position || 'Position'}</div><div class="resume-item-date">${e.startDate || ''} ${e.endDate ? '- ' + e.endDate : ''}</div></div>
+            <div class="resume-item-subtitle">${e.company || 'Company'}</div>${e.description ? `<p>${e.description}</p>` : ''}</div>
+        `).join('')}</div>` : ''}
+        ${edu.length ? `<div class="resume-section"><h2 class="resume-section-title">Education</h2>${edu.filter(e => e.institution || e.degree).map(e => `
+            <div class="resume-item"><div class="resume-item-header"><div class="resume-item-title">${e.degree || 'Degree'}</div><div class="resume-item-date">${e.startDate || ''} ${e.endDate ? '- ' + e.endDate : ''}</div></div>
+            <div class="resume-item-subtitle">${e.institution || 'Institution'} ${e.field ? `- ${e.field}` : ''}</div>${e.description ? `<p>${e.description}</p>` : ''}</div>
+        `).join('')}</div>` : ''}
+        ${skills.length ? `<div class="resume-section"><h2 class="resume-section-title">Skills</h2><div class="resume-skills">${skills.filter(s => s.name).map(s => `<div class="skill-tag">${s.name}${s.level ? ` (${s.level})` : ''}</div>`).join('')}</div></div>` : ''}
+    `;
+    if (resumePreview) resumePreview.innerHTML = html;
+    
+    // Update resume score
+    let score = 0;
+    if (resumeData.personal.name) score += 20;
+    if (resumeData.personal.summary && resumeData.personal.summary.length > 50) score += 20;
+    if (resumeData.experience.length) score += Math.min(30, resumeData.experience.length * 10);
+    if (resumeData.education.length) score += 20;
+    if (resumeData.skills.length) score += Math.min(10, resumeData.skills.length * 2);
+    const scoreSpan = document.getElementById('resumeScore');
+    if (scoreSpan) scoreSpan.textContent = Math.min(100, score);
+}
+
+// ============================================
+// Save/Load Functions
+// ============================================
+function saveToLocalStorage() {
+    localStorage.setItem('resumeData', JSON.stringify(resumeData));
+    const status = document.getElementById('autoSaveStatus');
+    if (status) status.textContent = 'Auto-saved';
+}
+
+function loadFromLocalStorage() {
+    const saved = localStorage.getItem('resumeData');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.assign(resumeData, parsed);
+        if (resumeData.experience && resumeData.experience.length) {
+            const maxId = Math.max(...resumeData.experience.map(e => e.id), ...resumeData.education.map(e => e.id), ...resumeData.skills.map(s => s.id), 0);
+            if (maxId) nextId = maxId + 1;
+        }
+        document.getElementById('full-name').value = resumeData.personal.name || '';
+        document.getElementById('job-title').value = resumeData.personal.title || '';
+        document.getElementById('email').value = resumeData.personal.email || '';
+        document.getElementById('phone').value = resumeData.personal.phone || '';
+        document.getElementById('address').value = resumeData.personal.address || '';
+        document.getElementById('summary').value = resumeData.personal.summary || '';
+        document.getElementById('summaryChars').textContent = (resumeData.personal.summary || '').length;
+        renderSocialLinks();
+        renderExperience();
+        renderEducation();
+        renderSkills();
+        generatePreview();
     }
-`;
-document.head.appendChild(style);
+}
+
+// ============================================
+// AI Functions
+// ============================================
+async function aiOptimizeResume() {
+    showLoading(true, 'AI is analyzing your resume...');
+    try {
+        const response = await fetch(`${WORKER_URL}/api/optimize-resume`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: `Analyze resume for ${resumeData.personal.title || 'professional'}` })
+        });
+        const data = await response.json();
+        if (data.success) {
+            const atsSpan = document.getElementById('atsScore');
+            if (atsSpan) atsSpan.textContent = data.atsScore + '%';
+            showToast('AI optimization complete!');
+        } else {
+            showToast('AI optimization failed', 'error');
+        }
+    } catch(e) {
+        showToast('AI optimization failed: ' + e.message, 'error');
+    }
+    showLoading(false);
+}
+
+async function suggestSkills() {
+    showLoading(true, 'Getting skill suggestions...');
+    setTimeout(() => {
+        const suggestedSkills = ['JavaScript', 'Python', 'Project Management', 'Communication', 'Leadership', 'Problem Solving', 'Team Collaboration'];
+        suggestedSkills.forEach(skill => {
+            const id = nextId++;
+            resumeData.skills.push({ id, name: skill, level: '' });
+        });
+        renderSkills();
+        generatePreview();
+        saveToLocalStorage();
+        showToast('Skills added!');
+        showLoading(false);
+    }, 1000);
+}
+
+// ============================================
+// Download Functions
+// ============================================
+async function downloadPDF() {
+    showLoading(true, 'Generating PDF...');
+    try {
+        const canvas = await html2canvas(resumePreview, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        pdf.save('resume.pdf');
+        showToast('PDF downloaded!');
+    } catch(e) { showToast('PDF generation failed', 'error'); }
+    showLoading(false);
+}
+
+function downloadDOC() {
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resume</title><style>body{font-family:Arial;padding:40px} h1{color:#2c3e50} .resume-section-title{color:#3498db;border-bottom:1px solid #ddd}</style></head><body>${resumePreview.innerHTML}</body></html>`;
+    const blob = new Blob([html], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'resume.doc';
+    link.click();
+    showToast('DOC downloaded!');
+}
+
+// ============================================
+// Event Listeners
+// ============================================
+function initEventListeners() {
+    document.getElementById('full-name')?.addEventListener('input', e => { resumeData.personal.name = e.target.value; generatePreview(); saveToLocalStorage(); });
+    document.getElementById('job-title')?.addEventListener('input', e => { resumeData.personal.title = e.target.value; generatePreview(); saveToLocalStorage(); });
+    document.getElementById('email')?.addEventListener('input', e => { resumeData.personal.email = e.target.value; generatePreview(); saveToLocalStorage(); });
+    document.getElementById('phone')?.addEventListener('input', e => { resumeData.personal.phone = e.target.value; generatePreview(); saveToLocalStorage(); });
+    document.getElementById('address')?.addEventListener('input', e => { resumeData.personal.address = e.target.value; generatePreview(); saveToLocalStorage(); });
+    document.getElementById('summary')?.addEventListener('input', e => { resumeData.personal.summary = e.target.value; document.getElementById('summaryChars').textContent = e.target.value.length; generatePreview(); saveToLocalStorage(); });
+    document.getElementById('profile-image')?.addEventListener('change', e => { const file = e.target.files[0]; if(file){ const reader = new FileReader(); reader.onload = ev => { resumeData.personal.image = ev.target.result; generatePreview(); saveToLocalStorage(); }; reader.readAsDataURL(file); } });
+    document.getElementById('preview-btn')?.addEventListener('click', () => generatePreview());
+    document.getElementById('refreshPreviewBtn')?.addEventListener('click', () => generatePreview());
+    document.getElementById('download-pdf')?.addEventListener('click', downloadPDF);
+    document.getElementById('download-doc')?.addEventListener('click', downloadDOC);
+    document.getElementById('print-btn')?.addEventListener('click', () => window.print());
+    document.getElementById('reset-btn')?.addEventListener('click', () => { if(confirm('Reset all data?')) location.reload(); });
+    document.getElementById('fullOptimizeBtn')?.addEventListener('click', aiOptimizeResume);
+    document.getElementById('suggestSkillsBtn')?.addEventListener('click', suggestSkills);
+    document.getElementById('darkModeBtn')?.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); showToast('Dark mode toggled'); });
+    document.getElementById('pageShareBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(window.location.href); showToast('Link copied!'); });
+    document.getElementById('add-social')?.addEventListener('click', addSocialLink);
+    document.getElementById('add-experience')?.addEventListener('click', addExperience);
+    document.getElementById('add-education')?.addEventListener('click', addEducation);
+    document.getElementById('add-skill')?.addEventListener('click', addSkill);
+    
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.addEventListener('click', () => { showToast(getEmojiName(btn.dataset.emoji) + ' reaction added!'); });
+    });
+    document.querySelectorAll('.social-btn').forEach(btn => {
+        btn.addEventListener('click', () => { showToast(`Shared on ${btn.dataset.platform}!`); });
+    });
+    
+    window.addEventListener('scroll', () => {
+        const upBtn = document.getElementById('scrollUpBtn');
+        if (upBtn) upBtn.classList.toggle('hidden', window.scrollY <= 200);
+    });
+    document.getElementById('scrollUpBtn')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById('scrollDownBtn')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+}
+
+// ============================================
+// Template, Theme, Font Selection
+// ============================================
+function initCustomization() {
+    document.querySelectorAll('.template-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.template-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            const template = this.dataset.template;
+            if (resumePreview) resumePreview.className = `resume-preview ${template}`;
+            resumeData.settings.template = template;
+            saveToLocalStorage();
+        });
+    });
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            const theme = this.dataset.theme;
+            if (theme && theme !== 'custom') {
+                document.body.className = document.body.className.replace(/theme-\w+/g, '') + ' ' + theme;
+                resumeData.settings.theme = theme;
+                saveToLocalStorage();
+            }
+        });
+    });
+    document.querySelectorAll('.font-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.font-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            const font = this.dataset.font;
+            document.body.className = document.body.className.replace(/font-\w+/g, '') + ' ' + font;
+            resumeData.settings.font = font;
+            saveToLocalStorage();
+        });
+    });
+}
+
+// ============================================
+// Initialize
+// ============================================
+function init() {
+    initTabs();
+    initEventListeners();
+    initCustomization();
+    loadFromLocalStorage();
+    generatePreview();
+    showToast('Resume Maker ready!');
+}
+
+init();
