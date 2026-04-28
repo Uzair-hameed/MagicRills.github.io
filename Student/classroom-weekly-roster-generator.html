@@ -1,97 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Classroom Weekly Roster Generator</title>
-    <link rel="stylesheet" href="classroom-weekly-roster-generator.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Weekly Roster Generator | AI-Powered Duty Roster Maker</title>
+    <meta name="description" content="AI-powered classroom duty roster generator. Create balanced weekly duty schedules with student name suggestions, auto-rotation, and multiple export options.">
+    <link rel="stylesheet" href="classroom-weekly-roster-generator.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="dashboard">
-        <!-- HEADER -->
-        <header class="header">
-            <div class="school-info">
-                <label for="logo-upload" class="logo-container">
-                    <img id="school-logo" src="https://via.placeholder.com/80/5F27CD/FFFFFF?text=Logo" alt="School Logo" />
-                    <span class="upload-text">Upload Logo</span>
-                </label>
-                <input type="file" id="logo-upload" accept="image/*" style="display: none;" />
-                <div class="school-text">
-                    <input type="text" id="school-name" placeholder="School Name" value="SIPD Public School" />
-                    <h2>WEEKLY ROSTER GENERATOR</h2>
-                </div>
-            </div>
-            <button id="theme-toggle">Dark Mode</button>
-        </header>
 
-        <!-- CONTROLS -->
-        <div class="controls">
-            <div class="grade-selector">
-                <label>Grade:</label>
-                <select id="grade-select">
-                    <option value="">-- Select --</option>
-                    <option value="grade3">Grade 3</option>
-                    <option value="grade4">Grade 4</option>
-                    <option value="grade5">Grade 5</option>
-                    <option value="grade6">Grade 6</option>
-                    <option value="grade7">Grade 7</option>
-                    <option value="grade8">Grade 8</option>
-                    <option value="grade9">Grade 9</option>
-                    <option value="grade10">Grade 10</option>
-                </select>
-            </div>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-chalkboard-teacher"></i> Classroom Weekly Roster</h1>
+        <p>AI-powered duty roster generator with smart rotation & student management</p>
+    </div>
 
-            <!-- STUDENT INPUTS -->
-            <div class="students-grid">
-                <div class="student-input"><label>1:</label><input type="text" class="student-name" placeholder="Required"></div>
-                <div class="student-input"><label>2:</label><input type="text" class="student-name" placeholder="Required"></div>
-                <div class="student-input"><label>3:</label><input type="text" class="student-name" placeholder="Required"></div>
-                <div class="student-input"><label>4:</label><input type="text" class="student-name" placeholder="Required"></div>
-                <div class="student-input"><label>5:</label><input type="text" class="student-name" placeholder="Required"></div>
-                <div class="student-input"><label>6:</label><input type="text" class="student-name" placeholder="Optional"></div>
-                <div class="student-input"><label>7:</label><input type="text" class="student-name" placeholder="Optional"></div>
-                <div class="student-input"><label>8:</label><input type="text" class="student-name" placeholder="Optional"></div>
-                <div class="student-input"><label>9:</label><input type="text" class="student-name" placeholder="Optional"></div>
-                <div class="student-input"><label>10:</label><input type="text" class="student-name" placeholder="Optional"></div>
-            </div>
-
-            <!-- ACTIONS -->
-            <div class="actions">
-                <button id="ai-generate">AI Auto-Fill</button>
-                <button id="save-template">Save Template</button>
-                <button id="load-template">Load Previous</button>
-                <button id="print-preview">Print Preview</button>
-                <button id="export-docx">DOCX</button>
-                <button id="export-pdf">PDF</button>
-            </div>
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-eye"></i></div>
+            <div class="stat-value" id="usageCount">0</div>
+            <div class="stat-label">Times Used</div>
         </div>
-
-        <!-- DUTY CUSTOMIZATION -->
-        <div class="duty-customization">
-            <h3>Customize Duty Names</h3>
-            <div class="duty-names">
-                <input type="text" placeholder="Duty 1" value="Board Cleaner">
-                <input type="text" placeholder="Duty 2" value="Floor Sweeper">
-                <input type="text" placeholder="Duty 3" value="Chair Arranger">
-                <input type="text" placeholder="Duty 4" value="Trash Monitor">
-            </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-value" id="studentCount">0</div>
+            <div class="stat-label">Students</div>
         </div>
-
-        <!-- ROSTER OUTPUT -->
-        <div class="schedule" id="roster-output"></div>
-
-        <!-- NOTES -->
-        <div class="information">
-            <div class="day-header">Additional Information</div>
-            <textarea id="info-text" placeholder="Enter notes, dates, or special instructions..."></textarea>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-history"></i></div>
+            <div class="stat-value" id="rosterCount">0</div>
+            <div class="stat-label">Rosters Saved</div>
         </div>
     </div>
 
-    <!-- CDNs -->
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-    <script src="classroom-weekly-roster-generator.js"></script>
+    <!-- Main Card -->
+    <div class="main-card">
+        <!-- Smart Tabs -->
+        <div class="smart-tabs">
+            <button class="smart-tab active" data-tab="roster"><i class="fas fa-calendar-week"></i> Roster</button>
+            <button class="smart-tab" data-tab="students"><i class="fas fa-user-graduate"></i> Students</button>
+            <button class="smart-tab" data-tab="history"><i class="fas fa-history"></i> History</button>
+            <button class="smart-tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+        </div>
+
+        <!-- Roster Tab -->
+        <div id="roster-tab" class="tab-panel active">
+            <!-- Controls Bar -->
+            <div class="controls-bar">
+                <div class="control-group">
+                    <label><i class="fas fa-layer-group"></i> Grade</label>
+                    <select id="gradeSelect">
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5" selected>Grade 5</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label><i class="fas fa-users"></i> Class Size</label>
+                    <input type="number" id="classSize" min="10" max="50" value="24">
+                </div>
+                <div class="control-group">
+                    <label><i class="fas fa-sync-alt"></i> Week</label>
+                    <select id="weekSelect">
+                        <option value="1">Week 1</option>
+                        <option value="2">Week 2</option>
+                        <option value="3">Week 3</option>
+                        <option value="4">Week 4</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label><i class="fas fa-calendar-alt"></i> Start Date</label>
+                    <input type="date" id="startDate">
+                </div>
+            </div>
+
+            <!-- AI Actions Bar -->
+            <div class="ai-actions-bar">
+                <button id="aiGenerateBtn" class="btn-ai"><i class="fas fa-robot"></i> AI Generate Student Names</button>
+                <button id="smartRosterBtn" class="btn-ai"><i class="fas fa-magic"></i> Smart Roster Generator</button>
+                <button id="balanceDutiesBtn" class="btn-ai"><i class="fas fa-balance-scale"></i> Balance Duties</button>
+                <button id="rotateDutiesBtn" class="btn-ai"><i class="fas fa-exchange-alt"></i> Rotate Duties</button>
+            </div>
+
+            <!-- AI Suggestion Bar -->
+            <div id="aiSuggestionBar" class="ai-suggestion-bar" style="display:none;">
+                <i class="fas fa-lightbulb"></i>
+                <span id="aiSuggestionText">AI ready to help!</span>
+                <button id="applySuggestionBtn" class="btn-small">Apply</button>
+                <button id="dismissSuggestionBtn" class="btn-small">Dismiss</button>
+            </div>
+
+            <!-- Weekly Schedule -->
+            <div class="weekly-schedule" id="weeklySchedule">
+                <!-- Days will be dynamically generated by JS -->
+            </div>
+
+            <!-- Notes Section -->
+            <div class="notes-section">
+                <label><i class="fas fa-sticky-note"></i> Teacher's Notes / Special Instructions</label>
+                <textarea id="teacherNotes" placeholder="Enter any additional notes, reminders, or special instructions for this week..."></textarea>
+                <div class="notes-actions">
+                    <button id="addHolidayBtn" class="btn-small"><i class="fas fa-calendar-minus"></i> Mark Holiday</button>
+                    <button id="addEventBtn" class="btn-small"><i class="fas fa-calendar-plus"></i> Add Event</button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button id="saveRosterBtn" class="btn-primary"><i class="fas fa-save"></i> Save Roster</button>
+                <button id="downloadWordBtn" class="btn-secondary"><i class="fas fa-file-word"></i> Download DOC</button>
+                <button id="downloadPdfBtn" class="btn-secondary"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <button id="downloadExcelBtn" class="btn-secondary"><i class="fas fa-file-excel"></i> Download Excel</button>
+                <button id="printRosterBtn" class="btn-secondary"><i class="fas fa-print"></i> Print</button>
+                <button id="resetRosterBtn" class="btn-danger"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingOverlay" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>AI is generating roster...</p>
+            </div>
+        </div>
+
+        <!-- Students Tab -->
+        <div id="students-tab" class="tab-panel">
+            <div class="students-header">
+                <h3><i class="fas fa-user-graduate"></i> Student Management</h3>
+                <div class="students-actions">
+                    <button id="addStudentBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Student</button>
+                    <button id="bulkAddBtn" class="btn-secondary"><i class="fas fa-upload"></i> Bulk Add</button>
+                    <button id="aiSuggestStudentsBtn" class="btn-ai"><i class="fas fa-robot"></i> AI Suggest Names</button>
+                </div>
+            </div>
+            <div id="studentsList" class="students-list"></div>
+            <div class="student-stats" id="studentStats">
+                <h4>Duty Statistics</h4>
+                <div id="dutyStats"></div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history-tab" class="tab-panel">
+            <div class="history-header">
+                <h3><i class="fas fa-history"></i> Saved Rosters</h3>
+                <button id="clearHistoryBtn" class="btn-danger">Clear All</button>
+            </div>
+            <div id="historyList" class="history-list">
+                <div class="empty-state">No saved rosters yet. Create and save your first roster!</div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-panel">
+            <div class="settings-section">
+                <h3><i class="fas fa-palette"></i> Appearance</h3>
+                <div class="setting-row">
+                    <span><i class="fas fa-moon"></i> Dark Mode</span>
+                    <button id="darkModeToggle" class="toggle-switch">Off</button>
+                </div>
+                <div class="setting-row">
+                    <span><i class="fas fa-paint-bucket"></i> Theme Colors</span>
+                    <div class="theme-preview">
+                        <div class="color-option selected" data-color="pastel" style="background:linear-gradient(135deg,#FF9AA2,#FFB7B2,#FFDAC1,#E2F0CB,#B5EAD7)"></div>
+                        <div class="color-option" data-color="vibrant" style="background:linear-gradient(135deg,#FF6B6B,#4ECDC4,#45B7D1,#96CEB4,#FFEAA7)"></div>
+                        <div class="color-option" data-color="professional" style="background:linear-gradient(135deg,#2C3E50,#3498DB,#2980B9,#1ABC9C,#2ECC71)"></div>
+                        <div class="color-option" data-color="rainbow" style="background:linear-gradient(135deg,#FF0000,#FF7F00,#FFFF00,#00FF00,#0000FF,#4B0082,#9400D3)"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-cog"></i> Roster Settings</h3>
+                <div class="setting-row">
+                    <span>Auto-save Draft</span>
+                    <button id="autoSaveToggle" class="toggle-switch active">On</button>
+                </div>
+                <div class="setting-row">
+                    <span>Duties per Day</span>
+                    <select id="dutiesPerDay">
+                        <option value="4">4 Duties</option>
+                        <option value="5">5 Duties</option>
+                        <option value="6">6 Duties</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <span>AI Suggestions</span>
+                    <button id="aiSuggestToggle" class="toggle-switch active">On</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-database"></i> Data Management</h3>
+                <div class="setting-row">
+                    <span>Export All Data</span>
+                    <button id="exportDataBtn" class="btn-small">Export JSON</button>
+                </div>
+                <div class="setting-row">
+                    <span>Import Data</span>
+                    <button id="importDataBtn" class="btn-small">Import JSON</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reactions Section - 7 EMOJIS FIXED -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-smile"></i> Was this roster helpful?</h3>
+        <div class="reactions">
+            <button class="reaction" data-emoji="like">👍 <span id="likeCount">0</span></button>
+            <button class="reaction" data-emoji="love">❤️ <span id="loveCount">0</span></button>
+            <button class="reaction" data-emoji="wow">😮 <span id="wowCount">0</span></button>
+            <button class="reaction" data-emoji="sad">😢 <span id="sadCount">0</span></button>
+            <button class="reaction" data-emoji="angry">😠 <span id="angryCount">0</span></button>
+            <button class="reaction" data-emoji="laugh">😂 <span id="laughCount">0</span></button>
+            <button class="reaction" data-emoji="celebrate">🎉 <span id="celebrateCount">0</span></button>
+        </div>
+    </div>
+
+    <!-- Social Share Section -->
+    <div class="social-section">
+        <div class="social-buttons">
+            <button class="social-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
+            <button class="social-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Share</button>
+            <button class="social-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
+            <button class="social-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
+            <button class="social-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        </div>
+    </div>
+
+    <!-- Page Share -->
+    <div class="page-share">
+        <button id="pageShareBtn" class="page-share-btn"><i class="fas fa-link"></i> Share This Tool</button>
+    </div>
+
+    <div class="footer">
+        <p>🚀 Powered by Groq AI | Smart Classroom Management Tool</p>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden"><span id="toastMsg"></span></div>
+
+<!-- Scroll Buttons -->
+<button id="scrollUpBtn" class="scroll-btn scroll-up hidden"><i class="fas fa-arrow-up"></i></button>
+<button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+<script src="classroom-weekly-roster-generator.js"></script>
 </body>
 </html>
