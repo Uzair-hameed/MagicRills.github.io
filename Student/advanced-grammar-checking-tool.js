@@ -1,7 +1,28 @@
 /* ============================================
-   ADVANCED GRAMMAR CHECKING TOOL - JAVASCRIPT
-   Complete JS with all 40+ features
+   ADVANCED GRAMMAR CHECKING TOOL - COMPLETE JS
+   This file connects to Cloudflare Worker with Groq API
    ============================================ */
+
+// ============================================
+// Configuration
+// ============================================
+const TOOL_SLUG = 'advanced-grammar-checking-tool';
+const TOOL_NAME = 'Advanced Grammar Checking Tool';
+const CATEGORY = 'student';
+
+// Cloudflare Worker URL - یہاں آپ کا worker API call کرے گا
+// یہ وہی URL ہے جو آپ کے worker کو point کر رہی ہے
+const WORKER_URL = 'https://advanced-grammar-checking-tool.uzairhameed01.workers.dev';
+
+// Get or create user ID
+let userId = localStorage.getItem('userId');
+if (!userId) {
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('userId', userId);
+}
+
+// API Base URL for TiDB (آپ کا existing backend)
+const API_BASE = '/api';
 
 // ============================================
 // DOM Elements
@@ -11,7 +32,6 @@ const checkBtn = document.getElementById('checkBtn');
 const clearBtn = document.getElementById('clearBtn');
 const copyBtn = document.getElementById('copyBtn');
 const downloadTxtBtn = document.getElementById('downloadTxtBtn');
-const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 const shareResultsBtn = document.getElementById('shareResultsBtn');
 const darkModeBtn = document.getElementById('darkModeBtn');
 const listenBtn = document.getElementById('listenBtn');
@@ -31,11 +51,11 @@ const wordCountSpan = document.getElementById('wordCount');
 const charCountSpan = document.getElementById('charCount');
 const issueCountSpan = document.getElementById('issueCount');
 const scoreValueSpan = document.getElementById('scoreValue');
+const scoreValueDisplay = document.getElementById('scoreValueDisplay');
 const readabilityScoreSpan = document.getElementById('readabilityScore');
 const usageCountSpan = document.getElementById('usageCount');
 
 // Reactions
-const reactionBtns = document.querySelectorAll('.reaction-btn');
 const reactionCounts = {
     like: document.getElementById('likeCount'),
     love: document.getElementById('loveCount'),
@@ -51,27 +71,21 @@ const reactionCounts = {
 // ============================================
 let currentResults = null;
 let autoSaveTimer = null;
-let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-localStorage.setItem('userId', userId);
-
-const TOOL_ID = 'advanced-grammar-checking-tool';
-const TOOL_NAME = 'Advanced Grammar Checking Tool';
-const TOOL_CATEGORY = 'student';
 
 // ============================================
-// API Endpoints (Your existing TiDB APIs)
+// API Calls (TiDB Integration - Your Existing APIs)
 // ============================================
-const API_BASE = '/api'; // Change to your actual API base URL
 
-async function incrementUsageCount() {
+// Track usage when tool is used
+async function trackUsage() {
     try {
         const response = await fetch(`${API_BASE}/usage/increment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                tool_id: TOOL_ID,
+                tool_slug: TOOL_SLUG,
                 tool_name: TOOL_NAME,
-                category: TOOL_CATEGORY,
+                category: CATEGORY,
                 user_id: userId
             })
         });
@@ -81,21 +95,22 @@ async function incrementUsageCount() {
         }
         return data;
     } catch (error) {
-        console.error('Usage increment failed:', error);
-        // Fallback: increment locally
+        console.error('Usage tracking failed:', error);
         if (usageCountSpan) {
-            usageCountSpan.textContent = parseInt(usageCountSpan.textContent) + 1;
+            const current = parseInt(usageCountSpan.textContent) || 0;
+            usageCountSpan.textContent = current + 1;
         }
     }
 }
 
+// Add reaction
 async function addReaction(emoji) {
     try {
         const response = await fetch(`${API_BASE}/reactions/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                tool_id: TOOL_ID,
+                tool_slug: TOOL_SLUG,
                 emoji: emoji,
                 user_id: userId
             })
@@ -104,49 +119,50 @@ async function addReaction(emoji) {
         if (reactionCounts[emoji]) {
             reactionCounts[emoji].textContent = data.count;
         }
-        showToast(`${getEmojiText(emoji)} reaction added!`);
+        showToast(`${getEmojiName(emoji)} reaction added!`);
         return data;
     } catch (error) {
         console.error('Reaction failed:', error);
-        // Fallback: increment locally
         if (reactionCounts[emoji]) {
-            reactionCounts[emoji].textContent = parseInt(reactionCounts[emoji].textContent) + 1;
+            const current = parseInt(reactionCounts[emoji].textContent) || 0;
+            reactionCounts[emoji].textContent = current + 1;
         }
-        showToast(`${getEmojiText(emoji)} reaction added!`, 'success');
+        showToast(`${getEmojiName(emoji)} reaction added!`);
     }
 }
 
+// Track share
 async function trackShare(platform, shareType = 'tool') {
     try {
-        const response = await fetch(`${API_BASE}/shares/add`, {
+        await fetch(`${API_BASE}/shares/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                tool_id: TOOL_ID,
+                tool_slug: TOOL_SLUG,
                 platform: platform,
                 share_type: shareType,
                 user_id: userId
             })
         });
-        return await response.json();
     } catch (error) {
         console.error('Share tracking failed:', error);
     }
 }
 
-async function loadToolStats() {
+// Load initial stats
+async function loadStats() {
     try {
-        const response = await fetch(`${API_BASE}/tools/stats?tool_id=${TOOL_ID}`);
+        const response = await fetch(`${API_BASE}/tools/stats?tool_slug=${TOOL_SLUG}`);
         const data = await response.json();
         
-        if (usageCountSpan) usageCountSpan.textContent = data.usage_count || 0;
-        if (reactionCounts.like) reactionCounts.like.textContent = data.reactions?.like || 0;
-        if (reactionCounts.love) reactionCounts.love.textContent = data.reactions?.love || 0;
-        if (reactionCounts.wow) reactionCounts.wow.textContent = data.reactions?.wow || 0;
-        if (reactionCounts.sad) reactionCounts.sad.textContent = data.reactions?.sad || 0;
-        if (reactionCounts.angry) reactionCounts.angry.textContent = data.reactions?.angry || 0;
-        if (reactionCounts.laugh) reactionCounts.laugh.textContent = data.reactions?.laugh || 0;
-        if (reactionCounts.celebrate) reactionCounts.celebrate.textContent = data.reactions?.celebrate || 0;
+        if (usageCountSpan) usageCountSpan.textContent = data.total_usage || 0;
+        if (reactionCounts.like) reactionCounts.like.textContent = data.like_count || 0;
+        if (reactionCounts.love) reactionCounts.love.textContent = data.love_count || 0;
+        if (reactionCounts.wow) reactionCounts.wow.textContent = data.wow_count || 0;
+        if (reactionCounts.sad) reactionCounts.sad.textContent = data.sad_count || 0;
+        if (reactionCounts.angry) reactionCounts.angry.textContent = data.angry_count || 0;
+        if (reactionCounts.laugh) reactionCounts.laugh.textContent = data.laugh_count || 0;
+        if (reactionCounts.celebrate) reactionCounts.celebrate.textContent = data.celebrate_count || 0;
         
     } catch (error) {
         console.error('Load stats failed:', error);
@@ -154,7 +170,7 @@ async function loadToolStats() {
 }
 
 // ============================================
-// Grammar Check Function
+// Grammar Check Function (Calls Cloudflare Worker)
 // ============================================
 async function checkGrammar() {
     const text = textInput.value.trim();
@@ -174,11 +190,11 @@ async function checkGrammar() {
     checkBtn.disabled = true;
     
     // Increment usage count
-    await incrementUsageCount();
+    await trackUsage();
     
     try {
-        // Call your Cloudflare Worker API
-        const response = await fetch('/api/grammar-check', {
+        // 🔥 IMPORTANT: Call your Cloudflare Worker - یہاں API key worker میں ہے
+        const response = await fetch(`${WORKER_URL}/api/grammar-check`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: text })
@@ -198,6 +214,9 @@ async function checkGrammar() {
     } catch (error) {
         console.error('Grammar check failed:', error);
         showToast('Grammar check failed. Please try again.', 'error');
+        if (issuesListDiv) {
+            issuesListDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}. Please make sure the worker is running.</div>`;
+        }
     } finally {
         loadingOverlay.classList.add('hidden');
         checkBtn.disabled = false;
@@ -207,26 +226,22 @@ async function checkGrammar() {
 function displayResults(data) {
     resultsDiv.classList.remove('hidden');
     
-    // Update score
-    if (scoreValueSpan) {
-        scoreValueSpan.textContent = data.score || '85';
-    }
+    // Update score displays
+    const score = data.score || 85;
+    if (scoreValueSpan) scoreValueSpan.textContent = score + '%';
+    if (scoreValueDisplay) scoreValueDisplay.textContent = score + '%';
     
     // Update readability
     if (readabilityScoreSpan) {
-        readabilityScoreSpan.textContent = data.readability || 'Good';
+        if (score >= 90) readabilityScoreSpan.textContent = 'Excellent';
+        else if (score >= 70) readabilityScoreSpan.textContent = 'Good';
+        else if (score >= 50) readabilityScoreSpan.textContent = 'Fair';
+        else readabilityScoreSpan.textContent = 'Needs Work';
     }
     
     // Update issue count
-    if (issueCountSpan) {
-        issueCountSpan.textContent = data.issues?.length || 0;
-    }
-    
-    // Display tone tags
-    displayToneTags(data.tone || ['Professional', 'Neutral']);
-    
-    // Display style suggestions
-    displayStyleSuggestions(data.style || 'Informal', data.styleSuggestions || []);
+    const issueCount = data.issues?.length || 0;
+    if (issueCountSpan) issueCountSpan.textContent = issueCount;
     
     // Display issues
     displayIssues(data.issues || []);
@@ -235,33 +250,14 @@ function displayResults(data) {
     if (summaryDiv) {
         summaryDiv.innerHTML = `<strong>📊 Summary:</strong> ${data.summary || 'Your text has been analyzed successfully.'}`;
     }
-}
-
-function displayToneTags(toneList) {
-    const toneTagsDiv = document.getElementById('toneTags');
-    if (!toneTagsDiv) return;
     
-    toneTagsDiv.innerHTML = '';
-    toneList.forEach(tone => {
-        const tag = document.createElement('span');
-        tag.className = 'tone-tag';
-        tag.textContent = tone;
-        toneTagsDiv.appendChild(tag);
-    });
-}
-
-function displayStyleSuggestions(style, suggestions) {
-    const styleBadge = document.getElementById('styleBadge');
-    const styleSuggestionsDiv = document.getElementById('styleSuggestions');
-    
-    if (styleBadge) {
-        styleBadge.innerHTML = `<i class="fas fa-tag"></i> Detected: ${style}`;
-    }
-    
-    if (styleSuggestionsDiv && suggestions.length > 0) {
-        styleSuggestionsDiv.innerHTML = suggestions.map(s => 
-            `<div><i class="fas fa-lightbulb"></i> ${s}</div>`
-        ).join('');
+    // Score label
+    const scoreLabel = document.getElementById('scoreLabel');
+    if (scoreLabel) {
+        if (score >= 90) scoreLabel.textContent = 'Excellent! Your writing is very good.';
+        else if (score >= 70) scoreLabel.textContent = 'Good! Just a few improvements needed.';
+        else if (score >= 50) scoreLabel.textContent = 'Fair. Some issues need attention.';
+        else scoreLabel.textContent = 'Needs improvement. Review the suggestions below.';
     }
 }
 
@@ -281,7 +277,7 @@ function displayIssues(issues) {
         else severityClass = 'info';
         
         html += `
-            <div class="issue-item ${severityClass}" onclick="scrollToPosition(${issue.position || 0}, ${issue.length || 5})">
+            <div class="issue-item ${severityClass}">
                 <div class="issue-type">${(issue.type || 'grammar').toUpperCase()} ${issue.severity || 'info'}</div>
                 <div>${issue.message || 'Issue found in your text'}</div>
                 <div class="issue-suggestion">💡 ${issue.suggestion || 'Review this part carefully'}</div>
@@ -294,14 +290,8 @@ function displayIssues(issues) {
 // ============================================
 // Helper Functions
 // ============================================
-function scrollToPosition(position, length) {
-    textInput.focus();
-    textInput.setSelectionRange(position, position + length);
-    textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function getEmojiText(emoji) {
-    const emojis = {
+function getEmojiName(emoji) {
+    const names = {
         like: '👍 Like',
         love: '❤️ Love',
         wow: '😮 Wow',
@@ -310,10 +300,11 @@ function getEmojiText(emoji) {
         laugh: '😂 Laugh',
         celebrate: '🎉 Celebrate'
     };
-    return emojis[emoji] || emoji;
+    return names[emoji] || emoji;
 }
 
 function showToast(message, type = 'success') {
+    if (!toast || !toastMessage) return;
     toastMessage.textContent = message;
     toast.classList.remove('hidden');
     toast.style.background = type === 'error' ? '#f56565' : '#333';
@@ -364,35 +355,8 @@ function downloadAsTXT() {
     showToast('Report downloaded as TXT!');
 }
 
-function downloadAsPDF() {
-    const text = textInput.value;
-    if (!text) {
-        showToast('Nothing to download', 'error');
-        return;
-    }
-    
-    // Simple PDF generation using browser print
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-        <head><title>Grammar Report</title></head>
-        <body>
-            <h1>Grammar Check Report</h1>
-            <p>Date: ${new Date().toLocaleString()}</p>
-            <h2>Original Text:</h2>
-            <p>${text.replace(/\n/g, '<br>')}</p>
-            <h2>Score: ${scoreValueSpan?.textContent || 'N/A'}%</h2>
-            <h2>Issues Found:</h2>
-            <div>${issuesListDiv?.innerHTML || 'No issues'}</div>
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-    showToast('Report downloaded as PDF!');
-}
-
 function generateReport(text) {
+    const score = document.getElementById('scoreValue')?.textContent || 'N/A';
     return `GRAMMAR CHECK REPORT
 Generated: ${new Date().toLocaleString()}
 Tool: Advanced Grammar Checking Tool
@@ -400,7 +364,7 @@ Tool: Advanced Grammar Checking Tool
 ORIGINAL TEXT:
 ${text}
 
-SCORE: ${scoreValueSpan?.textContent || 'N/A'}%
+SCORE: ${score}
 
 ISSUES FOUND:
 ${currentResults?.issues?.map(i => `- [${i.type}] ${i.message}\n  Suggestion: ${i.suggestion}`).join('\n\n') || 'No issues found'}
@@ -462,18 +426,13 @@ function shareResults() {
         return;
     }
     
-    const shareData = {
-        title: 'Grammar Check Results',
-        text: `My grammar score: ${scoreValueSpan?.textContent || 'N/A'}%`,
-        url: window.location.href
-    };
-    
     if (navigator.share) {
-        navigator.share(shareData).then(() => {
-            showToast('Shared successfully!');
-        }).catch(() => {
-            showToast('Share cancelled');
-        });
+        navigator.share({
+            title: 'Grammar Check Results',
+            text: `My grammar score: ${document.getElementById('scoreValue')?.textContent || 'N/A'}`,
+            url: window.location.href
+        }).then(() => showToast('Shared successfully!'))
+          .catch(() => showToast('Share cancelled'));
     } else {
         sharePage();
     }
@@ -515,8 +474,8 @@ function listenToText() {
 function saveDraft() {
     const text = textInput.value;
     if (text) {
-        localStorage.setItem(`${TOOL_ID}_draft`, text);
-        localStorage.setItem(`${TOOL_ID}_draft_time`, Date.now());
+        localStorage.setItem(`${TOOL_SLUG}_draft`, text);
+        localStorage.setItem(`${TOOL_SLUG}_draft_time`, Date.now());
         autoSaveInfo.classList.add('show');
         setTimeout(() => {
             autoSaveInfo.classList.remove('show');
@@ -525,12 +484,12 @@ function saveDraft() {
 }
 
 function loadDraft() {
-    const draft = localStorage.getItem(`${TOOL_ID}_draft`);
-    const draftTime = localStorage.getItem(`${TOOL_ID}_draft_time`);
+    const draft = localStorage.getItem(`${TOOL_SLUG}_draft`);
+    const draftTime = localStorage.getItem(`${TOOL_SLUG}_draft_time`);
     
     if (draft && draftTime) {
         const timeAgo = Math.round((Date.now() - parseInt(draftTime)) / 60000);
-        if (timeAgo < 1440) { // Less than 24 hours
+        if (timeAgo < 1440) {
             const restore = confirm(`You have a saved draft from ${timeAgo} minutes ago. Restore it?`);
             if (restore) {
                 textInput.value = draft;
@@ -549,8 +508,8 @@ function updateCounters() {
     const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
     const chars = text.length;
     
-    wordCountSpan.textContent = words;
-    charCountSpan.textContent = chars;
+    if (wordCountSpan) wordCountSpan.textContent = words;
+    if (charCountSpan) charCountSpan.textContent = chars;
     
     // Character limit warning
     const charWarning = document.getElementById('charWarning');
@@ -580,34 +539,34 @@ function scrollToBottom() {
 // ============================================
 // Event Listeners
 // ============================================
-textInput.addEventListener('input', () => {
-    updateCounters();
-    
-    if (autoSaveTimer) clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(() => {
-        saveDraft();
-    }, 3000);
-});
+if (textInput) {
+    textInput.addEventListener('input', () => {
+        updateCounters();
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => saveDraft(), 3000);
+    });
+}
 
-checkBtn.addEventListener('click', checkGrammar);
-clearBtn.addEventListener('click', () => {
-    textInput.value = '';
-    updateCounters();
-    resultsDiv.classList.add('hidden');
-    showToast('Text cleared!');
-});
-copyBtn.addEventListener('click', copyCorrectedText);
-downloadTxtBtn.addEventListener('click', downloadAsTXT);
-downloadPdfBtn.addEventListener('click', downloadAsPDF);
-shareResultsBtn.addEventListener('click', shareResults);
-darkModeBtn.addEventListener('click', toggleDarkMode);
-listenBtn.addEventListener('click', listenToText);
-pageShareBtn.addEventListener('click', sharePage);
-scrollUpBtn.addEventListener('click', scrollToTop);
-scrollDownBtn.addEventListener('click', scrollToBottom);
+if (checkBtn) checkBtn.addEventListener('click', checkGrammar);
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        textInput.value = '';
+        updateCounters();
+        if (resultsDiv) resultsDiv.classList.add('hidden');
+        showToast('Text cleared!');
+    });
+}
+if (copyBtn) copyBtn.addEventListener('click', copyCorrectedText);
+if (downloadTxtBtn) downloadTxtBtn.addEventListener('click', downloadAsTXT);
+if (shareResultsBtn) shareResultsBtn.addEventListener('click', shareResults);
+if (darkModeBtn) darkModeBtn.addEventListener('click', toggleDarkMode);
+if (listenBtn) listenBtn.addEventListener('click', listenToText);
+if (pageShareBtn) pageShareBtn.addEventListener('click', sharePage);
+if (scrollUpBtn) scrollUpBtn.addEventListener('click', scrollToTop);
+if (scrollDownBtn) scrollDownBtn.addEventListener('click', scrollToBottom);
 
 // Reaction buttons
-reactionBtns.forEach(btn => {
+document.querySelectorAll('.reaction-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const emoji = btn.getAttribute('data-emoji');
         if (emoji) {
@@ -621,7 +580,7 @@ reactionBtns.forEach(btn => {
 // Social share buttons
 document.querySelectorAll('.social-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const platform = btn.getAttribute('data-platform');
+        const platform = btn.getAttribute('data-emoji');
         if (platform) {
             shareTool(platform);
         }
@@ -630,30 +589,30 @@ document.querySelectorAll('.social-btn').forEach(btn => {
 
 // Scroll button visibility
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 200) {
-        scrollUpBtn.classList.remove('hidden');
-    } else {
-        scrollUpBtn.classList.add('hidden');
+    if (scrollUpBtn) {
+        if (window.scrollY > 200) {
+            scrollUpBtn.classList.remove('hidden');
+        } else {
+            scrollUpBtn.classList.add('hidden');
+        }
     }
 });
 
+// Check for dark mode preference
+const savedDarkMode = localStorage.getItem('darkMode');
+if (savedDarkMode === 'true') {
+    document.body.classList.add('dark-mode');
+    if (darkModeBtn) darkModeBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+}
+
 // ============================================
-// Initialization
+// Initialize
 // ============================================
 function init() {
     updateCounters();
-    loadToolStats();
+    loadStats();
     loadDraft();
-    
-    // Check for dark mode preference
-    const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode === 'true') {
-        document.body.classList.add('dark-mode');
-        darkModeBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
-    }
-    
     showToast('Grammar Checker ready!');
 }
 
-// Start the app
 init();
