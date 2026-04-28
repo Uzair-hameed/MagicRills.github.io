@@ -1,191 +1,354 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Planner Pro - Pomodoro Technique</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>Study Planner - AI-Powered Pomodoro Technique</title>
+    <meta name="description" content="AI-powered study planner with Pomodoro timer, smart scheduling, analytics, and progress tracking.">
     <link rel="stylesheet" href="study-planner-pomodoro-technique.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="animated-bg"></div>
-    
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>Study Planner Pro</h1>
-                    <p>Pomodoro Technique + Smart Planning</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button id="theme-toggle" class="icon-btn glow" title="Toggle Theme">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-        </header>
 
-        <!-- Main App -->
-        <div class="app-container">
-            <!-- Left Panel -->
-            <div class="panel left-panel">
-                <!-- Add Task Card -->
-                <div class="card task-form-card">
-                    <div class="card-header">
-                        <i class="fas fa-plus-circle"></i>
-                        <h2>Add Study Task</h2>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-brain"></i> Study Planner</h1>
+        <p>AI-powered Pomodoro technique | Smart scheduling | Progress tracking</p>
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-eye"></i></div>
+            <div class="stat-value" id="usageCount">0</div>
+            <div class="stat-label">Times Used</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-fire"></i></div>
+            <div class="stat-value" id="streakCount">0</div>
+            <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-value" id="focusScore">--</div>
+            <div class="stat-label">Focus Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-value" id="totalStudyTime">0h</div>
+            <div class="stat-label">Total Study</div>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="main-card">
+        <!-- Smart Tabs -->
+        <div class="smart-tabs">
+            <button class="smart-tab active" data-tab="timer"><i class="fas fa-hourglass-half"></i> Timer</button>
+            <button class="smart-tab" data-tab="tasks"><i class="fas fa-tasks"></i> Tasks</button>
+            <button class="smart-tab" data-tab="plan"><i class="fas fa-calendar-alt"></i> Smart Plan</button>
+            <button class="smart-tab" data-tab="analytics"><i class="fas fa-chart-bar"></i> Analytics</button>
+            <button class="smart-tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+        </div>
+
+        <!-- Timer Tab -->
+        <div id="timer-tab" class="tab-panel active">
+            <!-- Current Task Display -->
+            <div class="current-task-info" id="currentTaskInfo">
+                <span><i class="fas fa-book-open"></i> Current Task: <strong id="currentTaskName">No task selected</strong></span>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="timer-container">
+                <div class="timer-type" id="timerType">🍅 Pomodoro Session</div>
+                <div class="timer-display" id="timerDisplay">25:00</div>
+                <div class="timer-controls">
+                    <button id="startTimerBtn" class="btn-primary"><i class="fas fa-play"></i> Start</button>
+                    <button id="pauseTimerBtn" class="btn-secondary" disabled><i class="fas fa-pause"></i> Pause</button>
+                    <button id="resetTimerBtn" class="btn-danger"><i class="fas fa-undo-alt"></i> Reset</button>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                    <div class="session-info">
+                        <span id="sessionCount">🍅 Sessions: 0/4</span>
+                        <span id="breakCount">☕ Breaks: 0/3</span>
                     </div>
-                    <form id="task-form" class="task-form">
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="quick-stat">
+                    <div class="quick-value" id="todayPomodoros">0</div>
+                    <div class="quick-label">Today's Pomodoros</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-value" id="todayTasksCompleted">0</div>
+                    <div class="quick-label">Tasks Completed</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-value" id="todayStudyTime">0h</div>
+                    <div class="quick-label">Study Time</div>
+                </div>
+            </div>
+
+            <!-- AI Motivation Quote -->
+            <div id="motivationQuote" class="motivation-quote">
+                <i class="fas fa-quote-left"></i>
+                <span id="quoteText">"The secret of getting ahead is getting started."</span>
+                <i class="fas fa-quote-right"></i>
+            </div>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div id="tasks-tab" class="tab-panel">
+            <div class="tasks-header">
+                <h3><i class="fas fa-list-check"></i> Your Study Tasks</h3>
+                <button id="addTaskBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Task</button>
+            </div>
+
+            <!-- Add Task Modal (Hidden by default) -->
+            <div id="addTaskModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add New Task</h3>
+                        <button id="closeModalBtn" class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
                         <div class="form-group">
-                            <label for="task-name">
-                                <i class="fas fa-book"></i> Task Name
-                            </label>
-                            <input type="text" id="task-name" placeholder="e.g., Physics Chapter 7" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="task-deadline">
-                                    <i class="fas fa-calendar"></i> Deadline
-                                </label>
-                                <input type="date" id="task-deadline" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="task-estimate">
-                                    <i class="fas fa-clock"></i> Hours
-                                </label>
-                                <input type="number" id="task-estimate" min="0.5" step="0.5" placeholder="3.5" required>
-                            </div>
+                            <label><i class="fas fa-tag"></i> Task Name</label>
+                            <input type="text" id="newTaskName" placeholder="e.g., Mathematics Chapter 5">
                         </div>
                         <div class="form-group">
-                            <label for="task-priority">
-                                <i class="fas fa-flag"></i> Priority
-                            </label>
-                            <select id="task-priority">
-                                <option value="high">🚨 High Priority</option>
-                                <option value="medium" selected>⚠️ Medium Priority</option>
-                                <option value="low">✅ Low Priority</option>
+                            <label><i class="fas fa-calendar"></i> Deadline</label>
+                            <input type="date" id="newTaskDeadline">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-clock"></i> Estimated Hours</label>
+                            <input type="number" id="newTaskHours" min="0.5" step="0.5" placeholder="e.g., 2.5">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-flag"></i> Priority</label>
+                            <select id="newTaskPriority">
+                                <option value="high">🔴 High Priority</option>
+                                <option value="medium" selected>🟡 Medium Priority</option>
+                                <option value="low">🟢 Low Priority</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="task-notes">
-                                <i class="fas fa-sticky-note"></i> Notes (Optional)
-                            </label>
-                            <textarea id="task-notes" rows="2" placeholder="Additional details..."></textarea>
+                            <label><i class="fas fa-folder"></i> Category</label>
+                            <select id="newTaskCategory">
+                                <option value="math">📐 Mathematics</option>
+                                <option value="science">🔬 Science</option>
+                                <option value="language">📚 Language</option>
+                                <option value="history">🏛️ History</option>
+                                <option value="other">📖 Other</option>
+                            </select>
                         </div>
-                        <button type="submit" class="btn success full-width add-task-btn">
-                            <i class="fas fa-plus"></i> Add Task
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Tasks List Card -->
-                <div class="card tasks-card">
-                    <div class="card-header">
-                        <i class="fas fa-tasks"></i>
-                        <h2>Your Study Tasks</h2>
-                        <span class="badge" id="tasks-count">0</span>
+                        <div class="form-group">
+                            <label><i class="fas fa-align-left"></i> Notes</label>
+                            <textarea id="newTaskNotes" rows="3" placeholder="Additional notes..."></textarea>
+                        </div>
                     </div>
-                    <div class="tasks-container">
-                        <ul id="task-list" class="task-list"></ul>
+                    <div class="modal-footer">
+                        <button id="saveTaskBtn" class="btn-primary">Save Task</button>
+                        <button id="cancelTaskBtn" class="btn-secondary">Cancel</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel -->
-            <div class="panel right-panel">
-                <!-- Pomodoro Timer Card -->
-                <div class="card timer-card">
-                    <div class="card-header">
-                        <i class="fas fa-clock"></i>
-                        <h2>Pomodoro Timer</h2>
-                    </div>
-                    <div class="timer-container" id="timer-container">
-                        <div class="timer-type" id="timer-type">
-                            <i class="fas fa-brain"></i> Focus Session
-                        </div>
-                        <div class="timer-display" id="timer-display">25:00</div>
-                        <div class="timer-controls">
-                            <button id="start-timer" class="btn success timer-btn">
-                                <i class="fas fa-play"></i> Start
-                            </button>
-                            <button id="pause-timer" class="btn secondary timer-btn" disabled>
-                                <i class="fas fa-pause"></i> Pause
-                            </button>
-                            <button id="reset-timer" class="btn danger timer-btn">
-                                <i class="fas fa-redo"></i> Reset
-                            </button>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress" id="progress-bar"></div>
-                            </div>
-                        </div>
-                        <div class="session-info">
-                            <div class="session-item">
-                                <i class="fas fa-fire"></i>
-                                <span id="session-count">Session: 0/4</span>
-                            </div>
-                            <div class="session-item">
-                                <i class="fas fa-coffee"></i>
-                                <span id="break-count">Break: 0/3</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Tasks List -->
+            <div id="tasksList" class="tasks-list">
+                <div class="empty-state">No tasks yet. Click "Add Task" to get started!</div>
+            </div>
 
-                    <!-- Stats Grid -->
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stat-value" id="completed-pomodoros">0</div>
-                            <div class="stat-label">Pomodoros</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-tasks"></i>
-                            </div>
-                            <div class="stat-value" id="completed-tasks">0</div>
-                            <div class="stat-label">Tasks Done</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="stat-value" id="study-time">0h</div>
-                            <div class="stat-label">Study Time</div>
-                        </div>
+            <!-- AI Smart Prioritization Button -->
+            <div class="ai-action">
+                <button id="aiPrioritizeBtn" class="btn-ai"><i class="fas fa-robot"></i> AI Smart Prioritization</button>
+            </div>
+        </div>
+
+        <!-- Smart Plan Tab -->
+        <div id="plan-tab" class="tab-panel">
+            <div class="plan-header">
+                <h3><i class="fas fa-calendar-alt"></i> AI-Powered Study Plan</h3>
+                <button id="generatePlanBtn" class="btn-ai"><i class="fas fa-magic"></i> Generate Smart Plan</button>
+            </div>
+            <div id="studyPlan" class="study-plan">
+                <div class="empty-state">Click "Generate Smart Plan" to create your AI-powered study schedule</div>
+            </div>
+            <div class="export-buttons">
+                <button id="exportPdfBtn" class="btn-secondary"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                <button id="exportWordBtn" class="btn-secondary"><i class="fas fa-file-word"></i> Export Word</button>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-panel">
+            <div class="analytics-header">
+                <h3><i class="fas fa-chart-line"></i> Study Analytics</h3>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-period="week">Weekly</button>
+                    <button class="filter-btn" data-period="month">Monthly</button>
+                    <button class="filter-btn" data-period="all">All Time</button>
+                </div>
+            </div>
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h4><i class="fas fa-chart-bar"></i> Pomodoros Per Day</h4>
+                    <canvas id="pomodoroChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4><i class="fas fa-chart-pie"></i> Tasks by Category</h4>
+                    <canvas id="categoryChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4><i class="fas fa-chart-line"></i> Focus Score Trend</h4>
+                    <canvas id="focusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+            <div class="analytics-stats">
+                <div class="analytic-stat">
+                    <span>📊 Total Pomodoros</span>
+                    <strong id="totalPomodorosStat">0</strong>
+                </div>
+                <div class="analytic-stat">
+                    <span>✅ Tasks Completed</span>
+                    <strong id="totalTasksStat">0</strong>
+                </div>
+                <div class="analytic-stat">
+                    <span>⏱️ Total Study Hours</span>
+                    <strong id="totalHoursStat">0</strong>
+                </div>
+                <div class="analytic-stat">
+                    <span>🎯 Best Day</span>
+                    <strong id="bestDayStat">--</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-panel">
+            <div class="settings-section">
+                <h3><i class="fas fa-palette"></i> Appearance</h3>
+                <div class="setting-row">
+                    <span><i class="fas fa-moon"></i> Dark Mode</span>
+                    <button id="darkModeToggle" class="toggle-switch">Off</button>
+                </div>
+                <div class="setting-row">
+                    <span><i class="fas fa-paint-bucket"></i> Theme Color</span>
+                    <div class="theme-preview">
+                        <div class="theme-option selected" data-color="blue" style="background:#4a6fa5;"></div>
+                        <div class="theme-option" data-color="purple" style="background:#7c3aed;"></div>
+                        <div class="theme-option" data-color="green" style="background:#10b981;"></div>
+                        <div class="theme-option" data-color="orange" style="background:#f59e0b;"></div>
+                        <div class="theme-option" data-color="pink" style="background:#ec4899;"></div>
                     </div>
                 </div>
-
-                <!-- Smart Study Plan Card -->
-                <div class="card ai-card">
-                    <div class="card-header">
-                        <i class="fas fa-robot"></i>
-                        <h2>Smart Study Assistant</h2>
-                    </div>
-                    <button id="generate-plan" class="btn ai-generate-btn full-width">
-                        <i class="fas fa-magic"></i> Generate Smart Study Plan
-                    </button>
-                    <div id="ai-loading" class="ai-loading hidden">
-                        <div class="loading-spinner"></div>
-                        <p>Creating your perfect study plan...</p>
-                    </div>
-                    <div id="plan-summary" class="plan-summary hidden"></div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-cog"></i> Timer Settings</h3>
+                <div class="setting-row">
+                    <span>Pomodoro Duration (minutes)</span>
+                    <select id="pomodoroDuration">
+                        <option value="25">25 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60">60 minutes</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <span>Short Break (minutes)</span>
+                    <select id="shortBreakDuration">
+                        <option value="5">5 minutes</option>
+                        <option value="10">10 minutes</option>
+                        <option value="15">15 minutes</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <span>Long Break (minutes)</span>
+                    <select id="longBreakDuration">
+                        <option value="15">15 minutes</option>
+                        <option value="20">20 minutes</option>
+                        <option value="30">30 minutes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                <div class="setting-row">
+                    <span>Enable Study Reminders</span>
+                    <button id="reminderToggle" class="toggle-switch active">On</button>
+                </div>
+                <div class="setting-row">
+                    <span>Enable Sound Alerts</span>
+                    <button id="soundToggle" class="toggle-switch active">On</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3><i class="fas fa-database"></i> Data Management</h3>
+                <div class="setting-row">
+                    <span>Export All Data</span>
+                    <button id="exportDataBtn" class="btn-small">Export JSON</button>
+                </div>
+                <div class="setting-row">
+                    <span>Clear All Data</span>
+                    <button id="clearDataBtn" class="btn-danger">Clear</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Confetti Container -->
-    <div id="confetti-container"></div>
+    <!-- ============================================ -->
+    <!-- REACTIONS SECTION - 7 EMOJIS FULLY WORKING -->
+    <!-- ============================================ -->
+    <div class="reactions-section">
+        <h3><i class="fas fa-smile"></i> Was this planner helpful?</h3>
+        <div class="reactions">
+            <button class="reaction" data-emoji="like">👍 <span id="likeCount">0</span></button>
+            <button class="reaction" data-emoji="love">❤️ <span id="loveCount">0</span></button>
+            <button class="reaction" data-emoji="wow">😮 <span id="wowCount">0</span></button>
+            <button class="reaction" data-emoji="sad">😢 <span id="sadCount">0</span></button>
+            <button class="reaction" data-emoji="angry">😠 <span id="angryCount">0</span></button>
+            <button class="reaction" data-emoji="laugh">😂 <span id="laughCount">0</span></button>
+            <button class="reaction" data-emoji="celebrate">🎉 <span id="celebrateCount">0</span></button>
+        </div>
+    </div>
 
-    <script src="study-planner-pomodoro-technique.js"></script>
+    <!-- Social Share Section -->
+    <div class="social-section">
+        <div class="social-buttons">
+            <button class="social-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
+            <button class="social-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Share</button>
+            <button class="social-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
+            <button class="social-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
+            <button class="social-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        </div>
+    </div>
+
+    <!-- Page Share -->
+    <div class="page-share">
+        <button id="pageShareBtn" class="page-share-btn"><i class="fas fa-link"></i> Share This Tool</button>
+    </div>
+
+    <div class="footer">
+        <p>🚀 Powered by Groq AI | Smart Pomodoro Study Planner</p>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden"><span id="toastMsg"></span></div>
+
+<!-- Scroll Buttons -->
+<button id="scrollUpBtn" class="scroll-btn scroll-up hidden"><i class="fas fa-arrow-up"></i></button>
+<button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+<script src="study-planner-pomodoro-technique.js"></script>
 </body>
 </html>
