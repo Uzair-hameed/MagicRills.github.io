@@ -2,6 +2,8 @@
 const CONFIG = {
     APP_NAME: 'اردو کوئز چیلنج',
     VERSION: '6.0.0',
+    // Cloudflare Worker URL - آپ کے موجودہ ورکر سے کنیکٹ
+    CLOUD_WORKER_URL: 'https://urdu-quiz-challenge.uzairhameed01.workers.dev',
     QUESTIONS_PER_LEVEL: 50
 };
 
@@ -29,7 +31,7 @@ const allQuestions = [
     { level: 1, question: "پاکستان کی قومی زبان کیا ہے؟", options: ["اردو", "انگریزی", "پنجابی", "سندھی"], answer: 0, explanation: "پاکستان کی قومی زبان اردو ہے۔", factoid: "اردو پاکستان کے علاوہ بھارت میں بھی بولی جاتی ہے۔", category: "عمومی" },
     { level: 1, question: "صبح کا متضاد کیا ہے؟", options: ["شام", "دن", "رات", "دوپہر"], answer: 0, explanation: "صبح اور شام ایک دوسرے کے متضاد ہیں۔", factoid: "صبح کی پہلی کرن امید کی علامت ہوتی ہے۔", category: "متضاد" },
 
-    // Level 2 - آسان (سوالات 51-100)
+    // Level 2 - آسان (سوالات 16-30)
     { level: 2, question: "مصروف کا مترادف کیا ہے؟", options: ["منہمک", "آزاد", "خالی", "سست"], answer: 0, explanation: "منہمک کا مطلب کسی کام میں مشغول ہونا ہے۔", factoid: "مصروف افراد عموماً کامیاب ہوتے ہیں۔", category: "مترادفات" },
     { level: 2, question: "قدیم کا متضاد کیا ہے؟", options: ["نیا", "پرانا", "عجیب", "عام"], answer: 0, explanation: "قدیم اور نیا ایک دوسرے کے متضاد ہیں۔", factoid: "پرانی چیزوں میں اپنی اہمیت ہوتی ہے۔", category: "متضاد" },
     { level: 2, question: "خاموش کا مترادف کیا ہے؟", options: ["چپ", "چلانا", "شور", "بولنا"], answer: 0, explanation: "چپ خاموشی کے معنوں میں استعمال ہوتا ہے۔", factoid: "خاموشی بعض اوقات بہترین جواب ہوتی ہے۔", category: "مترادفات" },
@@ -38,10 +40,10 @@ const allQuestions = [
     { level: 2, question: "غزل کے مشہور شاعر کون ہیں؟", options: ["مرزا غالب", "علامہ اقبال", "فیض", "احمد فراز"], answer: 0, explanation: "مرزا غالب کو غزل کا بادشاہ کہا جاتا ہے۔", factoid: "غالب کا اصل نام مرزا اسد اللہ بیگ خان تھا۔", category: "ادب" },
     { level: 2, question: "اردو میں 'بہت خوب' کے لیے کون سا لفظ استعمال ہوتا ہے؟", options: ["شاباش", "مبارک", "خوش آمدید", "الوداع"], answer: 0, explanation: "شاباش کا مطلب بہت خوب ہے۔", factoid: "اردو میں تعریف کے بے شمار الفاظ ہیں۔", category: "الفاظ" },
     { level: 2, question: "سوالیہ جملے کے آخر میں کون سا نشان لگتا ہے؟", options: ["؟", "!", "۔", "،"], answer: 0, explanation: "سوالیہ جملوں کے آخر میں سوالیہ نشان لگتا ہے۔", factoid: "اردو میں سوالیہ نشان عربی زبان سے آیا ہے۔", category: "قواعد" },
-    { level: 2, question: "واحدیث؟", options: ["واحد", "جمع", "مذکر", "مونث"], answer: 0, explanation: "واحد کا مطلب ایک ہوتا ہے۔", factoid: "اردو میں واحد اور جمع کی بہت اہمیت ہے۔", category: "قواعد" },
+    { level: 2, question: "واحد کا متضاد کیا ہے؟", options: ["جمع", "مذکر", "مونث", "فعل"], answer: 0, explanation: "واحد کا معنی ایک اور جمع کا معنی ایک سے زیادہ۔", factoid: "اردو میں واحد اور جمع کی بہت اہمیت ہے۔", category: "قواعد" },
     { level: 2, question: "مونث کیا ہے؟", options: ["لڑکی", "لڑکا", "آدمی", "شیر"], answer: 0, explanation: "لڑکی مونث ہے جبکہ باقی مذکر ہیں۔", factoid: "اردو میں مونث اور مذکر کی بہت اہمیت ہے۔", category: "قواعد" },
 
-    // Level 3 - درمیانہ (سوالات 101-150)
+    // Level 3 - درمیانہ (سوالات 31-45)
     { level: 3, question: "شائستہ کا مترادف کیا ہے؟", options: ["خوش اخلاق", "بدتمیز", "کم عقل", "لالچی"], answer: 0, explanation: "خوش اخلاق شائستہ کے معنوں میں استعمال ہوتا ہے۔", factoid: "شائستگی انسان کی پہچان ہے۔", category: "مترادفات" },
     { level: 3, question: "اجازت کا متضاد کیا ہے؟", options: ["پابندی", "منظوری", "رضامندی", "تسلیم"], answer: 0, explanation: "اجازت اور پابندی ایک دوسرے کے متضاد ہیں۔", factoid: "قوانین معاشرے کو منظم رکھتے ہیں۔", category: "متضاد" },
     { level: 3, question: "ذہین کا مترادف کیا ہے؟", options: ["عقلمند", "بے وقوف", "کاہل", "سست"], answer: 0, explanation: "عقلمند ذہین کے معنوں میں استعمال ہوتا ہے۔", factoid: "ذہانت اللہ کی عطا کردہ نعمت ہے۔", category: "مترادفات" },
@@ -53,7 +55,7 @@ const allQuestions = [
     { level: 3, question: "صفت کسے کہتے ہیں؟", options: ["خاصیت بتانا", "اسم", "فعل", "حرف"], answer: 0, explanation: "صفت کسی اسم کی خاصیت بتاتی ہے۔", factoid: "صفت اسم کو خوبصورت بناتی ہے۔", category: "قواعد" },
     { level: 3, question: "اردو ادب کے پہلے ناول نگار کون تھے؟", options: ["نذیر احمد", "پریم چند", "علی عباس حسینی", "غلام عباس"], answer: 0, explanation: "نذیر احمد کو اردو کے پہلے ناول نگار کہا جاتا ہے۔", factoid: "ان کا مشہور ناول 'مرات العروس' ہے۔", category: "ادب" },
 
-    // Level 4 - مشکل (سوالات 151-200)
+    // Level 4 - مشکل (سوالات 46-60)
     { level: 4, question: "لطیف کا مترادف کیا ہے؟", options: ["نفیس", "بھاری", "موٹا", "کھردرا"], answer: 0, explanation: "نفیس لطیف کے معنوں میں استعمال ہوتا ہے۔", factoid: "لطیف احساسات انسان کو مہذب بناتے ہیں۔", category: "مترادفات" },
     { level: 4, question: "مستقل کا متضاد کیا ہے؟", options: ["عارضی", "پکا", "ٹھوس", "مضبوط"], answer: 0, explanation: "مستقل اور عارضی ایک دوسرے کے متضاد ہیں۔", factoid: "زندگی میں تبدیلی مستقل ہے۔", category: "متضاد" },
     { level: 4, question: "محاورہ'خاک میں ملانا'کا مطلب کیا ہے؟", options: ["تباہ کر دینا", "دفن کر دینا", "چھپا دینا", "صاف کر دینا"], answer: 0, explanation: "اس کا مطلب تباہ کر دینا ہے۔", factoid: "یہ محاورہ بہت عام استعمال ہوتا ہے۔", category: "محاورات" },
@@ -61,31 +63,28 @@ const allQuestions = [
     { level: 4, question: "محاورہ'آسمان کے تارے توڑنا'کا مطلب؟", options: ["ناممکن کام کرنا", "آسان کام کرنا", "خوش ہونا", "اداس ہونا"], answer: 0, explanation: "اس کا مطلب ناممکن کام کرنا یا بہت بڑی بات کرنا ہے۔", factoid: "محاورے زبان کو مزیدار بناتے ہیں۔", category: "محاورات" },
     { level: 4, question: "اردو کے مشہور ناول'امراؤ جان ادا'کے مصنف کون ہیں؟", options: ["مرزا ہادی رسوا", "نذیر احمد", "پریم چند", "علی عباس حسینی"], answer: 0, explanation: "اس ناول کے مصنف مرزا ہادی رسوا ہیں۔", factoid: "یہ ناول اردو ادب کا شاہکار ہے۔", category: "ادب" },
     { level: 4, question: "اردو کے مشہور افسانہ نگار کون تھے؟", options: ["منٹو", "غالب", "اقبال", "فیض"], answer: 0, explanation: "سعادت حسن منٹو کو اردو کے عظیم افسانہ نگار کہا جاتا ہے۔", factoid: "منٹو کے افسانے آج بھی مقبول ہیں۔", category: "ادب" },
-    { level: 4, question: "اردو کی پہلی شاعرہ کون تھیں؟", options: ["محفّل بیگم", "خدیجہ مستور", "عصمت چغتائی", "پروین شاکر"], answer: 0, explanation: "محفل بیگم کو اردو کی پہلی شاعرہ کہا جاتا ہے۔", factoid: "وہ مغل شہزادی تھیں۔", category: "ادب" },
-    { level: 4, question: "اردو کے پہلی صدی کے مشہور شاعر کون تھے؟", options: ["ولی دکنی", "میر", "سودا", "درد"], answer: 0, explanation: "ولی دکنی کو اردو کے پہلے صدی کا بڑا شاعر کہا جاتا ہے۔", factoid: "انہیں 'اردو شاعری کا باپ' بھی کہا جاتا ہے۔", category: "ادب" },
-    { level: 4, question: "اردو کا پہلا اخبار کون سا تھا؟", options: ["جامِ جہاں نما", "نوید وقت", "جنگ", "امروز"], answer: 0, explanation: "جامِ جہاں نما اردو کا پہلا اخبار تھا۔", factoid: "اسے 1822 میں کلکتہ سے شائع کیا گیا۔", category: "صحافت" },
+    { level: 4, question: "اردو کی پہلی شاعرہ کون تھیں؟", options: ["محفل بیگم", "خدیجہ مستور", "عصمت چغتائی", "پروین شاکر"], answer: 0, explanation: "محفل بیگم کو اردو کی پہلی شاعرہ کہا جاتا ہے۔", factoid: "وہ مغل شہزادی تھیں۔", category: "ادب" },
 
-    // Level 5 - ماہر (سوالات 201-250)
+    // Level 5 - ماہر (سوالات 61-75)
     { level: 5, question: "تفاعل کا مترادف کیا ہے؟", options: ["ردعمل", "عمل", "کام", "محنت"], answer: 0, explanation: "ردعمل تفاعل کے معنوں میں استعمال ہوتا ہے۔", factoid: "ہر عمل کا ردعمل ہوتا ہے۔", category: "مترادفات" },
     { level: 5, question: "وحدانیت کا متضاد کیا ہے؟", options: ["شرک", "توحید", "ایمان", "یقین"], answer: 0, explanation: "وحدانیت اور شرک ایک دوسرے کے متضاد ہیں۔", factoid: "اللہ کی وحدانیت پر ایمان اسلامیات کا بنیادی عقیدہ ہے۔", category: "متضاد" },
     { level: 5, question: "محاورہ'چاند پر تھوکنا'کا مطلب کیا ہے؟", options: ["بے ادبی کرنا", "خوش ہونا", "اداس ہونا", "نفرت کرنا"], answer: 0, explanation: "اس کا مطلب کسی معزز کی بے ادبی کرنا ہے۔", factoid: "یہ محاورہ اردو میں بہت عام ہے۔", category: "محاورات" },
     { level: 5, question: "اردو کے مشہور ڈرامہ نگار کون تھے؟", options: ["امتیاز علی تاج", "منٹو", "فیض", "احمد فراز"], answer: 0, explanation: "امتیاز علی تاج کو اردو کے عظیم ڈرامہ نگار کہا جاتا ہے۔", factoid: "ان کا مشہور ڈرامہ 'چچا چھکّن' ہے۔", category: "ادب" },
-    { level: 5, question: "اردو کے مشہور مزاح نگار کون تھے؟", options: ["پطرس بخاری", "مجید امجد", "احمد ندیم قاسمی", "ابن صفی"], answer: 0, explanation: "پطرس بخاری کو اردو کے عظیم مزاح نگار کہا جاتا ہے۔", factoid: "ان کا مشہور مجموعہ 'پطرس کے مضامین' ہے۔", category: "ادب" },
-    { level: 5, question: "اردو کے پہلے طنز و مزاح نگار کون تھے؟", options: ["رشید احمد صدیقی", "پطرس بخاری", "شوکت تھانوی", "مشتاق احمد یوسفی"], answer: 0, explanation: "رشید احمد صدیقی کو اردو کے پہلے طنز و مزاح نگار کہا جاتا ہے۔", factoid: "ان کی مشہور کتاب 'انشائیے' ہے۔", category: "ادب" },
+    { level: 5, question: "اردو کے مشہور مزاح نگار کون تھے؟", options: ["پطرس بخاری", "مجید امجد", "احمد ندیم قاسمی", "ابن صفی"], answer: 0, explanation: "پطرس بخاری کو اردو کے عظیم مزاح نگار کہا جاتا ہے۔", factoid: "ان کا مشہور مجموعہ 'پطرس کے مضامین' ہے۔", category: "ادب" }
 ];
 
 // Expand questions to 50 per level
-const level1Questions = allQuestions.filter(q => q.level === 1);
-const level2Questions = allQuestions.filter(q => q.level === 2);
-const level3Questions = allQuestions.filter(q => q.level === 3);
-const level4Questions = allQuestions.filter(q => q.level === 4);
-const level5Questions = allQuestions.filter(q => q.level === 5);
+let level1Questions = allQuestions.filter(q => q.level === 1);
+let level2Questions = allQuestions.filter(q => q.level === 2);
+let level3Questions = allQuestions.filter(q => q.level === 3);
+let level4Questions = allQuestions.filter(q => q.level === 4);
+let level5Questions = allQuestions.filter(q => q.level === 5);
 
-while (level1Questions.length < 50) level1Questions.push({ ...level1Questions[0], question: `بنیادی سوال ${level1Questions.length + 1}: اردو زبان کی اہمیت کیا ہے؟`, options: ["بہت اہم", "کم اہم", "بالکل نہیں", "نہیں معلوم"], answer: 0, explanation: "اردو پاکستان کی قومی زبان ہے۔", factoid: "اردو میں لاکھوں کتابیں لکھی گئی ہیں۔", category: "عمومی" });
-while (level2Questions.length < 50) level2Questions.push({ ...level2Questions[0], question: `آسان سوال ${level2Questions.length + 1}: اردو میں 'محبت' کا مترادف کیا ہے؟`, options: ["عشق", "نفرت", "غصہ", "دشمنی"], answer: 0, explanation: "عشق محبت کا مترادف ہے۔", factoid: "محبت دنیا کی سب سے خوبصورت چیز ہے۔", category: "مترادفات" });
-while (level3Questions.length < 50) level3Questions.push({ ...level3Questions[0], question: `درمیانہ سوال ${level3Questions.length + 1}: اردو کے مشہور شاعر مرزا غالب کا تعلق کس شہر سے تھا؟`, options: ["دہلی", "لکھنؤ", "آگرہ", "کلکتہ"], answer: 0, explanation: "مرزا غالب کا تعلق دہلی سے تھا۔", factoid: "غالب نے اپنی زندگی کا زیادہ حصہ دہلی میں گزارا۔", category: "ادب" });
-while (level4Questions.length < 50) level4Questions.push({ ...level4Questions[0], question: `مشکل سوال ${level4Questions.length + 1}: اردو لفظ کی اصل کیا ہے؟`, options: ["ترکی", "فارسی", "عربی", "سنسکرت"], answer: 0, explanation: "اردو لفظ ترکی زبان سے آیا ہے جس کا مطلب 'لشکر' ہے۔", factoid: "اردو مختلف زبانوں کا مرکب ہے۔", category: "عمومی" });
-while (level5Questions.length < 50) level5Questions.push({ ...level5Questions[0], question: `ماہر سوال ${level5Questions.length + 1}: اردو کا پہلا صوتی ڈرامہ کون سا تھا؟`, options: ["آہنگ", "ساز", "نغمہ", "سرود"], answer: 0, explanation: "آہنگ اردو کا پہلا صوتی ڈرامہ تھا۔", factoid: "ریڈیو پاکستان نے اسے نشر کیا۔", category: "ادب" });
+while (level1Questions.length < 50) level1Questions.push({ ...level1Questions[0], question: `سوال ${level1Questions.length + 1}: اردو زبان کی اہمیت کیا ہے؟`, options: ["بہت اہم", "کم اہم", "بالکل نہیں", "نہیں معلوم"], answer: 0, explanation: "اردو پاکستان کی قومی زبان ہے اور لاکھوں لوگ اسے بولتے ہیں۔", factoid: "اردو دنیا کی 10 بڑی زبانوں میں شامل ہے۔", category: "عمومی" });
+while (level2Questions.length < 50) level2Questions.push({ ...level2Questions[0], question: `سوال ${level2Questions.length + 1}: اردو میں 'محبت' کا مترادف کیا ہے؟`, options: ["عشق", "نفرت", "غصہ", "دشمنی"], answer: 0, explanation: "عشق محبت کا مترادف ہے۔", factoid: "محبت دنیا کی سب سے خوبصورت چیز ہے۔", category: "مترادفات" });
+while (level3Questions.length < 50) level3Questions.push({ ...level3Questions[0], question: `سوال ${level3Questions.length + 1}: مرزا غالب کا تعلق کس شہر سے تھا؟`, options: ["دہلی", "لکھنؤ", "آگرہ", "کلکتہ"], answer: 0, explanation: "مرزا غالب کا تعلق دہلی سے تھا۔", factoid: "غالب نے اپنی زندگی کا زیادہ حصہ دہلی میں گزارا۔", category: "ادب" });
+while (level4Questions.length < 50) level4Questions.push({ ...level4Questions[0], question: `سوال ${level4Questions.length + 1}: اردو لفظ کی اصل کیا ہے؟`, options: ["ترکی", "فارسی", "عربی", "سنسکرت"], answer: 0, explanation: "اردو لفظ ترکی زبان سے آیا ہے جس کا مطلب 'لشکر' ہے۔", factoid: "اردو مختلف زبانوں کا مرکب ہے۔", category: "عمومی" });
+while (level5Questions.length < 50) level5Questions.push({ ...level5Questions[0], question: `سوال ${level5Questions.length + 1}: غالب کا اصل نام کیا تھا؟`, options: ["مرزا اسد اللہ بیگ خان", "مرزا نوراللہ بیگ", "مرزا جلال الدین", "مرزا کامران"], answer: 0, explanation: "غالب کا اصل نام مرزا اسد اللہ بیگ خان تھا۔", factoid: "غالب نے فارسی میں بھی شاعری کی۔", category: "ادب" });
 
 const questionsByLevel = { 1: level1Questions, 2: level2Questions, 3: level3Questions, 4: level4Questions, 5: level5Questions };
 
@@ -95,12 +94,155 @@ let userReactions = new Set();
 let toolUsageCount = 0;
 let progressChart = null;
 
+// ==================== API INTEGRATION (TiDB + Grok + Cloudflare Worker) ====================
+
+// Grok API سے سوالات جنریٹ کرنے کا فنکشن
+async function generateQuestionsFromGrok(level) {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                prompt: `${CONFIG.QUESTIONS_PER_LEVEL} منفرد اردو سوالات جنریٹ کریں۔ لیول: ${LEVEL_NAMES[level]}۔ موضوعات: مترادفات، متضاد، قواعد، محاورات، ادب۔ ہر سوال کے 4 آپشنز، صحیح جواب کی انڈیکس (0-3)، تشریح اور دلچسپ حقیقت شامل کریں۔ JSON فارمیٹ میں واپس کریں۔`,
+                model: 'llama-3.1-8b-instant',
+                max_tokens: 8000
+            })
+        });
+        const data = await response.json();
+        if (data && data.questions && data.questions.length > 0) {
+            return data.questions;
+        }
+        return null;
+    } catch (error) {
+        console.error('Grok API error:', error);
+        return null;
+    }
+}
+
+// Usage Counter - TiDB سے کنیکٹ
+async function incrementUsage(toolSlug) {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: toolSlug, user_id: localStorage.getItem('userId') || 'anonymous' })
+        });
+        const data = await response.json();
+        toolUsageCount = data.count || toolUsageCount + 1;
+        updateUsageDisplay(toolUsageCount);
+        return data;
+    } catch (error) {
+        toolUsageCount++;
+        updateUsageDisplay(toolUsageCount);
+    }
+}
+
+async function getUsageCount(toolSlug) {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/get?tool_slug=${toolSlug}`);
+        const data = await response.json();
+        toolUsageCount = data.count || 0;
+        updateUsageDisplay(toolUsageCount);
+        return data;
+    } catch (error) {
+        return { count: toolUsageCount };
+    }
+}
+
+// Reactions - TiDB سے کنیکٹ
+async function addReaction(emoji, isMainPage = true) {
+    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
+    localStorage.setItem('userId', userId);
+    const toolSlug = 'urdu_quiz';
+    const reactionKey = `${toolSlug}_${emoji}_${userId}`;
+    
+    if (userReactions.has(reactionKey)) {
+        showToast(`پہلے ہی ${getEmojiName(emoji)} کا ردعمل دے چکے ہیں!`, 'warning');
+        return;
+    }
+    
+    try {
+        await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: toolSlug, emoji: emoji, user_id: userId })
+        });
+        userReactions.add(reactionKey);
+        if (isMainPage) {
+            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+            if (span) span.textContent = parseInt(span.textContent) + 1;
+        }
+        showToast(`${getEmojiName(emoji)} کا شکریہ!`, 'success');
+    } catch (error) {
+        showToast('ری ایکشن محفوظ ہو گیا!', 'success');
+    }
+}
+
+async function getReactions(toolSlug) {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/get?tool_slug=${toolSlug}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        return {};
+    }
+}
+
+// Shares Tracking - TiDB سے کنیکٹ
+async function trackShare(toolSlug, platform) {
+    try {
+        await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/shares/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: toolSlug, platform: platform })
+        });
+    } catch (error) {
+        console.error('Share track error:', error);
+    }
+}
+
+function updateUsageDisplay(count) {
+    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
+        if (el) el.textContent = count.toLocaleString();
+    });
+}
+
+function getEmojiName(emoji) {
+    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' };
+    return names[emoji] || emoji;
+}
+
+// ==================== SHARING FUNCTIONS ====================
+function shareQuiz(platform) {
+    const url = window.location.href;
+    const score = document.getElementById('finalScoreValue')?.textContent || '0';
+    const text = `میں نے اردو کوئز میں ${score}% سکور حاصل کیا! آپ بھی آزمائیں۔`;
+    
+    let shareUrl = '';
+    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank');
+        trackShare('urdu_quiz', platform);
+    }
+    showToast(`${platform} پر شیئر کر دیا!`, 'success');
+}
+
+function copyPageUrl() {
+    navigator.clipboard.writeText(window.location.href);
+    trackShare('urdu_quiz', 'copy');
+    showToast('لنک کاپی ہو گیا!', 'success');
+}
+
 // ==================== UTILITIES ====================
 function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
-    document.getElementById('toastContainer').appendChild(toast);
+    container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
@@ -112,52 +254,41 @@ function showLoading(message) {
 
 function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
 
-async function incrementUsage(toolSlug) { toolUsageCount++; updateUsageDisplay(toolUsageCount); return { count: toolUsageCount }; }
-function updateUsageDisplay(count) { document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => { if (el) el.textContent = count.toLocaleString(); }); }
-
-async function addReaction(emoji, isMainPage = true) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    const reactionKey = `urdu_${emoji}_${userId}`;
-    if (userReactions.has(reactionKey)) { showToast(`پہلے ہی ${getEmojiName(emoji)} کا ردعمل دے چکے ہیں!`, 'warning'); return; }
-    userReactions.add(reactionKey);
-    if (isMainPage) { const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`); if (span) span.textContent = parseInt(span.textContent) + 1; }
-    showToast(`${getEmojiName(emoji)} کا شکریہ!`, 'success');
-}
-function getEmojiName(emoji) { const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' }; return names[emoji] || emoji; }
-
-function shareQuiz(platform) {
-    const url = window.location.href;
-    const score = document.getElementById('finalScoreValue')?.textContent || '0';
-    const text = `میں نے اردو کوئز میں ${score}% سکور حاصل کیا! آپ بھی آزمائیں۔`;
-    let shareUrl = '';
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
-    if (shareUrl) window.open(shareUrl, '_blank');
-    showToast(`${platform} پر شیئر کر دیا!`, 'success');
-}
-function copyPageUrl() { navigator.clipboard.writeText(window.location.href); showToast('لنک کاپی ہو گیا!', 'success'); }
+function getQuestionsForLevel(level) { return [...questionsByLevel[level]]; }
 
 // ==================== QUIZ FUNCTIONS ====================
 async function startQuiz(level, mode) {
-    currentState = { mode, level, questions: [...questionsByLevel[level]], currentQuestion: 0, score: 0, lives: 3, userAnswers: [], powerups: { fifty: 3, time: 3, hint: 3, skip: 3 }, timer: null, timeLeft: TIME_LIMITS[level], streak: 0, weakAreas: {} };
+    currentState = { mode, level, questions: [], currentQuestion: 0, score: 0, lives: 3, userAnswers: [], powerups: { fifty: 3, time: 3, hint: 3, skip: 3 }, timer: null, timeLeft: TIME_LIMITS[level], streak: 0, weakAreas: {} };
     
-    showLoading('🤖 سوالات تیار ہو رہے ہیں...');
-    setTimeout(() => {
-        hideLoading();
-        document.getElementById('modeContainer').style.display = 'none';
-        document.getElementById('levelsContainer').style.display = 'none';
-        document.getElementById('quizContainer').style.display = 'block';
-        document.getElementById('quizMode').textContent = mode === 'classic' ? 'کلاسک' : mode === 'practice' ? 'پریکٹس' : 'سروائیول';
-        document.getElementById('quizLevel').textContent = LEVEL_NAMES[level];
-        document.getElementById('totalQuestions').textContent = currentState.questions.length;
-        document.getElementById('livesCount').textContent = currentState.lives;
-        document.getElementById('scoreCount').textContent = currentState.score;
-        loadQuestion();
-        startTimer();
-        incrementUsage(`urdu_quiz_level${level}`);
-    }, 1000);
+    showLoading('🤖 Grok AI سے سوالات آرہے ہیں...');
+    
+    // پہلے Grok API سے سوالات لینے کی کوشش کریں
+    let aiQuestions = await generateQuestionsFromGrok(level);
+    
+    if (aiQuestions && aiQuestions.length >= 20) {
+        currentState.questions = aiQuestions.slice(0, CONFIG.QUESTIONS_PER_LEVEL);
+        showToast('✨ Grok AI سے نئے سوالات تیار ہو گئے!', 'success');
+    } else {
+        // اگر AI fail ہو جائے تو لوکل سوالات استعمال کریں
+        currentState.questions = getQuestionsForLevel(level);
+        showToast('📚 لوکل سوالات استعمال ہو رہے ہیں', 'info');
+    }
+    
+    hideLoading();
+    
+    document.getElementById('modeContainer').style.display = 'none';
+    document.getElementById('levelsContainer').style.display = 'none';
+    document.getElementById('quizContainer').style.display = 'block';
+    document.getElementById('quizMode').textContent = mode === 'classic' ? 'کلاسک' : mode === 'practice' ? 'پریکٹس' : 'سروائیول';
+    document.getElementById('quizLevel').textContent = LEVEL_NAMES[level];
+    document.getElementById('totalQuestions').textContent = currentState.questions.length;
+    document.getElementById('livesCount').textContent = currentState.lives;
+    document.getElementById('scoreCount').textContent = currentState.score;
+    
+    loadQuestion();
+    startTimer();
+    incrementUsage(`urdu_quiz_level${level}`);
+    getReactions('urdu_quiz');
 }
 
 function startTimer() {
@@ -304,7 +435,7 @@ function init() {
     setupTheme();
     setupScrollButtons();
     setupEventListeners();
-    incrementUsage('urdu_quiz_total');
+    getUsageCount('urdu_quiz_total');
     const savedStreak = localStorage.getItem('urduStreak') || '0';
     document.getElementById('streakCount').textContent = savedStreak;
     document.getElementById('totalUsersCount').textContent = '50,000+';
