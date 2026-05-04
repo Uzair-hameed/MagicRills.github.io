@@ -1,768 +1,194 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/15577/15577566.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/15577/15577566.png" style="display: none;" width="320" /></a></div>
-
-
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"></meta>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
-    <title>Group Formation Tool</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Formation Tool - Smart Classroom Grouping</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         :root {
-            --primary: #4e54c8;
-            --secondary: #8f94fb;
-            --accent1: #ff7e5f;
-            --accent2: #feb47b;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --info: #17a2b8;
+            --primary: #4e54c8; --secondary: #8f94fb; --accent1: #ff7e5f;
+            --accent2: #feb47b; --success: #28a745; --danger: #dc3545;
+            --dark: #343a40; --light: #f8f9fa;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: var(--dark);
-            min-height: 100vh;
-            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            min-height: 100vh; padding: 20px; transition: all 0.3s ease;
         }
-
+        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+        body.dark .container { background: rgba(30,30,45,0.95); color: #eee; }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+            max-width: 1400px; margin: 0 auto; background: rgba(255,255,255,0.95);
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;
         }
-
-        header {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        .input-section, .output-section {
-            flex: 1;
-            min-width: 300px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--secondary);
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        textarea, input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        button {
-            background: linear-gradient(to right, var(--accent1), var(--accent2));
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-block;
-            margin-right: 10px;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .export-btn {
-            background: linear-gradient(to right, var(--success), #20c997);
-        }
-
-        .reset-btn {
-            background: linear-gradient(to right, var(--danger), #e83e8c);
-        }
-
-        .group {
-            margin-bottom: 25px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .group-header {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: white;
-            padding: 10px 15px;
-            font-weight: 600;
-        }
-
-        .group-members {
-            padding: 15px;
-            background: #f8f9fa;
-        }
-
-        .member {
-            padding: 8px 12px;
-            margin-bottom: 8px;
-            background: white;
-            border-radius: 5px;
-            border-left: 4px solid var(--primary);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .member-skill {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-box {
-            flex: 1;
-            min-width: 150px;
-            padding: 15px;
-            border-radius: 8px;
-            color: white;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .skill-distribution {
-            margin-top: 20px;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .bar {
-            height: 20px;
-            margin: 10px 0;
-            border-radius: 10px;
-            background: linear-gradient(to right, var(--accent1), var(--accent2));
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 15px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #e9ecef;
-            border-radius: 5px 5px 0 0;
-            margin-right: 5px;
-        }
-
-        .tab.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: white;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            margin-top: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-        }
+        header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area i { font-size: 2rem; }
+        .usage-area { background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 50px; display: flex; align-items: center; gap: 8px; }
+        #usageCounter { font-size: 1.5rem; font-weight: bold; }
+        .theme-toggle-container { padding: 12px 20px; text-align: right; border-bottom: 1px solid #ddd; }
+        .theme-btn { background: #e9ecef; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; }
+        .main-content { display: flex; flex-wrap: wrap; padding: 25px; gap: 25px; }
+        .input-section, .output-section { flex: 1; min-width: 350px; }
+        h2 { color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; }
+        textarea, input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; }
+        textarea { min-height: 180px; resize: vertical; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        .auto-save-info { font-size: 0.7rem; color: var(--success); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+        .button-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .primary-btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .reset-btn { background: linear-gradient(135deg, var(--danger), #e83e8c); color: white; }
+        .secondary-btn { background: linear-gradient(135deg, #17a2b8, #20c997); color: white; }
+        .export-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .export-btn { flex: 1; justify-content: center; }
+        .export-btn.pdf { background: #dc3545; color: white; }
+        .export-btn.word { background: #2a579a; color: white; }
+        .export-btn.txt { background: #6c757d; color: white; }
+        .export-btn.excel { background: #1d6f42; color: white; }
+        .share-group { display: flex; align-items: center; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+        .share-btn { background: #e9ecef; padding: 10px 14px; border-radius: 50%; cursor: pointer; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #e9ecef; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 8px; }
+        .tab.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .group { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .group-header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 12px 15px; font-weight: 600; }
+        .group-members { padding: 12px; background: #f8f9fa; }
+        .member { padding: 8px 12px; margin-bottom: 6px; background: white; border-radius: 8px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; flex-wrap: wrap; }
+        .member-skill { font-weight: 600; color: var(--primary); }
+        .group-stats { padding: 10px; background: #e9ecef; font-size: 0.85rem; display: flex; justify-content: space-between; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { padding: 15px; border-radius: 8px; text-align: center; color: white; }
+        .stat-card.primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .stat-card.success { background: linear-gradient(135deg, var(--success), #20c997); }
+        .stat-card.warning { background: linear-gradient(135deg, #ffc107, #fd7e14); }
+        .stat-value { font-size: 1.8rem; font-weight: bold; }
+        .bar-container { background: #e9ecef; border-radius: 10px; height: 20px; margin: 10px 0 20px; overflow: hidden; }
+        .bar { height: 100%; background: linear-gradient(135deg, var(--accent1), var(--accent2)); width: 0%; border-radius: 10px; transition: width 0.5s ease; }
+        .reactions-section { padding: 20px; border-top: 1px solid #ddd; text-align: center; background: #f8f9fa; }
+        .reactions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
+        .reaction-btn { background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
+        .reaction-count { font-size: 0.8rem; color: #666; }
+        footer { text-align: center; padding: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .scroll-btn { position: fixed; right: 20px; background: var(--primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 999; }
+        #scrollUpBtn { bottom: 80px; }
+        #scrollDownBtn { bottom: 20px; }
+        .spinner-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .spinner { width: 50px; height: 50px; border: 4px solid white; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 1001; }
+        .toast { background: #333; color: white; padding: 12px 20px; border-radius: 8px; margin-top: 10px; animation: slideIn 0.3s ease; }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+        .placeholder { text-align: center; padding: 50px; color: #999; }
+        @media (max-width: 768px) { .main-content { flex-direction: column; } .form-row { flex-direction: column; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Group Formation Tool</h1>
-            <div class="subtitle">Create balanced or targeted groups for classroom projects</div>
-        </header>
 
-        <div class="main-content">
-            <div class="input-section">
-                <h2>Input Parameters</h2>
-                <div class="form-group">
-                    <label for="students">Student List (Name, Skill Level, Social Dynamics):</label>
-                    <textarea id="students" placeholder="Enter each student on a new line in format: Name, Skill (1-10), Social (1-10)
-Example:
-John Doe, 7, 8
-Jane Smith, 5, 6
-Michael Johnson, 9, 7">John Doe, 7, 8
-Jane Smith, 5, 6
-Michael Johnson, 9, 7
-Sarah Williams, 6, 9
-David Brown, 8, 5
-Emily Jones, 4, 7
-Robert Miller, 7, 6
-Lisa Davis, 9, 8
-James Wilson, 5, 5
-Jessica Taylor, 6, 7
-Daniel Anderson, 8, 6
-Jennifer Thomas, 7, 8</textarea>
-                </div>
+<div class="container">
+    <header>
+        <div class="header-top">
+            <div class="logo-area"><i class="fas fa-users"></i><h1>Group Formation Tool</h1></div>
+            <div class="usage-area"><i class="fas fa-chart-line"></i><span id="usageCounter">0</span><span>times used</span></div>
+        </div>
+        <p class="subtitle">Smart AI-Powered Classroom Grouping | Balanced | Targeted | Social Dynamics</p>
+    </header>
 
-                <div class="form-group">
-                    <label for="groupType">Group Formation Type:</label>
-                    <select id="groupType">
-                        <option value="balanced">Balanced Groups (mix of skills)</option>
-                        <option value="targeted">Targeted Groups (similar skills)</option>
-                        <option value="social">Social Dynamics Based</option>
-                    </select>
-                </div>
+    <div class="theme-toggle-container"><button id="themeToggle" class="theme-btn"><i class="fas fa-moon"></i> Dark Mode</button></div>
 
-                <div class="form-group">
-                    <label for="groupSize">Group Size:</label>
-                    <input id="groupSize" max="10" min="2" type="number" value="4" />
-                </div>
-
-                <button id="generateBtn">Generate Groups</button>
-                <button class="reset-btn" id="resetBtn">Reset</button>
+    <div class="main-content">
+        <div class="input-section">
+            <h2><i class="fas fa-edit"></i> Input Parameters</h2>
+            <div class="form-group">
+                <label><i class="fas fa-file-csv"></i> Import Students</label>
+                <input type="file" id="fileUpload" accept=".csv,.xlsx">
+                <button id="loadSampleBtn" class="secondary-btn" style="margin-top:8px"><i class="fas fa-database"></i> Load Sample</button>
             </div>
-
-            <div class="output-section">
-                <h2>Generated Groups</h2>
-                
-                <div class="tabs">
-                    <div class="tab active" data-tab="groups">Groups View</div>
-                    <div class="tab" data-tab="stats">Statistics</div>
-                </div>
-                
-                <div class="tab-content active" id="groupsTab">
-                    <div id="groupsContainer">
-                        <p>Groups will be generated here. Click "Generate Groups" to start.</p>
-                    </div>
-                </div>
-                
-                <div class="tab-content" id="statsTab">
-                    <div class="stats">
-                        <div class="stat-box" style="background: linear-gradient(to right, var(--primary), var(--secondary));">
-                            <div class="stat-value" id="totalStudents">0</div>
-                            <div class="stat-label">Total Students</div>
-                        </div>
-                        <div class="stat-box" style="background: linear-gradient(to right, var(--accent1), var(--accent2));">
-                            <div class="stat-value" id="totalGroups">0</div>
-                            <div class="stat-label">Total Groups</div>
-                        </div>
-                        <div class="stat-box" style="background: linear-gradient(to right, var(--success), #20c997);">
-                            <div class="stat-value" id="avgSkill">0</div>
-                            <div class="stat-label">Avg. Skill</div>
-                        </div>
-                        <div class="stat-box" style="background: linear-gradient(to right, var(--info), #17a2b8);">
-                            <div class="stat-value" id="avgSocial">0</div>
-                            <div class="stat-label">Avg. Social</div>
-                        </div>
-                    </div>
-                    
-                    <div class="skill-distribution">
-                        <h3>Skill Level Distribution</h3>
-                        <div class="bar" id="skillBar"></div>
-                        
-                        <h3>Social Dynamics Distribution</h3>
-                        <div class="bar" id="socialBar"></div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <button class="export-btn" id="exportPdfBtn">Export as PDF</button>
-                    <button class="export-btn" id="exportWordBtn">Export as Word</button>
-                </div>
+            <div class="form-group">
+                <label><i class="fas fa-list"></i> Student List (Name, Skill 1-10, Social 1-10):</label>
+                <textarea id="students" placeholder="Name, Skill, Social&#10;John Doe, 7, 8&#10;Jane Smith, 5, 6"></textarea>
+                <div id="autoSaveIndicator" class="auto-save-info"><i class="fas fa-save"></i> Auto-saved</div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Group Type:</label><select id="groupType"><option value="balanced">Balanced Groups</option><option value="targeted">Targeted Groups</option><option value="social">Social Dynamics</option></select></div>
+                <div class="form-group"><label>Group Size:</label><input id="groupSize" type="number" min="2" max="10" value="4"></div>
+            </div>
+            <details style="margin:15px 0; background:#f8f9fa; padding:12px; border-radius:8px">
+                <summary style="cursor:pointer; font-weight:600">Advanced Options</summary>
+                <div class="form-group"><label>Conflict Pairs:</label><input id="conflictPairs" placeholder="John Doe,Jane Smith"></div>
+                <div class="form-group"><label>Assign Leaders:</label><label class="checkbox-label"><input type="checkbox" id="assignLeaders"> Auto-assign leaders</label></div>
+            </details>
+            <div class="button-group">
+                <button id="generateBtn" class="primary-btn"><i class="fas fa-magic"></i> Generate Groups</button>
+                <button id="resetBtn" class="reset-btn"><i class="fas fa-undo-alt"></i> Reset</button>
+                <button id="randomizeBtn" class="secondary-btn"><i class="fas fa-random"></i> Randomize</button>
+            </div>
+            <div class="export-group">
+                <button id="exportPdfBtn" class="export-btn pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button id="exportWordBtn" class="export-btn word"><i class="fas fa-file-word"></i> Word</button>
+                <button id="exportTxtBtn" class="export-btn txt"><i class="fas fa-file-alt"></i> TXT</button>
+                <button id="exportExcelBtn" class="export-btn excel"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+            <div class="share-group">
+                <span>Share:</span>
+                <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                <button class="share-btn" data-platform="copy"><i class="fas fa-link"></i></button>
             </div>
         </div>
 
-        <footer>
-            <p>Group Formation Tool © 2025 | Created for Educators</p>
-        </footer>
+        <div class="output-section">
+            <h2><i class="fas fa-chalkboard"></i> Generated Groups</h2>
+            <div class="tabs"><div class="tab active" data-tab="groups"><i class="fas fa-users"></i> Groups</div><div class="tab" data-tab="stats"><i class="fas fa-chart-bar"></i> Stats</div></div>
+            <div class="tab-content active" id="groupsTab"><div id="groupsContainer"><div class="placeholder">Click Generate Groups</div></div></div>
+            <div class="tab-content" id="statsTab">
+                <div class="stats-grid">
+                    <div class="stat-card primary"><div class="stat-value" id="totalStudents">0</div><div>Total Students</div></div>
+                    <div class="stat-card primary"><div class="stat-value" id="totalGroups">0</div><div>Total Groups</div></div>
+                    <div class="stat-card success"><div class="stat-value" id="avgSkill">0</div><div>Avg Skill</div></div>
+                    <div class="stat-card success"><div class="stat-value" id="avgSocial">0</div><div>Avg Social</div></div>
+                    <div class="stat-card warning"><div class="stat-value" id="groupQuality">0%</div><div>Quality Score</div></div>
+                </div>
+                <div class="distribution"><h3>Skill Distribution</h3><div class="bar-container"><div class="bar" id="skillBar"></div></div></div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elements
-            const generateBtn = document.getElementById('generateBtn');
-            const resetBtn = document.getElementById('resetBtn');
-            const exportPdfBtn = document.getElementById('exportPdfBtn');
-            const exportWordBtn = document.getElementById('exportWordBtn');
-            const studentsTextarea = document.getElementById('students');
-            const groupTypeSelect = document.getElementById('groupType');
-            const groupSizeInput = document.getElementById('groupSize');
-            const groupsContainer = document.getElementById('groupsContainer');
-            const tabs = document.querySelectorAll('.tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            // Stats elements
-            const totalStudentsEl = document.getElementById('totalStudents');
-            const totalGroupsEl = document.getElementById('totalGroups');
-            const avgSkillEl = document.getElementById('avgSkill');
-            const avgSocialEl = document.getElementById('avgSocial');
-            const skillBarEl = document.getElementById('skillBar');
-            const socialBarEl = document.getElementById('socialBar');
-            
-            // Sample data for demonstration
-            const sampleStudents = [
-                { name: "John Doe", skill: 7, social: 8 },
-                { name: "Jane Smith", skill: 5, social: 6 },
-                { name: "Michael Johnson", skill: 9, social: 7 },
-                { name: "Sarah Williams", skill: 6, social: 9 },
-                { name: "David Brown", skill: 8, social: 5 },
-                { name: "Emily Jones", skill: 4, social: 7 },
-                { name: "Robert Miller", skill: 7, social: 6 },
-                { name: "Lisa Davis", skill: 9, social: 8 },
-                { name: "James Wilson", skill: 5, social: 5 },
-                { name: "Jessica Taylor", skill: 6, social: 7 },
-                { name: "Daniel Anderson", skill: 8, social: 6 },
-                { name: "Jennifer Thomas", skill: 7, social: 8 }
-            ];
-            
-            // Initialize with sample data
-            let students = [...sampleStudents];
-            let groups = [];
-            
-            // Tab functionality
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.getAttribute('data-tab');
-                    
-                    // Deactivate all tabs
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tabContents.forEach(tc => tc.classList.remove('active'));
-                    
-                    // Activate current tab
-                    tab.classList.add('active');
-                    document.getElementById(`${tabId}Tab`).classList.add('active');
-                });
-            });
-            
-            // Parse student data from textarea
-            function parseStudents() {
-                const text = studentsTextarea.value;
-                const lines = text.split('\n');
-                students = [];
-                
-                for (const line of lines) {
-                    if (line.trim() === '') continue;
-                    
-                    const parts = line.split(',');
-                    if (parts.length >= 3) {
-                        const name = parts[0].trim();
-                        const skill = parseInt(parts[1].trim());
-                        const social = parseInt(parts[2].trim());
-                        
-                        if (name && !isNaN(skill) && !isNaN(social)) {
-                            students.push({ name, skill, social });
-                        }
-                    }
-                }
-                
-                return students;
-            }
-            
-            // Generate groups based on selected algorithm
-            function generateGroups() {
-                parseStudents();
-                const groupSize = parseInt(groupSizeInput.value);
-                const groupType = groupTypeSelect.value;
-                
-                if (students.length === 0) {
-                    alert('Please enter valid student data.');
-                    return;
-                }
-                
-                if (isNaN(groupSize) || groupSize < 2 || groupSize > 10) {
-                    alert('Group size must be between 2 and 10.');
-                    return;
-                }
-                
-                // Clear previous groups
-                groups = [];
-                
-                // Copy students array for manipulation
-                let remainingStudents = [...students];
-                
-                // Different algorithms based on group type
-                if (groupType === 'balanced') {
-                    // Sort by skill (high to low) for balanced distribution
-                    remainingStudents.sort((a, b) => b.skill - a.skill);
-                } else if (groupType === 'targeted') {
-                    // Sort by skill (low to high) for similar groups
-                    remainingStudents.sort((a, b) => a.skill - b.skill);
-                } else if (groupType === 'social') {
-                    // Sort by social dynamics (high to low)
-                    remainingStudents.sort((a, b) => b.social - a.social);
-                }
-                
-                // Calculate number of groups needed
-                const numGroups = Math.ceil(remainingStudents.length / groupSize);
-                
-                // Create empty groups
-                for (let i = 0; i < numGroups; i++) {
-                    groups.push([]);
-                }
-                
-                // Distribute students to groups
-                if (groupType === 'balanced') {
-                    // Distribute high-skilled students first to balance groups
-                    for (let i = 0; i < remainingStudents.length; i++) {
-                        const groupIndex = i % numGroups;
-                        groups[groupIndex].push(remainingStudents[i]);
-                    }
-                } else {
-                    // For targeted and social, fill groups sequentially
-                    for (let i = 0; i < remainingStudents.length; i++) {
-                        const groupIndex = Math.floor(i / groupSize);
-                        if (groupIndex < groups.length) {
-                            groups[groupIndex].push(remainingStudents[i]);
-                        }
-                    }
-                }
-                
-                // Display groups
-                displayGroups();
-                
-                // Update statistics
-                updateStatistics();
-            }
-            
-            // Display groups in the UI
-            function displayGroups() {
-                groupsContainer.innerHTML = '';
-                
-                if (groups.length === 0) {
-                    groupsContainer.innerHTML = '<p>No groups generated yet.</p>';
-                    return;
-                }
-                
-                groups.forEach((group, index) => {
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'group';
-                    
-                    const header = document.createElement('div');
-                    header.className = 'group-header';
-                    header.textContent = `Group ${index + 1} (${group.length} members)`;
-                    
-                    const membersDiv = document.createElement('div');
-                    membersDiv.className = 'group-members';
-                    
-                    // Calculate average skill and social for this group
-                    let totalSkill = 0;
-                    let totalSocial = 0;
-                    
-                    group.forEach(student => {
-                        totalSkill += student.skill;
-                        totalSocial += student.social;
-                        
-                        const memberDiv = document.createElement('div');
-                        memberDiv.className = 'member';
-                        
-                        memberDiv.innerHTML = `
-                            <div>${student.name}</div>
-                            <div>
-                                <span class="member-skill">Skill: ${student.skill}</span>
-                                <span> | </span>
-                                <span>Social: ${student.social}</span>
-                            </div>
-                        `;
-                        
-                        membersDiv.appendChild(memberDiv);
-                    });
-                    
-                    const avgGroupSkill = (totalSkill / group.length).toFixed(1);
-                    const avgGroupSocial = (totalSocial / group.length).toFixed(1);
-                    
-                    const statsDiv = document.createElement('div');
-                    statsDiv.style.padding = '10px';
-                    statsDiv.style.background = '#e9ecef';
-                    statsDiv.style.fontSize = '0.9rem';
-                    statsDiv.innerHTML = `Avg. Skill: <strong>${avgGroupSkill}</strong> | Avg. Social: <strong>${avgGroupSocial}</strong>`;
-                    
-                    groupDiv.appendChild(header);
-                    groupDiv.appendChild(membersDiv);
-                    groupDiv.appendChild(statsDiv);
-                    
-                    groupsContainer.appendChild(groupDiv);
-                });
-            }
-            
-            // Update statistics
-            function updateStatistics() {
-                if (students.length === 0) return;
-                
-                // Calculate totals
-                totalStudentsEl.textContent = students.length;
-                totalGroupsEl.textContent = groups.length;
-                
-                // Calculate averages
-                const totalSkill = students.reduce((sum, student) => sum + student.skill, 0);
-                const totalSocial = students.reduce((sum, student) => sum + student.social, 0);
-                
-                const avgSkill = (totalSkill / students.length).toFixed(1);
-                const avgSocial = (totalSocial / students.length).toFixed(1);
-                
-                avgSkillEl.textContent = avgSkill;
-                avgSocialEl.textContent = avgSocial;
-                
-                // Update skill distribution bars (simplified)
-                skillBarEl.style.width = `${avgSkill * 10}%`;
-                socialBarEl.style.width = `${avgSocial * 10}%`;
-            }
-            
-            // Export as PDF
-            function exportAsPdf() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                // Title
-                doc.setFontSize(20);
-                doc.setTextColor(78, 84, 200);
-                doc.text('Group Formation Report', 105, 15, { align: 'center' });
-                
-                // Summary
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.text(`Total Students: ${students.length}`, 20, 25);
-                doc.text(`Total Groups: ${groups.length}`, 20, 32);
-                
-                const totalSkill = students.reduce((sum, student) => sum + student.skill, 0);
-                const totalSocial = students.reduce((sum, student) => sum + student.social, 0);
-                const avgSkill = (totalSkill / students.length).toFixed(1);
-                const avgSocial = (totalSocial / students.length).toFixed(1);
-                
-                doc.text(`Average Skill Level: ${avgSkill}`, 20, 39);
-                doc.text(`Average Social Dynamics: ${avgSocial}`, 20, 46);
-                
-                // Groups
-                let y = 60;
-                groups.forEach((group, index) => {
-                    if (y > 240) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    
-                    doc.setFontSize(14);
-                    doc.setTextColor(78, 84, 200);
-                    doc.text(`Group ${index + 1} (${group.length} members)`, 20, y);
-                    y += 10;
-                    
-                    doc.setFontSize(10);
-                    doc.setTextColor(0, 0, 0);
-                    
-                    // Calculate averages for this group
-                    let groupSkill = 0;
-                    let groupSocial = 0;
-                    
-                    group.forEach(student => {
-                        if (y > 270) {
-                            doc.addPage();
-                            y = 20;
-                        }
-                        
-                        doc.text(`${student.name} - Skill: ${student.skill}, Social: ${student.social}`, 25, y);
-                        y += 7;
-                        
-                        groupSkill += student.skill;
-                        groupSocial += student.social;
-                    });
-                    
-                    const avgGroupSkill = (groupSkill / group.length).toFixed(1);
-                    const avgGroupSocial = (groupSocial / group.length).toFixed(1);
-                    
-                    doc.setFontSize(10);
-                    doc.setTextColor(128, 0, 0);
-                    doc.text(`Group Averages - Skill: ${avgGroupSkill}, Social: ${avgGroupSocial}`, 25, y);
-                    y += 15;
-                });
-                
-                // Save the PDF
-                doc.save('group-formation-report.pdf');
-            }
-            
-            // Export as Word (simulated with a data URI)
-            function exportAsWord() {
-                // Create HTML content for the Word document
-                let htmlContent = `
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Group Formation Report</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; }
-                            h1 { color: #4e54c8; }
-                            h2 { color: #4e54c8; }
-                            table { border-collapse: collapse; width: 100%; }
-                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                            th { background-color: #f2f2f2; }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>Group Formation Report</h1>
-                        <p><strong>Total Students:</strong> ${students.length}</p>
-                        <p><strong>Total Groups:</strong> ${groups.length}</p>
-                `;
-                
-                const totalSkill = students.reduce((sum, student) => sum + student.skill, 0);
-                const totalSocial = students.reduce((sum, student) => sum + student.social, 0);
-                const avgSkill = (totalSkill / students.length).toFixed(1);
-                const avgSocial = (totalSocial / students.length).toFixed(1);
-                
-                htmlContent += `
-                    <p><strong>Average Skill Level:</strong> ${avgSkill}</p>
-                    <p><strong>Average Social Dynamics:</strong> ${avgSocial}</p>
-                `;
-                
-                groups.forEach((group, index) => {
-                    htmlContent += `<h2>Group ${index + 1} (${group.length} members)</h2>`;
-                    htmlContent += `<table>
-                        <tr>
-                            <th>Name</th>
-                            <th>Skill Level</th>
-                            <th>Social Dynamics</th>
-                        </tr>`;
-                    
-                    let groupSkill = 0;
-                    let groupSocial = 0;
-                    
-                    group.forEach(student => {
-                        htmlContent += `
-                            <tr>
-                                <td>${student.name}</td>
-                                <td>${student.skill}</td>
-                                <td>${student.social}</td>
-                            </tr>`;
-                        
-                        groupSkill += student.skill;
-                        groupSocial += student.social;
-                    });
-                    
-                    const avgGroupSkill = (groupSkill / group.length).toFixed(1);
-                    const avgGroupSocial = (groupSocial / group.length).toFixed(1);
-                    
-                    htmlContent += `
-                        <tr>
-                            <td><strong>Group Averages</strong></td>
-                            <td><strong>${avgGroupSkill}</strong></td>
-                            <td><strong>${avgGroupSocial}</strong></td>
-                        </tr>
-                    </table>`;
-                });
-                
-                htmlContent += `</body></html>`;
-                
-                // Create a Blob and download link
-                const blob = new Blob([htmlContent], { type: 'application/msword' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'group-formation-report.doc';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-            
-            // Reset form
-            function resetForm() {
-                studentsTextarea.value = studentsTextarea.defaultValue;
-                groupTypeSelect.value = 'balanced';
-                groupSizeInput.value = '4';
-                groupsContainer.innerHTML = '<p>Groups will be generated here. Click "Generate Groups" to start.</p>';
-                
-                // Reset statistics
-                totalStudentsEl.textContent = '0';
-                totalGroupsEl.textContent = '0';
-                avgSkillEl.textContent = '0';
-                avgSocialEl.textContent = '0';
-                skillBarEl.style.width = '0%';
-                socialBarEl.style.width = '0%';
-            }
-            
-            // Event listeners
-            generateBtn.addEventListener('click', generateGroups);
-            resetBtn.addEventListener('click', resetForm);
-            exportPdfBtn.addEventListener('click', exportAsPdf);
-            exportWordBtn.addEventListener('click', exportAsWord);
-            
-            // Initialize with sample data
-            displayGroups();
-            updateStatistics();
-        });
-    </script>
+    <div class="reactions-section">
+        <span><i class="fas fa-heart"></i> How useful is this tool?</span>
+        <div class="reactions">
+            <button class="reaction-btn" data-emoji="👍"><span>👍</span> <span class="reaction-count" id="reaction-like">0</span></button>
+            <button class="reaction-btn" data-emoji="❤️"><span>❤️</span> <span class="reaction-count" id="reaction-love">0</span></button>
+            <button class="reaction-btn" data-emoji="😮"><span>😮</span> <span class="reaction-count" id="reaction-wow">0</span></button>
+            <button class="reaction-btn" data-emoji="😢"><span>😢</span> <span class="reaction-count" id="reaction-sad">0</span></button>
+            <button class="reaction-btn" data-emoji="😠"><span>😠</span> <span class="reaction-count" id="reaction-angry">0</span></button>
+            <button class="reaction-btn" data-emoji="😂"><span>😂</span> <span class="reaction-count" id="reaction-laugh">0</span></button>
+            <button class="reaction-btn" data-emoji="🎉"><span>🎉</span> <span class="reaction-count" id="reaction-celebrate">0</span></button>
+        </div>
+    </div>
+    <footer><p>Group Formation Tool © 2025 | Integrated with TiDB + Vercel + Grok API</p></footer>
+</div>
+
+<button id="scrollUpBtn" class="scroll-btn"><i class="fas fa-arrow-up"></i></button>
+<button id="scrollDownBtn" class="scroll-btn"><i class="fas fa-arrow-down"></i></button>
+<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="group-formation-tool.js"></script>
 </body>
 </html>
