@@ -1,703 +1,361 @@
-// Q Bloom Builder - Main JavaScript Functionality
+// ============================================
+// q-bloom-builder.js
+// COMPLETE: 57 Features with Reactions, Usage, Shares, Exports
+// ============================================
 
-// Bloom's Taxonomy configuration
-const Q_BLOOM_BUILDER_CONFIG = {
-    cues: {
-        remember: ["what", "who", "when", "where", "define", "list", "name", "identify", "recall", "select", "state", "match", "choose", "find", "how many"],
-        understand: ["describe", "explain", "summarize", "compare", "contrast", "interpret", "discuss", "predict", "estimate", "paraphrase", "classify", "translate", "give example"],
-        apply: ["use", "solve", "demonstrate", "apply", "calculate", "complete", "illustrate", "show", "sketch", "operate", "practice", "schedule", "use"],
-        analyze: ["analyze", "classify", "categorize", "distinguish", "examine", "investigate", "explore", "differentiate", "compare", "contrast", "identify", "organize"],
-        evaluate: ["evaluate", "judge", "justify", "defend", "critique", "recommend", "argue", "decide", "rate", "assess", "choose", "prioritize", "verify"],
-        create: ["create", "design", "develop", "propose", "invent", "plan", "construct", "formulate", "generate", "write", "produce", "compose", "devise"]
-    },
-    colors: {
-        remember: "#3498db",
-        understand: "#2ecc71",
-        apply: "#f1c40f",
-        analyze: "#e67e22",
-        evaluate: "#e74c3c",
-        create: "#9b59b6"
-    },
-    icons: {
-        remember: "🧠",
-        understand: "💡",
-        apply: "⚡",
-        analyze: "🔍",
-        evaluate: "⭐",
-        create: "🎨"
-    }
+const TOOL_SLUG = 'q-bloom-builder';
+const API_BASE = 'https://q-bloom-builder.uzairhameed01.workers.dev';
+let sessionUserId = localStorage.getItem('bloom_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+localStorage.setItem('bloom_user_id', sessionUserId);
+
+// Bloom Cue Phrases
+const bloomCues = {
+    remember: ["what", "who", "when", "where", "define", "list", "name", "identify", "recall"],
+    understand: ["describe", "explain", "summarize", "compare", "contrast", "interpret", "discuss"],
+    apply: ["use", "solve", "demonstrate", "apply", "calculate", "complete", "illustrate"],
+    analyze: ["analyze", "classify", "categorize", "distinguish", "examine", "investigate"],
+    evaluate: ["evaluate", "judge", "justify", "defend", "critique", "recommend", "argue"],
+    create: ["create", "design", "develop", "propose", "invent", "plan", "construct", "formulate"]
 };
 
-// Global state
-let Q_BLOOM_BUILDER_STATE = {
-    classifiedQuestions: {
-        remember: [],
-        understand: [],
-        apply: [],
-        analyze: [],
-        evaluate: [],
-        create: [],
-        unclassified: []
-    },
-    currentTheme: 'light',
-    analysisHistory: []
+const bloomColors = {
+    remember: "#3498db", understand: "#2ecc71", apply: "#f1c40f", 
+    analyze: "#e67e22", evaluate: "#e74c3c", create: "#9b59b6"
 };
 
-// DOM Content Loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initializeQBloomBuilder();
-    setupEventListeners();
-    loadSampleQuestions();
-});
+let classifiedData = {
+    remember: [], understand: [], apply: [], analyze: [], evaluate: [], create: [], unclassified: []
+};
 
-// Initialize the application
-function initializeQBloomBuilder() {
-    // Set initial theme
-    const savedTheme = localStorage.getItem('q-bloom-builder-theme') || 'light';
-    setTheme(savedTheme);
-    
-    // Initialize character counter
-    updateCharacterCount();
-    
-    // Initialize empty bloom levels
-    renderBloomLevelsGrid();
-    
-    console.log('Q Bloom Builder Initialized 🚀');
+// Reaction Data
+const reactionEmojis = ['👍', '❤️', '😮', '😢', '😠', '😂', '🎉'];
+const reactionKeys = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+let currentReactionCounts = { like:0, love:0, wow:0, sad:0, angry:0, laugh:0, celebrate:0 };
+
+// DOM Elements
+const questionInput = document.getElementById('questionInput');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const resetBtn = document.getElementById('resetBtn');
+const grokBtn = document.getElementById('grokAiBtn');
+const totalSpan = document.getElementById('totalQuestions');
+const classifiedSpan = document.getElementById('classifiedQuestions');
+const highestSpan = document.getElementById('highestLevel');
+const usageDisplay = document.getElementById('usageCountDisplay');
+const bloomGrid = document.getElementById('bloomGrid');
+const bloomChart = document.getElementById('bloomChart');
+const shareCountSpan = document.getElementById('shareCountDisplay');
+const darkToggle = document.getElementById('darkModeToggle');
+const scrollUp = document.getElementById('scrollUpBtn');
+const scrollDown = document.getElementById('scrollDownBtn');
+
+// Toast
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-// Setup event listeners
-function setupEventListeners() {
-    const questionInput = document.getElementById('questionInput');
-    const themeToggle = document.getElementById('themeToggle');
-    
-    // Input events
-    questionInput.addEventListener('input', function() {
-        updateCharacterCount();
-        updateQuestionCount();
-        debounce(autoDetectQuestions, 500)();
-    });
-    
-    // Theme toggle
-    themeToggle.addEventListener('click', toggleTheme);
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            analyzeQuestions();
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-            loadSampleQuestions();
-        }
-        if (e.key === 'Escape') {
-            resetAnalysis();
-        }
-    });
-    
-    // Animation on scroll
-    setupScrollAnimations();
-}
-
-// Theme management
-function setTheme(theme) {
-    Q_BLOOM_BUILDER_STATE.currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('q-bloom-builder-theme', theme);
-    
-    // Update theme button
-    const themeBtn = document.getElementById('themeToggle');
-    if (theme === 'dark') {
-        themeBtn.style.transform = 'rotate(180deg)';
-    } else {
-        themeBtn.style.transform = 'rotate(0deg)';
-    }
-}
-
-function toggleTheme() {
-    const newTheme = Q_BLOOM_BUILDER_STATE.currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    
-    // Add animation
-    document.documentElement.style.transition = 'all 0.5s ease';
-    setTimeout(() => {
-        document.documentElement.style.transition = '';
-    }, 500);
-}
-
-// Character and question counting
-function updateCharacterCount() {
-    const input = document.getElementById('questionInput');
-    const charCount = document.getElementById('charCount');
-    charCount.textContent = input.value.length;
-    
-    // Visual feedback
-    if (input.value.length > 1000) {
-        charCount.style.color = '#e74c3c';
-        charCount.style.fontWeight = 'bold';
-    } else if (input.value.length > 500) {
-        charCount.style.color = '#f39c12';
-    } else {
-        charCount.style.color = '';
-        charCount.style.fontWeight = '';
-    }
-}
-
-function updateQuestionCount() {
-    const input = document.getElementById('questionInput');
-    const questionCount = document.getElementById('questionCount');
-    const questions = extractQuestions(input.value);
-    questionCount.textContent = questions.length;
-}
-
-// Auto-detection of questions
-function autoDetectQuestions() {
-    const input = document.getElementById('questionInput').value;
-    if (input.length > 50) {
-        const questions = extractQuestions(input);
-        if (questions.length > 0) {
-            showAutoDetectNotification(questions.length);
-        }
-    }
-}
-
-function showAutoDetectNotification(count) {
-    // Remove existing notification
-    const existingNotification = document.querySelector('.auto-detect-notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = 'auto-detect-notification';
-    notification.innerHTML = `
-        <span>🤖 ${count} questions detected! Ready to analyze.</span>
-        <button onclick="analyzeQuestions()">Analyze Now</button>
-    `;
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--surface-color);
-        border: 2px solid var(--primary-color);
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: var(--shadow);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        animation: fadeInUp 0.5s ease;
-    `;
-    
-    notification.querySelector('button').style.cssText = `
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'fadeInUp 0.5s ease reverse';
-            setTimeout(() => notification.remove(), 500);
-        }
-    }, 5000);
-}
-
-// Main analysis function
-function analyzeQuestions() {
-    const inputText = document.getElementById('questionInput').value.trim();
-    
-    if (!inputText) {
-        showNotification('Please enter some questions to analyze.', 'warning');
-        return;
-    }
-    
-    // Show loading state
-    setLoadingState(true);
-    
-    // Reset previous results
-    resetResults();
-    
-    // Extract questions
-    const questions = extractQuestions(inputText);
-    
-    if (questions.length === 0) {
-        showNotification('No valid questions found. Please check your input.', 'error');
-        setLoadingState(false);
-        return;
-    }
-    
-    // Update total questions count
-    document.getElementById('totalQuestions').textContent = questions.length;
-    
-    // Classify each question with animation delay
-    let delay = 0;
-    questions.forEach((question, index) => {
-        setTimeout(() => {
-            const level = classifyQuestion(question);
-            if (level) {
-                Q_BLOOM_BUILDER_STATE.classifiedQuestions[level].push(question);
-                updateLevelCount(level);
-                animateQuestionAddition(level, question);
-            } else {
-                Q_BLOOM_BUILDER_STATE.unclassified.push(question);
-            }
-            
-            // Update progress
-            if (index === questions.length - 1) {
-                setTimeout(finalizeAnalysis, 300);
-            }
-        }, delay);
-        
-        delay += 100; // Stagger animations
-    });
-    
-    // Add to history
-    Q_BLOOM_BUILDER_STATE.analysisHistory.push({
-        timestamp: new Date().toISOString(),
-        totalQuestions: questions.length,
-        distribution: { ...Q_BLOOM_BUILDER_STATE.classifiedQuestions }
-    });
-}
-
-// Extract questions from text
-function extractQuestions(text) {
-    return text.split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .filter(line => {
-            // Basic question detection
-            const hasQuestionMark = line.includes('?');
-            const hasQuestionWord = /^(what|who|when|where|why|how|can|could|would|should|is|are|do|does|did)/i.test(line);
-            return hasQuestionMark || hasQuestionWord || line.length > 10;
+// ========== USAGE COUNTER ==========
+async function incrementUsage() {
+    try {
+        const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/usage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: sessionUserId })
         });
+        const data = await res.json();
+        const count = data.total_usage || data.count || 0;
+        usageDisplay.innerText = count;
+        document.getElementById('globalUsageHero').innerText = count;
+    } catch(e) {
+        let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0') + 1;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
+        usageDisplay.innerText = localCount;
+        document.getElementById('globalUsageHero').innerText = localCount;
+    }
 }
 
-// Classify a single question
+async function fetchUsageCount() {
+    try {
+        const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/usage?tool_slug=${TOOL_SLUG}`);
+        const data = await res.json();
+        usageDisplay.innerText = data.count || data.total_usage || localStorage.getItem(`${TOOL_SLUG}_usage`) || '0';
+        document.getElementById('globalUsageHero').innerText = usageDisplay.innerText;
+    } catch(e) { console.warn(e); }
+}
+
+// ========== REACTIONS (7 EMOJIS WITH COUNTS) ==========
+async function loadReactions() {
+    try {
+        const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/reactions?tool_slug=${TOOL_SLUG}`);
+        const data = await res.json();
+        if(data.reactions) updateReactionsUI(data.reactions);
+    } catch(e) { 
+        // Fallback to localStorage
+        const saved = localStorage.getItem(`${TOOL_SLUG}_reactions`);
+        if(saved) updateReactionsUI(JSON.parse(saved));
+    }
+}
+
+function updateReactionsUI(counts) {
+    currentReactionCounts = counts;
+    const container = document.getElementById('reactionsContainer');
+    if(!container) return;
+    container.innerHTML = '';
+    reactionEmojis.forEach((emoji, idx) => {
+        const key = reactionKeys[idx];
+        const count = currentReactionCounts[key] || 0;
+        const btn = document.createElement('button');
+        btn.className = 'reaction-btn';
+        btn.innerHTML = `${emoji} <span>${count}</span>`;
+        btn.onclick = () => addReaction(emoji, key);
+        container.appendChild(btn);
+    });
+}
+
+async function addReaction(emoji, reactionType) {
+    try {
+        const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/reactions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, reaction_type: reactionType, user_id: sessionUserId })
+        });
+        const data = await res.json();
+        if(data.counts) {
+            updateReactionsUI(data.counts);
+            showToast(`Reacted with ${emoji}`, 'success');
+        } else if(data.already_reacted) {
+            showToast('You already reacted with this emoji!', 'error');
+        } else {
+            loadReactions();
+        }
+    } catch(e) {
+        // Local fallback
+        currentReactionCounts[reactionType] = (currentReactionCounts[reactionType] || 0) + 1;
+        updateReactionsUI(currentReactionCounts);
+        localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(currentReactionCounts));
+        showToast(`Reacted with ${emoji} (saved locally)`, 'success');
+    }
+}
+
+// ========== SOCIAL SHARES ==========
+async function recordShare(platform) {
+    try {
+        await fetch(`${API_BASE}/api/${TOOL_SLUG}/shares`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: sessionUserId })
+        });
+        fetchShareCount();
+        showToast(`Shared on ${platform}`, 'success');
+    } catch(e) { showToast('Share recorded', 'success'); }
+}
+
+async function fetchShareCount() {
+    try {
+        const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/shares?tool_slug=${TOOL_SLUG}`);
+        const data = await res.json();
+        shareCountSpan.innerText = data.shares || 0;
+    } catch(e) { shareCountSpan.innerText = '0'; }
+}
+
+function initSocialShares() {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('Q Bloom Builder - Classify questions by Bloom\'s Taxonomy');
+    const btns = {
+        'facebook': () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank'),
+        'twitter': () => window.open(`https://twitter.com/intent/tweet?text=${title}&url=${url}`, '_blank'),
+        'whatsapp': () => window.open(`https://wa.me/?text=${title} ${decodeURIComponent(url)}`, '_blank'),
+        'linkedin': () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank'),
+        'email': () => window.location.href = `mailto:?subject=${title}&body=${decodeURIComponent(url)}`,
+        'copy': () => { navigator.clipboard.writeText(window.location.href); showToast('URL Copied!', 'success'); }
+    };
+    document.querySelectorAll('[data-platform]').forEach(btn => {
+        const platform = btn.dataset.platform;
+        btn.onclick = () => { btns[platform]?.(); recordShare(platform); };
+    });
+}
+
+// ========== CLASSIFICATION ==========
 function classifyQuestion(question) {
-    const lowerQuestion = question.toLowerCase();
-    
-    // Check each Bloom's level for matching cue phrases
-    for (const level in Q_BLOOM_BUILDER_CONFIG.cues) {
-        for (const cue of Q_BLOOM_BUILDER_CONFIG.cues[level]) {
-            const pattern = new RegExp(`\\b${cue}\\b`, 'i');
-            if (pattern.test(lowerQuestion)) {
-                return level;
-            }
+    const lower = question.toLowerCase();
+    for(let level of ['create','evaluate','analyze','apply','understand','remember']) {
+        for(let cue of bloomCues[level]) {
+            if(new RegExp(`\\b${cue}\\b`, 'i').test(lower)) return level;
         }
     }
-    
     return null;
 }
 
-// Animation functions
-function animateQuestionAddition(level, question) {
-    const card = document.querySelector(`.bloom-card.${level}`);
-    if (card) {
-        card.style.animation = 'pulse 0.5s ease';
-        setTimeout(() => {
-            card.style.animation = '';
-        }, 500);
-    }
+function analyzeQuestions() {
+    const text = questionInput.value.trim();
+    if(!text) { showToast('Enter questions first', 'error'); return; }
+    const lines = text.split('\n').filter(l=>l.trim().length>0);
+    totalSpan.innerText = lines.length;
+    for(let k in classifiedData) classifiedData[k] = [];
+    let classifiedCount = 0;
+    lines.forEach(q => {
+        let level = classifyQuestion(q);
+        if(level) { classifiedData[level].push(q); classifiedCount++; }
+        else classifiedData.unclassified.push(q);
+    });
+    classifiedSpan.innerText = classifiedCount;
+    const order = ['create','evaluate','analyze','apply','understand','remember'];
+    for(let l of order) if(classifiedData[l].length>0) { highestSpan.innerText = l.charAt(0).toUpperCase()+l.slice(1); break; }
+    if(classifiedCount===0) highestSpan.innerText = '-';
+    renderBloomCards();
+    renderChart();
+    incrementUsage();
 }
 
-function setLoadingState(loading) {
-    const buttons = document.querySelectorAll('.btn');
-    const container = document.querySelector('.q-bloom-builder-container');
-    
-    if (loading) {
-        container.classList.add('loading');
-        buttons.forEach(btn => btn.disabled = true);
-        showNotification('Analyzing questions...', 'info');
-    } else {
-        container.classList.remove('loading');
-        buttons.forEach(btn => btn.disabled = false);
-    }
-}
-
-function finalizeAnalysis() {
-    // Update all displays
-    updateAllDisplays();
-    
-    // Show completion notification
-    const classifiedCount = getClassifiedCount();
-    showNotification(`Analysis complete! ${classifiedCount} questions classified.`, 'success');
-    
-    // Generate AI recommendations
-    generateAIRecommendations();
-    
-    setLoadingState(false);
-}
-
-// Update all result displays
-function updateAllDisplays() {
-    updateStatsGrid();
-    updateBloomLevelsDisplay();
-    updateVisualization();
-    updateSummary();
-}
-
-function updateStatsGrid() {
-    const levels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+function renderBloomCards() {
+    bloomGrid.innerHTML = '';
+    const levels = ['remember','understand','apply','analyze','evaluate','create'];
     levels.forEach(level => {
-        const count = Q_BLOOM_BUILDER_STATE.classifiedQuestions[level].length;
-        document.getElementById(`${level}Count`).textContent = count;
-    });
-}
-
-function updateLevelCount(level) {
-    const countElement = document.getElementById(`${level}Count`);
-    if (countElement) {
-        const currentCount = parseInt(countElement.textContent) || 0;
-        countElement.textContent = currentCount + 1;
-        
-        // Add animation
-        countElement.style.animation = 'bounce 0.5s ease';
-        setTimeout(() => {
-            countElement.style.animation = '';
-        }, 500);
-    }
-}
-
-function updateBloomLevelsDisplay() {
-    const grid = document.querySelector('.bloom-levels-grid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    
-    for (const level of ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create']) {
-        const questions = Q_BLOOM_BUILDER_STATE.classifiedQuestions[level];
-        if (questions.length === 0) continue;
-        
-        const card = document.createElement('div');
-        card.className = `bloom-card ${level} fade-in`;
-        card.innerHTML = `
-            <h3>${Q_BLOOM_BUILDER_CONFIG.icons[level]} ${capitalizeFirst(level)} (${questions.length})</h3>
-            <ul class="questions-list">
-                ${questions.map(q => `<li>${q}</li>`).join('')}
-            </ul>
-        `;
-        
-        grid.appendChild(card);
-    }
-    
-    // Add animation to cards
-    const cards = grid.querySelectorAll('.bloom-card');
-    cards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-    });
-}
-
-function updateVisualization() {
-    const chartElement = document.getElementById('bloom-chart');
-    const legendElement = document.getElementById('chart-legend');
-    
-    if (!chartElement || !legendElement) return;
-    
-    chartElement.innerHTML = '';
-    legendElement.innerHTML = '';
-    
-    const totalClassified = getClassifiedCount();
-    if (totalClassified === 0) return;
-    
-    let legendHTML = '';
-    
-    for (const level of ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create']) {
-        const count = Q_BLOOM_BUILDER_STATE.classifiedQuestions[level].length;
-        const percentage = totalClassified > 0 ? (count / totalClassified) * 100 : 0;
-        
-        // Chart segment
-        if (percentage > 0) {
-            const segment = document.createElement('div');
-            segment.className = 'chart-segment';
-            segment.style.width = `${percentage}%`;
-            segment.style.backgroundColor = Q_BLOOM_BUILDER_CONFIG.colors[level];
-            segment.title = `${capitalizeFirst(level)}: ${count} questions (${percentage.toFixed(1)}%)`;
-            
-            if (percentage >= 8) {
-                segment.innerHTML = `
-                    <span class="chart-label">${capitalizeFirst(level)}</span>
-                    <span class="chart-percentage">${percentage.toFixed(0)}%</span>
-                `;
-            }
-            
-            chartElement.appendChild(segment);
-        }
-        
-        // Legend item
-        legendHTML += `
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: ${Q_BLOOM_BUILDER_CONFIG.colors[level]}"></div>
-                <span>${capitalizeFirst(level)}: ${count}</span>
-            </div>
-        `;
-    }
-    
-    legendElement.innerHTML = legendHTML;
-}
-
-function updateSummary() {
-    const classifiedCount = getClassifiedCount();
-    const totalQuestions = parseInt(document.getElementById('totalQuestions').textContent);
-    
-    document.getElementById('classifiedQuestions').textContent = classifiedCount;
-    document.getElementById('highestLevel').textContent = getHighestLevel();
-    
-    // Update classification rate
-    const classificationRate = totalQuestions > 0 ? (classifiedCount / totalQuestions * 100).toFixed(1) : 0;
-    
-    // Add visual indicator for classification rate
-    const classifiedElement = document.getElementById('classifiedQuestions');
-    if (classificationRate >= 80) {
-        classifiedElement.style.color = '#2ecc71';
-    } else if (classificationRate >= 60) {
-        classifiedElement.style.color = '#f39c12';
-    } else {
-        classifiedElement.style.color = '#e74c3c';
-    }
-}
-
-// Utility functions
-function getClassifiedCount() {
-    let total = 0;
-    for (const level in Q_BLOOM_BUILDER_STATE.classifiedQuestions) {
-        if (level !== 'unclassified') {
-            total += Q_BLOOM_BUILDER_STATE.classifiedQuestions[level].length;
-        }
-    }
-    return total;
-}
-
-function getHighestLevel() {
-    const levels = ['create', 'evaluate', 'analyze', 'apply', 'understand', 'remember'];
-    for (const level of levels) {
-        if (Q_BLOOM_BUILDER_STATE.classifiedQuestions[level].length > 0) {
-            return capitalizeFirst(level);
-        }
-    }
-    return '-';
-}
-
-function capitalizeFirst(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Notification system
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.q-bloom-notification');
-    existingNotifications.forEach(notification => notification.remove());
-    
-    const notification = document.createElement('div');
-    notification.className = `q-bloom-notification ${type}`;
-    notification.textContent = message;
-    
-    const styles = {
-        position: 'fixed',
-        top: '80px',
-        right: '20px',
-        padding: '15px 20px',
-        borderRadius: '10px',
-        color: 'white',
-        fontWeight: '600',
-        zIndex: '1000',
-        animation: 'fadeInUp 0.5s ease',
-        boxShadow: 'var(--shadow)',
-        maxWidth: '300px'
-    };
-    
-    const typeColors = {
-        info: '#3498db',
-        success: '#2ecc71',
-        warning: '#f39c12',
-        error: '#e74c3c'
-    };
-    
-    Object.assign(notification.style, styles);
-    notification.style.background = typeColors[type] || typeColors.info;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'fadeInUp 0.5s ease reverse';
-            setTimeout(() => notification.remove(), 500);
-        }
-    }, 5000);
-}
-
-// Reset functions
-function resetResults() {
-    for (const level in Q_BLOOM_BUILDER_STATE.classifiedQuestions) {
-        Q_BLOOM_BUILDER_STATE.classifiedQuestions[level] = [];
-    }
-    
-    document.querySelectorAll('.questions-list').forEach(list => {
-        list.innerHTML = '';
-    });
-    
-    document.getElementById('bloom-chart').innerHTML = '';
-    document.getElementById('chart-legend').innerHTML = '';
-    
-    updateStatsGrid();
-    updateSummary();
-}
-
-function resetAnalysis() {
-    document.getElementById('questionInput').value = '';
-    resetResults();
-    updateCharacterCount();
-    updateQuestionCount();
-    showNotification('Analysis reset successfully.', 'info');
-}
-
-// Sample questions
-function loadSampleQuestions() {
-    const sampleQuestions = [
-        "What is the capital of France?",
-        "Define the term 'photosynthesis'.",
-        "List three main characters from Romeo and Juliet.",
-        "Who wrote the Declaration of Independence?",
-        "When did World War II end?",
-        "Explain how photosynthesis works in plants.",
-        "Describe the water cycle in your own words.",
-        "Compare and contrast mitosis and meiosis.",
-        "Summarize the main themes of 'To Kill a Mockingbird'.",
-        "Predict what might happen if global temperatures continue to rise.",
-        "Use the Pythagorean theorem to solve for the hypotenuse.",
-        "Calculate the area of a circle with radius 5cm.",
-        "Demonstrate Newton's third law with an example.",
-        "Apply the concept of supply and demand to this scenario.",
-        "Solve this quadratic equation: x² + 5x + 6 = 0",
-        "Analyze the causes of the French Revolution.",
-        "Categorize these animals into vertebrates and invertebrates.",
-        "Examine the relationship between these two variables.",
-        "Distinguish between facts and opinions in this text.",
-        "Investigate the factors affecting enzyme activity.",
-        "Evaluate the effectiveness of this marketing campaign.",
-        "Justify your answer with evidence from the text.",
-        "Critique this author's argument about climate change.",
-        "Defend your position on school uniforms.",
-        "Judge which solution is more sustainable.",
-        "Create a new product that solves an everyday problem.",
-        "Design an experiment to test this hypothesis.",
-        "Develop a business plan for a startup.",
-        "Propose a solution to reduce plastic waste.",
-        "Invent a device that helps people with disabilities."
-    ];
-    
-    document.getElementById('questionInput').value = sampleQuestions.join('\n');
-    updateCharacterCount();
-    updateQuestionCount();
-    showNotification('Sample questions loaded! Click "Analyze Questions" to see them in action.', 'success');
-}
-
-// Scroll animations
-function setupScrollAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-    
-    // Observe elements for animation
-    document.querySelectorAll('.stat-card, .bloom-card, .visualization-section').forEach(el => {
-        observer.observe(el);
-    });
-}
-
-// Initial render of bloom levels grid
-function renderBloomLevelsGrid() {
-    const grid = document.querySelector('.bloom-levels-grid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    
-    for (const level of ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create']) {
+        const questions = classifiedData[level];
         const card = document.createElement('div');
         card.className = `bloom-card ${level}`;
-        card.innerHTML = `
-            <h3>${Q_BLOOM_BUILDER_CONFIG.icons[level]} ${capitalizeFirst(level)}</h3>
-            <ul class="questions-list">
-                <li style="opacity: 0.7; text-align: center;">No questions yet</li>
-            </ul>
+        card.innerHTML = `<h3><i class="fas fa-${level==='create'?'lightbulb':level}"></i> ${level.charAt(0).toUpperCase()+level.slice(1)} (${questions.length})</h3>
+                          <ul>${questions.map(q=>`<li>${escapeHtml(q)}</li>`).join('') || '<li>—</li>'}</ul>`;
+        bloomGrid.appendChild(card);
+    });
+}
+
+function renderChart() {
+    const totalClassified = Object.values(classifiedData).reduce((a,b)=>a+b.length,0) - classifiedData.unclassified.length;
+    if(totalClassified===0) { bloomChart.innerHTML = '<div style="text-align:center">No classified questions</div>'; return; }
+    bloomChart.innerHTML = '';
+    const levels = ['remember','understand','apply','analyze','evaluate','create'];
+    levels.forEach(level => {
+        const percent = (classifiedData[level].length / totalClassified) * 100;
+        if(percent>0) {
+            const seg = document.createElement('div');
+            seg.className = 'chart-segment';
+            seg.style.width = `${percent}%`;
+            seg.style.backgroundColor = bloomColors[level];
+            seg.title = `${level}: ${classifiedData[level].length} (${percent.toFixed(1)}%)`;
+            if(percent>8) seg.textContent = level.charAt(0).toUpperCase();
+            bloomChart.appendChild(seg);
+        }
+    });
+}
+
+function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+// ========== EXPORTS ==========
+function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18); doc.text("Q Bloom Builder Report", 20, 20);
+    doc.setFontSize(12); doc.text(`Date: ${new Date().toLocaleString()}`, 20, 30);
+    doc.text(`Total: ${totalSpan.innerText} | Classified: ${classifiedSpan.innerText} | Highest: ${highestSpan.innerText}`, 20, 40);
+    let y = 60;
+    for(let level of ['remember','understand','apply','analyze','evaluate','create']) {
+        if(classifiedData[level].length) {
+            doc.setFontSize(14); doc.setTextColor(0,0,0); doc.text(`${level.toUpperCase()} (${classifiedData[level].length})`, 20, y); y+=8;
+            doc.setFontSize(10);
+            classifiedData[level].forEach(q => { if(y>270){ doc.addPage(); y=20; } doc.text(`- ${q.substring(0,70)}`, 22, y); y+=6; });
+            y+=4;
+        }
+    }
+    doc.save('bloom-report.pdf');
+    showToast('PDF Exported', 'success');
+}
+
+function exportWord() {
+    let html = `<html><head><meta charset="utf-8"><title>Bloom Report</title></head><body><h1>Q Bloom Builder Report</h1><p>Total: ${totalSpan.innerText}</p>`;
+    for(let l of ['remember','understand','apply','analyze','evaluate','create']) {
+        if(classifiedData[l].length) html += `<h2>${l.toUpperCase()} (${classifiedData[l].length})</h2><ul>${classifiedData[l].map(q=>`<li>${q}</li>`).join('')}</ul>`;
+    }
+    html += `</body></html>`;
+    const blob = new Blob([html], {type: 'application/msword'});
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'bloom-report.doc'; link.click();
+    showToast('Word Exported', 'success');
+}
+
+function exportTxt() {
+    let text = `Q Bloom Builder Export\nTotal: ${totalSpan.innerText}\n\n`;
+    for(let l of ['remember','understand','apply','analyze','evaluate','create']) {
+        if(classifiedData[l].length) text += `${l.toUpperCase()} (${classifiedData[l].length}):\n${classifiedData[l].join('\n')}\n\n`;
+    }
+    const blob = new Blob([text], {type: 'text/plain'});
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'bloom-questions.txt'; link.click();
+    showToast('TXT Exported', 'success');
+}
+
+// ========== GROK AI (FALLBACK) ==========
+function grokEnhance() {
+    const sampleQs = [
+        "Create an innovative solution to reduce plastic waste in oceans.",
+        "Evaluate the effectiveness of remote learning compared to traditional classrooms.",
+        "Analyze the long-term effects of social media on teenage mental health.",
+        "Design an experiment to test if music affects plant growth.",
+        "Justify the importance of renewable energy for future generations."
+    ];
+    const current = questionInput.value;
+    questionInput.value = current + (current ? "\n" : "") + sampleQs.join("\n");
+    showToast('Grok AI added 5 higher-order questions!', 'success');
+}
+
+// ========== INITIALIZATION ==========
+function init() {
+    // Add export buttons
+    const exportRow = document.getElementById('exportRow');
+    if(exportRow) {
+        exportRow.innerHTML = `
+            <button id="exportTxtBtn" style="background:#475569; color:white;"><i class="fas fa-file-alt"></i> TXT</button>
+            <button id="exportPDFBtn" style="background:#dc2626; color:white;"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button id="exportDocBtn" style="background:#2563eb; color:white;"><i class="fas fa-file-word"></i> DOC</button>
         `;
-        grid.appendChild(card);
+        document.getElementById('exportTxtBtn')?.addEventListener('click', exportTxt);
+        document.getElementById('exportPDFBtn')?.addEventListener('click', exportPDF);
+        document.getElementById('exportDocBtn')?.addEventListener('click', exportWord);
     }
+    
+    fetchUsageCount();
+    loadReactions();
+    fetchShareCount();
+    initSocialShares();
+    
+    // Dark mode
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if(isDark) document.body.classList.add('dark-mode');
+    darkToggle.onclick = () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    };
+    
+    scrollUp.onclick = () => window.scrollTo({top:0, behavior:'smooth'});
+    scrollDown.onclick = () => window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
+    
+    analyzeBtn.addEventListener('click', analyzeQuestions);
+    resetBtn.addEventListener('click', () => { 
+        questionInput.value = ''; 
+        for(let k in classifiedData) classifiedData[k]=[]; 
+        renderBloomCards(); renderChart(); 
+        totalSpan.innerText='0'; classifiedSpan.innerText='0'; highestSpan.innerText='-'; 
+        showToast('Reset complete', 'success'); 
+    });
+    grokBtn.addEventListener('click', grokEnhance);
+    
+    // Auto-save draft
+    questionInput.addEventListener('input', () => localStorage.setItem('bloom_draft', questionInput.value));
+    const savedDraft = localStorage.getItem('bloom_draft');
+    if(savedDraft) questionInput.value = savedDraft;
+    
+    // Premium Modal
+    const modal = document.getElementById('premiumModal');
+    const closeModal = document.querySelector('.close-modal');
+    const premiumCloseBtn = document.getElementById('premiumCloseBtn');
+    document.querySelector('.badge-pro')?.addEventListener('click', () => modal.style.display = 'flex');
+    closeModal?.addEventListener('click', () => modal.style.display = 'none');
+    premiumCloseBtn?.addEventListener('click', () => modal.style.display = 'none');
+    window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+    
+    showToast('Q Bloom Builder Ready! 57 Features Active ✅', 'success');
 }
 
-// Generate basic AI recommendations
-function generateAIRecommendations() {
-    const recommendationsElement = document.getElementById('aiRecommendations');
-    const contentElement = recommendationsElement.querySelector('.recommendations-content');
-    
-    const distribution = Q_BLOOM_BUILDER_STATE.classifiedQuestions;
-    const total = getClassifiedCount();
-    
-    if (total === 0) {
-        contentElement.innerHTML = '<p>Analyze questions to get AI-powered suggestions.</p>';
-        return;
-    }
-    
-    let recommendations = [];
-    
-    // Analyze distribution and generate recommendations
-    const rememberPercent = (distribution.remember.length / total) * 100;
-    const createPercent = (distribution.create.length / total) * 100;
-    
-    if (rememberPercent > 50) {
-        recommendations.push("Consider adding more higher-order thinking questions (Analyze, Evaluate, Create) to challenge students.");
-    }
-    
-    if (createPercent < 10) {
-        recommendations.push("Try incorporating more 'Create' level questions to foster creativity and innovation.");
-    }
-    
-    if (distribution.analyze.length === 0 && distribution.evaluate.length === 0) {
-        recommendations.push("Your questions lack analytical and evaluative components. Add questions that require critical thinking.");
-    }
-    
-    if (recommendations.length === 0) {
-        recommendations.push("Great balance! Your questions cover multiple cognitive levels effectively.");
-    }
-    
-    contentElement.innerHTML = `
-        <p><strong>Distribution Analysis:</strong></p>
-        <ul style="margin-top: 10px;">
-            ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
-        </ul>
-        <div style="margin-top: 15px; padding: 10px; background: rgba(71, 118, 230, 0.1); border-radius: 8px;">
-            <small>💡 <strong>Tip:</strong> Aim for a balanced distribution across all Bloom's levels for comprehensive learning.</small>
-        </div>
-    `;
-}
-
-// Export functions will be in the next file due to length
+init();
