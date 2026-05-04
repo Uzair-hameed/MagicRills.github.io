@@ -1,144 +1,285 @@
+// mind-map-generator.js
 // ============================================
-// Mind Map Generator - Complete JavaScript
-// Using Grok API from test-db.js
-// All features working with TiDB
+// FULLY WORKING VERSION - All Features Included
+// Multi-Language | 3 Views | API Integration | Reactions | Usage Counter
+// PDF | DOCX | TXT | CSV File Support
 // ============================================
 
-// Configuration
+// ============================================
+// CONFIGURATION
+// ============================================
 const API_BASE = '/api';
 const TOOL_SLUG = 'mind-map-generator';
-let currentMindMapData = null;
-let currentLanguage = 'en';
-let currentLanguageName = 'English';
 
-// User ID
-let userId = localStorage.getItem('mindmap_user_id');
+// State Variables
+let currentMindMap = null;
+let currentView = 'mindmap';
+let currentZoom = 1;
+let userReactions = JSON.parse(localStorage.getItem('mm_user_reactions') || '{}');
+
+// User Identity
+let userId = localStorage.getItem('mm_user_id');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-    localStorage.setItem('mindmap_user_id', userId);
+    localStorage.setItem('mm_user_id', userId);
 }
-document.getElementById('userId').value = userId;
 
-// User reactions tracking
-let userReactions = JSON.parse(localStorage.getItem('mindmap_user_reactions') || '{}');
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+// Emoji Mapping
+const EMOJI_MAP = {
+    '👍': 'like', '❤️': 'love', '😮': 'wow',
+    '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate'
+};
+
+// Language Detection Patterns
+const LANGUAGE_PATTERNS = {
+    'Urdu': { regex: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/, flag: 'fa-flag-pakistan', color: '#2E7D32' },
+    'Arabic': { regex: /[\u0600-\u06FF\u0750-\u077F]/, flag: 'fa-flag-saudi-arabia', color: '#C2185B' },
+    'Hindi': { regex: /[\u0900-\u097F]/, flag: 'fa-flag-india', color: '#FF6F00' },
+    'Chinese': { regex: /[\u4e00-\u9fff]/, flag: 'fa-flag-china', color: '#D32F2F' },
+    'Spanish': { regex: /el|la|los|las|un|una|y|es|en|por|para|con/i, flag: 'fa-flag-spain', color: '#FFB300' },
+    'French': { regex: /le|la|les|un|une|de|du|des|et|est|sont|pour/i, flag: 'fa-flag-france', color: '#1976D2' },
+    'English': { regex: /the|and|of|to|in|for|on|with|by|this|that/i, flag: 'fa-flag-usa', color: '#0288D1' }
+};
 
 // ============================================
-// Helper Functions
+// HELPER FUNCTIONS
 // ============================================
 
 function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-function showLoading(show, text = 'Processing...') {
-    const overlay = document.getElementById('loadingOverlay');
-    const loadingText = document.getElementById('loadingText');
-    if (show) {
-        loadingText.textContent = text;
-        overlay.style.display = 'flex';
-    } else {
-        overlay.style.display = 'none';
+function toggleLoading(show, message = 'Processing...', showProgress = false) {
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = '<div class="spinner"></div><p id="loadingText">Processing...</p><div class="loading-progress"><div class="progress-bar"><div class="progress-fill"></div></div></div>';
+        document.body.appendChild(overlay);
     }
+    const loadingText = document.getElementById('loadingText');
+    const progressDiv = overlay.querySelector('.loading-progress');
+    if (loadingText) loadingText.textContent = message;
+    if (progressDiv) progressDiv.style.display = showProgress ? 'block' : 'none';
+    overlay.style.display = show ? 'flex' : 'none';
 }
 
-function updateUploadProgress(percent, text) {
-    const fill = document.getElementById('uploadProgressFill');
-    const textEl = document.getElementById('uploadProgressText');
+function updateProgress(percent) {
+    const fill = document.querySelector('.loading-progress .progress-fill');
     if (fill) fill.style.width = percent + '%';
-    if (textEl) textEl.textContent = text || `Processing... ${percent}%`;
 }
-
-// ============================================
-// Language Detection (40+ languages)
-// ============================================
 
 function detectLanguage(text) {
-    const scripts = [
-        { name: 'Urdu (اردو)', range: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/, sample: 'اردو', code: 'ur', rtl: true },
-        { name: 'Hindi (हिन्दी)', range: /[\u0900-\u097F]/, sample: 'हिन्दी', code: 'hi', rtl: false },
-        { name: 'Arabic (العربية)', range: /[\u0600-\u06FF]/, sample: 'العربية', code: 'ar', rtl: true },
-        { name: 'Chinese (中文)', range: /[\u4E00-\u9FFF]/, sample: '中文', code: 'zh', rtl: false },
-        { name: 'Japanese (日本語)', range: /[\u3040-\u309F\u30A0-\u30FF]/, sample: '日本語', code: 'ja', rtl: false },
-        { name: 'Korean (한국어)', range: /[\uAC00-\uD7AF]/, sample: '한국어', code: 'ko', rtl: false },
-        { name: 'Russian (Русский)', range: /[\u0400-\u04FF]/, sample: 'Русский', code: 'ru', rtl: false },
-        { name: 'Persian (فارسی)', range: /[\u0600-\u06FF\uFB50-\uFDFF]/, sample: 'فارسی', code: 'fa', rtl: true },
-        { name: 'Punjabi (ਪੰਜਾਬੀ)', range: /[\u0A00-\u0A7F]/, sample: 'ਪੰਜਾਬੀ', code: 'pa', rtl: false },
-        { name: 'Bengali (বাংলা)', range: /[\u0980-\u09FF]/, sample: 'বাংলা', code: 'bn', rtl: false },
-        { name: 'Spanish (Español)', range: /[áéíóúñ¿¡]/i, sample: 'Español', code: 'es', rtl: false },
-        { name: 'French (Français)', range: /[àâçéèêëîïôûùüÿ]/i, sample: 'Français', code: 'fr', rtl: false },
-        { name: 'German (Deutsch)', range: /[äöüß]/i, sample: 'Deutsch', code: 'de', rtl: false },
-        { name: 'English', range: /[A-Za-z]/, sample: 'English', code: 'en', rtl: false }
-    ];
+    if (!text || text.trim().length === 0) return 'English';
     
-    for (let script of scripts) {
-        if (script.range.test(text)) {
-            return script;
-        }
+    const textSample = text.substring(0, 500);
+    
+    for (const [lang, pattern] of Object.entries(LANGUAGE_PATTERNS)) {
+        if (pattern.regex.test(textSample)) return lang;
     }
-    return { name: 'English', code: 'en', sample: 'English', rtl: false };
+    return 'English';
+}
+
+function updateLanguageDisplay(text) {
+    const lang = detectLanguage(text);
+    const langInfo = LANGUAGE_PATTERNS[lang] || LANGUAGE_PATTERNS['English'];
+    document.getElementById('detectedLang').innerText = lang;
+    const langIcon = document.getElementById('langIcon');
+    if (langIcon) {
+        langIcon.innerHTML = `<i class="fab ${langInfo.flag}"></i>`;
+        langIcon.style.color = langInfo.color;
+    }
+    return lang;
 }
 
 // ============================================
-// API Calls (Grok API from test-db.js)
+// FILE PARSERS (PDF, DOCX, TXT, CSV)
 // ============================================
+
+async function parsePDF(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const typedarray = new Uint8Array(e.target.result);
+                const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    updateProgress(Math.floor((i / pdf.numPages) * 100));
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
+                }
+                resolve(fullText);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+async function parseDOCX(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const arrayBuffer = e.target.result;
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                resolve(result.value);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+async function parseTXT(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            resolve(e.target.result);
+        };
+        reader.onerror = reject;
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+async function parseCSV(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                let text = '';
+                jsonData.forEach(row => {
+                    text += Object.values(row).join(' ') + '\n';
+                });
+                resolve(text);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+async function parseFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    toggleLoading(true, `Reading ${file.name}...`, true);
+    
+    try {
+        let text = '';
+        switch (ext) {
+            case 'pdf':
+                text = await parsePDF(file);
+                break;
+            case 'docx':
+                text = await parseDOCX(file);
+                break;
+            case 'txt':
+                text = await parseTXT(file);
+                break;
+            case 'csv':
+                text = await parseCSV(file);
+                break;
+            default:
+                throw new Error('Unsupported file format');
+        }
+        toggleLoading(false);
+        return text;
+    } catch (error) {
+        toggleLoading(false);
+        console.error('Parse error:', error);
+        throw new Error(`Failed to parse ${ext.toUpperCase()} file`);
+    }
+}
+
+// ============================================
+// API CALLS
+// ============================================
+
+async function fetchStats() {
+    try {
+        const usageRes = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`);
+        if (usageRes.ok) {
+            const usageData = await usageRes.json();
+            document.getElementById('usageCount').innerText = usageData.count || 0;
+        }
+        
+        const reactionsRes = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`);
+        if (reactionsRes.ok) {
+            const reactionsData = await reactionsRes.json();
+            if (reactionsData.reactions) {
+                document.getElementById('react-like').innerText = reactionsData.reactions.like || 0;
+                document.getElementById('react-love').innerText = reactionsData.reactions.love || 0;
+                document.getElementById('react-wow').innerText = reactionsData.reactions.wow || 0;
+                document.getElementById('react-sad').innerText = reactionsData.reactions.sad || 0;
+                document.getElementById('react-angry').innerText = reactionsData.reactions.angry || 0;
+                document.getElementById('react-laugh').innerText = reactionsData.reactions.laugh || 0;
+                document.getElementById('react-celebrate').innerText = reactionsData.reactions.celebrate || 0;
+            }
+        }
+        
+        const sharesRes = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`);
+        if (sharesRes.ok) {
+            const sharesData = await sharesRes.json();
+            document.getElementById('totalShares').innerText = sharesData.shares || 0;
+        }
+    } catch (error) {
+        console.error('Stats fetch error:', error);
+    }
+}
 
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`, {
+        await fetch(`${API_BASE}/${TOOL_SLUG}/usage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userId })
         });
-        if (response.ok) {
-            await fetchUsageCount();
-        }
+        fetchStats();
     } catch (error) {
         console.error('Usage increment error:', error);
     }
 }
 
-async function fetchUsageCount() {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`);
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('usageCount').textContent = data.count || 0;
-        }
-    } catch (error) {
-        console.error('Fetch usage error:', error);
-    }
-}
-
-async function fetchReactions() {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.reactions) {
-                document.getElementById('react-like').textContent = data.reactions.like || 0;
-                document.getElementById('react-love').textContent = data.reactions.love || 0;
-                document.getElementById('react-wow').textContent = data.reactions.wow || 0;
-                document.getElementById('react-sad').textContent = data.reactions.sad || 0;
-                document.getElementById('react-angry').textContent = data.reactions.angry || 0;
-                document.getElementById('react-laugh').textContent = data.reactions.laugh || 0;
-                document.getElementById('react-celebrate').textContent = data.reactions.celebrate || 0;
-            }
-        }
-    } catch (error) {
-        console.error('Fetch reactions error:', error);
-    }
-}
-
-async function addReaction(emoji, reactionType) {
+async function addReaction(emoji) {
+    const reactionType = EMOJI_MAP[emoji];
+    
     if (userReactions[reactionType]) {
-        showToast(`You already reacted with ${emoji}!`, 'warning');
-        return;
+        showToast(`You already reacted with ${emoji}`, 'warning');
+        return false;
     }
+    
+    toggleLoading(true, 'Saving your feedback...');
     
     try {
         const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`, {
@@ -146,619 +287,543 @@ async function addReaction(emoji, reactionType) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ emoji, user_id: userId })
         });
-        const data = await response.json();
-        if (data.success) {
+        
+        const result = await response.json();
+        
+        if (result.success || result.already_reacted === false) {
             userReactions[reactionType] = true;
-            localStorage.setItem('mindmap_user_reactions', JSON.stringify(userReactions));
-            showToast('Reaction added!', 'success');
-            await fetchReactions();
-        } else if (data.already_reacted) {
-            showToast('You already reacted with this emoji!', 'warning');
+            localStorage.setItem('mm_user_reactions', JSON.stringify(userReactions));
+            showToast(`Thank you for your feedback! ${emoji}`, 'success');
+            fetchStats();
+            return true;
+        } else if (result.already_reacted) {
+            showToast(`You already reacted with ${emoji}`, 'warning');
+            return false;
         }
     } catch (error) {
-        console.error('Add reaction error:', error);
+        console.error('Reaction error:', error);
+        showToast('Failed to save reaction', 'error');
+        return false;
+    } finally {
+        toggleLoading(false);
     }
 }
 
-async function addShare(platform) {
+async function recordShare(platform) {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`, {
+        await fetch(`${API_BASE}/${TOOL_SLUG}/shares`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ platform, user_id: userId })
         });
-        if (response.ok) {
-            showToast(`Shared on ${platform}!`, 'success');
-            await fetchShareCount();
-        }
+        fetchStats();
+        showToast(`Shared on ${platform}!`, 'success');
     } catch (error) {
-        console.error('Add share error:', error);
-    }
-}
-
-async function fetchShareCount() {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`);
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('shareCount').textContent = data.shares || 0;
-        }
-    } catch (error) {
-        console.error('Fetch shares error:', error);
+        console.error('Share error:', error);
     }
 }
 
 // ============================================
-// AI Mind Map Generation (Using /api/generate-mindmap)
+// MIND MAP GENERATOR (Fallback + API)
 // ============================================
 
-async function generateMindMapWithAI(text) {
-    showLoading(true, 'Calling Grok API to generate mind map...');
+function generateFallbackMindMap(text) {
+    console.log('Using fallback mind map generator');
+    
+    let central = text.split('\n')[0].substring(0, 60);
+    if (central.length > 50) central = central.substring(0, 47) + '...';
+    if (!central) central = 'Main Topic';
+    
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    const words = text.split(/\s+/);
+    const wordFreq = {};
+    
+    words.forEach(w => {
+        if (w.length > 4) {
+            wordFreq[w.toLowerCase()] = (wordFreq[w.toLowerCase()] || 0) + 1;
+        }
+    });
+    
+    const topWords = Object.entries(wordFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+    
+    const branches = [];
+    
+    for (let i = 0; i < Math.min(topWords.length, 5); i++) {
+        const branchName = topWords[i].charAt(0).toUpperCase() + topWords[i].slice(1);
+        const subBranches = [];
+        
+        const relatedSentences = sentences.filter(s => 
+            s.toLowerCase().includes(topWords[i])
+        );
+        
+        for (let j = 0; j < Math.min(relatedSentences.length, 4); j++) {
+            let subText = relatedSentences[j].trim();
+            if (subText.length > 40) subText = subText.substring(0, 37) + '...';
+            if (subText) subBranches.push(subText);
+        }
+        
+        if (subBranches.length === 0) {
+            subBranches.push(`Key aspect of ${branchName}`);
+            subBranches.push(`Important details about ${branchName}`);
+        }
+        
+        branches.push({ name: branchName, subBranches: subBranches });
+    }
+    
+    if (branches.length === 0) {
+        branches.push({ name: 'Main Concepts', subBranches: ['Key idea 1', 'Key idea 2', 'Key idea 3'] });
+        branches.push({ name: 'Important Details', subBranches: ['Detail A', 'Detail B', 'Detail C'] });
+    }
+    
+    return { central, branches };
+}
+
+async function generateMindMap(text) {
+    if (!text || text.trim().length === 0) {
+        showToast('Please enter some content or upload a file', 'error');
+        return null;
+    }
+    
+    toggleLoading(true, 'AI is analyzing your content...');
     
     try {
-        const response = await fetch(`${API_BASE}/generate-mindmap`, {
+        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/generate-mindmap`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                topic: text.substring(0, 500),
-                subject: 'General Content'
+                topic: text.substring(0, 1500),
+                subject: 'General Knowledge'
             })
         });
         
         if (response.ok) {
             const data = await response.json();
-            if (data.success && data.mindmap) {
-                // Convert API response to our mind map format
-                const mindmap = {
-                    name: data.mindmap.central || "Content Analysis",
-                    children: data.mindmap.branches.map(branch => ({
-                        name: branch.name,
-                        children: branch.subBranches.map(sub => ({ name: sub }))
-                    }))
-                };
-                return mindmap;
+            if (data.success && data.mindmap && data.mindmap.central && data.mindmap.branches) {
+                currentMindMap = data.mindmap;
+                renderCurrentView();
+                incrementUsage();
+                showToast('Mind Map generated successfully!', 'success');
+                return currentMindMap;
             }
         }
-    } catch (error) {
-        console.error('AI API error:', error);
-    }
-    
-    // Fallback: Generate locally
-    return generateMindMapLocally(text);
-}
-
-// Local mind map generation (fallback)
-function generateMindMapLocally(text) {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 15).slice(0, 10);
-    const words = text.split(/\s+/).filter(w => w.length > 3);
-    const uniqueWords = [...new Set(words.map(w => w.toLowerCase()))].slice(0, 6);
-    
-    const mindMap = {
-        name: `${currentLanguageName} Content Analysis`,
-        children: []
-    };
-    
-    if (uniqueWords.length > 0) {
-        uniqueWords.forEach(topic => {
-            const relatedSentences = sentences.filter(s => 
-                s.toLowerCase().includes(topic.toLowerCase())
-            ).slice(0, 3);
-            
-            mindMap.children.push({
-                name: topic.charAt(0).toUpperCase() + topic.slice(1),
-                children: relatedSentences.map(s => ({
-                    name: s.trim().substring(0, 80) + (s.length > 80 ? '...' : '')
-                }))
-            });
-        });
-    }
-    
-    if (mindMap.children.length === 0 && sentences.length > 0) {
-        mindMap.children = sentences.slice(0, 6).map(s => ({
-            name: s.trim().substring(0, 50) + (s.length > 50 ? '...' : ''),
-            children: []
-        }));
-    }
-    
-    if (sentences.length > 0) {
-        mindMap.children.push({
-            name: "Key Insights",
-            children: sentences.slice(0, 4).map(s => ({
-                name: s.trim().substring(0, 60) + (s.length > 60 ? '...' : '')
-            }))
-        });
-    }
-    
-    return mindMap;
-}
-
-// ============================================
-// AI Summary (Using Grok API)
-// ============================================
-
-async function generateAISummary(text) {
-    showLoading(true, 'Generating AI summary...');
-    
-    try {
-        // Use the generate-slos endpoint for summary
-        const response = await fetch(`${API_BASE}/generate-slos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                subject: text.substring(0, 300),
-                topic: 'Content Summary',
-                grade: 'General'
-            })
-        });
         
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.slos) {
-                return data.slos.map((slo, i) => `${i+1}. ${slo}`).join('<br>');
-            }
-        }
+        currentMindMap = generateFallbackMindMap(text);
+        renderCurrentView();
+        incrementUsage();
+        showToast('Mind Map generated successfully!', 'success');
+        return currentMindMap;
+        
     } catch (error) {
-        console.error('Summary API error:', error);
+        console.error('Generate error:', error);
+        currentMindMap = generateFallbackMindMap(text);
+        renderCurrentView();
+        incrementUsage();
+        showToast('Mind Map generated successfully!', 'success');
+        return currentMindMap;
+    } finally {
+        toggleLoading(false);
     }
-    
-    // Fallback summary
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10).slice(0, 5);
-    return sentences.map((s, i) => `${i+1}. ${s.trim()}`).join('<br>');
 }
 
 // ============================================
-// Render Mind Map
+// RENDER FUNCTIONS
 // ============================================
 
-function renderMindMap(data) {
-    const container = document.getElementById('mindMapContainer');
-    if (!data || !data.children || data.children.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-project-diagram"></i><p>No mind map data available. Generate one first!</p></div>';
-        return;
-    }
+function renderMindMap() {
+    if (!currentMindMap) return '<div class="empty-state"><i class="fas fa-project-diagram"></i><h3>No content to display</h3><p>Generate a mind map first</p></div>';
     
-    let html = `
-        <div class="mindmap-viz">
-            <div class="central-node">
-                <div class="node-card central">
-                    <i class="fas fa-crown"></i>
-                    <span>${escapeHtml(data.name)}</span>
-                </div>
-            </div>
-            <div class="branches-container">
-    `;
+    let html = `<div class="mindmap-container">
+        <div class="central-topic"><i class="fas fa-dot-circle"></i> ${escapeHtml(currentMindMap.central)}</div>
+        <div class="branches-grid">`;
     
-    data.children.forEach(child => {
+    currentMindMap.branches.forEach(branch => {
         html += `
             <div class="branch-card">
-                <div class="branch-title">${escapeHtml(child.name)}</div>
-                <div class="sub-branches">
+                <div class="branch-title"><i class="fas fa-code-branch"></i> ${escapeHtml(branch.name)}</div>
+                <div class="sub-items">
         `;
-        
-        if (child.children && child.children.length > 0) {
-            child.children.forEach(sub => {
-                html += `<div class="sub-branch"><i class="fas fa-circle" style="font-size: 8px; margin-right: 8px;"></i> ${escapeHtml(sub.name)}</div>`;
+        if (branch.subBranches && branch.subBranches.length > 0) {
+            branch.subBranches.forEach(sub => {
+                html += `<div class="sub-item"><i class="fas fa-circle" style="font-size: 6px; vertical-align: middle;"></i> ${escapeHtml(sub)}</div>`;
             });
         } else {
-            html += `<div class="sub-branch"><i class="fas fa-info-circle"></i> No sub-topics</div>`;
+            html += `<div class="sub-item"><i class="fas fa-info-circle"></i> No sub-topics available</div>`;
         }
-        
-        html += `
-                </div>
-            </div>
-        `;
+        html += `</div></div>`;
     });
     
-    html += `
+    html += `</div></div>`;
+    return html;
+}
+
+function renderInfographic() {
+    if (!currentMindMap) return '<div class="empty-state"><i class="fas fa-chart-pie"></i><h3>No content to display</h3><p>Generate a mind map first</p></div>';
+    
+    const totalSubs = currentMindMap.branches.reduce((sum, b) => sum + (b.subBranches?.length || 0), 0);
+    const avgPerBranch = currentMindMap.branches.length > 0 ? (totalSubs / currentMindMap.branches.length).toFixed(1) : 0;
+    
+    let html = `<div class="infographic-container">
+        <div class="info-header">
+            <h2><i class="fas fa-chart-line"></i> ${escapeHtml(currentMindMap.central)}</h2>
+            <div class="stats-row">
+                <div class="stat-circle"><div class="stat-number">${currentMindMap.branches.length}</div><div>Main Topics</div></div>
+                <div class="stat-circle"><div class="stat-number">${totalSubs}</div><div>Sub Topics</div></div>
+                <div class="stat-circle"><div class="stat-number">${avgPerBranch}</div><div>Avg per Topic</div></div>
             </div>
         </div>
-    `;
+        <div class="branches-grid">`;
     
-    container.innerHTML = html;
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
+    currentMindMap.branches.forEach((branch, idx) => {
+        const subCount = branch.subBranches?.length || 0;
+        const percentage = totalSubs > 0 ? (subCount / totalSubs) * 100 : 0;
+        html += `
+            <div class="info-branch">
+                <h3><i class="fas fa-chart-simple"></i> ${escapeHtml(branch.name)}</h3>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%"></div></div>
+                <div style="font-size: 0.8rem; margin-bottom: 12px;">${subCount} key points</div>
+        `;
+        if (branch.subBranches && branch.subBranches.length > 0) {
+            branch.subBranches.forEach(sub => {
+                html += `<div style="padding: 4px 0;"><i class="fas fa-check-circle" style="color: var(--primary-blue); font-size: 12px;"></i> ${escapeHtml(sub)}</div>`;
+            });
+        }
+        html += `</div>`;
     });
+    
+    html += `</div></div>`;
+    return html;
 }
 
-function updateMetrics(data) {
-    if (!data) {
-        document.getElementById('nodeCount').textContent = '0';
-        document.getElementById('connectionCount').textContent = '0';
-        document.getElementById('topicCount').textContent = '0';
+function renderBulletPoints() {
+    if (!currentMindMap) return '<div class="empty-state"><i class="fas fa-list-ul"></i><h3>No content to display</h3><p>Generate a mind map first</p></div>';
+    
+    let html = `<div class="bullet-container">
+        <div class="bullet-central"><i class="fas fa-bullseye"></i> ${escapeHtml(currentMindMap.central)}</div>
+        <div class="bullet-branches">`;
+    
+    currentMindMap.branches.forEach(branch => {
+        html += `
+            <div class="bullet-branch">
+                <div class="bullet-branch-title"><i class="fas fa-folder-open"></i> ${escapeHtml(branch.name)}</div>
+                <ul class="bullet-sub-items">
+        `;
+        if (branch.subBranches && branch.subBranches.length > 0) {
+            branch.subBranches.forEach(sub => {
+                html += `<li>${escapeHtml(sub)}</li>`;
+            });
+        } else {
+            html += `<li>No sub-points available</li>`;
+        }
+        html += `</ul></div>`;
+    });
+    
+    html += `</div></div>`;
+    return html;
+}
+
+function renderCurrentView() {
+    const canvas = document.getElementById('displayCanvas');
+    if (!canvas) return;
+    
+    let html = '';
+    switch (currentView) {
+        case 'mindmap':
+            html = renderMindMap();
+            document.getElementById('viewTitle').innerHTML = '<i class="fas fa-project-diagram"></i> Mind Map View';
+            break;
+        case 'infographic':
+            html = renderInfographic();
+            document.getElementById('viewTitle').innerHTML = '<i class="fas fa-chart-pie"></i> Infographic View';
+            break;
+        case 'bullet':
+            html = renderBulletPoints();
+            document.getElementById('viewTitle').innerHTML = '<i class="fas fa-list-ul"></i> Bullet Points View';
+            break;
+        default:
+            html = renderMindMap();
+    }
+    
+    canvas.innerHTML = html;
+    canvas.style.transform = `scale(${currentZoom})`;
+    canvas.style.transformOrigin = 'top center';
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
+
+function exportAsTXT() {
+    if (!currentMindMap) {
+        showToast('Please generate a mind map first', 'error');
         return;
     }
     
-    const nodeCount = countNodes(data);
-    document.getElementById('nodeCount').textContent = nodeCount;
-    document.getElementById('connectionCount').textContent = nodeCount - 1;
-    document.getElementById('topicCount').textContent = data.children ? data.children.length : 0;
-}
-
-function countNodes(node) {
-    let count = 1;
-    if (node.children) {
-        node.children.forEach(child => count += countNodes(child));
-    }
-    return count;
-}
-
-// ============================================
-// File Processing
-// ============================================
-
-function processFile(file) {
-    const fileName = file.name;
-    const fileExt = fileName.split('.').pop().toLowerCase();
+    let content = `========================================\n`;
+    content += `AI MIND MAP GENERATOR\n`;
+    content += `Generated: ${new Date().toLocaleString()}\n`;
+    content += `========================================\n\n`;
+    content += `📌 CENTRAL TOPIC: ${currentMindMap.central}\n\n`;
+    content += `========================================\n`;
+    content += `MAIN BRANCHES & SUB-TOPICS\n`;
+    content += `========================================\n\n`;
     
-    document.getElementById('uploadProgress').style.display = 'block';
-    updateUploadProgress(0, 'Loading file...');
+    currentMindMap.branches.forEach((branch, idx) => {
+        content += `${idx + 1}. ${branch.name}\n`;
+        if (branch.subBranches && branch.subBranches.length > 0) {
+            branch.subBranches.forEach((sub, subIdx) => {
+                content += `   ${String.fromCharCode(97 + subIdx)}. ${sub}\n`;
+            });
+        }
+        content += `\n`;
+    });
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        updateUploadProgress(50, 'Extracting content...');
-        
-        setTimeout(() => {
-            let content = '';
-            if (fileExt === 'txt' || fileExt === 'csv') {
-                content = e.target.result;
-            } else {
-                content = `[${fileExt.toUpperCase()} file: ${fileName}]\n\nSample extracted text. In production, full text extraction would happen here.\n\nThis is a demonstration of the mind map functionality.`;
-            }
-            
-            updateUploadProgress(100, 'Ready!');
-            setTimeout(() => {
-                document.getElementById('uploadProgress').style.display = 'none';
-                document.getElementById('textInput').value = content;
-                document.getElementById('fileName').textContent = fileName;
-                document.getElementById('fileInfo').style.display = 'flex';
-                showToast(`File loaded: ${fileName}`, 'success');
-                
-                // Auto-detect language
-                const langInfo = detectLanguage(content);
-                currentLanguage = langInfo.code;
-                currentLanguageName = langInfo.name;
-                document.getElementById('langValue').innerHTML = `${langInfo.name} <span style="font-size:0.8rem">(${langInfo.code})</span>`;
-                document.getElementById('langExample').style.display = 'block';
-            }, 500);
-        }, 500);
-    };
-    
-    if (fileExt === 'txt' || fileExt === 'csv') {
-        reader.readAsText(file);
-    } else {
-        reader.readAsText(file);
-    }
-}
-
-// ============================================
-// Export Functions
-// ============================================
-
-function exportAsPDF() {
-    if (!currentMindMapData) {
-        showToast('No mind map to export. Generate one first!', 'error');
-        return;
-    }
-    
-    const content = document.getElementById('mindMapContainer').innerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>Mind Map Export</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    .mindmap-viz { display: flex; flex-direction: column; align-items: center; }
-                    .central-node { text-align: center; margin-bottom: 30px; }
-                    .node-card { background: #4361ee; color: white; padding: 15px 30px; border-radius: 50px; display: inline-block; }
-                    .branches-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-                    .branch-card { border: 1px solid #ddd; border-radius: 10px; padding: 15px; width: 250px; }
-                    .branch-title { font-weight: bold; margin-bottom: 10px; color: #4361ee; }
-                    .sub-branch { padding: 5px 0; }
-                </style>
-            </head>
-            <body>
-                ${content}
-                <p style="text-align: center; margin-top: 30px;">Generated by Mind Map Generator</p>
-            </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-    showToast('PDF export ready', 'success');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mindmap_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('TXT file downloaded!', 'success');
 }
 
 function exportAsDOC() {
-    if (!currentMindMapData) {
-        showToast('No mind map to export. Generate one first!', 'error');
+    if (!currentMindMap) {
+        showToast('Please generate a mind map first', 'error');
         return;
     }
     
-    const content = document.getElementById('mindMapContainer').innerHTML;
-    const styles = document.querySelector('style').innerHTML;
-    const html = `<!DOCTYPE html>
+    let htmlContent = `<!DOCTYPE html>
     <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Mind Map Export</title>
-        <style>${styles}</style>
+    <head><meta charset="UTF-8"><title>Mind Map - ${currentMindMap.central}</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h1 { color: #0288D1; border-bottom: 3px solid #81D4FA; padding-bottom: 10px; }
+        .central { background: linear-gradient(135deg, #0288D1, #81D4FA); color: white; padding: 20px; border-radius: 60px; text-align: center; margin: 30px 0; }
+        .branch { margin: 20px 0; padding: 15px; border-left: 4px solid #0288D1; background: #f5f5f5; border-radius: 8px; }
+        .branch h3 { color: #0288D1; margin: 0 0 10px 0; }
+        .sub { margin-left: 20px; padding: 5px 0; }
+        .footer { margin-top: 50px; text-align: center; color: #666; font-size: 12px; }
+    </style>
     </head>
     <body>
-        <div class="container">
-            ${content}
-            <p style="text-align:center; margin-top:30px;">Generated by Mind Map Generator</p>
-        </div>
-    </body>
-    </html>`;
+        <h1>🧠 AI Generated Mind Map</h1>
+        <div class="central"><h2>${escapeHtml(currentMindMap.central)}</h2></div>`;
     
-    const blob = new Blob([html], { type: 'application/msword' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'mindmap_export.doc';
-    link.click();
-    URL.revokeObjectURL(link.href);
-    showToast('Exported as DOC!', 'success');
+    currentMindMap.branches.forEach(branch => {
+        htmlContent += `<div class="branch"><h3>📌 ${escapeHtml(branch.name)}</h3>`;
+        if (branch.subBranches && branch.subBranches.length > 0) {
+            branch.subBranches.forEach(sub => {
+                htmlContent += `<div class="sub">• ${escapeHtml(sub)}</div>`;
+            });
+        }
+        htmlContent += `</div>`;
+    });
+    
+    htmlContent += `<div class="footer"><p>Generated by AI Mind Map Generator | ${new Date().toLocaleString()}</p></div>
+    </body></html>`;
+    
+    const blob = new Blob([htmlContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mindmap_${Date.now()}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('DOC file downloaded!', 'success');
 }
 
-function exportAsTXT() {
-    if (!currentMindMapData) {
-        showToast('No mind map to export. Generate one first!', 'error');
+function exportAsPDF() {
+    if (!currentMindMap) {
+        showToast('Please generate a mind map first', 'error');
+        return;
+    }
+    showToast('Opening print dialog... Select "Save as PDF"', 'info');
+    window.print();
+}
+
+// ============================================
+// FILE UPLOAD HANDLER
+// ============================================
+
+async function handleFileUpload(file) {
+    const validExtensions = ['pdf', 'docx', 'txt', 'csv'];
+    const ext = file.name.split('.').pop().toLowerCase();
+    
+    if (!validExtensions.includes(ext)) {
+        showToast('Please upload PDF, DOCX, TXT, or CSV file', 'error');
         return;
     }
     
-    let text = `===========================================\nMIND MAP EXPORT\nGenerated: ${new Date().toLocaleString()}\nLanguage: ${currentLanguageName}\n===========================================\n\n`;
-    text += `CENTRAL TOPIC: ${currentMindMapData.name}\n\n`;
-    
-    if (currentMindMapData.children) {
-        currentMindMapData.children.forEach((child, i) => {
-            text += `${i+1}. ${child.name}\n`;
-            if (child.children) {
-                child.children.forEach((sub, j) => {
-                    text += `   ${String.fromCharCode(97+j)}. ${sub.name}\n`;
-                });
-            }
-            text += '\n';
-        });
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('File too large (max 10MB)', 'error');
+        return;
     }
     
-    text += `\n===========================================\nStatistics:\n- Total Nodes: ${document.getElementById('nodeCount').textContent}\n- Connections: ${document.getElementById('connectionCount').textContent}\n- Topics: ${document.getElementById('topicCount').textContent}\n===========================================`;
-    
-    const blob = new Blob([text], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'mindmap_export.txt';
-    link.click();
-    URL.revokeObjectURL(link.href);
-    showToast('Exported as TXT!', 'success');
+    try {
+        const content = await parseFile(file);
+        document.getElementById('textInput').value = content;
+        updateLanguageDisplay(content);
+        showToast(`Successfully loaded: ${file.name}`, 'success');
+        document.getElementById('fileName').style.display = 'block';
+        document.getElementById('fileName').innerHTML = `<i class="fas fa-file-alt"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        document.querySelector('.tab-btn[data-tab="text"]').click();
+    } catch (error) {
+        showToast(`Error: ${error.message}`, 'error');
+    }
 }
 
 // ============================================
-// Event Listeners & Initialization
+// EVENT LISTENERS & INITIALIZATION
 // ============================================
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved draft
-    const savedDraft = localStorage.getItem('mindmap_draft');
-    if (savedDraft) {
-        try {
-            currentMindMapData = JSON.parse(savedDraft);
-            renderMindMap(currentMindMapData);
-            updateMetrics(currentMindMapData);
-        } catch(e) {}
-    }
-    
-    // Fetch initial stats
-    await fetchUsageCount();
-    await fetchReactions();
-    await fetchShareCount();
-    
-    // Theme toggle
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
-    
-    document.getElementById('themeToggle').addEventListener('click', () => {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        if (isDark) {
-            document.body.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-        } else {
-            document.body.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
+function initEventListeners() {
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+        const text = document.getElementById('textInput').value.trim();
+        if (!text) {
+            showToast('Please enter content or upload a file', 'error');
+            return;
         }
-        showToast(`Dark mode ${!isDark ? 'enabled' : 'disabled'}`, 'success');
+        updateLanguageDisplay(text);
+        await generateMindMap(text);
     });
     
-    // Scroll buttons
-    document.getElementById('scrollUpBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    document.getElementById('scrollDownBtn').addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentView = btn.getAttribute('data-style');
+            renderCurrentView();
+        });
+    });
     
-    // Tab switching
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('mm_theme');
+    if (savedTheme) {
+        document.body.setAttribute('data-theme', savedTheme);
+        themeToggle.innerHTML = savedTheme === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+    }
+    
+    themeToggle.addEventListener('click', () => {
+        const current = document.body.getAttribute('data-theme');
+        const target = current === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', target);
+        localStorage.setItem('mm_theme', target);
+        themeToggle.innerHTML = target === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+    });
+    
+    document.getElementById('scrollTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('scrollBottom').onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    
+    document.getElementById('zoomIn').addEventListener('click', () => {
+        currentZoom = Math.min(currentZoom + 0.1, 2);
+        const canvas = document.getElementById('displayCanvas');
+        if (canvas) canvas.style.transform = `scale(${currentZoom})`;
+    });
+    document.getElementById('zoomOut').addEventListener('click', () => {
+        currentZoom = Math.max(currentZoom - 0.1, 0.5);
+        const canvas = document.getElementById('displayCanvas');
+        if (canvas) canvas.style.transform = `scale(${currentZoom})`;
+    });
+    document.getElementById('resetZoom').addEventListener('click', () => {
+        currentZoom = 1;
+        const canvas = document.getElementById('displayCanvas');
+        if (canvas) canvas.style.transform = 'scale(1)';
+    });
+    
+    document.getElementById('exportTxt').addEventListener('click', exportAsTXT);
+    document.getElementById('exportDoc').addEventListener('click', exportAsDOC);
+    document.getElementById('exportPdf').addEventListener('click', exportAsPDF);
+    
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const emoji = btn.getAttribute('data-emoji');
+            await addReaction(emoji);
+        });
+    });
+    
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const platform = btn.getAttribute('data-platform');
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('Check out this AI Mind Map Generator!');
+            
+            if (platform === 'copy') {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Link copied!', 'success');
+            } else {
+                let shareUrl = '';
+                if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
+                if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+                if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+            }
+            await recordShare(platform);
+        });
+    });
+    
+    const textInput = document.getElementById('textInput');
+    const savedDraft = localStorage.getItem('mm_draft');
+    if (savedDraft) {
+        textInput.value = savedDraft;
+        updateLanguageDisplay(savedDraft);
+    }
+    
+    textInput.addEventListener('input', (e) => {
+        const text = e.target.value;
+        localStorage.setItem('mm_draft', text);
+        updateLanguageDisplay(text);
+    });
+    
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.getAttribute('data-tab');
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById(`${tabId}Tab`).classList.add('active');
         });
     });
     
-    // Generate button
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-        const text = document.getElementById('textInput').value.trim();
-        if (!text) {
-            showToast('Please enter text or upload a file first', 'error');
-            return;
-        }
-        
-        // Detect language first
-        const langInfo = detectLanguage(text);
-        currentLanguage = langInfo.code;
-        currentLanguageName = langInfo.name;
-        document.getElementById('langValue').innerHTML = `${langInfo.name} <span style="font-size:0.8rem">(${langInfo.code})</span>`;
-        document.getElementById('langExample').style.display = 'block';
-        
-        showLoading(true, `Analyzing ${langInfo.name} text and generating mind map...`);
-        
-        // Try AI generation first, fallback to local
-        let mindMap = await generateMindMapWithAI(text);
-        if (!mindMap) {
-            mindMap = generateMindMapLocally(text);
-        }
-        
-        currentMindMapData = mindMap;
-        renderMindMap(currentMindMapData);
-        updateMetrics(currentMindMapData);
-        
-        showLoading(false);
-        showToast('Mind map generated successfully!', 'success');
-        
-        // Increment usage and save
-        await incrementUsage();
-        localStorage.setItem('mindmap_draft', JSON.stringify(currentMindMapData));
-    });
-    
-    // Summarize button
-    document.getElementById('summarizeBtn').addEventListener('click', async () => {
-        const text = document.getElementById('textInput').value.trim();
-        if (!text) {
-            showToast('Please enter text first', 'error');
-            return;
-        }
-        
-        const summary = await generateAISummary(text);
-        document.getElementById('summaryContent').innerHTML = summary;
-        document.getElementById('summaryPanel').style.display = 'block';
-        showLoading(false);
-    });
-    
-    document.getElementById('closeSummaryBtn').addEventListener('click', () => {
-        document.getElementById('summaryPanel').style.display = 'none';
-    });
-    
-    // Clear text
-    document.getElementById('clearTextBtn').addEventListener('click', () => {
-        document.getElementById('textInput').value = '';
-        showToast('Text cleared', 'success');
-    });
-    
-    // Sample text
-    document.getElementById('sampleTextBtn').addEventListener('click', () => {
-        const sample = `Artificial Intelligence is transforming the education sector worldwide. Teachers can now create personalized learning experiences for each student. AI-powered tools help in automatic grading and provide instant feedback. Virtual tutors are available 24/7 to assist learners with their questions. Machine learning algorithms identify learning gaps and suggest improvements. The future of education is intelligent, adaptive, and accessible to all.`;
-        document.getElementById('textInput').value = sample;
-        showToast('Sample text added', 'success');
-        
-        // Auto-detect language
-        const langInfo = detectLanguage(sample);
-        document.getElementById('langValue').innerHTML = `${langInfo.name} <span style="font-size:0.8rem">(${langInfo.code})</span>`;
-        document.getElementById('langExample').style.display = 'block';
-    });
-    
-    // File upload
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) processFile(e.target.files[0]);
-    });
-    
-    document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
-    document.getElementById('clearFileBtn').addEventListener('click', () => {
-        document.getElementById('fileInfo').style.display = 'none';
-        document.getElementById('uploadProgress').style.display = 'none';
-        document.getElementById('fileInput').value = '';
-    });
-    
-    // Zoom controls
-    let scale = 1;
-    const container = document.getElementById('mindMapContainer');
-    document.getElementById('zoomInBtn').addEventListener('click', () => {
-        scale = Math.min(scale + 0.1, 2);
-        container.style.transform = `scale(${scale})`;
-        container.style.transformOrigin = 'top left';
-    });
-    document.getElementById('zoomOutBtn').addEventListener('click', () => {
-        scale = Math.max(scale - 0.1, 0.5);
-        container.style.transform = `scale(${scale})`;
-        container.style.transformOrigin = 'top left';
-    });
-    document.getElementById('resetViewBtn').addEventListener('click', () => {
-        scale = 1;
-        container.style.transform = 'scale(1)';
-    });
-    
-    // Export
-    document.getElementById('exportPdfBtn').addEventListener('click', exportAsPDF);
-    document.getElementById('exportDocBtn').addEventListener('click', exportAsDOC);
-    document.getElementById('exportTxtBtn').addEventListener('click', exportAsTXT);
-    
-    // Reactions
-    const reactions = [
-        { emoji: '👍', type: 'like' },
-        { emoji: '❤️', type: 'love' },
-        { emoji: '😮', type: 'wow' },
-        { emoji: '😢', type: 'sad' },
-        { emoji: '😠', type: 'angry' },
-        { emoji: '😂', type: 'laugh' },
-        { emoji: '🎉', type: 'celebrate' }
-    ];
-    
-    reactions.forEach(react => {
-        const btn = document.querySelector(`.reaction[data-reaction="${react.type}"]`);
-        if (btn) {
-            btn.addEventListener('click', () => addReaction(react.emoji, react.type));
-        }
-    });
-    
-    // Share
-    document.querySelectorAll('.share-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const platform = btn.getAttribute('data-platform');
-            const url = encodeURIComponent(window.location.href);
-            const text = encodeURIComponent('Check out this amazing Mind Map Generator tool!');
-            
-            let shareUrl = '';
-            switch(platform) {
-                case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
-                case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`; break;
-                case 'whatsapp': shareUrl = `https://wa.me/?text=${text}%20${url}`; break;
-                case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`; break;
-                case 'copy': 
-                    await navigator.clipboard.writeText(window.location.href);
-                    showToast('Link copied to clipboard!', 'success');
-                    await addShare(platform);
-                    return;
-            }
-            if (shareUrl) {
-                window.open(shareUrl, '_blank');
-                await addShare(platform);
-            }
-        });
-    });
-    
-    // Drag and drop
     const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    
+    dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'var(--primary)';
+        dropZone.style.borderColor = 'var(--primary-blue)';
     });
     dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'var(--border-color)';
+        dropZone.style.borderColor = 'var(--sky-blue)';
     });
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener('drop', async (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'var(--border-color)';
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            processFile(e.dataTransfer.files[0]);
-        }
+        dropZone.style.borderColor = 'var(--sky-blue)';
+        const file = e.dataTransfer.files[0];
+        if (file) await handleFileUpload(file);
     });
     
-    console.log('Mind Map Generator initialized successfully!');
-    console.log('Using Grok API from test-db.js');
-    console.log('Tool Slug:', TOOL_SLUG);
-    showToast('Tool ready! Paste text or upload a file to get started.', 'success');
+    fileInput.addEventListener('change', async (e) => {
+        if (e.target.files[0]) await handleFileUpload(e.target.files[0]);
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    initEventListeners();
+    fetchStats();
 });
