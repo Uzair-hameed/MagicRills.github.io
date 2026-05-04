@@ -1,219 +1,146 @@
+<!-- mind-map-generator.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Mind Map Generator | AI-Powered Educational Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>AI Mind Map Generator | Multi-Format | Multi-Language</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="mind-map-generator.css">
+    <!-- PDF.js for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- Mammoth.js for DOCX parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
+    <!-- SheetJS for CSV/Excel parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
-<body>
-    <!-- Theme Toggle -->
-    <div class="theme-toggle" id="themeToggle">
-        <i class="fas fa-sun"></i>
-        <i class="fas fa-moon"></i>
-        <div class="toggle-ball"></div>
-    </div>
-
-    <!-- Scroll Buttons -->
-    <button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-chevron-up"></i></button>
-    <button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-chevron-down"></i></button>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <p id="loadingText">Processing your content...</p>
-        <div class="loading-progress" id="loadingProgress" style="display: none;">
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <span id="progressPercent">0%</span>
+<body data-theme="light">
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p id="loadingText">Processing...</p>
+        <div class="loading-progress" style="display: none;">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
     </div>
 
-    <!-- Main Container -->
+    <button id="scrollTop" class="scroll-btn"><i class="fas fa-arrow-up"></i></button>
+    <button id="scrollBottom" class="scroll-btn"><i class="fas fa-arrow-down"></i></button>
+
     <div class="container">
-        <header>
-            <div class="header-content">
-                <h1><i class="fas fa-brain"></i> Mind Map Generator</h1>
-                <p class="subtitle">Transform any document, text, or image into an intelligent mind map with AI-powered analysis</p>
-            </div>
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span id="usageCount">0</span>
-                    <span>times used</span>
+        <header class="header">
+            <div class="header-main">
+                <div class="logo">
+                    <h1><i class="fas fa-brain"></i> AI Mind Map Generator</h1>
+                    <p>PDF | DOCX | TXT | CSV | Multi-Language | 3 Views</p>
                 </div>
-                <div class="stat-item">
-                    <i class="fas fa-share-alt"></i>
-                    <span id="shareCount">0</span>
-                    <span>shares</span>
+                <div class="stats-bar">
+                    <div class="stat-item"><i class="fas fa-bolt"></i> Used <span id="usageCount">0</span> times</div>
+                    <div class="stat-item"><i class="fas fa-share-alt"></i> <span id="totalShares">0</span> Shares</div>
                 </div>
+                <button id="themeToggle" class="theme-btn"><i class="fas fa-moon"></i></button>
             </div>
         </header>
 
-        <div class="dashboard">
-            <!-- Left Panel -->
-            <div class="input-panel">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="upload"><i class="fas fa-upload"></i> Upload</button>
-                    <button class="tab-btn" data-tab="text"><i class="fas fa-edit"></i> Paste Text</button>
-                    <button class="tab-btn" data-tab="language"><i class="fas fa-language"></i> Language</button>
-                </div>
+        <div class="main-grid">
+            <aside class="controls">
+                <div class="card">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="text"><i class="fas fa-keyboard"></i> Paste Text</button>
+                        <button class="tab-btn" data-tab="upload"><i class="fas fa-upload"></i> Upload File</button>
+                    </div>
 
-                <!-- Upload Tab -->
-                <div class="tab-content active" id="uploadTab">
-                    <div class="upload-area" id="dropZone">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <h3>Drag & Drop Files Here</h3>
-                        <p>PDF, DOCX, TXT, CSV, JPG, PNG</p>
-                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.csv,.jpg,.jpeg,.png" style="display:none">
-                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                            <i class="fas fa-folder-open"></i> Browse Files
-                        </button>
+                    <div id="textTab" class="tab-content active">
+                        <textarea id="textInput" placeholder="Enter any topic, lesson content, or concept description in any language...&#10;&#10;Examples:&#10;• Photosynthesis is the process by which plants convert sunlight into energy...&#10;• فوٹو سنتھیسس وہ عمل ہے جس کے ذریعے پودے سورج کی روشنی کو توانائی میں تبدیل کرتے ہیں..."></textarea>
                     </div>
-                    <div class="file-info" id="fileInfo" style="display:none">
-                        <i class="fas fa-file-alt"></i>
-                        <span id="fileName"></span>
-                        <button class="btn-icon" id="clearFileBtn"><i class="fas fa-times"></i></button>
-                    </div>
-                    <div class="upload-progress" id="uploadProgress" style="display:none">
-                        <div class="progress-bar"><div class="progress-fill" id="uploadProgressFill"></div></div>
-                        <p id="uploadProgressText" style="margin-top: 8px; font-size: 0.8rem;">Processing file...</p>
-                    </div>
-                </div>
 
-                <!-- Text Tab -->
-                <div class="tab-content" id="textTab">
-                    <textarea id="textInput" placeholder="Paste your text, notes, or educational content here...&#10;&#10;The AI will analyze and create a structured mind map automatically."></textarea>
-                    <div class="btn-group">
-                        <button class="btn btn-outline" id="clearTextBtn"><i class="fas fa-trash"></i> Clear</button>
-                        <button class="btn btn-outline" id="sampleTextBtn"><i class="fas fa-magic"></i> Sample Text</button>
-                    </div>
-                </div>
-
-                <!-- Language Tab -->
-                <div class="tab-content" id="languageTab">
-                    <div class="language-card">
-                        <i class="fas fa-globe"></i>
-                        <h3>Auto Language Detection</h3>
-                        <p>Supports 40+ languages including Urdu, Hindi, Arabic, Chinese, English, Spanish, French, German, Russian, Japanese, Korean, and more.</p>
-                        <div class="detected-language" id="detectedLanguage">
-                            <span class="lang-label">Detected:</span>
-                            <span class="lang-value" id="langValue">Not analyzed yet</span>
+                    <div id="uploadTab" class="tab-content">
+                        <div class="upload-area" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag & drop or click to upload</p>
+                            <small>Supports: PDF, DOCX, TXT, CSV (Max 10MB)</small>
+                            <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.csv" hidden>
                         </div>
-                        <div class="lang-example" id="langExample" style="display:none">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Mind map will be generated in detected language</span>
-                        </div>
+                        <div id="fileName" class="file-name" style="display: none;"></div>
+                    </div>
+
+                    <div class="language-detect" id="languageBox">
+                        <i class="fas fa-language"></i> Detected Language: 
+                        <strong><span id="detectedLang">English</span></strong>
+                        <span id="langIcon"><i class="fas fa-flag-usa"></i></span>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="generateBtn" class="btn-primary"><i class="fas fa-magic"></i> Generate Mind Map</button>
                     </div>
                 </div>
 
-                <!-- Generate Area -->
-                <div class="generate-area">
-                    <button class="btn btn-generate" id="generateBtn">
-                        <i class="fas fa-project-diagram"></i> Generate Mind Map
-                    </button>
-                    <button class="btn btn-outline" id="summarizeBtn">
-                        <i class="fas fa-robot"></i> AI Summary
-                    </button>
-                </div>
-
-                <!-- Summary Panel -->
-                <div class="summary-panel" id="summaryPanel" style="display:none">
-                    <div class="summary-header">
-                        <i class="fas fa-file-alt"></i>
-                        <h4>AI Summary</h4>
-                        <button class="btn-icon" id="closeSummaryBtn"><i class="fas fa-times"></i></button>
-                    </div>
-                    <div class="summary-content" id="summaryContent"></div>
-                </div>
-            </div>
-
-            <!-- Right Panel - Visualization -->
-            <div class="visualization-panel">
-                <div class="toolbar">
-                    <div class="view-controls">
-                        <button class="tool-btn" id="zoomInBtn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
-                        <button class="tool-btn" id="zoomOutBtn" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
-                        <button class="tool-btn" id="resetViewBtn" title="Reset View"><i class="fas fa-sync-alt"></i></button>
-                    </div>
-                    <div class="export-controls">
-                        <button class="tool-btn" id="exportPdfBtn" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
-                        <button class="tool-btn" id="exportDocBtn" title="Export DOC"><i class="fas fa-file-word"></i></button>
-                        <button class="tool-btn" id="exportTxtBtn" title="Export TXT"><i class="fas fa-file-alt"></i></button>
+                <div class="card">
+                    <h3><i class="fas fa-chalkboard"></i> Display Style</h3>
+                    <div class="style-selector">
+                        <button class="style-btn active" data-style="mindmap"><i class="fas fa-project-diagram"></i> Mind Map</button>
+                        <button class="style-btn" data-style="infographic"><i class="fas fa-chart-pie"></i> Infographic</button>
+                        <button class="style-btn" data-style="bullet"><i class="fas fa-list-ul"></i> Bullet Points</button>
                     </div>
                 </div>
 
-                <!-- Mind Map Container -->
-                <div class="mindmap-container" id="mindMapContainer">
-                    <div class="empty-state">
-                        <i class="fas fa-project-diagram"></i>
-                        <p>Upload a file or paste text to generate your mind map</p>
+                <div class="card">
+                    <h3><i class="fas fa-download"></i> Export</h3>
+                    <div class="export-btns">
+                        <button id="exportTxt"><i class="fas fa-file-alt"></i> TXT</button>
+                        <button id="exportDoc"><i class="fas fa-file-word"></i> DOC</button>
+                        <button id="exportPdf"><i class="fas fa-file-pdf"></i> PDF</button>
                     </div>
                 </div>
+            </aside>
 
-                <!-- Metrics -->
-                <div class="metrics">
-                    <div class="metric-card">
-                        <i class="fas fa-circle-nodes"></i>
-                        <div class="metric-info">
-                            <span class="metric-value" id="nodeCount">0</span>
-                            <span class="metric-label">Nodes</span>
+            <section class="visualization">
+                <div class="card viz-container">
+                    <div class="viz-header">
+                        <h3><i class="fas fa-eye"></i> <span id="viewTitle">Mind Map View</span></h3>
+                        <div class="viz-controls">
+                            <button id="zoomIn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            <button id="zoomOut" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                            <button id="resetZoom" title="Reset"><i class="fas fa-sync-alt"></i></button>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <i class="fas fa-code-branch"></i>
-                        <div class="metric-info">
-                            <span class="metric-value" id="connectionCount">0</span>
-                            <span class="metric-label">Connections</span>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <i class="fas fa-layer-group"></i>
-                        <div class="metric-info">
-                            <span class="metric-value" id="topicCount">0</span>
-                            <span class="metric-label">Topics</span>
+                    <div id="displayCanvas" class="display-canvas">
+                        <div class="empty-state">
+                            <i class="fas fa-project-diagram"></i>
+                            <h3>No Content Yet</h3>
+                            <p>Enter text or upload a file and click "Generate Mind Map"</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Reactions -->
-                <div class="reactions-section">
-                    <h4><i class="fas fa-heart"></i> What do you think?</h4>
-                    <div class="reactions" id="reactionsContainer">
-                        <button class="reaction" data-emoji="👍" data-reaction="like"><span>👍</span><span class="reaction-count" id="react-like">0</span></button>
-                        <button class="reaction" data-emoji="❤️" data-reaction="love"><span>❤️</span><span class="reaction-count" id="react-love">0</span></button>
-                        <button class="reaction" data-emoji="😮" data-reaction="wow"><span>😮</span><span class="reaction-count" id="react-wow">0</span></button>
-                        <button class="reaction" data-emoji="😢" data-reaction="sad"><span>😢</span><span class="reaction-count" id="react-sad">0</span></button>
-                        <button class="reaction" data-emoji="😠" data-reaction="angry"><span>😠</span><span class="reaction-count" id="react-angry">0</span></button>
-                        <button class="reaction" data-emoji="😂" data-reaction="laugh"><span>😂</span><span class="reaction-count" id="react-laugh">0</span></button>
-                        <button class="reaction" data-emoji="🎉" data-reaction="celebrate"><span>🎉</span><span class="reaction-count" id="react-celebrate">0</span></button>
+                <div class="card reactions-card">
+                    <h3><i class="fas fa-smile"></i> How helpful was this?</h3>
+                    <div class="reaction-grid">
+                        <button class="reaction-btn" data-emoji="👍">👍 <span class="reaction-count" id="react-like">0</span></button>
+                        <button class="reaction-btn" data-emoji="❤️">❤️ <span class="reaction-count" id="react-love">0</span></button>
+                        <button class="reaction-btn" data-emoji="😮">😮 <span class="reaction-count" id="react-wow">0</span></button>
+                        <button class="reaction-btn" data-emoji="😢">😢 <span class="reaction-count" id="react-sad">0</span></button>
+                        <button class="reaction-btn" data-emoji="😠">😠 <span class="reaction-count" id="react-angry">0</span></button>
+                        <button class="reaction-btn" data-emoji="😂">😂 <span class="reaction-count" id="react-laugh">0</span></button>
+                        <button class="reaction-btn" data-emoji="🎉">🎉 <span class="reaction-count" id="react-celebrate">0</span></button>
                     </div>
                 </div>
 
-                <!-- Share Section -->
-                <div class="share-section">
-                    <h4><i class="fas fa-share-alt"></i> Share this tool</h4>
-                    <div class="share-buttons">
-                        <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
-                        <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i></button>
-                        <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
-                        <button class="share-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                <div class="card share-card">
+                    <h3><i class="fas fa-share-alt"></i> Share This Tool</h3>
+                    <div class="share-btns">
+                        <button class="share-btn fb" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                        <button class="share-btn tw" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                        <button class="share-btn wa" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                        <button class="share-btn li" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
                         <button class="share-btn copy" data-platform="copy"><i class="fas fa-link"></i></button>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
-
-        <footer>
-            <p>© 2025 Mind Map Generator | Powered by AI & Grok API</p>
-        </footer>
     </div>
 
-    <input type="hidden" id="userId" value="">
     <script src="mind-map-generator.js"></script>
 </body>
 </html>
