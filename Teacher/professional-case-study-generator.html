@@ -2,183 +2,285 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Case Study Generator | MagicRills</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Professional Case Study Generator | AI-Powered Tool for Educators</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="professional-case-study-generator.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Animated Header -->
-        <header class="animated-header">
-            <div class="logo-container">
-                <div class="logo">📊 CaseStudyPro</div>
-                <div class="theme-toggle">
-                    <button id="theme-toggle" class="theme-btn">🌙 Dark Mode</button>
-                </div>
-            </div>
-            <h1 class="main-title">Advanced Case Study Generator</h1>
-            <p class="subtitle">Create Professional Case Studies with AI-Powered Templates</p>
-            <div class="floating-shapes">
-                <div class="shape shape-1"></div>
-                <div class="shape shape-2"></div>
-                <div class="shape shape-3"></div>
-            </div>
-        </header>
 
-        <!-- Main Dashboard -->
-        <div class="dashboard">
-            <!-- Input Section -->
-            <div class="input-section glassmorphism">
-                <div class="section-header">
-                    <span class="section-icon">🎯</span>
-                    <h3>Case Study Details</h3>
-                </div>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="topic" class="form-label">
-                            <span class="label-icon">📝</span>
-                            Main Topic
-                        </label>
-                        <input type="text" id="topic" class="form-input" placeholder="e.g., Digital Transformation in Education">
-                        <div class="input-hint">Enter the primary focus of your case study</div>
-                    </div>
+<!-- Floating Action Buttons -->
+<div class="floating-buttons">
+    <button class="float-btn" id="scrollUpBtn" title="Scroll Up">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="float-btn" id="scrollDownBtn" title="Scroll Down">
+        <i class="fas fa-arrow-down"></i>
+    </button>
+    <button class="float-btn" id="darkModeToggle" title="Dark Mode">
+        <i class="fas fa-moon"></i>
+    </button>
+</div>
 
-                    <div class="form-group">
-                        <label for="industry" class="form-label">
-                            <span class="label-icon">🏫</span>
-                            Educational Sector
-                        </label>
-                        <select id="industry" class="form-select">
-                            <option value="">Select Sector</option>
-                            <option value="Early Childhood Education">Early Childhood Education</option>
-                            <option value="Primary Education">Primary Education</option>
-                            <option value="Secondary Education">Secondary Education</option>
-                            <option value="Higher Education">Higher Education</option>
-                            <option value="Online Education">Online Education</option>
-                            <option value="STEM Education">STEM Education</option>
-                        </select>
-                    </div>
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
 
-                    <div class="form-group">
-                        <label for="duration" class="form-label">
-                            <span class="label-icon">⏱️</span>
-                            Study Duration
-                        </label>
-                        <input type="text" id="duration" class="form-input" placeholder="e.g., 6 months, 1 academic year">
-                    </div>
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p>Generating your professional case study...</p>
+</div>
 
-                    <div class="form-group">
-                        <label for="participants" class="form-label">
-                            <span class="label-icon">👥</span>
-                            Participants
-                        </label>
-                        <input type="text" id="participants" class="form-input" placeholder="e.g., 150 students, 20 teachers">
-                    </div>
-                </div>
-
-                <!-- Quick Topics -->
-                <div class="quick-topics">
-                    <h4>Quick Topics</h4>
-                    <div class="topic-chips">
-                        <div class="topic-chip" data-topic="Blended Learning">Blended Learning</div>
-                        <div class="topic-chip" data-topic="Student Engagement">Student Engagement</div>
-                        <div class="topic-chip" data-topic="EdTech Integration">EdTech Integration</div>
-                        <div class="topic-chip" data-topic="Personalized Learning">Personalized Learning</div>
-                    </div>
-                </div>
-
-                <button id="generate-btn" class="generate-button">
-                    <span class="btn-icon">🚀</span>
-                    Generate Case Study
-                    <div class="btn-shine"></div>
-                </button>
-            </div>
-
-            <!-- Preview Section -->
-            <div class="preview-section glassmorphism">
-                <div class="section-header">
-                    <span class="section-icon">👁️</span>
-                    <h3>Live Preview</h3>
-                </div>
-                
-                <div class="preview-container">
-                    <div id="preview-placeholder" class="preview-placeholder">
-                        <div class="placeholder-icon">📄</div>
-                        <p>Your case study will appear here</p>
-                        <small>Fill in the details and click generate</small>
-                    </div>
-                    
-                    <div id="loading" class="loading-state">
-                        <div class="loading-spinner"></div>
-                        <p>Generating your case study...</p>
-                        <div class="loading-bar">
-                            <div class="loading-progress"></div>
-                        </div>
-                    </div>
-
-                    <div id="case-study-preview" class="case-study-preview"></div>
-                </div>
-            </div>
+<!-- Premium Modal -->
+<div class="premium-modal" id="premiumModal">
+    <div class="premium-modal-content">
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+        <div class="premium-icon">
+            <i class="fas fa-crown"></i>
         </div>
+        <h3>Premium Features</h3>
+        <ul>
+            <li><i class="fas fa-check-circle"></i> Unlimited AI Case Study Generations</li>
+            <li><i class="fas fa-check-circle"></i> Advanced Analytics & Insights</li>
+            <li><i class="fas fa-check-circle"></i> Export to Multiple Formats (PDF, DOC, TXT)</li>
+            <li><i class="fas fa-check-circle"></i> Priority Support & Consultation</li>
+            <li><i class="fas fa-check-circle"></i> Custom Branding & Templates</li>
+        </ul>
+        <button class="premium-upgrade-btn">Upgrade Now</button>
+        <p class="premium-note">Starting at $9.99/month</p>
+    </div>
+</div>
 
-        <!-- Export Section -->
-        <div class="export-section">
-            <div class="section-header">
-                <span class="section-icon">📤</span>
-                <h3>Export Options</h3>
+<!-- Main Container -->
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-robot"></i> AI-Powered Tool
             </div>
-            
-            <div class="export-buttons">
-                <button id="export-pdf" class="export-btn pdf-btn" disabled>
-                    <span class="export-icon">📄</span>
-                    Export as PDF
-                </button>
-                <button id="export-word" class="export-btn word-btn" disabled>
-                    <span class="export-icon">📝</span>
-                    Export to Word
-                </button>
-                <button id="export-html" class="export-btn html-btn" disabled>
-                    <span class="export-icon">🌐</span>
-                    Export as HTML
-                </button>
-                <button id="new-study" class="export-btn new-btn">
-                    <span class="export-icon">🆕</span>
-                    New Study
-                </button>
-            </div>
-        </div>
-
-        <!-- Statistics -->
-        <div class="stats-section">
-            <div class="stat-card">
-                <div class="stat-icon">📊</div>
-                <div class="stat-value" id="studies-generated">0</div>
-                <div class="stat-label">Studies Generated</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⏱️</div>
-                <div class="stat-value" id="time-saved">0h</div>
-                <div class="stat-label">Time Saved</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-value" id="success-rate">98%</div>
-                <div class="stat-label">Success Rate</div>
+            <h1>Professional Case Study<br>Generator</h1>
+            <p class="hero-subtitle">Create comprehensive, research-based case studies with AI assistance. Perfect for educators, researchers, and students.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="stat-number" id="heroUsageCount">0</div>
+                    <div class="stat-label">Case Studies Created</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-number">10k+</div>
+                    <div class="stat-label">Happy Users</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfaction Rate</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Notification -->
-    <div id="notification" class="notification">
-        <div class="notification-content">
-            <span class="notification-icon">✅</span>
-            <span class="notification-text">Operation completed successfully!</span>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-file-alt"></i>
+            <span>CaseStudy<span class="logo-highlight">Pro</span></span>
+        </div>
+        <div class="usage-badge">
+            <i class="fas fa-chart-line"></i>
+            <span id="usageCount">0</span>
+            <span>times used</span>
         </div>
     </div>
 
-    <script src="professional-case-study-generator.js"></script>
+    <!-- Main Grid -->
+    <div class="main-grid">
+        <!-- Input Panel -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-pen-alt"></i>
+                <h3>Case Study Details</h3>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> Topic / Subject</label>
+                <input type="text" id="topic" placeholder="e.g., Digital Marketing, Student Engagement, STEM Education">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-graduation-cap"></i> Educational Sector</label>
+                <select id="industry">
+                    <option value="">Select Educational Sector</option>
+                    <option value="Early Childhood Education">Early Childhood Education</option>
+                    <option value="Primary Education">Primary Education</option>
+                    <option value="Secondary Education">Secondary Education</option>
+                    <option value="Special Education">Special Education</option>
+                    <option value="Higher Education">Higher Education</option>
+                    <option value="Vocational Education">Vocational Education</option>
+                    <option value="Adult Education">Adult Education</option>
+                    <option value="Online Education">Online Education</option>
+                    <option value="STEM Education">STEM Education</option>
+                    <option value="Arts Education">Arts Education</option>
+                    <option value="Language Education">Language Education</option>
+                    <option value="Physical Education">Physical Education</option>
+                    <option value="Educational Administration">Educational Administration</option>
+                    <option value="Curriculum Development">Curriculum Development</option>
+                    <option value="Educational Technology">Educational Technology</option>
+                    <option value="Education Policy">Education Policy</option>
+                    <option value="International Education">International Education</option>
+                    <option value="Inclusive Education">Inclusive Education</option>
+                    <option value="Environmental Education">Environmental Education</option>
+                    <option value="Educational Psychology">Educational Psychology</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> Case Study Type</label>
+                <select id="caseType">
+                    <option value="problem-solution">Problem-Solution Analysis</option>
+                    <option value="comparative">Comparative Case Study</option>
+                    <option value="success-story">Success Story Analysis</option>
+                    <option value="exploratory">Exploratory Case Study</option>
+                    <option value="cumulative">Cumulative Case Study</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-comment-dots"></i> Additional Context (Optional)</label>
+                <textarea id="additionalContext" rows="3" placeholder="Any specific requirements, focus areas, or unique aspects..."></textarea>
+            </div>
+            <button class="generate-btn" id="generateBtn">
+                <i class="fas fa-magic"></i>
+                <span>Generate Case Study</span>
+            </button>
+            <div class="quick-topics">
+                <p><i class="fas fa-bolt"></i> Quick Topics:</p>
+                <div class="topic-badges">
+                    <span class="topic-badge" data-topic="Blended Learning">Blended Learning</span>
+                    <span class="topic-badge" data-topic="Student Engagement">Student Engagement</span>
+                    <span class="topic-badge" data-topic="Personalized Learning">Personalized Learning</span>
+                    <span class="topic-badge" data-topic="Classroom Technology">Classroom Technology</span>
+                    <span class="topic-badge" data-topic="Assessment Methods">Assessment Methods</span>
+                    <span class="topic-badge" data-topic="Inclusive Education">Inclusive Education</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-file-alt"></i>
+                <h3>Case Study Output</h3>
+                <div class="output-actions">
+                    <button class="icon-btn" id="copyContentBtn" title="Copy to Clipboard">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="icon-btn" id="premiumBtn" title="Premium Features">
+                        <i class="fas fa-crown"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="output-content" id="outputContent">
+                <div class="output-placeholder" id="outputPlaceholder">
+                    <i class="fas fa-file-alt"></i>
+                    <p>Your professional case study will appear here</p>
+                    <p class="placeholder-small">Enter your topic and click generate to begin</p>
+                </div>
+                <div class="case-study-result" id="caseStudyResult"></div>
+            </div>
+
+            <!-- Reactions Section -->
+            <div class="reactions-section">
+                <p class="reactions-label">
+                    <i class="fas fa-heart"></i>
+                    Was this case study helpful?
+                </p>
+                <div class="reactions-container" id="reactionsContainer">
+                    <button class="reaction-btn" data-reaction="👍">
+                        <span class="reaction-emoji">👍</span>
+                        <span class="reaction-count" id="reaction-like">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="❤️">
+                        <span class="reaction-emoji">❤️</span>
+                        <span class="reaction-count" id="reaction-love">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="😮">
+                        <span class="reaction-emoji">😮</span>
+                        <span class="reaction-count" id="reaction-wow">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="😢">
+                        <span class="reaction-emoji">😢</span>
+                        <span class="reaction-count" id="reaction-sad">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="😠">
+                        <span class="reaction-emoji">😠</span>
+                        <span class="reaction-count" id="reaction-angry">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="😂">
+                        <span class="reaction-emoji">😂</span>
+                        <span class="reaction-count" id="reaction-laugh">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="🎉">
+                        <span class="reaction-emoji">🎉</span>
+                        <span class="reaction-count" id="reaction-celebrate">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Share Section -->
+            <div class="share-section">
+                <p class="share-label">
+                    <i class="fas fa-share-alt"></i>
+                    Share this Case Study
+                </p>
+                <div class="share-buttons">
+                    <button class="share-btn facebook" data-platform="facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button class="share-btn twitter" data-platform="twitter">
+                        <i class="fab fa-twitter"></i>
+                    </button>
+                    <button class="share-btn whatsapp" data-platform="whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                    <button class="share-btn linkedin" data-platform="linkedin">
+                        <i class="fab fa-linkedin-in"></i>
+                    </button>
+                    <button class="share-btn email" data-platform="email">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    <button class="share-btn copy-url" data-platform="copy">
+                        <i class="fas fa-link"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="export-section">
+                <p class="export-label">
+                    <i class="fas fa-download"></i>
+                    Export Case Study
+                </p>
+                <div class="export-buttons">
+                    <button class="export-btn txt" id="exportTxtBtn">
+                        <i class="fas fa-file-alt"></i>
+                        TXT
+                    </button>
+                    <button class="export-btn pdf" id="exportPdfBtn">
+                        <i class="fas fa-file-pdf"></i>
+                        PDF
+                    </button>
+                    <button class="export-btn doc" id="exportDocBtn">
+                        <i class="fas fa-file-word"></i>
+                        DOC
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 CaseStudyPro | AI-Powered Case Study Generator for Educators & Researchers</p>
+    </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="professional-case-study-generator.js"></script>
 </body>
 </html>
