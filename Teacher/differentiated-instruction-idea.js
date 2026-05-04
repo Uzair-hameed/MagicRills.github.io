@@ -1,29 +1,32 @@
 // ============================================
-// API Configuration - Using provided test-db.js endpoints
-// Tool Slug: differentiated-instruction-idea
+// FULLY FUNCTIONAL JAVASCRIPT - NO API DEPENDENCIES
+// All data stored in localStorage
 // ============================================
 
-const API_BASE = '/api';
 const TOOL_SLUG = 'differentiated-instruction-idea';
 
-// User ID Management
+// User ID
 let userId = localStorage.getItem('user_id');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('user_id', userId);
 }
 
-// State Management
+// State
 let currentLessonData = null;
 let userReactions = new Set();
-let currentReactionCounts = {};
+let currentReactionCounts = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+let shareCount = 0;
 
-// Load user's previous reactions from localStorage
-const userReactionsKey = `user_reactions_${TOOL_SLUG}_${userId}`;
-const savedReactions = localStorage.getItem(userReactionsKey);
-if (savedReactions) {
-    userReactions = new Set(JSON.parse(savedReactions));
-}
+// Load saved data
+const savedReactions = localStorage.getItem(`user_reactions_${TOOL_SLUG}_${userId}`);
+if (savedReactions) userReactions = new Set(JSON.parse(savedReactions));
+
+const savedReactionCounts = localStorage.getItem(`${TOOL_SLUG}_reactions`);
+if (savedReactionCounts) currentReactionCounts = JSON.parse(savedReactionCounts);
+
+const savedShareCount = localStorage.getItem(`${TOOL_SLUG}_shares`);
+if (savedShareCount) shareCount = parseInt(savedShareCount);
 
 // DOM Elements
 const elements = {
@@ -54,22 +57,16 @@ const elements = {
     exportPdf: document.getElementById('export-pdf'),
     exportWord: document.getElementById('export-word'),
     exportTxt: document.getElementById('export-txt'),
-    shareCount: document.getElementById('share-count'),
+    shareCountSpan: document.getElementById('share-count'),
     autoSaveStatus: document.getElementById('auto-save-status')
 };
 
-// ============================================
-// Toast Notifications
-// ============================================
+// Toast
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-        <span>${message}</span>
-    `;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${message}</span>`;
     elements.toastContainer.appendChild(toast);
-    
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(100%)';
@@ -77,180 +74,69 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// ============================================
-// Loading Spinner
-// ============================================
+// Loading
 function showLoading(show) {
     elements.loadingSpinner.style.display = show ? 'flex' : 'none';
 }
 
-// ============================================
-// API Calls - Using test-db.js endpoints
-// ============================================
-
-async function apiCall(endpoint, method = 'GET', body = null) {
-    try {
-        const options = {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        };
-        
-        if (body) {
-            options.body = JSON.stringify(body);
-        }
-        
-        // Build URL based on endpoint pattern
-        let url;
-        if (endpoint === 'generate-slos' || endpoint === 'generate-activities' || endpoint === 'generate-full-lesson') {
-            url = `${API_BASE}/${endpoint}`;
-        } else if (endpoint === 'usage' || endpoint === 'reactions' || endpoint === 'shares' || endpoint === 'stats') {
-            url = `${API_BASE}/${TOOL_SLUG}/${endpoint}`;
-        } else {
-            url = `${API_BASE}/${TOOL_SLUG}/${endpoint}`;
-        }
-        
-        console.log(`API Call: ${method} ${url}`, body);
-        const response = await fetch(url, options);
-        
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log(`API Response:`, data);
-        return data;
-    } catch (error) {
-        console.error('API Error:', error);
-        showToast(`API Error: ${error.message}`, 'error');
-        throw error;
+// Usage Counter
+function updateUsageCounter(increment = false) {
+    let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+    if (increment) {
+        count++;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, count);
     }
+    elements.usageCount.textContent = count;
+    return count;
 }
 
-// ============================================
-// Usage Counter - TiDB Integration
-// ============================================
-
-async function updateUsageCounter(increment = false) {
-    try {
-        if (increment) {
-            await apiCall('usage', 'POST', { user_id: userId, tool_slug: TOOL_SLUG });
-        }
-        
-        const data = await apiCall('usage', 'GET');
-        const count = data.count || 0;
-        elements.usageCount.textContent = count;
-        return count;
-    } catch (error) {
-        console.error('Usage counter error:', error);
-        // Fallback to localStorage
-        let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
-        if (increment) {
-            count++;
-            localStorage.setItem(`${TOOL_SLUG}_usage`, count);
-        }
-        elements.usageCount.textContent = count;
-        return count;
-    }
+// Reactions
+function loadReactions() {
+    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        const emoji = btn.dataset.emoji;
+        const reactionType = emojiMap[emoji];
+        const countSpan = btn.querySelector('.reaction-count');
+        countSpan.textContent = currentReactionCounts[reactionType] || 0;
+        if (userReactions.has(emoji)) btn.classList.add('reacted');
+    });
 }
 
-// ============================================
-// Reactions System - TiDB Integration
-// ============================================
-
-async function loadReactions() {
-    try {
-        const data = await apiCall('reactions', 'GET');
-        currentReactionCounts = data.reactions || {};
-        
-        // Update UI with reaction counts
-        document.querySelectorAll('.reaction-btn').forEach(btn => {
-            const emoji = btn.dataset.emoji;
-            const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
-            const reactionType = emojiMap[emoji] || emoji;
-            const countSpan = btn.querySelector('.reaction-count');
-            countSpan.textContent = currentReactionCounts[reactionType] || 0;
-            
-            // Check if user already reacted
-            if (userReactions.has(emoji)) {
-                btn.classList.add('reacted');
-            }
-        });
-    } catch (error) {
-        console.error('Load reactions error:', error);
-    }
+function saveReactionCounts() {
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(currentReactionCounts));
 }
 
-async function addReaction(emoji) {
-    // Check if user already reacted with this emoji
+function addReaction(emoji) {
+    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    const reactionType = emojiMap[emoji];
+    
     if (userReactions.has(emoji)) {
         showToast(`You already reacted with ${emoji}`, 'warning');
         return false;
     }
     
-    showLoading(true);
-    try {
-        const data = await apiCall('reactions', 'POST', { 
-            emoji: emoji, 
-            user_id: userId,
-            tool_slug: TOOL_SLUG 
-        });
-        
-        // Update local state
-        userReactions.add(emoji);
-        localStorage.setItem(userReactionsKey, JSON.stringify(Array.from(userReactions)));
-        
-        // Update counts from response
-        if (data.counts) {
-            currentReactionCounts = data.counts;
-        }
-        
-        // Refresh UI
-        await loadReactions();
-        showToast(`Thanks for your feedback!`, 'success');
-        return true;
-    } catch (error) {
-        console.error('Add reaction error:', error);
-        showToast('Failed to save reaction. Please try again.', 'error');
-        return false;
-    } finally {
-        showLoading(false);
-    }
+    currentReactionCounts[reactionType] = (currentReactionCounts[reactionType] || 0) + 1;
+    userReactions.add(emoji);
+    localStorage.setItem(`user_reactions_${TOOL_SLUG}_${userId}`, JSON.stringify(Array.from(userReactions)));
+    saveReactionCounts();
+    loadReactions();
+    showToast(`Thanks for your feedback! ${emoji}`, 'success');
+    return true;
 }
 
-// ============================================
-// Share System - TiDB Integration
-// ============================================
+// Share System
+function updateShareCount() {
+    elements.shareCountSpan.textContent = shareCount;
+}
 
-async function updateShareCount() {
-    try {
-        const data = await apiCall('shares', 'GET');
-        const count = data.shares || 0;
-        elements.shareCount.textContent = count;
-        return count;
-    } catch (error) {
-        console.error('Share count error:', error);
-        let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
-        elements.shareCount.textContent = count;
-        return count;
-    }
+function saveShareCount() {
+    localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
 }
 
 async function recordShare(platform) {
-    try {
-        await apiCall('shares', 'POST', { 
-            platform: platform, 
-            user_id: userId,
-            tool_slug: TOOL_SLUG 
-        });
-        await updateShareCount();
-    } catch (error) {
-        console.error('Record share error:', error);
-        let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0') + 1;
-        localStorage.setItem(`${TOOL_SLUG}_shares`, count);
-        elements.shareCount.textContent = count;
-    }
+    shareCount++;
+    saveShareCount();
+    updateShareCount();
 }
 
 async function shareLesson(platform) {
@@ -271,61 +157,41 @@ async function shareLesson(platform) {
     } else if (shareUrls[platform]) {
         window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
-    
     await recordShare(platform);
 }
 
-// ============================================
-// Dark/Light Mode - localStorage
-// ============================================
-
+// Theme
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
-        const moonIcon = document.querySelector('#theme-toggle-btn .fa-moon');
-        const sunIcon = document.querySelector('#theme-toggle-btn .fa-sun');
-        if (moonIcon) moonIcon.style.display = 'none';
-        if (sunIcon) sunIcon.style.display = 'inline-block';
+        document.querySelector('#theme-toggle-btn .fa-moon').style.display = 'none';
+        document.querySelector('#theme-toggle-btn .fa-sun').style.display = 'inline-block';
     }
 }
 
 function toggleTheme() {
     const isDark = document.body.getAttribute('data-theme') === 'dark';
-    const moonIcon = document.querySelector('#theme-toggle-btn .fa-moon');
-    const sunIcon = document.querySelector('#theme-toggle-btn .fa-sun');
-    
     if (isDark) {
         document.body.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
-        if (moonIcon) moonIcon.style.display = 'inline-block';
-        if (sunIcon) sunIcon.style.display = 'none';
+        document.querySelector('#theme-toggle-btn .fa-moon').style.display = 'inline-block';
+        document.querySelector('#theme-toggle-btn .fa-sun').style.display = 'none';
         showToast('Light mode activated', 'info');
     } else {
         document.body.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
-        if (moonIcon) moonIcon.style.display = 'none';
-        if (sunIcon) sunIcon.style.display = 'inline-block';
+        document.querySelector('#theme-toggle-btn .fa-moon').style.display = 'none';
+        document.querySelector('#theme-toggle-btn .fa-sun').style.display = 'inline-block';
         showToast('Dark mode activated', 'info');
     }
 }
 
-// ============================================
-// Scroll Functions
-// ============================================
+// Scroll
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
 
-function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function scrollToBottom() {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
-
-// ============================================
-// Auto-Save Draft - localStorage
-// ============================================
-
+// Auto-Save
 function autoSaveDraft() {
     const draft = {
         subject: elements.subject.value,
@@ -359,91 +225,11 @@ function loadDraft() {
         if (elements.advancedLevel) elements.advancedLevel.value = data.advancedLevel || 'exemplary';
         if (elements.methodology) elements.methodology.value = data.methodology || 'inquiry-based';
         if (elements.classSize) elements.classSize.value = data.classSize || '25';
-        showToast('Draft loaded', 'info');
     }
 }
 
-// ============================================
-// AI Generation - Grok API via test-db.js
-// ============================================
-
-async function generateLesson() {
-    const subject = elements.subject.value.trim();
-    if (!subject) {
-        showToast('Please enter a subject/topic', 'error');
-        elements.subject.focus();
-        return false;
-    }
-    
-    showLoading(true);
-    
-    try {
-        // Update usage counter in TiDB
-        await updateUsageCounter(true);
-        
-        // Get AI-generated SLOs from Grok API
-        const slosData = await apiCall('generate-slos', 'POST', {
-            subject: subject,
-            topic: subject,
-            grade: elements.grade.value
-        });
-        
-        // Get AI-generated differentiated activities
-        const activitiesData = await apiCall('generate-differentiated', 'POST', {
-            subject: subject,
-            topic: subject,
-            studentLevels: {
-                beginner: elements.beginnerLevel.value,
-                intermediate: elements.intermediateLevel.value,
-                advanced: elements.advancedLevel.value
-            }
-        });
-        
-        // Get AI-generated full lesson plan
-        const lessonData = await apiCall('generate-full-lesson', 'POST', {
-            subject: subject,
-            topic: subject,
-            className: elements.grade.value,
-            duration: elements.duration.value
-        });
-        
-        // Display results
-        elements.topicResult.textContent = subject;
-        
-        // Display SLOs
-        displaySLOs(slosData.slos || generateFallbackSLOs(subject));
-        
-        // Display activities
-        displayActivities(activitiesData.ideas || generateFallbackActivities(subject));
-        
-        // Display lesson plan
-        displayLessonPlan(lessonData, subject, elements.grade.value, elements.duration.value);
-        
-        elements.resultsSection.style.display = 'block';
-        elements.resultsSection.scrollIntoView({ behavior: 'smooth' });
-        
-        currentLessonData = { subject, activities: activitiesData.ideas, slos: slosData.slos, lessonPlan: lessonData };
-        showToast('Lesson generated successfully using Grok API!', 'success');
-        return true;
-    } catch (error) {
-        console.error('Generation error:', error);
-        showToast('Using fallback generation (API issue)', 'warning');
-        
-        // Fallback generation
-        elements.topicResult.textContent = subject;
-        displaySLOs(generateFallbackSLOs(subject));
-        displayActivities(generateFallbackActivities(subject));
-        displayFallbackLessonPlan(subject, elements.grade.value, elements.duration.value);
-        
-        elements.resultsSection.style.display = 'block';
-        elements.resultsSection.scrollIntoView({ behavior: 'smooth' });
-        return true;
-    } finally {
-        showLoading(false);
-    }
-}
-
-function generateFallbackSLOs(subject) {
+// Generate Content
+function generateSLOs(subject) {
     return [
         `Demonstrate understanding of key ${subject} concepts and terminology`,
         `Apply ${subject} knowledge to solve real-world problems`,
@@ -454,84 +240,38 @@ function generateFallbackSLOs(subject) {
     ];
 }
 
-function generateFallbackActivities(subject) {
+function generateActivities(subject) {
     return {
-        belowGrade: [
-            `Hands-on manipulative activity for ${subject} with visual supports`,
-            `Matching game pairing key ${subject} terms with simple definitions`,
-            `Fill-in-the-blank worksheet with word bank for ${subject} concepts`,
-            `Step-by-step guided practice with teacher support`
+        beginner: [
+            { title: `🧩 Hands-On Manipulative Activity for ${subject}`, detail: `Students use concrete materials to understand basic ${subject} concepts with visual supports and sentence starters.` },
+            { title: `🎯 ${subject} Matching Game`, detail: `Match key terms with definitions/images. Includes word bank and scaffolded support.` },
+            { title: `📊 Visual Flowchart of ${subject}`, detail: `Break down ${subject} into simple, sequential steps with graphic organizers.` },
+            { title: `✏️ Fill-in-the-Blanks ${subject} Worksheet`, detail: `Guided practice with word bank and teacher support.` }
         ],
-        atGrade: [
-            `Collaborative ${subject} investigation with guided questions`,
-            `Case study analysis applying ${subject} to real scenarios`,
-            `Group discussion and peer teaching on ${subject} topics`,
-            `Problem-solving activity with multiple solution paths`
+        intermediate: [
+            { title: `🔍 Guided Inquiry: Exploring ${subject}`, detail: `Students investigate ${subject} through structured questions and peer discussion.` },
+            { title: `📋 ${subject} Case Study Analysis`, detail: `Analyze real-world examples of ${subject} with guided prompts.` },
+            { title: `👥 Collaborative ${subject} Investigation`, detail: `Groups become experts on different ${subject} aspects and teach peers.` },
+            { title: `💡 ${subject} Problem-Solving Challenge`, detail: `Apply ${subject} knowledge to solve authentic problems.` }
         ],
-        aboveGrade: [
-            `Open-ended research project on advanced ${subject} concepts`,
-            `Critical analysis and debate on ${subject} issues`,
-            `Design thinking challenge using ${subject} knowledge`,
-            `Mentorship opportunity teaching ${subject} to peers`
+        advanced: [
+            { title: `🚀 Open-Ended ${subject} Research Project`, detail: `Students formulate research questions and conduct independent investigation.` },
+            { title: `🎭 ${subject} Debate & Socratic Seminar`, detail: `Argue different perspectives on complex ${subject} issues with evidence.` },
+            { title: `🌍 Real-World ${subject} Innovation Challenge`, detail: `Apply ${subject} to solve authentic problems and prototype solutions.` },
+            { title: `🔗 ${subject} Cross-Curricular Connection`, detail: `Connect ${subject} to other disciplines and create interdisciplinary projects.` }
         ]
     };
 }
 
-function displaySLOs(slos) {
-    if (!elements.slosList) return;
-    
-    if (Array.isArray(slos)) {
-        elements.slosList.innerHTML = slos.map(slo => `
-            <div class="slo-item">
-                <i class="fas fa-check-circle"></i>
-                <span>${slo}</span>
-            </div>
-        `).join('');
-    } else {
-        elements.slosList.innerHTML = '<div class="slo-item"><i class="fas fa-info-circle"></i><span>SLOs will appear here after generation</span></div>';
-    }
-}
-
-function displayActivities(activities) {
-    // Beginner activities (below grade)
-    const beginnerList = activities.belowGrade || activities.beginner || [];
-    elements.beginnerActivities.innerHTML = beginnerList.map(activity => `
-        <div class="activity-item">
-            <strong><i class="fas fa-seedling"></i> ${typeof activity === 'string' ? activity : activity.title || activity}</strong>
-            <em>${typeof activity === 'string' ? 'Scaffolded support with visual aids and sentence starters' : (activity.detail || 'Differentiated for beginner learners')}</em>
-        </div>
-    `).join('');
-    
-    // Intermediate activities (at grade)
-    const intermediateList = activities.atGrade || activities.intermediate || [];
-    elements.intermediateActivities.innerHTML = intermediateList.map(activity => `
-        <div class="activity-item">
-            <strong><i class="fas fa-tree"></i> ${typeof activity === 'string' ? activity : activity.title || activity}</strong>
-            <em>${typeof activity === 'string' ? 'Collaborative learning with guided inquiry' : (activity.detail || 'Designed for grade-level proficiency')}</em>
-        </div>
-    `).join('');
-    
-    // Advanced activities (above grade)
-    const advancedList = activities.aboveGrade || activities.advanced || [];
-    elements.advancedActivities.innerHTML = advancedList.map(activity => `
-        <div class="activity-item">
-            <strong><i class="fas fa-mountain"></i> ${typeof activity === 'string' ? activity : activity.title || activity}</strong>
-            <em>${typeof activity === 'string' ? 'Extension activities with critical thinking focus' : (activity.detail || 'Challenging tasks for advanced learners')}</em>
-        </div>
-    `).join('');
-}
-
-function displayLessonPlan(lessonData, subject, grade, duration) {
+function generateLessonPlan(subject, grade, duration, methodology) {
     const durationNum = parseInt(duration) || 45;
-    
-    elements.fullLessonPlan.innerHTML = `
+    return `
         <h4><i class="fas fa-bullseye"></i> Learning Objectives</h4>
         <ul>
             <li>Students will be able to explain key concepts of ${subject}</li>
             <li>Students will apply ${subject} knowledge to solve problems</li>
             <li>Students will evaluate and create using ${subject} principles</li>
         </ul>
-        
         <h4><i class="fas fa-tools"></i> Materials Needed</h4>
         <ul>
             <li>Visual aids and manipulatives for ${subject}</li>
@@ -539,105 +279,100 @@ function displayLessonPlan(lessonData, subject, grade, duration) {
             <li>Technology resources (videos, interactive simulations)</li>
             <li>Group discussion prompts and graphic organizers</li>
         </ul>
-        
         <h4><i class="fas fa-clock"></i> Lesson Structure (${durationNum} minutes)</h4>
         <ul>
             <li><strong>Opening (5-10 min):</strong> Hook and activate prior knowledge about ${subject}</li>
-            <li><strong>Direct Instruction (10-15 min):</strong> Introduce ${subject} concepts</li>
+            <li><strong>Direct Instruction (10-15 min):</strong> Introduce ${subject} using ${methodology}</li>
             <li><strong>Guided Practice (15-20 min):</strong> Differentiated activities by skill level</li>
             <li><strong>Independent/Group Work (15-20 min):</strong> Collaborative learning tasks</li>
             <li><strong>Closure (5-10 min):</strong> Exit ticket and reflection</li>
         </ul>
-        
         <h4><i class="fas fa-clipboard-list"></i> Assessment Strategies</h4>
         <ul>
             <li><strong>Formative:</strong> Observation, questioning, exit tickets</li>
             <li><strong>Summative:</strong> Differentiated project or assessment</li>
             <li><strong>Self-assessment:</strong> Student reflection rubric</li>
         </ul>
-        
         <h4><i class="fas fa-universal-access"></i> Differentiation Strategies</h4>
         <ul>
-            <li><strong>Beginner (Below Grade):</strong> Visual supports, sentence starters, peer assistance, modified worksheets</li>
-            <li><strong>Intermediate (At Grade):</strong> Guided questions, collaborative learning, choice boards, standard worksheets</li>
-            <li><strong>Advanced (Above Grade):</strong> Open-ended tasks, cross-curricular connections, mentoring roles, extension projects</li>
-        </ul>
-        
-        <h4><i class="fas fa-home"></i> Homework/Extension</h4>
-        <ul>
-            <li>Complete ${subject} practice problems at appropriate level</li>
-            <li>Research a real-world application of ${subject}</li>
-            <li>Prepare one question about ${subject} for next class</li>
+            <li><strong>Beginner:</strong> Visual supports, sentence starters, peer assistance</li>
+            <li><strong>Intermediate:</strong> Guided questions, collaborative learning, choice boards</li>
+            <li><strong>Advanced:</strong> Open-ended tasks, cross-curricular connections, mentoring roles</li>
         </ul>
     `;
 }
 
-function displayFallbackLessonPlan(subject, grade, duration) {
-    const durationNum = parseInt(duration) || 45;
+function displaySLOs(slos) {
+    elements.slosList.innerHTML = slos.map(slo => `
+        <div class="slo-item"><i class="fas fa-check-circle"></i><span>${slo}</span></div>
+    `).join('');
+}
+
+function displayActivities(activities) {
+    elements.beginnerActivities.innerHTML = activities.beginner.map(a => `
+        <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
+    `).join('');
+    elements.intermediateActivities.innerHTML = activities.intermediate.map(a => `
+        <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
+    `).join('');
+    elements.advancedActivities.innerHTML = activities.advanced.map(a => `
+        <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
+    `).join('');
+}
+
+function displayLessonPlan(plan) {
+    elements.fullLessonPlan.innerHTML = plan;
+}
+
+async function generateLesson() {
+    const subject = elements.subject.value.trim();
+    if (!subject) {
+        showToast('Please enter a subject/topic', 'error');
+        elements.subject.focus();
+        return false;
+    }
     
-    elements.fullLessonPlan.innerHTML = `
-        <h4><i class="fas fa-bullseye"></i> Learning Objectives</h4>
-        <ul>
-            <li>Students will understand fundamental ${subject} concepts</li>
-            <li>Students will apply ${subject} knowledge to solve problems</li>
-        </ul>
-        
-        <h4><i class="fas fa-clock"></i> Lesson Structure (${durationNum} minutes)</h4>
-        <ul>
-            <li><strong>Opening (5 min):</strong> Introduction to ${subject}</li>
-            <li><strong>Main Activity (${durationNum - 15} min):</strong> Differentiated ${subject} tasks</li>
-            <li><strong>Assessment (10 min):</strong> Exit ticket and review</li>
-        </ul>
-        
-        <h4><i class="fas fa-universal-access"></i> Differentiation</h4>
-        <ul>
-            <li>Beginner: Scaffolded support and visual aids</li>
-            <li>Intermediate: Grade-level activities with guidance</li>
-            <li>Advanced: Extension challenges and independent research</li>
-        </ul>
-    `;
+    showLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    updateUsageCounter(true);
+    
+    const slos = generateSLOs(subject);
+    const activities = generateActivities(subject);
+    const lessonPlan = generateLessonPlan(subject, elements.grade.value, elements.duration.value, elements.methodology.value);
+    
+    elements.topicResult.textContent = subject;
+    displaySLOs(slos);
+    displayActivities(activities);
+    displayLessonPlan(lessonPlan);
+    
+    elements.resultsSection.style.display = 'block';
+    elements.resultsSection.scrollIntoView({ behavior: 'smooth' });
+    
+    currentLessonData = { subject, slos, activities, lessonPlan };
+    showToast('Lesson generated successfully!', 'success');
+    showLoading(false);
+    return true;
 }
 
-// ============================================
 // Export Functions
-// ============================================
-
 function exportToPDF() {
     if (!currentLessonData && elements.resultsSection.style.display !== 'block') {
         showToast('Generate a lesson first', 'error');
         return;
     }
-    
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
-        <html>
-        <head>
-            <title>Lesson Plan - ${elements.subject.value || 'Differentiated Instruction'}</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h1 { color: #4361ee; }
-                h2 { color: #3a0ca3; margin-top: 20px; }
-                h3 { color: #6cbf6c; }
-                .activity { margin: 10px 0; padding: 10px; border-left: 3px solid #4361ee; }
-                @media print { body { padding: 0; } }
-            </style>
-        </head>
-        <body>
-            <h1>Differentiated Lesson Plan: ${elements.subject.value || 'Lesson'}</h1>
-            <p>Grade: ${elements.grade.value} | Duration: ${elements.duration.value} min</p>
-            <p>Generated on: ${new Date().toLocaleString()}</p>
-            <hr>
-            ${elements.fullLessonPlan ? elements.fullLessonPlan.innerHTML : ''}
-            <hr>
-            <h2>Differentiated Activities</h2>
-            <h3>Beginner Level (Below Grade)</h3>
-            ${elements.beginnerActivities ? elements.beginnerActivities.innerHTML : ''}
-            <h3>Intermediate Level (At Grade)</h3>
-            ${elements.intermediateActivities ? elements.intermediateActivities.innerHTML : ''}
-            <h3>Advanced Level (Above Grade)</h3>
-            ${elements.advancedActivities ? elements.advancedActivities.innerHTML : ''}
-        </body>
-        </html>
+        <html><head><title>Lesson Plan - ${elements.subject.value}</title>
+        <style>body{font-family:Arial;padding:20px}h1{color:#4361ee}</style></head>
+        <body><h1>Differentiated Lesson Plan: ${elements.subject.value}</h1>
+        <p>Grade: ${elements.grade.value} | Duration: ${elements.duration.value} min</p>
+        <hr>${elements.fullLessonPlan.innerHTML}<hr>
+        <h2>Differentiated Activities</h2>
+        <h3>Beginner Level</h3>${elements.beginnerActivities.innerHTML}
+        <h3>Intermediate Level</h3>${elements.intermediateActivities.innerHTML}
+        <h3>Advanced Level</h3>${elements.advancedActivities.innerHTML}
+        </body></html>
     `);
     printWindow.document.close();
     printWindow.print();
@@ -649,31 +384,14 @@ function exportToWord() {
         showToast('Generate a lesson first', 'error');
         return;
     }
-    
-    const content = `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
-        <head>
-            <meta charset="UTF-8">
-            <title>Lesson Plan - ${elements.subject.value || 'Differentiated Instruction'}</title>
-        </head>
-        <body>
-            <h1>Differentiated Lesson Plan: ${elements.subject.value || 'Lesson'}</h1>
-            <p>Grade: ${elements.grade.value} | Duration: ${elements.duration.value} min</p>
-            <p>Generated on: ${new Date().toLocaleString()}</p>
-            <hr>
-            ${elements.fullLessonPlan ? elements.fullLessonPlan.innerHTML : ''}
-            <hr>
-            <h2>Differentiated Activities</h2>
-            <h3>Beginner Level</h3>
-            ${elements.beginnerActivities ? elements.beginnerActivities.innerHTML : ''}
-            <h3>Intermediate Level</h3>
-            ${elements.intermediateActivities ? elements.intermediateActivities.innerHTML : ''}
-            <h3>Advanced Level</h3>
-            ${elements.advancedActivities ? elements.advancedActivities.innerHTML : ''}
-        </body>
-        </html>
-    `;
-    
+    const content = `<html><head><meta charset="UTF-8"><title>Lesson Plan</title></head>
+        <body><h1>Differentiated Lesson Plan: ${elements.subject.value}</h1>
+        ${elements.fullLessonPlan.innerHTML}
+        <h2>Differentiated Activities</h2>
+        <h3>Beginner</h3>${elements.beginnerActivities.innerHTML}
+        <h3>Intermediate</h3>${elements.intermediateActivities.innerHTML}
+        <h3>Advanced</h3>${elements.advancedActivities.innerHTML}
+        </body></html>`;
     const blob = new Blob([content], { type: 'application/msword' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -688,30 +406,7 @@ function exportToTXT() {
         showToast('Generate a lesson first', 'error');
         return;
     }
-    
-    const content = `
-DIFFERENTIATED LESSON PLAN
-==========================
-Subject: ${elements.subject.value || 'Not specified'}
-Grade: ${elements.grade.value}
-Duration: ${elements.duration.value} minutes
-Generated: ${new Date().toLocaleString()}
-
-LESSON CONTENT:
-${elements.fullLessonPlan ? (elements.fullLessonPlan.innerText || elements.fullLessonPlan.textContent) : ''}
-
-DIFFERENTIATED ACTIVITIES:
-
-BEGINNER LEVEL (Below Grade):
-${elements.beginnerActivities ? (elements.beginnerActivities.innerText || elements.beginnerActivities.textContent) : ''}
-
-INTERMEDIATE LEVEL (At Grade):
-${elements.intermediateActivities ? (elements.intermediateActivities.innerText || elements.intermediateActivities.textContent) : ''}
-
-ADVANCED LEVEL (Above Grade):
-${elements.advancedActivities ? (elements.advancedActivities.innerText || elements.advancedActivities.textContent) : ''}
-    `;
-    
+    const content = `DIFFERENTIATED LESSON PLAN\nSubject: ${elements.subject.value}\nGrade: ${elements.grade.value}\n\nLESSON CONTENT:\n${elements.fullLessonPlan.innerText}\n\nACTIVITIES:\n${elements.beginnerActivities.innerText}\n${elements.intermediateActivities.innerText}\n${elements.advancedActivities.innerText}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -720,10 +415,6 @@ ${elements.advancedActivities ? (elements.advancedActivities.innerText || elemen
     URL.revokeObjectURL(link.href);
     showToast('Text file downloaded', 'success');
 }
-
-// ============================================
-// Reset Function
-// ============================================
 
 function resetForm() {
     elements.subject.value = '';
@@ -740,10 +431,7 @@ function resetForm() {
     showToast('Form reset', 'info');
 }
 
-// ============================================
 // Event Listeners
-// ============================================
-
 function initEventListeners() {
     elements.themeToggle.addEventListener('click', toggleTheme);
     elements.scrollUp.addEventListener('click', scrollToTop);
@@ -755,7 +443,6 @@ function initEventListeners() {
     elements.exportWord.addEventListener('click', exportToWord);
     elements.exportTxt.addEventListener('click', exportToTXT);
     
-    // Auto-save on input
     elements.subject.addEventListener('input', autoSaveDraft);
     elements.grade.addEventListener('change', autoSaveDraft);
     elements.duration.addEventListener('change', autoSaveDraft);
@@ -765,30 +452,24 @@ function initEventListeners() {
     elements.intermediateLevel.addEventListener('change', autoSaveDraft);
     elements.advancedLevel.addEventListener('change', autoSaveDraft);
     
-    // Reactions
     document.querySelectorAll('.reaction-btn').forEach(btn => {
         btn.addEventListener('click', () => addReaction(btn.dataset.emoji));
     });
     
-    // Share buttons
     document.querySelectorAll('.share-btn').forEach(btn => {
         btn.addEventListener('click', () => shareLesson(btn.dataset.platform));
     });
 }
 
-// ============================================
-// Initialize App
-// ============================================
-
-async function init() {
+// Initialize
+function init() {
     initTheme();
     initEventListeners();
-    await updateUsageCounter(false);
-    await loadReactions();
-    await updateShareCount();
+    updateUsageCounter(false);
+    loadReactions();
+    updateShareCount();
     loadDraft();
-    showToast('Welcome! Enter a subject to get started. Connected to TiDB & Grok API.', 'info');
+    showToast('Welcome! Enter a subject to get started. Everything works offline!', 'info');
 }
 
-// Start the app
 init();
