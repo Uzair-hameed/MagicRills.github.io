@@ -1,109 +1,322 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>STEAM PBL Project Generator | MagicRills</title>
-    <link rel="stylesheet" href="steam-pbl-project-generator.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="STEAM PBL Project Generator - AI-powered Problem Based Learning project generator fully integrated with TiDB + Grok API">
+    <meta name="theme-color" content="#87CEEB">
+    <title>STEAM PBL Project Generator | Fully AI Integrated</title>
+    <link rel="stylesheet" href="steam-pbl-project-generator.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body>
-    <button class="theme-toggle" id="themeToggle">🌙</button>
+<body data-theme="light">
 
-    <div class="container">
-        <header class="header">
-            <h1>🚀 STEAM PBL Project Generator</h1>
-            <p>AI-Powered Problem-Based Learning for Every Grade</p>
-            <div class="ai-badge">🤖 Powered by AI</div>
-        </header>
-
-        <div class="grid">
-            <!-- Control Panel -->
-            <div class="glass-card control-panel">
-                <h2>🎮 Project Settings</h2>
-                
-                <div class="form-group">
-                    <label>🎓 Grade Level</label>
-                    <select id="gradeLevel">
-                        <option value="">Select Grade</option>
-                        <option value="k-2">K-2 (Ages 5-8)</option>
-                        <option value="3-5">3-5 (Ages 8-11)</option>
-                        <option value="6-8">6-8 (Ages 11-14)</option>
-                        <option value="9-12">9-12 (Ages 14-18)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>🔬 STEAM Focus</label>
-                    <select id="subjectFocus">
-                        <option value="">Select Focus</option>
-                        <option value="science">Science</option>
-                        <option value="technology">Technology</option>
-                        <option value="engineering">Engineering</option>
-                        <option value="arts">Arts</option>
-                        <option value="math">Mathematics</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>⚡ Complexity</label>
-                    <select id="complexity">
-                        <option value="beginner">Beginner (1-2 weeks)</option>
-                        <option value="intermediate">Intermediate (3-4 weeks)</option>
-                        <option value="advanced">Advanced (5+ weeks)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>🌍 Real-World Problem (Optional)</label>
-                    <input type="text" id="realWorldProblem" placeholder="e.g., Reduce plastic waste in school" />
-                </div>
-
-                <button class="btn generate-btn" onclick="generateProject()">
-                    <span class="btn-icon">🎲</span> Generate AI Project
-                    <span class="loading" id="loading">⟳</span>
-                </button>
-
-                <div class="ai-tip">
-                    <p>💡 Tip: Add a real-world problem for AI-customized ideas!</p>
-                </div>
-            </div>
-
-            <!-- Project Output -->
-            <div class="glass-card project-output" id="projectOutput">
-                <div class="placeholder">
-                    <div class="floating-robot">🤖</div>
-                    <p>Click "Generate AI Project" to create your STEAM masterpiece!</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Resources & Links -->
-        <div class="resources-section glass-card">
-            <h3>🛠️ Helpful Resources</h3>
-            <div class="resource-grid">
-                <a href="https://scratch.mit.edu" target="_blank" class="resource-card">
-                    <i class="fab fa-scratch"></i> Scratch
-                </a>
-                <a href="https://tinkercad.com" target="_blank" class="resource-card">
-                    <i class="fas fa-cube"></i> Tinkercad
-                </a>
-                <a href="https://code.org" target="_blank" class="resource-card">
-                    <i class="fas fa-code"></i> Code.org
-                </a>
-                <a href="https://phet.colorado.edu" target="_blank" class="resource-card">
-                    <i class="fas fa-flask"></i> PhET Sims
-                </a>
-            </div>
+    <!-- Premium Modal -->
+    <div id="premium-modal" class="premium-modal">
+        <div class="premium-modal-content">
+            <span class="premium-modal-close">&times;</span>
+            <div class="premium-icon">🚀</div>
+            <h2>🌟 Premium Features</h2>
+            <p>Upgrade to unlock advanced features:</p>
+            <ul>
+                <li><i class="fas fa-robot"></i> Advanced Grok AI Generation</li>
+                <li><i class="fas fa-chart-line"></i> Detailed Analytics Dashboard</li>
+                <li><i class="fas fa-database"></i> Cloud Data Backup (TiDB)</li>
+                <li><i class="fas fa-download"></i> Bulk Export (PDF/DOCX/Excel)</li>
+                <li><i class="fas fa-users"></i> Team Collaboration</li>
+            </ul>
+            <button class="premium-btn">Upgrade Now</button>
+            <p class="premium-note">✨ Basic features are always free!</p>
         </div>
     </div>
 
-    <footer>
-        <p>© 2025 <strong>MagicRills.com</strong> | Deployed on GitHub</p>
-    </footer>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Loading Spinner Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Generating your project with AI...</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Hero Section with Stats - Sky Blue Theme -->
+        <header class="hero-section">
+            <div class="hero-badge">
+                <span class="badge-icon">🎯</span> AI-Powered STEAM Generator
+            </div>
+            <h1 class="hero-title">
+                <span class="gradient-text">STEAM PBL</span> Project Generator
+            </h1>
+            <p class="hero-subtitle">Create engaging Problem-Based Learning projects with Grok AI integration</p>
+            
+            <!-- Database Status Indicator -->
+            <div class="db-status" id="db-status">
+                <i class="fas fa-database"></i>
+                <span id="db-status-text">Checking connection...</span>
+            </div>
+            
+            <!-- Global Stats -->
+            <div class="global-stats">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <span id="global-usage-count">0</span>
+                    <small>Total Uses</small>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-heart"></i>
+                    <span id="global-reactions-count">0</span>
+                    <small>Reactions</small>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-share-alt"></i>
+                    <span id="global-shares-count">0</span>
+                    <small>Shares</small>
+                </div>
+            </div>
+        </header>
+
+        <!-- Generator Card -->
+        <div class="generator-card">
+            <div class="card-header">
+                <h2><i class="fas fa-magic"></i> Project Generator</h2>
+                <div class="header-actions">
+                    <button id="dark-mode-toggle" class="icon-btn" title="Dark/Light Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="premium-btn-header" class="premium-badge" title="Premium Features">
+                        <i class="fas fa-crown"></i> PRO
+                    </button>
+                </div>
+            </div>
+            
+            <div class="generator-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-graduation-cap"></i> Grade Level <span class="required">*</span></label>
+                        <select id="grade-level" class="form-control">
+                            <option value="">-- Select Grade Level --</option>
+                            <option value="k-2">🎨 Kindergarten - 2nd Grade</option>
+                            <option value="3-5">📚 3rd - 5th Grade</option>
+                            <option value="6-8">🔬 6th - 8th Grade</option>
+                            <option value="9-12">🚀 9th - 12th Grade</option>
+                            <option value="college">🎓 College/University</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-flask"></i> STEAM Focus <span class="required">*</span></label>
+                        <select id="subject-focus" class="form-control">
+                            <option value="">-- Select Focus Area --</option>
+                            <option value="science">🔬 Science</option>
+                            <option value="technology">💻 Technology</option>
+                            <option value="engineering">⚙️ Engineering</option>
+                            <option value="arts">🎨 Arts</option>
+                            <option value="math">📐 Mathematics</option>
+                            <option value="integrated">🌈 Integrated STEAM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-chart-line"></i> Project Complexity</label>
+                        <select id="complexity" class="form-control">
+                            <option value="beginner">🌱 Beginner (1-2 weeks)</option>
+                            <option value="intermediate" selected>⚡ Intermediate (3-4 weeks)</option>
+                            <option value="advanced">🏆 Advanced (5+ weeks)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-keyboard"></i> Specific Topics/Keywords</label>
+                        <input type="text" id="keywords" class="form-control" placeholder="e.g., renewable energy, robotics, geometry">
+                        <small class="form-hint"><i class="fas fa-lightbulb"></i> Separate multiple keywords with commas</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button id="generate-btn" class="btn btn-primary">
+                        <i class="fas fa-wand-magic"></i> Generate with AI
+                    </button>
+                    <button id="random-btn" class="btn btn-secondary">
+                        <i class="fas fa-random"></i> Random
+                    </button>
+                    <button id="reset-btn" class="btn btn-outline">
+                        <i class="fas fa-undo-alt"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Usage Counter Display -->
+            <div class="usage-counter">
+                <i class="fas fa-chart-simple"></i>
+                Used <span id="tool-usage-count">0</span> times
+                <span class="separator">•</span>
+                <i class="fas fa-heart"></i>
+                <span id="tool-reaction-count">0</span> reactions
+                <span class="separator">•</span>
+                <i class="fas fa-cloud"></i>
+                <span id="db-sync-status">🟢 Live DB</span>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="result-container" class="result-card" style="display: none;">
+            <div class="result-header">
+                <h2><i class="fas fa-file-alt"></i> Generated Project</h2>
+                <div class="result-actions">
+                    <button id="copy-project-btn" class="icon-btn-sm" title="Copy to Clipboard">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button id="save-project-btn" class="icon-btn-sm" title="Save Project">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <h1 id="project-title" class="project-title"></h1>
+            <div id="project-description" class="project-description"></div>
+
+            <!-- Project Steps -->
+            <div class="section">
+                <h3><i class="fas fa-list-ol"></i> Project Steps</h3>
+                <ol id="project-steps" class="steps-list"></ol>
+            </div>
+
+            <!-- Resources -->
+            <div class="section">
+                <h3><i class="fas fa-book"></i> Suggested Resources</h3>
+                <div id="project-resources" class="resources-grid"></div>
+            </div>
+
+            <!-- Assembly Guide -->
+            <div id="assembly-container" class="section">
+                <h3><i class="fas fa-tools"></i> Assembly Process - Step by Step</h3>
+                <div id="assembly-steps" class="assembly-steps-container"></div>
+            </div>
+
+            <!-- Assessment Checklist -->
+            <div id="rubric-container" class="section rubric-section">
+                <h3><i class="fas fa-clipboard-list"></i> Professional Assessment Checklist (100 Marks)</h3>
+                <div id="rubric-content" class="rubric-content"></div>
+                
+                <div class="assessment-actions">
+                    <button id="download-checklist-btn" class="btn-export"><i class="fas fa-download"></i> Download Checklist</button>
+                    <button id="upload-checklist-btn" class="btn-export"><i class="fas fa-upload"></i> Upload Checklist</button>
+                    <button id="analyze-online-btn" class="btn-export btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); color: white;"><i class="fas fa-chart-line"></i> Analyze Online</button>
+                    <button id="export-csv-btn" class="btn-export"><i class="fas fa-file-excel"></i> Export to CSV</button>
+                    <input type="file" id="checklist-file-input" accept=".json" style="display: none;">
+                </div>
+                <div class="online-fill-notice">
+                    <small><i class="fas fa-info-circle"></i> 💡 Enter marks in the table above, then click "Analyze Online" for AI-powered report with charts</small>
+                </div>
+            </div>
+
+            <!-- Analysis Report Section -->
+            <div id="analysis-container" class="section analysis-section" style="display: none;">
+                <h3><i class="fas fa-chart-pie"></i> Assessment Analysis Report</h3>
+                
+                <div class="score-summary">
+                    <div class="total-score-card">
+                        <h4>Total Score</h4>
+                        <span id="total-score" class="total-score">0</span>
+                        <span id="total-marks" class="total-marks">/ 0</span>
+                        <span id="percentage" class="percentage">0%</span>
+                    </div>
+                    <div class="grade-card">
+                        <h4>Grade</h4>
+                        <span id="grade-letter" class="grade-letter">F</span>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <canvas id="strengthChart"></canvas>
+                        <h4>Areas of Strength</h4>
+                        <ul id="strength-list" class="analysis-list"></ul>
+                    </div>
+                    <div class="chart-card">
+                        <canvas id="weaknessChart"></canvas>
+                        <h4>Areas of Weakness</h4>
+                        <ul id="weakness-list" class="analysis-list"></ul>
+                    </div>
+                    <div class="chart-card">
+                        <canvas id="improvementChart"></canvas>
+                        <h4>Areas Needing Improvement</h4>
+                        <ul id="improvement-list" class="analysis-list"></ul>
+                    </div>
+                </div>
+
+                <div class="guidelines-card">
+                    <h4><i class="fas fa-chalkboard-user"></i> Teacher Guidelines</h4>
+                    <ul id="teacher-guidelines" class="guidelines-list"></ul>
+                </div>
+
+                <div class="guidelines-card">
+                    <h4><i class="fas fa-user-graduate"></i> Student Guidelines</h4>
+                    <ul id="student-guidelines" class="guidelines-list"></ul>
+                </div>
+
+                <div class="report-actions">
+                    <button id="export-report-pdf" class="btn-primary"><i class="fas fa-file-pdf"></i> Export Report PDF</button>
+                    <button id="print-report" class="btn-secondary"><i class="fas fa-print"></i> Print Report</button>
+                </div>
+            </div>
+
+            <div class="export-section">
+                <h3><i class="fas fa-download"></i> Export Options</h3>
+                <div class="export-buttons">
+                    <button id="export-txt-btn" class="btn-export"><i class="fas fa-file-alt"></i> Export TXT</button>
+                    <button id="export-doc-btn" class="btn-export"><i class="fas fa-file-word"></i> Export DOC</button>
+                    <button id="export-pdf-btn" class="btn-export"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reactions Section -->
+        <div class="reactions-card">
+            <h3><i class="fas fa-smile"></i> How do you like this tool?</h3>
+            <div class="reactions-container" id="reactions-container">
+                <div class="reaction" data-emoji="👍" data-type="like"><span class="reaction-emoji">👍</span><span class="reaction-count" id="reaction-like">0</span></div>
+                <div class="reaction" data-emoji="❤️" data-type="love"><span class="reaction-emoji">❤️</span><span class="reaction-count" id="reaction-love">0</span></div>
+                <div class="reaction" data-emoji="😮" data-type="wow"><span class="reaction-emoji">😮</span><span class="reaction-count" id="reaction-wow">0</span></div>
+                <div class="reaction" data-emoji="😢" data-type="sad"><span class="reaction-emoji">😢</span><span class="reaction-count" id="reaction-sad">0</span></div>
+                <div class="reaction" data-emoji="😠" data-type="angry"><span class="reaction-emoji">😠</span><span class="reaction-count" id="reaction-angry">0</span></div>
+                <div class="reaction" data-emoji="😂" data-type="laugh"><span class="reaction-emoji">😂</span><span class="reaction-count" id="reaction-laugh">0</span></div>
+                <div class="reaction" data-emoji="🎉" data-type="celebrate"><span class="reaction-emoji">🎉</span><span class="reaction-count" id="reaction-celebrate">0</span></div>
+            </div>
+        </div>
+
+        <!-- Social Share Section -->
+        <div class="share-card">
+            <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
+            <div class="share-buttons">
+                <button id="share-facebook" class="share-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                <button id="share-twitter" class="share-btn twitter"><i class="fab fa-twitter"></i> Twitter</button>
+                <button id="share-whatsapp" class="share-btn whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button id="share-linkedin" class="share-btn linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+                <button id="share-email" class="share-btn email"><i class="fas fa-envelope"></i> Email</button>
+                <button id="share-copy" class="share-btn copy"><i class="fas fa-link"></i> Copy URL</button>
+            </div>
+            <div class="share-stats"><i class="fas fa-chart-simple"></i> Shared <span id="share-count">0</span> times</div>
+        </div>
+
+        <!-- Scroll Buttons -->
+        <button id="scroll-up" class="scroll-btn scroll-up" style="display: none;"><i class="fas fa-arrow-up"></i></button>
+        <button id="scroll-down" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+        <footer class="footer">
+            <p>STEAM PBL Project Generator © 2024 | Powered by Grok AI + TiDB</p>
+            <p class="footer-small">Fully Integrated with Cloud Database | Real-time Analytics</p>
+        </footer>
+    </div>
 
     <script src="steam-pbl-project-generator.js"></script>
 </body>
