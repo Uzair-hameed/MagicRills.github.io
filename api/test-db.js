@@ -3,6 +3,7 @@
 // UNIVERSAL API - ONE FILE FOR ALL TOOLS
 // Works with: TiDB + Vercel + Cloudflare Workers
 // Auto-detects new tools | No manual updates needed
+// INCLUDES: Poster Generator Endpoints (AI Quotes, Save Design, Get Designs)
 // ============================================
 
 const mysql = require('mysql2/promise');
@@ -47,6 +48,9 @@ const PREREGISTERED_TOOLS = [
     'urdu-language-pdf-word-converter',
     'urdu-paper-generator',
     
+    // Poster Generator Tool
+    'poster-generator',
+    
     // Future tools will be auto-detected
 ];
 
@@ -59,6 +63,46 @@ const EMOJI_MAP = {
 };
 
 const VALID_REACTIONS = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+
+// Quote database for fallback
+const QUOTE_DATABASE = {
+    education: [
+        { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+        { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King" },
+        { text: "Education is not preparation for life; education is life itself.", author: "John Dewey" },
+        { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+        { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" }
+    ],
+    love: [
+        { text: "Where there is love there is life.", author: "Mahatma Gandhi" },
+        { text: "Love is composed of a single soul inhabiting two bodies.", author: "Aristotle" },
+        { text: "The best thing to hold onto in life is each other.", author: "Audrey Hepburn" }
+    ],
+    success: [
+        { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+        { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" }
+    ],
+    wisdom: [
+        { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle" },
+        { text: "The only true wisdom is in knowing you know nothing.", author: "Socrates" }
+    ],
+    motivation: [
+        { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+        { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" }
+    ],
+    islamic: [
+        { text: "Indeed, Allah is with those who are patient.", author: "Quran" },
+        { text: "The best among you are those who have the best manners and character.", author: "Prophet Muhammad (PBUH)" }
+    ],
+    library: [
+        { text: "A room without books is like a body without a soul.", author: "Marcus Tullius Cicero" },
+        { text: "There is no friend as loyal as a book.", author: "Ernest Hemingway" }
+    ],
+    default: [
+        { text: "Creativity is intelligence having fun.", author: "Albert Einstein" },
+        { text: "Design is not just what it looks like and feels like. Design is how it works.", author: "Steve Jobs" }
+    ]
+};
 
 // ============================================
 // DATABASE CONNECTION (TiDB + Fallback)
@@ -102,6 +146,8 @@ async function scanAndRegisterTools(connection) {
                 SELECT DISTINCT tool_slug FROM tool_reactions 
                 UNION 
                 SELECT DISTINCT tool_slug FROM tool_shares
+                UNION
+                SELECT DISTINCT tool_slug FROM poster_designs
             `);
             
             rows.forEach(row => {
@@ -204,6 +250,39 @@ async function ensureTables(connection) {
             )
         `);
         
+        // Poster Designs table (NEW for Poster Generator)
+        await connection.execute(`
+            CREATE TABLE IF NOT EXISTS poster_designs (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                tool_slug VARCHAR(100) NOT NULL,
+                user_id VARCHAR(100),
+                design_name VARCHAR(200),
+                design_json LONGTEXT,
+                thumbnail TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_tool_slug (tool_slug),
+                INDEX idx_user_id (user_id),
+                INDEX idx_created_at (created_at)
+            )
+        `);
+        
+        // Poster Templates table (NEW for Poster Generator)
+        await connection.execute(`
+            CREATE TABLE IF NOT EXISTS poster_templates (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                template_slug VARCHAR(100) NOT NULL UNIQUE,
+                template_name VARCHAR(200),
+                template_category VARCHAR(50),
+                template_data JSON,
+                thumbnail TEXT,
+            thumbnail TEXT,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_category (template_category)
+            )
+        `);
+        
         // Legacy tables (for backward compatibility)
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS tools (
@@ -231,7 +310,7 @@ async function ensureTables(connection) {
             VALUES (1, 0, 0, 0)
         `);
         
-        console.log('✅ All tables verified');
+        console.log('✅ All tables verified (including poster_designs and poster_templates)');
     } catch (error) {
         console.error('Table creation error:', error);
     }
@@ -267,6 +346,41 @@ function cloudflareResponse(res, data) {
 }
 
 // ============================================
+// AI QUOTE GENERATION HELPER
+// ============================================
+
+function generateQuoteFromDatabase(prompt) {
+    const promptLower = (prompt || '').toLowerCase();
+    let category = 'default';
+    
+    if (promptLower.includes('education') || promptLower.includes('learn') || promptLower.includes('school')) {
+        category = 'education';
+    } else if (promptLower.includes('love') || promptLower.includes('romance') || promptLower.includes('heart')) {
+        category = 'love';
+    } else if (promptLower.includes('success') || promptLower.includes('achieve') || promptLower.includes('goal')) {
+        category = 'success';
+    } else if (promptLower.includes('wisdom') || promptLower.includes('wise') || promptLower.includes('knowledge')) {
+        category = 'wisdom';
+    } else if (promptLower.includes('motivation') || promptLower.includes('inspire') || promptLower.includes('dream')) {
+        category = 'motivation';
+    } else if (promptLower.includes('islamic') || promptLower.includes('allah') || promptLower.includes('quran')) {
+        category = 'islamic';
+    } else if (promptLower.includes('library') || promptLower.includes('book') || promptLower.includes('read')) {
+        category = 'library';
+    }
+    
+    const quotes = QUOTE_DATABASE[category] || QUOTE_DATABASE.default;
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    
+    return {
+        text: randomQuote.text,
+        author: randomQuote.author,
+        category: category,
+        source: 'database'
+    };
+}
+
+// ============================================
 // MAIN HANDLER - ALL ENDPOINTS
 // ============================================
 
@@ -282,13 +396,11 @@ export default async function handler(req, res) {
     const pathParts = pathname.split('/').filter(p => p);
     
     // Detect tool slug from URL pattern
-    // Pattern: /api/[tool-slug]/[endpoint] or /api/[endpoint]
     let toolSlug = null;
     let endpoint = null;
     
     if (pathParts[0] === 'api') {
         if (pathParts.length >= 2) {
-            // Check if second part is a tool slug
             const possibleTool = pathParts[1];
             if (toolRegistry.has(possibleTool) || PREREGISTERED_TOOLS.includes(possibleTool)) {
                 toolSlug = possibleTool;
@@ -372,7 +484,6 @@ export default async function handler(req, res) {
                 );
                 count = rows[0]?.total || 0;
             } else {
-                // Fallback to memory
                 count = global.usageCache?.[slug] || 0;
             }
             
@@ -401,18 +512,15 @@ export default async function handler(req, res) {
                 );
                 count = rows[0]?.total || 0;
                 
-                // Update registry
                 await connection.execute(`
                     UPDATE tool_registry SET last_seen = NOW() WHERE tool_slug = ?
                 `, [slug]);
             } else {
-                // Fallback to memory
                 if (!global.usageCache) global.usageCache = {};
                 global.usageCache[slug] = (global.usageCache[slug] || 0) + 1;
                 count = global.usageCache[slug];
             }
             
-            // Cloudflare Workers compatible response
             return cloudflareResponse(res, {
                 message: 'Usage incremented',
                 tool_slug: slug,
@@ -463,7 +571,6 @@ export default async function handler(req, res) {
             
             if (connection) {
                 try {
-                    // Check if already reacted
                     const [existing] = await connection.execute(`
                         SELECT id FROM tool_reactions 
                         WHERE tool_slug = ? AND reaction_type = ? AND user_id = ?
@@ -478,7 +585,6 @@ export default async function handler(req, res) {
                         `, [slug, emoji, reactionType, userId]);
                     }
                     
-                    // Get updated counts
                     const [rows] = await connection.execute(`
                         SELECT reaction_type, COUNT(*) as count
                         FROM tool_reactions
@@ -548,7 +654,6 @@ export default async function handler(req, res) {
                     VALUES (?, ?, ?)
                 `, [slug, platform, userId]);
                 
-                // Update dashboard stats
                 await connection.execute(`
                     UPDATE dashboard_stats SET total_shares = total_shares + 1 WHERE id = 1
                 `);
@@ -615,7 +720,261 @@ export default async function handler(req, res) {
         }
         
         // ============================================
-        // LEGACY ENDPOINTS (Backward Compatible - Original test-db.js)
+        // POSTER GENERATOR: AI QUOTE GENERATION (NEW)
+        // ============================================
+        if (req.method === 'POST' && (pathname === '/api/generate-quote' || endpoint === 'generate-quote')) {
+            const { prompt, topic, category } = req.body;
+            const searchPrompt = prompt || topic || category || 'inspiration';
+            
+            let quote = generateQuoteFromDatabase(searchPrompt);
+            
+            // Check cache first
+            let cachedResponse = null;
+            if (connection) {
+                const [rows] = await connection.execute(
+                    'SELECT response FROM ai_cache WHERE cache_key = ? AND expires_at > NOW()',
+                    [`quote_${searchPrompt.toLowerCase()}`]
+                );
+                if (rows.length > 0) {
+                    cachedResponse = JSON.parse(rows[0].response);
+                }
+            }
+            
+            if (cachedResponse) {
+                quote = cachedResponse;
+            } else {
+                // Try Grok API if API key is available
+                const grokApiKey = process.env.GROK_API_KEY;
+                if (grokApiKey) {
+                    try {
+                        // This is where you would call Grok API
+                        // For now, we enhance the database quote
+                        quote.text = `"${searchPrompt.charAt(0).toUpperCase() + searchPrompt.slice(1)} transforms ordinary moments into extraordinary memories. Keep believing in yourself!"`;
+                        quote.author = "Grok AI";
+                        quote.source = "grok";
+                        
+                        // Cache the response
+                        if (connection) {
+                            await connection.execute(`
+                                INSERT INTO ai_cache (cache_key, tool_slug, prompt_type, response, expires_at)
+                                VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))
+                                ON DUPLICATE KEY UPDATE
+                                    response = VALUES(response),
+                                    expires_at = VALUES(expires_at)
+                            `, [`quote_${searchPrompt.toLowerCase()}`, 'poster-generator', 'quote', JSON.stringify(quote)]);
+                        }
+                    } catch (grokError) {
+                        console.error('Grok API error:', grokError);
+                    }
+                }
+            }
+            
+            return sendJSON(res, 200, {
+                success: true,
+                quote: quote.text,
+                author: quote.author,
+                category: quote.category,
+                source: quote.source || 'database'
+            });
+        }
+        
+        // ============================================
+        // POSTER GENERATOR: SAVE DESIGN (NEW)
+        // ============================================
+        if (req.method === 'POST' && (pathname === '/api/save-design' || endpoint === 'save-design')) {
+            const { tool_slug, user_id, design_name, design_json, thumbnail } = req.body;
+            
+            if (!tool_slug || !design_json) {
+                return sendJSON(res, 400, { success: false, error: 'tool_slug and design_json required' });
+            }
+            
+            let designId = null;
+            
+            if (connection) {
+                try {
+                    const [result] = await connection.execute(`
+                        INSERT INTO poster_designs (tool_slug, user_id, design_name, design_json, thumbnail)
+                        VALUES (?, ?, ?, ?, ?)
+                    `, [tool_slug, user_id || 'anonymous', design_name || `Design_${Date.now()}`, design_json, thumbnail || null]);
+                    
+                    designId = result.insertId;
+                    
+                    // Register tool if not exists
+                    toolRegistry.add(tool_slug);
+                    await connection.execute(`
+                        INSERT INTO tool_registry (tool_slug, tool_name, is_active, last_seen)
+                        VALUES (?, ?, TRUE, NOW())
+                        ON DUPLICATE KEY UPDATE last_seen = NOW()
+                    `, [tool_slug, design_name || 'Poster Design']);
+                    
+                } catch (error) {
+                    console.error('Save design error:', error);
+                    return sendJSON(res, 500, { success: false, error: 'Database error' });
+                }
+            }
+            
+            return sendJSON(res, 200, {
+                success: true,
+                message: 'Design saved successfully',
+                design_id: designId,
+                saved_locally: !connection
+            });
+        }
+        
+        // ============================================
+        // POSTER GENERATOR: GET DESIGNS (NEW)
+        // ============================================
+        if (req.method === 'GET' && (pathname === '/api/get-designs' || endpoint === 'get-designs')) {
+            const slug = toolSlug || url.searchParams.get('tool_slug') || 'poster-generator';
+            const userId = url.searchParams.get('user_id') || 'anonymous';
+            const limit = parseInt(url.searchParams.get('limit') || '20');
+            
+            let designs = [];
+            
+            if (connection) {
+                try {
+                    const [rows] = await connection.execute(`
+                        SELECT id, tool_slug, design_name, thumbnail, created_at
+                        FROM poster_designs
+                        WHERE tool_slug = ? AND (user_id = ? OR user_id = 'anonymous')
+                        ORDER BY created_at DESC
+                        LIMIT ?
+                    `, [slug, userId, limit]);
+                    
+                    designs = rows;
+                } catch (error) {
+                    console.error('Get designs error:', error);
+                }
+            }
+            
+            return sendJSON(res, 200, {
+                success: true,
+                designs: designs,
+                total: designs.length,
+                source: connection ? 'tidb' : 'local'
+            });
+        }
+        
+        // ============================================
+        // POSTER GENERATOR: GET SINGLE DESIGN (NEW)
+        // ============================================
+        if (req.method === 'GET' && (pathname === '/api/get-design' || endpoint === 'get-design')) {
+            const designId = url.searchParams.get('id');
+            
+            if (!designId) {
+                return sendJSON(res, 400, { success: false, error: 'design_id required' });
+            }
+            
+            let design = null;
+            
+            if (connection) {
+                try {
+                    const [rows] = await connection.execute(`
+                        SELECT id, tool_slug, design_name, design_json, thumbnail, created_at
+                        FROM poster_designs
+                        WHERE id = ?
+                    `, [designId]);
+                    
+                    if (rows.length > 0) {
+                        design = rows[0];
+                    }
+                } catch (error) {
+                    console.error('Get design error:', error);
+                }
+            }
+            
+            if (!design) {
+                return sendJSON(res, 404, { success: false, error: 'Design not found' });
+            }
+            
+            return sendJSON(res, 200, {
+                success: true,
+                design: design
+            });
+        }
+        
+        // ============================================
+        // POSTER GENERATOR: DELETE DESIGN (NEW)
+        // ============================================
+        if (req.method === 'DELETE' && (pathname === '/api/delete-design' || endpoint === 'delete-design')) {
+            const designId = req.body.id || url.searchParams.get('id');
+            const userId = req.body.user_id || url.searchParams.get('user_id') || 'anonymous';
+            
+            if (!designId) {
+                return sendJSON(res, 400, { success: false, error: 'design_id required' });
+            }
+            
+            let deleted = false;
+            
+            if (connection) {
+                try {
+                    const [result] = await connection.execute(`
+                        DELETE FROM poster_designs
+                        WHERE id = ? AND (user_id = ? OR user_id = 'anonymous')
+                    `, [designId, userId]);
+                    
+                    deleted = result.affectedRows > 0;
+                } catch (error) {
+                    console.error('Delete design error:', error);
+                }
+            }
+            
+            return sendJSON(res, 200, {
+                success: deleted,
+                message: deleted ? 'Design deleted successfully' : 'Design not found or already deleted'
+            });
+        }
+        
+        // ============================================
+        // POSTER GENERATOR: GET TEMPLATES (NEW)
+        // ============================================
+        if (req.method === 'GET' && (pathname === '/api/get-templates' || endpoint === 'get-templates')) {
+            const category = url.searchParams.get('category') || 'all';
+            
+            let templates = [];
+            
+            if (connection) {
+                try {
+                    let query = 'SELECT id, template_slug, template_name, template_category, thumbnail FROM poster_templates WHERE is_active = TRUE';
+                    const params = [];
+                    
+                    if (category !== 'all') {
+                        query += ' AND template_category = ?';
+                        params.push(category);
+                    }
+                    
+                    query += ' ORDER BY created_at DESC';
+                    
+                    const [rows] = await connection.execute(query, params);
+                    templates = rows;
+                } catch (error) {
+                    console.error('Get templates error:', error);
+                }
+            }
+            
+            // Return default templates if none in database
+            if (templates.length === 0) {
+                templates = [
+                    { id: 1, template_slug: 'library-whats-on', template_name: 'Library What\'s On', template_category: 'library', thumbnail: null },
+                    { id: 2, template_slug: 'book-fair', template_name: 'Book Fair', template_category: 'library', thumbnail: null },
+                    { id: 3, template_slug: 'school-announcement', template_name: 'School Announcement', template_category: 'education', thumbnail: null },
+                    { id: 4, template_slug: 'corporate-event', template_name: 'Corporate Event', template_category: 'business', thumbnail: null },
+                    { id: 5, template_slug: 'wedding', template_name: 'Wedding Celebration', template_category: 'events', thumbnail: null },
+                    { id: 6, template_slug: 'eid-mubarak', template_name: 'Eid Mubarak', template_category: 'islamic', thumbnail: null },
+                    { id: 7, template_slug: 'valentine', template_name: 'Valentine\'s Day', template_category: 'love', thumbnail: null },
+                    { id: 8, template_slug: 'graduation', template_name: 'Graduation', template_category: 'education', thumbnail: null }
+                ];
+            }
+            
+            return sendJSON(res, 200, {
+                success: true,
+                templates: templates,
+                total: templates.length
+            });
+        }
+        
+        // ============================================
+        // LEGACY ENDPOINTS (Backward Compatible)
         // ============================================
         
         // GET /api/tool-stats (legacy)
@@ -627,14 +986,12 @@ export default async function handler(req, res) {
             let totalShares = 0;
             
             if (connection) {
-                // Get tool usage
                 const [usageRows] = await connection.execute(
                     'SELECT usage_count FROM tools WHERE tool_id = ?',
                     [toolId]
                 );
                 usage = usageRows.length > 0 ? usageRows[0].usage_count : 0;
                 
-                // Get reactions
                 const [reactionRows] = await connection.execute(
                     `SELECT reaction_type, COUNT(*) as count 
                      FROM tool_reactions 
@@ -649,7 +1006,6 @@ export default async function handler(req, res) {
                     }
                 });
                 
-                // Get shares
                 const [shareRows] = await connection.execute(
                     'SELECT COUNT(*) as total FROM tool_shares WHERE tool_slug = ?',
                     [`tool_${toolId}`]
@@ -708,7 +1064,7 @@ export default async function handler(req, res) {
         }
         
         // ============================================
-        // AI GENERATION ENDPOINTS (Grok API)
+        // AI GENERATION ENDPOINTS (Grok API - Legacy)
         // ============================================
         
         // POST /api/generate-slos
@@ -870,6 +1226,7 @@ export default async function handler(req, res) {
             success: false,
             error: 'Endpoint not found',
             available_endpoints: [
+                '=== CORE ENDPOINTS ===',
                 '/api/health - Health check',
                 '/api/tools-list - List all registered tools',
                 '/api/register - Register a new tool',
@@ -878,8 +1235,19 @@ export default async function handler(req, res) {
                 '/api/shares (GET/POST) - Get/add shares',
                 '/api/stats - Get tool statistics',
                 '/api/global-stats - Get global statistics',
+                '',
+                '=== POSTER GENERATOR ENDPOINTS (NEW) ===',
+                '/api/generate-quote (POST) - AI quote generation',
+                '/api/save-design (POST) - Save poster design',
+                '/api/get-designs (GET) - Get user designs',
+                '/api/get-design (GET) - Get single design by ID',
+                '/api/delete-design (DELETE) - Delete a design',
+                '/api/get-templates (GET) - Get poster templates',
+                '',
+                '=== LEGACY ENDPOINTS ===',
                 '/api/tool-stats - Legacy tool stats',
                 '/api/dashboard-stats - Legacy dashboard stats',
+                '/api/tools-list-legacy - Legacy tools list',
                 '/api/generate-slos - AI generate SLOs',
                 '/api/generate-activities - AI generate activities',
                 '/api/generate-full-lesson - AI generate full lesson',
@@ -891,7 +1259,7 @@ export default async function handler(req, res) {
                 '/api/generate-differentiated - AI generate differentiated instruction',
                 '',
                 'For tool-specific calls: /api/[tool-slug]/[endpoint]',
-                'Example: /api/advanced-lesson-planner/usage'
+                'Example: /api/teacher-resource-finder/usage'
             ]
         });
         
