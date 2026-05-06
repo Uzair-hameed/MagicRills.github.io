@@ -1,11 +1,12 @@
 // ========================================
-// POSTERFORGE PRO - SIMPLIFIED VERSION
-// 80 Templates | 100 Stickers | Fully Integrated
+// POSTERFORGE PRO - COMPLETE JAVASCRIPT
+// FULLY INTEGRATED: TiDB + Vercel + Grok API + Reactions + Usage Counter
+// 80 Templates | 100 Stickers | No Features Removed
 // ========================================
 
 let canvas = null;
 let currentToolSlug = 'teacher-resource-finder';
-let userId = localStorage.getItem('userId') || 'user_' + Date.now() '_' + Math.random().toString(36).substr(2, 9);
+let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 let darkMode = localStorage.getItem('darkMode') === 'true';
 let selectedObjectId = null;
 let currentReactions = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 };
@@ -14,21 +15,15 @@ let historyStates = [];
 let historyIndex = -1;
 
 // ========================================
-// GITHUB CONFIGURATION
+// GITHUB CONFIGURATION (YOUR LINKS)
 // ========================================
-const GITHUB_BASE = 'https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main//templates/';
+const GITHUB_BASE = 'https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main/';
 const TEMPLATES_BASE_URL = GITHUB_BASE + 'templates/';
 const STICKERS_BASE_URL = GITHUB_BASE + 'stickers/';
 const API_BASE = '/api';
 
-// ========================================
-// ONLY 80 TEMPLATES (FIXED)
-// ========================================
-const TEMPLATE_NUMBERS = [];
-for (let i = 1; i <= 80; i++) {
-    TEMPLATE_NUMBERS.push(i);
-}
-
+// Template numbers 1 to 80 (as confirmed by you)
+const TEMPLATE_NUMBERS = Array.from({ length: 80 }, (_, i) => i + 1);
 const TOTAL_STICKERS = 100;
 
 // ========================================
@@ -36,6 +31,9 @@ const TOTAL_STICKERS = 100;
 // ========================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('PosterForge Pro Initializing...');
+    console.log('📁 Loading from:', GITHUB_BASE);
+    console.log('📄 Templates: 80 (template1.json to template80.json)');
+    console.log('🖼️ Stickers: 100 (sticker1.png.png to sticker100.png.png)');
     
     initializeCanvas();
     
@@ -47,10 +45,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     localStorage.setItem('userId', userId);
     
+    // Load all data
     await loadAllTemplates();
     await loadAllStickers();
     loadElements();
     loadGradients();
+    loadPatterns();
+    loadSavedImages();
+    
+    // API Integrations
     await loadUsageFromAPI();
     await trackUsage();
     await loadReactionsFromAPI();
@@ -58,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     saveToHistory();
     
-    showToast('✨ PosterForge Pro Ready! 80 Templates Loaded');
+    showToast('✨ PosterForge Pro Ready! 80 Templates & 100 Stickers Loaded');
 });
 
 // ========================================
@@ -73,7 +76,8 @@ function initializeCanvas() {
         selection: true
     });
     
-    const welcomeText = new fabric.Text('Welcome to PosterForge Pro!\n\nClick on templates or stickers to start!\nDrag to move | Click to select | Use corners to resize/rotate', {
+    // Welcome text
+    const welcomeText = new fabric.Text('Welcome to PosterForge Pro!\n\n✨ Click on templates or stickers to get started!\nDrag to move | Click to select | Use corners to resize/rotate\n\nText customization: Bold, Italic, Underline, Shadow, Alignment\nLayers: Bring Forward, Send Backward\nExport: PNG, JPG, PDF, SVG, JSON\nSave: Cloud (TiDB) or Browser', {
         left: 400,
         top: 450,
         fontSize: 18,
@@ -86,6 +90,7 @@ function initializeCanvas() {
     canvas.add(welcomeText);
     canvas.renderAll();
     
+    // Canvas event listeners
     canvas.on('selection:created', (e) => {
         if (e.selected && e.selected[0]) {
             selectedObjectId = e.selected[0].id;
@@ -114,16 +119,48 @@ function initializeCanvas() {
 }
 
 // ========================================
-// LOAD 80 TEMPLATES (NO SCANNING)
+// LOAD 80 TEMPLATES (Using HEAD requests for efficiency)
 // ========================================
 async function loadAllTemplates() {
     const grid = document.getElementById('templatesGrid');
     if (!grid) return;
     
-    grid.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Loading 80 templates...</div>';
+    grid.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Loading 80 templates from GitHub...</div>';
     let loadedCount = 0;
+    let notFoundCount = 0;
+    
+    // First, find which templates actually exist using HEAD requests
+    const existingTemplates = [];
     
     for (const num of TEMPLATE_NUMBERS) {
+        try {
+            const response = await fetch(`${TEMPLATES_BASE_URL}template${num}.json`, { method: 'HEAD' });
+            if (response.ok) {
+                existingTemplates.push(num);
+            } else {
+                notFoundCount++;
+            }
+        } catch (error) {
+            notFoundCount++;
+        }
+        
+        // Update progress every 10 templates
+        if (num % 10 === 0) {
+            grid.innerHTML = `<div style="text-align:center; padding:20px;">⏳ Scanning templates... (${num}/80 found: ${existingTemplates.length})</div>`;
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+    }
+    
+    if (existingTemplates.length === 0) {
+        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Please check GitHub folder.</div>';
+        return;
+    }
+    
+    // Now load only the existing templates
+    grid.innerHTML = `<div style="text-align:center; padding:20px;">⏳ Loading ${existingTemplates.length} templates...</div>`;
+    grid.innerHTML = ''; // Clear for actual cards
+    
+    for (const num of existingTemplates) {
         try {
             const response = await fetch(`${TEMPLATES_BASE_URL}template${num}.json`);
             if (!response.ok) continue;
@@ -137,24 +174,26 @@ async function loadAllTemplates() {
                 <div class="template-name">Template ${num}</div>
             `;
             card.addEventListener('click', () => {
-                canvas.loadFromJSON(templateData, () => {
-                    canvas.renderAll();
-                    saveToHistory();
-                    showToast(`✨ Template ${num} loaded!`);
-                });
+                try {
+                    canvas.loadFromJSON(templateData, () => {
+                        canvas.renderAll();
+                        saveToHistory();
+                        showToast(`✨ Template ${num} loaded!`);
+                    });
+                } catch (e) {
+                    showToast('Error loading template');
+                    console.error('Template load error:', e);
+                }
             });
             grid.appendChild(card);
             loadedCount++;
         } catch (error) {
-            console.warn(`Template ${num} not found`);
+            console.warn(`Template ${num} error:`, error);
         }
     }
     
-    if (loadedCount === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found!</div>';
-    } else {
-        showToast(`✅ ${loadedCount} templates loaded!`);
-    }
+    console.log(`✅ Templates: ${loadedCount} loaded, ${notFoundCount} not found`);
+    showToast(`✅ ${loadedCount} templates loaded!`);
 }
 
 // ========================================
@@ -164,49 +203,64 @@ async function loadAllStickers() {
     const stickersGrid = document.getElementById('stickersGrid');
     if (!stickersGrid) return;
     
-    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> My Stickers</div>';
-    const container = document.createElement('div');
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    container.style.gap = '12px';
+    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> 📂 My Stickers (100)</div>';
+    
+    const stickersContainer = document.createElement('div');
+    stickersContainer.style.display = 'grid';
+    stickersContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    stickersContainer.style.gap = '12px';
+    stickersContainer.style.marginTop = '8px';
     
     let loadedCount = 0;
+    let processedCount = 0;
     
     for (let i = 1; i <= TOTAL_STICKERS; i++) {
-        const url = `${STICKERS_BASE_URL}sticker${i}.png.png`;
-        const img = new Image();
+        const fileName = `sticker${i}.png.png`;
+        const imgUrl = `${STICKERS_BASE_URL}${fileName}`;
         
+        const img = new Image();
         img.onload = () => {
-            const div = document.createElement('div');
-            div.className = 'sticker-item';
-            div.innerHTML = `<img src="${url}" style="width:100%;"><span>Sticker ${i}</span>`;
-            div.addEventListener('click', () => addStickerToCanvas(url, i));
-            container.appendChild(div);
+            const stickerDiv = document.createElement('div');
+            stickerDiv.className = 'sticker-item';
+            stickerDiv.innerHTML = `
+                <img src="${imgUrl}" alt="Sticker ${i}" style="width: 100%; height: auto; border-radius: 8px;">
+                <span>Sticker ${i}</span>
+            `;
+            stickerDiv.addEventListener('click', () => addStickerToCanvas(imgUrl, i));
+            stickersContainer.appendChild(stickerDiv);
             loadedCount++;
-            if (loadedCount === TOTAL_STICKERS) {
-                stickersGrid.appendChild(container);
+            processedCount++;
+            
+            if (processedCount === TOTAL_STICKERS) {
+                if (loadedCount === 0) {
+                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Check /stickers/ folder.</div>';
+                }
+                stickersGrid.appendChild(stickersContainer);
+                console.log(`✅ Stickers: ${loadedCount} loaded successfully`);
             }
         };
-        
         img.onerror = () => {
-            // Skip missing stickers silently
+            processedCount++;
+            if (processedCount === TOTAL_STICKERS) {
+                if (loadedCount === 0) {
+                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Add sticker1.png.png to sticker100.png.png</div>';
+                }
+                stickersGrid.appendChild(stickersContainer);
+            }
         };
-        
-        img.src = url;
+        img.src = imgUrl;
     }
     
     setTimeout(() => {
-        if (container.children.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color: gray;">No stickers found</div>';
-            stickersGrid.appendChild(container);
-        } else {
-            stickersGrid.appendChild(container);
+        if (loadedCount === 0 && stickersContainer.children.length === 0) {
+            stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">⏳ Loading stickers from GitHub...</div>';
+            stickersGrid.appendChild(stickersContainer);
         }
     }, 3000);
 }
 
-function addStickerToCanvas(url, num) {
-    fabric.Image.fromURL(url, (img) => {
+function addStickerToCanvas(imageUrl, stickerNumber) {
+    fabric.Image.fromURL(imageUrl, (img) => {
         img.scaleToWidth(120);
         img.set({
             left: canvas.width / 2 - 60,
@@ -217,7 +271,7 @@ function addStickerToCanvas(url, num) {
         canvas.setActiveObject(img);
         canvas.renderAll();
         saveToHistory();
-        showToast(`✅ Sticker ${num} added!`);
+        showToast(`✅ Sticker ${stickerNumber} added!`);
     }, () => {
         showToast('Failed to load sticker');
     });
@@ -234,23 +288,30 @@ function loadElements() {
         { name: 'Triangle', icon: 'fa-triangle', type: 'triangle', w: 80, h: 80 },
         { name: 'Star', icon: 'fa-star', type: 'star' },
         { name: 'Heart', icon: 'fa-heart', type: 'heart' },
-        { name: 'Diamond', icon: 'fa-gem', type: 'diamond', w: 60, h: 60 }
+        { name: 'Diamond', icon: 'fa-gem', type: 'diamond', w: 60, h: 60 },
+        { name: 'Circle Outline', icon: 'fa-circle', type: 'circle', r: 40, fill: 'transparent', stroke: '#2563eb', strokeWidth: 3 },
+        { name: 'Rounded Rect', icon: 'fa-square', type: 'rect', w: 100, h: 80, rx: 20, ry: 20 },
+        { name: 'Line', icon: 'fa-minus', type: 'line' },
+        { name: 'Arrow', icon: 'fa-arrow-right', type: 'arrow' }
     ];
     
     const icons = [
-        'fa-star', 'fa-heart', 'fa-bell', 'fa-calendar', 'fa-clock', 
-        'fa-envelope', 'fa-phone', 'fa-user', 'fa-book', 'fa-graduation-cap'
+        'fa-star', 'fa-heart', 'fa-bell', 'fa-calendar', 'fa-clock', 'fa-envelope', 'fa-phone',
+        'fa-user', 'fa-book', 'fa-graduation-cap', 'fa-camera', 'fa-music', 'fa-rocket', 'fa-crown'
     ];
     
-    const emojiStickers = ['⭐', '❤️', '🔥', '👑', '🌟', '💎', '🎈', '🎉', '🎁', '🏆', '🌈', '⚡', '☀️', '🌙', '🌸', '🍎', '📚'];
+    const emojiStickers = ['⭐', '❤️', '🔥', '👑', '🌟', '💎', '🎈', '🎉', '🎁', '🏆', '🌈', '⚡', '☀️', '🌙', '🌸', '🍎', '📚', '✏️', '🎨', '🎯', '🎵'];
     
     const frames = [
         { name: 'Basic', style: 'solid', w: 2 },
         { name: 'Dashed', style: 'dashed', w: 2 },
-        { name: 'Dotted', style: 'dotted', w: 2 }
+        { name: 'Dotted', style: 'dotted', w: 2 },
+        { name: 'Double', style: 'double', w: 4 }
     ];
     
-    const grid = document.getElementById('elementsGrid');
+    const elementsGrid = document.getElementById('elementsGrid');
+    if (!elementsGrid) return;
+    
     let currentType = 'shapes';
     
     function renderElements() {
@@ -260,27 +321,23 @@ function loadElements() {
         } else if (currentType === 'icons') {
             html = icons.map(i => `<div class="element-card" data-icon="${i}"><i class="fas ${i}"></i><span>Icon</span></div>`).join('');
         } else if (currentType === 'stickers') {
-            html = emojiStickers.map(s => `<div class="element-card" data-sticker="${s}"><span style="font-size: 28px;">${s}</span><span>Sticker</span></div>`).join('');
+            html = emojiStickers.map(s => `<div class="element-card" data-sticker="${s}"><span style="font-size: 32px;">${s}</span><span>Sticker</span></div>`).join('');
         } else if (currentType === 'frames') {
             html = frames.map(f => `<div class="element-card" data-frame='${JSON.stringify(f)}'><i class="fas fa-border-all"></i><span>${f.name}</span></div>`).join('');
         }
-        grid.innerHTML = html;
+        elementsGrid.innerHTML = html;
         
         document.querySelectorAll('[data-shape]').forEach(el => {
-            const shape = JSON.parse(el.dataset.shape);
-            el.addEventListener('click', () => addShape(shape));
+            el.addEventListener('click', () => addShape(JSON.parse(el.dataset.shape)));
         });
         document.querySelectorAll('[data-icon]').forEach(el => {
-            const icon = el.dataset.icon;
-            el.addEventListener('click', () => addIcon(icon));
+            el.addEventListener('click', () => addIcon(el.dataset.icon));
         });
         document.querySelectorAll('[data-sticker]').forEach(el => {
-            const sticker = el.dataset.sticker;
-            el.addEventListener('click', () => addEmojiSticker(sticker));
+            el.addEventListener('click', () => addEmojiSticker(el.dataset.sticker));
         });
         document.querySelectorAll('[data-frame]').forEach(el => {
-            const frame = JSON.parse(el.dataset.frame);
-            el.addEventListener('click', () => addFrame(frame));
+            el.addEventListener('click', () => addFrame(JSON.parse(el.dataset.frame)));
         });
     }
     
@@ -296,18 +353,20 @@ function loadElements() {
     });
 }
 
-function addShape(s) {
+function addShape(shapeData) {
     let obj;
     const left = Math.random() * (canvas.width - 200) + 100;
     const top = Math.random() * (canvas.height - 200) + 100;
     
-    if (s.type === 'rect') {
-        obj = new fabric.Rect({ left, top, width: s.w, height: s.h, fill: '#2563eb', rx: s.rx || 0 });
-    } else if (s.type === 'circle') {
-        obj = new fabric.Circle({ left, top, radius: s.r, fill: '#2563eb' });
-    } else if (s.type === 'triangle') {
-        obj = new fabric.Triangle({ left, top, width: s.w, height: s.h, fill: '#2563eb' });
-    } else if (s.type === 'star') {
+    if (shapeData.type === 'rect') {
+        obj = new fabric.Rect({ left, top, width: shapeData.w, height: shapeData.h, fill: '#2563eb', rx: shapeData.rx || 0 });
+    } else if (shapeData.type === 'circle' && shapeData.fill === 'transparent') {
+        obj = new fabric.Circle({ left, top, radius: shapeData.r, fill: 'transparent', stroke: '#2563eb', strokeWidth: 3 });
+    } else if (shapeData.type === 'circle') {
+        obj = new fabric.Circle({ left, top, radius: shapeData.r, fill: '#2563eb' });
+    } else if (shapeData.type === 'triangle') {
+        obj = new fabric.Triangle({ left, top, width: shapeData.w, height: shapeData.h, fill: '#2563eb' });
+    } else if (shapeData.type === 'star') {
         const points = [];
         for (let i = 0; i < 10; i++) {
             const angle = (i * 36 - 90) * Math.PI / 180;
@@ -315,9 +374,9 @@ function addShape(s) {
             points.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
         }
         obj = new fabric.Polygon(points, { left, top, fill: '#f59e0b' });
-    } else if (s.type === 'heart') {
+    } else if (shapeData.type === 'heart') {
         obj = new fabric.Path('M 0,-30 C 20,-50 50,-20 0,30 C -50,-20 -20,-50 0,-30 Z', { left, top, fill: '#ef4444', scaleX: 0.8, scaleY: 0.8 });
-    } else if (s.type === 'diamond') {
+    } else if (shapeData.type === 'diamond') {
         obj = new fabric.Polygon([
             { x: 0, y: -30 }, { x: 30, y: 0 }, { x: 0, y: 30 }, { x: -30, y: 0 }
         ], { left, top, fill: '#2563eb' });
@@ -330,16 +389,17 @@ function addShape(s) {
     canvas.setActiveObject(obj);
     canvas.renderAll();
     saveToHistory();
-    showToast(`✅ Added ${s.name}`);
+    showToast(`✅ Added ${shapeData.name}`);
 }
 
 function addIcon(iconClass) {
     const left = Math.random() * (canvas.width - 150) + 100;
     const top = Math.random() * (canvas.height - 150) + 100;
     const iconMap = { 
-        'fa-star': '★', 'fa-heart': '❤️', 'fa-bell': '🔔', 'fa-calendar': '📅',
-        'fa-clock': '🕐', 'fa-envelope': '✉️', 'fa-phone': '📞', 'fa-user': '👤',
-        'fa-book': '📖', 'fa-graduation-cap': '🎓'
+        'fa-star': '★', 'fa-heart': '❤️', 'fa-bell': '🔔', 'fa-calendar': '📅', 
+        'fa-clock': '🕐', 'fa-envelope': '✉️', 'fa-phone': '📞', 'fa-user': '👤', 
+        'fa-book': '📖', 'fa-graduation-cap': '🎓', 'fa-camera': '📷', 'fa-music': '🎵',
+        'fa-rocket': '🚀', 'fa-crown': '👑'
     };
     const char = iconMap[iconClass] || '◆';
     const text = new fabric.Text(char, { left, top, fontSize: 48, fontFamily: 'Segoe UI Emoji', fill: '#2563eb' });
@@ -379,7 +439,7 @@ function addFrame(frameData) {
 }
 
 // ========================================
-// TEXT CUSTOMIZATION (Fully Featured)
+// TEXT MANAGEMENT (Complete Customization)
 // ========================================
 document.getElementById('addTextBtn')?.addEventListener('click', () => {
     const textValue = document.getElementById('customText')?.value || 'Your Text Here';
@@ -450,17 +510,54 @@ document.getElementById('textUnderlineBtn')?.addEventListener('click', () => {
     }
 });
 
-// Alignment Buttons
+document.getElementById('textShadowBtn')?.addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (obj && obj.type === 'text') {
+        const hasShadow = obj.shadow !== null;
+        obj.set('shadow', hasShadow ? null : '2px 2px 4px rgba(0,0,0,0.3)');
+        canvas.renderAll();
+        saveToHistory();
+    }
+});
+
+// Alignment
 document.querySelectorAll('.align-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const obj = canvas.getActiveObject();
         if (obj && obj.type === 'text') {
-            obj.set('textAlign', btn.dataset.align);
+            let align = btn.dataset.align;
+            obj.set('textAlign', align);
             canvas.renderAll();
             saveToHistory();
-            showToast(`Text aligned ${btn.dataset.align}`);
+            showToast(`Text aligned ${align}`);
+        } else if (!obj) {
+            showToast('Select a text element first');
         }
     });
+});
+
+// Letter Spacing
+document.getElementById('letterSpacing')?.addEventListener('input', (e) => {
+    const val = e.target.value;
+    document.getElementById('letterSpacingVal').innerText = val + 'px';
+    const obj = canvas.getActiveObject();
+    if (obj && obj.type === 'text') {
+        obj.set('charSpacing', parseInt(val));
+        canvas.renderAll();
+        saveToHistory();
+    }
+});
+
+// Line Height
+document.getElementById('lineHeight')?.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    document.getElementById('lineHeightVal').innerText = val;
+    const obj = canvas.getActiveObject();
+    if (obj && obj.type === 'text') {
+        obj.set('lineHeight', val);
+        canvas.renderAll();
+        saveToHistory();
+    }
 });
 
 // ========================================
@@ -472,12 +569,31 @@ document.getElementById('applyColorBtn')?.addEventListener('click', () => {
     showToast('Background color applied');
 });
 
+document.getElementById('applyImageBtn')?.addEventListener('click', () => {
+    const file = document.getElementById('bgImageUpload')?.files[0];
+    if (!file) { showToast('Select an image first'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        fabric.Image.fromURL(ev.target.result, (img) => {
+            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                scaleX: canvas.width / img.width,
+                scaleY: canvas.height / img.height
+            });
+            saveToHistory();
+            showToast('Background image applied');
+        });
+    };
+    reader.readAsDataURL(file);
+});
+
 function loadGradients() {
     const gradients = [
         'linear-gradient(135deg, #667eea, #764ba2)', 'linear-gradient(135deg, #f093fb, #f5576c)',
         'linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)',
-        'linear-gradient(135deg, #1e293b, #0f172a)', 'linear-gradient(135deg, #ff6b6b, #c92a2a)',
-        'linear-gradient(135deg, #11998e, #38ef7d)'
+        'linear-gradient(135deg, #fa709a, #fee140)', 'linear-gradient(135deg, #1e293b, #0f172a)',
+        'linear-gradient(135deg, #ff6b6b, #c92a2a)', 'linear-gradient(135deg, #11998e, #38ef7d)',
+        'linear-gradient(135deg, #2b5876, #4e4376)', 'linear-gradient(135deg, #c33764, #1d2671)',
+        'linear-gradient(135deg, #360033, #0b8793)', 'linear-gradient(135deg, #ff9a9e, #fecfef)'
     ];
     const grid = document.getElementById('gradientsGrid');
     if (grid) {
@@ -492,8 +608,27 @@ function loadGradients() {
     }
 }
 
+function loadPatterns() {
+    const patterns = [
+        'repeating-linear-gradient(45deg, #ddd 0px, #ddd 2px, transparent 2px, transparent 8px)',
+        'repeating-conic-gradient(#ddd 0% 25%, transparent 0% 50%) 50% / 20px 20px',
+        'radial-gradient(circle at 10px 10px, #ddd 2px, transparent 2px) 0 0 / 20px 20px'
+    ];
+    const grid = document.getElementById('patternsGrid');
+    if (grid) {
+        grid.innerHTML = patterns.map(p => `<div class="pattern-item" style="background: ${p};" data-pattern="${p}"></div>`).join('');
+        document.querySelectorAll('.pattern-item').forEach(item => {
+            item.addEventListener('click', () => {
+                canvas.setBackgroundColor(item.dataset.pattern, () => canvas.renderAll());
+                saveToHistory();
+                showToast('Pattern applied');
+            });
+        });
+    }
+}
+
 // ========================================
-// UPLOAD IMAGE
+// UPLOAD & EDIT POSTER
 // ========================================
 document.getElementById('uploadImageBtn')?.addEventListener('click', () => {
     const file = document.getElementById('imageUpload')?.files[0];
@@ -530,6 +665,24 @@ document.getElementById('editPosterBtn')?.addEventListener('click', () => {
     };
     reader.readAsDataURL(file);
 });
+
+function loadSavedImages() {
+    const container = document.getElementById('uploadedImagesList');
+    if (!container) return;
+    const saved = JSON.parse(localStorage.getItem('uploaded_images') || '[]');
+    container.innerHTML = saved.map(img => `<img src="${img}" class="uploaded-img" data-src="${img}">`).join('');
+    document.querySelectorAll('.uploaded-img').forEach(img => {
+        img.addEventListener('click', () => {
+            fabric.Image.fromURL(img.dataset.src, (fabricImg) => {
+                fabricImg.scaleToWidth(200);
+                canvas.add(fabricImg);
+                canvas.renderAll();
+                saveToHistory();
+                showToast('Image added to canvas');
+            });
+        });
+    });
+}
 
 // ========================================
 // UNDO / REDO
@@ -656,25 +809,45 @@ document.getElementById('generateQuoteBtn')?.addEventListener('click', async () 
     }
 });
 
+document.getElementById('suggestColorsBtn')?.addEventListener('click', () => {
+    showToast('Color suggestion: Use blue (#2563eb) as primary, white as background');
+});
+
+document.getElementById('suggestLayoutBtn')?.addEventListener('click', () => {
+    showToast('Layout suggestion: Place text in center, add a shape border around it');
+});
+
 // ========================================
 // EXPORT FUNCTIONS
 // ========================================
 async function exportAs(format) {
     showLoading(true);
     try {
-        const dataURL = canvas.toDataURL({ format: format === 'jpg' ? 'jpeg' : 'png', multiplier: 2 });
         if (format === 'png' || format === 'jpg') {
+            const dataURL = canvas.toDataURL({ format: format === 'jpg' ? 'jpeg' : 'png', multiplier: 2 });
             const link = document.createElement('a');
             link.download = `poster.${format}`;
             link.href = dataURL;
             link.click();
+            showToast(`${format.toUpperCase()} exported!`);
         } else if (format === 'pdf') {
+            const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 });
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? 'landscape' : 'portrait' });
             pdf.addImage(dataURL, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
             pdf.save('poster.pdf');
+            showToast('PDF exported!');
+        } else if (format === 'svg') {
+            const svg = canvas.toSVG();
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            saveAs(blob, 'poster.svg');
+            showToast('SVG exported!');
+        } else if (format === 'json') {
+            const json = JSON.stringify(canvas.toJSON());
+            const blob = new Blob([json], { type: 'application/json' });
+            saveAs(blob, 'poster.json');
+            showToast('JSON exported!');
         }
-        showToast(`${format.toUpperCase()} exported!`);
     } catch (error) {
         showToast('Export failed');
     } finally {
@@ -685,16 +858,45 @@ async function exportAs(format) {
 document.getElementById('exportPNG')?.addEventListener('click', () => exportAs('png'));
 document.getElementById('exportJPG')?.addEventListener('click', () => exportAs('jpg'));
 document.getElementById('exportPDF')?.addEventListener('click', () => exportAs('pdf'));
+document.getElementById('exportSVG')?.addEventListener('click', () => exportAs('svg'));
+document.getElementById('exportJSON')?.addEventListener('click', () => exportAs('json'));
 
 // ========================================
-// SAVE & LOAD (LocalStorage)
+// SAVE & LOAD (LocalStorage + Cloud)
 // ========================================
-document.getElementById('saveToLocal')?.addEventListener('click', () => {
+document.getElementById('saveToTiDB')?.addEventListener('click', async () => {
+    const designData = {
+        tool_slug: currentToolSlug,
+        user_id: userId,
+        design_name: 'Design_' + Date.now(),
+        design_json: JSON.stringify(canvas.toJSON()),
+        timestamp: new Date().toISOString()
+    };
+    try {
+        const response = await fetch(`${API_BASE}/save-design`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(designData)
+        });
+        if (response.ok) {
+            showToast('Design saved to cloud (TiDB)!');
+        } else {
+            showToast('Cloud save failed, saved to browser');
+            saveToLocalStorage();
+        }
+    } catch (error) {
+        saveToLocalStorage();
+    }
+});
+
+function saveToLocalStorage() {
     const designs = JSON.parse(localStorage.getItem('saved_designs') || '[]');
     designs.unshift({ id: Date.now(), data: JSON.stringify(canvas.toJSON()), timestamp: new Date().toISOString() });
     localStorage.setItem('saved_designs', JSON.stringify(designs.slice(0, 20)));
     showToast('Design saved to browser!');
-});
+}
+
+document.getElementById('saveToLocal')?.addEventListener('click', saveToLocalStorage);
 
 document.getElementById('loadFromLocal')?.addEventListener('click', () => {
     const designs = JSON.parse(localStorage.getItem('saved_designs') || '[]');
@@ -820,6 +1022,7 @@ async function trackShare(platform) {
     if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
     else if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=Check%20out%20my%20poster!&url=${encodeURIComponent(shareUrl)}`, '_blank');
     else if (platform === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent('Check out my poster! ' + shareUrl)}`, '_blank');
+    else if (platform === 'linkedin') window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
     else if (platform === 'copy') { navigator.clipboard.writeText(shareUrl); showToast('Link copied!'); }
     showToast('Thanks for sharing!');
 }
@@ -906,3 +1109,4 @@ function setupEventListeners() {
 
 console.log('🎉 PosterForge Pro Fully Loaded!');
 console.log('📁 80 Templates | 100 Stickers');
+console.log('🔗 GitHub: https://github.com/Uzair-hameed/MagicRills.github.io');
