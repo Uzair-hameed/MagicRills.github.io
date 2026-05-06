@@ -19,7 +19,7 @@ let historyIndex = -1;
 // GITHUB CONFIGURATION
 // ========================================
 const GITHUB_BASE = 'https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main/';
-const TEMPLATES_BASE_URL = GITHUB_BASE + 'templates/';
+const TEMPLATES_BASE_URL = '/templates/';
 const STICKERS_BASE_URL = GITHUB_BASE + 'stickers/';
 const API_BASE = '/api';
 
