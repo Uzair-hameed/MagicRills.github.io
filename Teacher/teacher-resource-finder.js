@@ -26,20 +26,8 @@ const STICKERS_BASE_URL = GITHUB_BASE + 'stickers/';
 // ========================================
 // FILE NAMES - EXACTLY AS YOU HAVE THEM
 // ========================================
-// Templates: template1.json, template2.json ... template115.json
 const TOTAL_TEMPLATES = 115;
-const TEMPLATE_FILES = [];
-for (let i = 1; i <= TOTAL_TEMPLATES; i++) {
-    TEMPLATE_FILES.push(`template${i}`);
-}
-
-// Stickers: sticker1.png.png, sticker2.png.png ... sticker100.png.png (double .png)
 const TOTAL_STICKERS = 100;
-const STICKER_FILES = [];
-for (let i = 1; i <= TOTAL_STICKERS; i++) {
-    STICKER_FILES.push(`sticker${i}.png`);  // This will become sticker1.png, sticker2.png, etc.
-    // The actual file name on GitHub is sticker1.png.png
-}
 
 // API Base URL
 const API_BASE = '/api';
@@ -50,8 +38,6 @@ const API_BASE = '/api';
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('PosterForge Pro Initializing...');
     console.log('📁 Loading from:', GITHUB_BASE);
-    console.log(`📄 Templates: ${TOTAL_TEMPLATES} files (template1.json to template${TOTAL_TEMPLATES}.json)`);
-    console.log(`🖼️ Stickers: ${TOTAL_STICKERS} files (sticker1.png.png to sticker${TOTAL_STICKERS}.png.png)`);
     
     initializeCanvas();
     
@@ -63,6 +49,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     localStorage.setItem('userId', userId);
     
+    // First check if templates exist
+    await checkTemplatesExist();
+    
+    // Load templates and stickers
     await loadAllTemplates();
     await loadAllStickers();
     loadElements();
@@ -77,8 +67,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     saveToHistory();
     
-    showToast(`✨ PosterForge Pro Ready! ${TOTAL_TEMPLATES} Templates & ${TOTAL_STICKERS} Stickers Loaded!`);
+    showToast(`✨ PosterForge Pro Ready!`);
 });
+
+// ========================================
+// CHECK IF TEMPLATES EXIST
+// ========================================
+async function checkTemplatesExist() {
+    try {
+        const testUrl = `${TEMPLATES_BASE_URL}template1.json`;
+        const response = await fetch(testUrl);
+        if (response.ok) {
+            console.log('✅ Templates folder accessible. First template found.');
+        } else {
+            console.warn('⚠️ Template folder may be empty or inaccessible. Status:', response.status);
+        }
+    } catch (error) {
+        console.error('❌ Cannot access templates folder:', error);
+    }
+}
 
 // ========================================
 // FABRIC.JS CANVAS
@@ -133,20 +140,56 @@ async function loadAllTemplates() {
     const templatesGrid = document.getElementById('templatesGrid');
     if (!templatesGrid) return;
     
-    templatesGrid.innerHTML = '<div style="text-align:center; padding:20px; color: gray;">⏳ Loading 115 templates from GitHub...</div>';
+    templatesGrid.innerHTML = '<div style="text-align:center; padding:20px; color: gray;">⏳ Checking templates from GitHub...</div>';
+    
     let loadedCount = 0;
+    let notFoundCount = 0;
     let errorCount = 0;
     
+    // First, let's find which template numbers actually exist
+    const existingTemplates = [];
+    
     for (let i = 1; i <= TOTAL_TEMPLATES; i++) {
-        const fileName = `template${i}`;
-        const fileUrl = `${TEMPLATES_BASE_URL}${fileName}.json`;
+        const fileUrl = `${TEMPLATES_BASE_URL}template${i}.json`;
+        
+        try {
+            const response = await fetch(fileUrl, { method: 'HEAD' });
+            if (response.ok) {
+                existingTemplates.push(i);
+            } else {
+                notFoundCount++;
+            }
+        } catch (error) {
+            errorCount++;
+        }
+        
+        // Update progress every 20 templates
+        if (i % 20 === 0) {
+            templatesGrid.innerHTML = `<div style="text-align:center; padding:20px; color: gray;">⏳ Scanning templates... (${i}/${TOTAL_TEMPLATES} checked, ${existingTemplates.length} found)</div>`;
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+    }
+    
+    console.log(`📊 Template scan complete. Found ${existingTemplates.length} templates.`);
+    
+    if (existingTemplates.length === 0) {
+        templatesGrid.innerHTML = `<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Checked ${TOTAL_TEMPLATES} files. Make sure template1.json to template115.json exist in:<br><br>${TEMPLATES_BASE_URL}</div>`;
+        return;
+    }
+    
+    // Now load the actual template data
+    templatesGrid.innerHTML = `<div style="text-align:center; padding:20px; color: gray;">⏳ Loading ${existingTemplates.length} templates...</div>`;
+    
+    // Clear grid
+    templatesGrid.innerHTML = '';
+    
+    for (const templateNum of existingTemplates) {
+        const fileUrl = `${TEMPLATES_BASE_URL}template${templateNum}.json`;
         
         try {
             const response = await fetch(fileUrl);
-            if (!response.ok) {
-                errorCount++;
-                continue;
-            }
+            if (!response.ok) continue;
+            
             const templateData = await response.json();
             
             const card = document.createElement('div');
@@ -155,7 +198,7 @@ async function loadAllTemplates() {
                 <div class="template-preview" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-palette" style="color: white; font-size: 32px;"></i>
                 </div>
-                <div class="template-name">Template ${i}</div>
+                <div class="template-name">Template ${templateNum}</div>
             `;
             
             card.addEventListener('click', () => {
@@ -163,35 +206,31 @@ async function loadAllTemplates() {
                     canvas.loadFromJSON(templateData, () => {
                         canvas.renderAll();
                         saveToHistory();
-                        showToast(`✨ Template ${i} loaded!`);
+                        showToast(`✨ Template ${templateNum} loaded!`);
                     });
                 } catch (e) {
                     showToast('Error loading template');
+                    console.error('Template load error:', e);
                 }
             });
             
             templatesGrid.appendChild(card);
             loadedCount++;
             
+            // Small delay to avoid UI freeze
+            await new Promise(resolve => setTimeout(resolve, 5));
+            
         } catch (error) {
-            errorCount++;
-        }
-        
-        // Small delay to avoid rate limiting
-        if (i % 10 === 0) {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            console.error(`Error loading template ${templateNum}:`, error);
         }
     }
     
-    if (loadedCount === 0) {
-        templatesGrid.innerHTML = '<div style="text-align:center; padding:20px; color: gray;">❌ No templates found. Check /templates/ folder on GitHub.</div>';
-    } else {
-        console.log(`✅ Templates loaded: ${loadedCount} successful, ${errorCount} failed`);
-    }
+    console.log(`✅ Templates loaded: ${loadedCount} successful`);
+    showToast(`✨ ${loadedCount} templates loaded!`);
 }
 
 // ========================================
-// LOAD ALL STICKERS (100 stickers with .png.png extension)
+// LOAD ALL STICKERS (100 stickers)
 // ========================================
 async function loadAllStickers() {
     const stickersGrid = document.getElementById('stickersGrid');
@@ -209,14 +248,10 @@ async function loadAllStickers() {
     let totalProcessed = 0;
     
     for (let i = 1; i <= TOTAL_STICKERS; i++) {
-        // The actual file name is sticker1.png.png, so we need to fetch sticker1.png.png
         const fileName = `sticker${i}.png.png`;
         const imgUrl = `${STICKERS_BASE_URL}${fileName}`;
         
-        const img = document.createElement('img');
-        img.style.width = '100%';
-        img.style.height = 'auto';
-        img.style.borderRadius = '8px';
+        const img = new Image();
         
         img.onload = () => {
             const stickerDiv = document.createElement('div');
@@ -232,7 +267,7 @@ async function loadAllStickers() {
             
             if (totalProcessed === TOTAL_STICKERS) {
                 if (loadedCount === 0) {
-                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Check /stickers/ folder on GitHub.</div>';
+                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Add sticker1.png.png to sticker100.png.png in /stickers/ folder.</div>';
                 }
                 stickersGrid.appendChild(stickersContainer);
                 console.log(`✅ Stickers loaded: ${loadedCount} successful`);
@@ -246,7 +281,6 @@ async function loadAllStickers() {
                     stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Add sticker1.png.png to sticker100.png.png in /stickers/ folder.</div>';
                 }
                 stickersGrid.appendChild(stickersContainer);
-                console.log(`⚠️ Sticker ${i} not found`);
             }
         };
         
@@ -530,8 +564,7 @@ function loadGradients() {
         'linear-gradient(135deg, #667eea, #764ba2)', 'linear-gradient(135deg, #f093fb, #f5576c)',
         'linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)',
         'linear-gradient(135deg, #fa709a, #fee140)', 'linear-gradient(135deg, #1e293b, #0f172a)',
-        'linear-gradient(135deg, #ff6b6b, #c92a2a)', 'linear-gradient(135deg, #11998e, #38ef7d)',
-        'linear-gradient(135deg, #2b5876, #4e4376)', 'linear-gradient(135deg, #c33764, #1d2671)'
+        'linear-gradient(135deg, #ff6b6b, #c92a2a)', 'linear-gradient(135deg, #11998e, #38ef7d)'
     ];
     const grid = document.getElementById('gradientsGrid');
     if (grid) {
@@ -549,7 +582,6 @@ function loadGradients() {
 function loadPatterns() {
     const patterns = [
         'repeating-linear-gradient(45deg, #ddd 0px, #ddd 2px, transparent 2px, transparent 8px)',
-        'repeating-conic-gradient(#ddd 0% 25%, transparent 0% 50%) 50% / 20px 20px',
         'radial-gradient(circle at 10px 10px, #ddd 2px, transparent 2px) 0 0 / 20px 20px'
     ];
     const grid = document.getElementById('patternsGrid');
@@ -995,5 +1027,3 @@ function setupEventListeners() {
 }
 
 console.log('🎉 PosterForge Pro Fully Loaded!');
-console.log(`📁 Templates: ${TOTAL_TEMPLATES} | Stickers: ${TOTAL_STICKERS}`);
-console.log(`🔗 GitHub: ${GITHUB_BASE}`);
