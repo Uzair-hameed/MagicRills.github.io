@@ -3,9 +3,6 @@
 // FULLY INTEGRATED: TiDB + Vercel + Grok API + Reactions + Usage Counter
 // ========================================
 
-// ========================================
-// GLOBAL VARIABLES
-// ========================================
 let canvas = null;
 let currentToolSlug = 'teacher-resource-finder';
 let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -16,475 +13,233 @@ let userReacted = { like: false, love: false, wow: false, sad: false, laugh: fal
 let historyStates = [];
 let historyIndex = -1;
 
-// ========================================
-// YOUR GITHUB LINKS
-// ========================================
 const GITHUB_BASE = 'https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main/';
 const TEMPLATES_BASE_URL = GITHUB_BASE + 'templates/';
 const STICKERS_BASE_URL = GITHUB_BASE + 'stickers/';
-
-// ========================================
-// FILE NAMES - EXACTLY AS YOU HAVE THEM
-// ========================================
 const TOTAL_TEMPLATES = 115;
 const TOTAL_STICKERS = 100;
-
-// API Base URL
 const API_BASE = '/api';
 
-// ========================================
-// INITIALIZATION
-// ========================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('PosterForge Pro Initializing...');
-    console.log('📁 Loading from:', GITHUB_BASE);
-    
     initializeCanvas();
     
     if (darkMode) {
         document.body.classList.add('dark-mode');
-        const darkBtn = document.getElementById('darkModeBtn');
-        if (darkBtn) darkBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        document.getElementById('darkModeBtn').innerHTML = '<i class="fas fa-sun"></i>';
     }
     
     localStorage.setItem('userId', userId);
     
-    // First check if templates exist
-    await checkTemplatesExist();
-    
-    // Load templates and stickers
     await loadAllTemplates();
     await loadAllStickers();
     loadElements();
     loadGradients();
-    loadPatterns();
     loadSavedImages();
-    
     await loadUsageFromAPI();
     await trackUsage();
     await loadReactionsFromAPI();
-    
     setupEventListeners();
     saveToHistory();
-    
-    showToast(`✨ PosterForge Pro Ready!`);
+    showToast('✨ PosterForge Pro Ready!');
 });
 
-// ========================================
-// CHECK IF TEMPLATES EXIST
-// ========================================
-async function checkTemplatesExist() {
-    try {
-        const testUrl = `${TEMPLATES_BASE_URL}template1.json`;
-        const response = await fetch(testUrl);
-        if (response.ok) {
-            console.log('✅ Templates folder accessible. First template found.');
-        } else {
-            console.warn('⚠️ Template folder may be empty or inaccessible. Status:', response.status);
-        }
-    } catch (error) {
-        console.error('❌ Cannot access templates folder:', error);
-    }
-}
-
-// ========================================
-// FABRIC.JS CANVAS
-// ========================================
 function initializeCanvas() {
     canvas = new fabric.Canvas('canvas', {
-        width: 800,
-        height: 1000,
-        backgroundColor: '#ffffff',
-        preserveObjectStacking: true,
-        selection: true
+        width: 800, height: 1000, backgroundColor: '#ffffff',
+        preserveObjectStacking: true, selection: true
     });
     
-    const welcomeText = new fabric.Text('Welcome to PosterForge Pro!\n\n✨ Click on templates or stickers to get started!\nDrag to move | Click to select | Use corners to resize/rotate', {
+    canvas.add(new fabric.Text('Welcome to PosterForge Pro!\n\n✨ Click on templates or stickers to get started!\nDrag to move | Click to select | Resize from corners', {
         left: 400, top: 450, fontSize: 18, fontFamily: 'Inter', fill: '#1e293b',
         textAlign: 'center', originX: 'center', originY: 'center'
-    });
-    canvas.add(welcomeText);
+    }));
     canvas.renderAll();
     
-    canvas.on('selection:created', (e) => {
-        if (e.selected && e.selected[0]) {
-            selectedObjectId = e.selected[0].id;
-            updateLayersList();
-        }
-    });
-    canvas.on('selection:updated', (e) => {
-        if (e.selected && e.selected[0]) {
-            selectedObjectId = e.selected[0].id;
-            updateLayersList();
-        }
-    });
-    canvas.on('selection:cleared', () => {
-        selectedObjectId = null;
-        updateLayersList();
-    });
+    canvas.on('selection:created', (e) => { if (e.selected && e.selected[0]) { selectedObjectId = e.selected[0].id; updateLayersList(); } });
+    canvas.on('selection:updated', (e) => { if (e.selected && e.selected[0]) { selectedObjectId = e.selected[0].id; updateLayersList(); } });
+    canvas.on('selection:cleared', () => { selectedObjectId = null; updateLayersList(); });
     canvas.on('object:modified', () => saveToHistory());
-    canvas.on('object:added', () => {
-        saveToHistory();
-        updateLayersList();
-    });
-    canvas.on('object:removed', () => {
-        saveToHistory();
-        updateLayersList();
-    });
+    canvas.on('object:added', () => { saveToHistory(); updateLayersList(); });
+    canvas.on('object:removed', () => { saveToHistory(); updateLayersList(); });
 }
 
-// ========================================
-// LOAD ALL TEMPLATES (115 templates)
-// ========================================
 async function loadAllTemplates() {
-    const templatesGrid = document.getElementById('templatesGrid');
-    if (!templatesGrid) return;
+    const grid = document.getElementById('templatesGrid');
+    if (!grid) return;
     
-    templatesGrid.innerHTML = '<div style="text-align:center; padding:20px; color: gray;">⏳ Checking templates from GitHub...</div>';
-    
-    let loadedCount = 0;
-    let notFoundCount = 0;
-    let errorCount = 0;
-    
-    // First, let's find which template numbers actually exist
+    grid.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Scanning templates...</div>';
     const existingTemplates = [];
     
     for (let i = 1; i <= TOTAL_TEMPLATES; i++) {
-        const fileUrl = `${TEMPLATES_BASE_URL}template${i}.json`;
-        
         try {
-            const response = await fetch(fileUrl, { method: 'HEAD' });
-            if (response.ok) {
-                existingTemplates.push(i);
-            } else {
-                notFoundCount++;
-            }
-        } catch (error) {
-            errorCount++;
-        }
-        
-        // Update progress every 20 templates
-        if (i % 20 === 0) {
-            templatesGrid.innerHTML = `<div style="text-align:center; padding:20px; color: gray;">⏳ Scanning templates... (${i}/${TOTAL_TEMPLATES} checked, ${existingTemplates.length} found)</div>`;
-            await new Promise(resolve => setTimeout(resolve, 10));
-        }
+            const res = await fetch(`${TEMPLATES_BASE_URL}template${i}.json`, { method: 'HEAD' });
+            if (res.ok) existingTemplates.push(i);
+        } catch(e) {}
+        if (i % 20 === 0) await new Promise(r => setTimeout(r, 10));
     }
     
-    console.log(`📊 Template scan complete. Found ${existingTemplates.length} templates.`);
-    
     if (existingTemplates.length === 0) {
-        templatesGrid.innerHTML = `<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Checked ${TOTAL_TEMPLATES} files. Make sure template1.json to template115.json exist in:<br><br>${TEMPLATES_BASE_URL}</div>`;
+        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found!</div>';
         return;
     }
     
-    // Now load the actual template data
-    templatesGrid.innerHTML = `<div style="text-align:center; padding:20px; color: gray;">⏳ Loading ${existingTemplates.length} templates...</div>`;
-    
-    // Clear grid
-    templatesGrid.innerHTML = '';
-    
-    for (const templateNum of existingTemplates) {
-        const fileUrl = `${TEMPLATES_BASE_URL}template${templateNum}.json`;
-        
+    grid.innerHTML = '';
+    for (const num of existingTemplates) {
         try {
-            const response = await fetch(fileUrl);
-            if (!response.ok) continue;
-            
-            const templateData = await response.json();
-            
+            const res = await fetch(`${TEMPLATES_BASE_URL}template${num}.json`);
+            const data = await res.json();
             const card = document.createElement('div');
             card.className = 'template-card';
             card.innerHTML = `
-                <div class="template-preview" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-palette" style="color: white; font-size: 32px;"></i>
-                </div>
-                <div class="template-name">Template ${templateNum}</div>
+                <div class="template-preview"><i class="fas fa-palette"></i></div>
+                <div class="template-name">Template ${num}</div>
             `;
-            
             card.addEventListener('click', () => {
-                try {
-                    canvas.loadFromJSON(templateData, () => {
-                        canvas.renderAll();
-                        saveToHistory();
-                        showToast(`✨ Template ${templateNum} loaded!`);
-                    });
-                } catch (e) {
-                    showToast('Error loading template');
-                    console.error('Template load error:', e);
-                }
+                canvas.loadFromJSON(data, () => { canvas.renderAll(); saveToHistory(); showToast(`✨ Template ${num} loaded!`); });
             });
-            
-            templatesGrid.appendChild(card);
-            loadedCount++;
-            
-            // Small delay to avoid UI freeze
-            await new Promise(resolve => setTimeout(resolve, 5));
-            
-        } catch (error) {
-            console.error(`Error loading template ${templateNum}:`, error);
-        }
+            grid.appendChild(card);
+        } catch(e) {}
     }
-    
-    console.log(`✅ Templates loaded: ${loadedCount} successful`);
-    showToast(`✨ ${loadedCount} templates loaded!`);
+    showToast(`✅ ${existingTemplates.length} templates loaded!`);
 }
 
-// ========================================
-// LOAD ALL STICKERS (100 stickers)
-// ========================================
 async function loadAllStickers() {
     const stickersGrid = document.getElementById('stickersGrid');
     if (!stickersGrid) return;
     
-    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> 📂 My Stickers (100)</div>';
+    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> My Stickers</div>';
+    const container = document.createElement('div');
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    container.style.gap = '12px';
     
-    const stickersContainer = document.createElement('div');
-    stickersContainer.style.display = 'grid';
-    stickersContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    stickersContainer.style.gap = '12px';
-    stickersContainer.style.marginTop = '8px';
-    
-    let loadedCount = 0;
-    let totalProcessed = 0;
-    
+    let loaded = 0, total = 0;
     for (let i = 1; i <= TOTAL_STICKERS; i++) {
-        const fileName = `sticker${i}.png.png`;
-        const imgUrl = `${STICKERS_BASE_URL}${fileName}`;
-        
+        const url = `${STICKERS_BASE_URL}sticker${i}.png.png`;
         const img = new Image();
-        
         img.onload = () => {
-            const stickerDiv = document.createElement('div');
-            stickerDiv.className = 'sticker-item';
-            stickerDiv.innerHTML = `
-                <img src="${imgUrl}" alt="Sticker ${i}" style="width: 100%; height: auto; border-radius: 8px;">
-                <span>Sticker ${i}</span>
-            `;
-            stickerDiv.addEventListener('click', () => addStickerToCanvas(imgUrl, i));
-            stickersContainer.appendChild(stickerDiv);
-            loadedCount++;
-            totalProcessed++;
-            
-            if (totalProcessed === TOTAL_STICKERS) {
-                if (loadedCount === 0) {
-                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Add sticker1.png.png to sticker100.png.png in /stickers/ folder.</div>';
-                }
-                stickersGrid.appendChild(stickersContainer);
-                console.log(`✅ Stickers loaded: ${loadedCount} successful`);
+            const div = document.createElement('div');
+            div.className = 'sticker-item';
+            div.innerHTML = `<img src="${url}" style="width:100%;"><span>Sticker ${i}</span>`;
+            div.addEventListener('click', () => addStickerToCanvas(url, i));
+            container.appendChild(div);
+            loaded++;
+            if (loaded === total || (loaded === 0 && i === TOTAL_STICKERS)) {
+                stickersGrid.appendChild(container);
             }
         };
-        
-        img.onerror = () => {
-            totalProcessed++;
-            if (totalProcessed === TOTAL_STICKERS) {
-                if (loadedCount === 0) {
-                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Add sticker1.png.png to sticker100.png.png in /stickers/ folder.</div>';
-                }
-                stickersGrid.appendChild(stickersContainer);
-            }
-        };
-        
-        img.src = imgUrl;
+        img.src = url;
+        total++;
     }
-    
-    setTimeout(() => {
-        if (loadedCount === 0 && stickersContainer.children.length === 0) {
-            stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">⏳ Loading stickers from GitHub...</div>';
-            stickersGrid.appendChild(stickersContainer);
-        }
-    }, 3000);
+    setTimeout(() => stickersGrid.appendChild(container), 2000);
 }
 
-function addStickerToCanvas(imageUrl, stickerNumber) {
-    fabric.Image.fromURL(imageUrl, (img) => {
+function addStickerToCanvas(url, num) {
+    fabric.Image.fromURL(url, (img) => {
         img.scaleToWidth(120);
-        img.set({
-            left: canvas.width / 2 - 60,
-            top: canvas.height / 2 - 60,
-            id: 'sticker_' + Date.now()
-        });
+        img.set({ left: canvas.width/2 - 60, top: canvas.height/2 - 60 });
         canvas.add(img);
-        canvas.setActiveObject(img);
         canvas.renderAll();
         saveToHistory();
-        showToast(`✅ Sticker ${stickerNumber} added!`);
-    }, () => {
-        showToast('Failed to load sticker');
+        showToast(`✅ Sticker ${num} added!`);
     });
 }
 
-// ========================================
-// LOAD ELEMENTS (Shapes, Icons, Stickers, Frames)
-// ========================================
 function loadElements() {
     const shapes = [
-        { name: 'Square', icon: 'fa-square', type: 'rect', width: 80, height: 80 },
-        { name: 'Circle', icon: 'fa-circle', type: 'circle', radius: 40 },
-        { name: 'Rectangle', icon: 'fa-rectangle', type: 'rect', width: 120, height: 60 },
-        { name: 'Triangle', icon: 'fa-triangle', type: 'triangle', width: 80, height: 80 },
+        { name: 'Square', icon: 'fa-square', type: 'rect', w: 80, h: 80 },
+        { name: 'Circle', icon: 'fa-circle', type: 'circle', r: 40 },
+        { name: 'Rectangle', icon: 'fa-rectangle', type: 'rect', w: 120, h: 60 },
+        { name: 'Triangle', icon: 'fa-triangle', type: 'triangle', w: 80, h: 80 },
         { name: 'Star', icon: 'fa-star', type: 'star' },
-        { name: 'Heart', icon: 'fa-heart', type: 'heart' },
-        { name: 'Diamond', icon: 'fa-gem', type: 'diamond', width: 60, height: 60 },
-        { name: 'Circle Outline', icon: 'fa-circle', type: 'circle', radius: 40, fill: 'transparent', stroke: '#2563eb', strokeWidth: 3 },
-        { name: 'Rounded Rect', icon: 'fa-square', type: 'rect', width: 100, height: 80, rx: 20, ry: 20 },
-        { name: 'Line', icon: 'fa-minus', type: 'line' },
-        { name: 'Arrow', icon: 'fa-arrow-right', type: 'arrow' }
+        { name: 'Heart', icon: 'fa-heart', type: 'heart' }
     ];
+    const icons = ['fa-star', 'fa-heart', 'fa-bell', 'fa-calendar', 'fa-clock', 'fa-user', 'fa-book'];
+    const emojis = ['⭐', '❤️', '🔥', '👑', '🌟', '💎', '🎈', '🎉', '🏆', '🌈'];
+    const frames = [{ name: 'Basic', style: 'solid', w: 2 }, { name: 'Dashed', style: 'dashed', w: 2 }];
     
-    const icons = ['fa-star', 'fa-heart', 'fa-bell', 'fa-calendar', 'fa-clock', 'fa-envelope', 'fa-phone', 'fa-user', 'fa-book', 'fa-graduation-cap', 'fa-camera', 'fa-music', 'fa-rocket', 'fa-crown'];
+    const grid = document.getElementById('elementsGrid');
+    let type = 'shapes';
     
-    const emojiStickers = ['⭐', '❤️', '🔥', '👑', '🌟', '💎', '🎈', '🎉', '🎁', '🏆', '🌈', '⚡', '☀️', '🌙', '🌸', '🍎', '📚', '✏️', '🎨', '🎯', '🎵'];
-    
-    const frames = [
-        { name: 'Basic', style: 'solid', width: 2 },
-        { name: 'Dashed', style: 'dashed', width: 2 },
-        { name: 'Dotted', style: 'dotted', width: 2 },
-        { name: 'Double', style: 'double', width: 4 }
-    ];
-    
-    const elementsGrid = document.getElementById('elementsGrid');
-    let currentType = 'shapes';
-    
-    function renderElements() {
+    function render() {
         let html = '';
-        if (currentType === 'shapes') {
+        if (type === 'shapes') {
             html = shapes.map(s => `<div class="element-card" data-shape='${JSON.stringify(s)}'><i class="fas ${s.icon}"></i><span>${s.name}</span></div>`).join('');
-        } else if (currentType === 'icons') {
+        } else if (type === 'icons') {
             html = icons.map(i => `<div class="element-card" data-icon="${i}"><i class="fas ${i}"></i><span>Icon</span></div>`).join('');
-        } else if (currentType === 'stickers') {
-            html = emojiStickers.map(s => `<div class="element-card" data-sticker="${s}"><span style="font-size: 32px;">${s}</span><span>Sticker</span></div>`).join('');
-        } else if (currentType === 'frames') {
+        } else if (type === 'stickers') {
+            html = emojis.map(e => `<div class="element-card" data-sticker="${e}"><span style="font-size:28px;">${e}</span><span>Sticker</span></div>`).join('');
+        } else {
             html = frames.map(f => `<div class="element-card" data-frame='${JSON.stringify(f)}'><i class="fas fa-border-all"></i><span>${f.name}</span></div>`).join('');
         }
-        elementsGrid.innerHTML = html;
+        grid.innerHTML = html;
         
-        document.querySelectorAll('[data-shape]').forEach(el => {
-            el.addEventListener('click', () => addShape(JSON.parse(el.dataset.shape)));
-        });
-        document.querySelectorAll('[data-icon]').forEach(el => {
-            el.addEventListener('click', () => addIcon(el.dataset.icon));
-        });
-        document.querySelectorAll('[data-sticker]').forEach(el => {
-            el.addEventListener('click', () => addEmojiSticker(el.dataset.sticker));
-        });
-        document.querySelectorAll('[data-frame]').forEach(el => {
-            el.addEventListener('click', () => addFrame(JSON.parse(el.dataset.frame)));
+        document.querySelectorAll('[data-shape]').forEach(el => addShape(JSON.parse(el.dataset.shape)));
+        document.querySelectorAll('[data-icon]').forEach(el => addIcon(el.dataset.icon));
+        document.querySelectorAll('[data-sticker]').forEach(el => addEmoji(el.dataset.sticker));
+        document.querySelectorAll('[data-frame]').forEach(el => addFrame(JSON.parse(el.dataset.frame)));
+    }
+    
+    function addShape(s) {
+        el.addEventListener('click', () => {
+            let obj;
+            if (s.type === 'rect') obj = new fabric.Rect({ left: 100, top: 100, width: s.w, height: s.h, fill: '#2563eb' });
+            else if (s.type === 'circle') obj = new fabric.Circle({ left: 100, top: 100, radius: s.r, fill: '#2563eb' });
+            else if (s.type === 'triangle') obj = new fabric.Triangle({ left: 100, top: 100, width: s.w, height: s.h, fill: '#2563eb' });
+            else if (s.type === 'star') {
+                const pts = [];
+                for (let i = 0; i < 10; i++) {
+                    const a = (i * 36 - 90) * Math.PI/180;
+                    const r = i%2===0 ? 40 : 20;
+                    pts.push({ x: Math.cos(a)*r, y: Math.sin(a)*r });
+                }
+                obj = new fabric.Polygon(pts, { left: 100, top: 100, fill: '#f59e0b' });
+            } else if (s.type === 'heart') {
+                obj = new fabric.Path('M 0,-30 C 20,-50 50,-20 0,30 C -50,-20 -20,-50 0,-30 Z', { left: 100, top: 100, fill: '#ef4444', scaleX: 0.8, scaleY: 0.8 });
+            }
+            if (obj) { canvas.add(obj); canvas.renderAll(); saveToHistory(); showToast(`✅ ${s.name} added`); }
         });
     }
     
-    renderElements();
+    function addIcon(c) {
+        el.addEventListener('click', () => {
+            const map = { 'fa-star':'★', 'fa-heart':'❤️', 'fa-bell':'🔔', 'fa-calendar':'📅', 'fa-clock':'🕐', 'fa-user':'👤', 'fa-book':'📖' };
+            const t = new fabric.Text(map[c] || '◆', { left: 100, top: 100, fontSize: 48, fill: '#2563eb' });
+            canvas.add(t); canvas.renderAll(); saveToHistory(); showToast('✅ Icon added');
+        });
+    }
     
+    function addEmoji(e) {
+        el.addEventListener('click', () => {
+            const t = new fabric.Text(e, { left: 100, top: 100, fontSize: 48 });
+            canvas.add(t); canvas.renderAll(); saveToHistory(); showToast('✅ Sticker added');
+        });
+    }
+    
+    function addFrame(f) {
+        el.addEventListener('click', () => {
+            const r = new fabric.Rect({ left: 100, top: 100, width: 200, height: 200, fill: 'transparent', stroke: '#2563eb', strokeWidth: f.w, strokeDashArray: f.style==='dashed'?[10,5]:null });
+            canvas.add(r); canvas.renderAll(); saveToHistory(); showToast(`✅ ${f.name} frame added`);
+        });
+    }
+    
+    render();
     document.querySelectorAll('[data-elem-type]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('[data-elem-type]').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentType = btn.dataset.elemType;
-            renderElements();
+            type = btn.dataset.elemType;
+            render();
         });
     });
 }
 
-function addShape(shapeData) {
-    let obj;
-    const left = Math.random() * (canvas.width - 200) + 100;
-    const top = Math.random() * (canvas.height - 200) + 100;
-    
-    if (shapeData.type === 'rect') {
-        obj = new fabric.Rect({ left, top, width: shapeData.width, height: shapeData.height, fill: '#2563eb', rx: shapeData.rx || 0 });
-    } else if (shapeData.type === 'circle' && shapeData.fill === 'transparent') {
-        obj = new fabric.Circle({ left, top, radius: shapeData.radius, fill: 'transparent', stroke: '#2563eb', strokeWidth: 3 });
-    } else if (shapeData.type === 'circle') {
-        obj = new fabric.Circle({ left, top, radius: shapeData.radius, fill: '#2563eb' });
-    } else if (shapeData.type === 'triangle') {
-        obj = new fabric.Triangle({ left, top, width: shapeData.width, height: shapeData.height, fill: '#2563eb' });
-    } else if (shapeData.type === 'star') {
-        const points = [];
-        for (let i = 0; i < 10; i++) {
-            const angle = (i * 36 - 90) * Math.PI / 180;
-            const radius = i % 2 === 0 ? 40 : 20;
-            points.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
-        }
-        obj = new fabric.Polygon(points, { left, top, fill: '#f59e0b' });
-    } else if (shapeData.type === 'heart') {
-        obj = new fabric.Path('M 0,-30 C 20,-50 50,-20 0,30 C -50,-20 -20,-50 0,-30 Z', { left, top, fill: '#ef4444', scaleX: 0.8, scaleY: 0.8 });
-    } else if (shapeData.type === 'diamond') {
-        obj = new fabric.Polygon([
-            { x: 0, y: -30 }, { x: 30, y: 0 }, { x: 0, y: 30 }, { x: -30, y: 0 }
-        ], { left, top, fill: '#2563eb' });
-    } else {
-        obj = new fabric.Rect({ left, top, width: 60, height: 60, fill: '#2563eb' });
-    }
-    
-    obj.id = 'shape_' + Date.now();
-    canvas.add(obj);
-    canvas.setActiveObject(obj);
-    canvas.renderAll();
-    saveToHistory();
-    showToast(`✅ Added ${shapeData.name}`);
-}
-
-function addIcon(iconClass) {
-    const left = Math.random() * (canvas.width - 150) + 100;
-    const top = Math.random() * (canvas.height - 150) + 100;
-    const iconMap = { 
-        'fa-star': '★', 'fa-heart': '❤️', 'fa-bell': '🔔', 'fa-calendar': '📅', 
-        'fa-clock': '🕐', 'fa-envelope': '✉️', 'fa-phone': '📞', 'fa-user': '👤', 
-        'fa-book': '📖', 'fa-graduation-cap': '🎓', 'fa-camera': '📷', 'fa-music': '🎵',
-        'fa-rocket': '🚀', 'fa-crown': '👑'
-    };
-    const char = iconMap[iconClass] || '◆';
-    const text = new fabric.Text(char, { left, top, fontSize: 48, fontFamily: 'Segoe UI Emoji', fill: '#2563eb' });
-    text.id = 'icon_' + Date.now();
-    canvas.add(text);
-    canvas.setActiveObject(text);
-    canvas.renderAll();
-    saveToHistory();
-    showToast('✅ Added icon');
-}
-
-function addEmojiSticker(sticker) {
-    const left = Math.random() * (canvas.width - 100) + 100;
-    const top = Math.random() * (canvas.height - 100) + 100;
-    const text = new fabric.Text(sticker, { left, top, fontSize: 48, fontFamily: 'Segoe UI Emoji' });
-    text.id = 'sticker_' + Date.now();
-    canvas.add(text);
-    canvas.setActiveObject(text);
-    canvas.renderAll();
-    saveToHistory();
-    showToast('✅ Added sticker');
-}
-
-function addFrame(frameData) {
-    const left = Math.random() * (canvas.width - 300) + 150;
-    const top = Math.random() * (canvas.height - 300) + 150;
-    const rect = new fabric.Rect({
-        left, top, width: 200, height: 200, fill: 'transparent', stroke: '#2563eb',
-        strokeWidth: frameData.width,
-        strokeDashArray: frameData.style === 'dashed' ? [10, 5] : frameData.style === 'dotted' ? [5, 5] : null
-    });
-    rect.id = 'frame_' + Date.now();
-    canvas.add(rect);
-    canvas.renderAll();
-    saveToHistory();
-    showToast(`✅ Added ${frameData.name} frame`);
-}
-
-// ========================================
-// TEXT MANAGEMENT
-// ========================================
 document.getElementById('addTextBtn')?.addEventListener('click', () => {
-    const textValue = document.getElementById('customText')?.value || 'Your Text Here';
-    if (!textValue.trim()) return;
-    const text = new fabric.Text(textValue, {
-        left: canvas.width / 2, top: canvas.height / 2, fontSize: 32, fontFamily: 'Inter',
-        fill: '#1e293b', originX: 'center', originY: 'center'
-    });
-    text.id = 'text_' + Date.now();
-    canvas.add(text);
-    canvas.setActiveObject(text);
-    canvas.renderAll();
-    saveToHistory();
-    showToast('✅ Text added');
+    const val = document.getElementById('customText')?.value || 'Your Text';
+    if (!val.trim()) return;
+    const t = new fabric.Text(val, { left: canvas.width/2, top: canvas.height/2, fontSize: 32, fontFamily: 'Inter', fill: '#1e293b', originX: 'center', originY: 'center' });
+    canvas.add(t); canvas.setActiveObject(t); canvas.renderAll(); saveToHistory(); showToast('✅ Text added');
 });
 
 function updateSelectedText() {
@@ -506,65 +261,23 @@ document.getElementById('fontSize')?.addEventListener('input', (e) => {
     updateSelectedText();
 });
 document.getElementById('textColor')?.addEventListener('input', updateSelectedText);
-
 document.getElementById('textBoldBtn')?.addEventListener('click', () => {
     const obj = canvas.getActiveObject();
-    if (obj && obj.type === 'text') {
-        obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold');
-        canvas.renderAll();
-    }
+    if (obj && obj.type === 'text') obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold');
+    canvas.renderAll();
 });
-
-document.getElementById('textItalicBtn')?.addEventListener('click', () => {
-    const obj = canvas.getActiveObject();
-    if (obj && obj.type === 'text') {
-        obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic');
-        canvas.renderAll();
-    }
-});
-
-document.querySelectorAll('.align-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const obj = canvas.getActiveObject();
-        if (obj && obj.type === 'text') {
-            obj.set('textAlign', btn.dataset.align);
-            canvas.renderAll();
-        }
-    });
-});
-
-// ========================================
-// BACKGROUND MANAGEMENT
-// ========================================
 document.getElementById('applyColorBtn')?.addEventListener('click', () => {
     canvas.setBackgroundColor(document.getElementById('bgSolidColor').value, () => canvas.renderAll());
     saveToHistory();
     showToast('Background color applied');
 });
 
-document.getElementById('applyImageBtn')?.addEventListener('click', () => {
-    const file = document.getElementById('bgImageUpload')?.files[0];
-    if (!file) { showToast('Select an image first'); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        fabric.Image.fromURL(ev.target.result, (img) => {
-            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                scaleX: canvas.width / img.width,
-                scaleY: canvas.height / img.height
-            });
-            saveToHistory();
-            showToast('Background image applied');
-        });
-    };
-    reader.readAsDataURL(file);
-});
-
 function loadGradients() {
     const gradients = [
         'linear-gradient(135deg, #667eea, #764ba2)', 'linear-gradient(135deg, #f093fb, #f5576c)',
         'linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)',
-        'linear-gradient(135deg, #fa709a, #fee140)', 'linear-gradient(135deg, #1e293b, #0f172a)',
-        'linear-gradient(135deg, #ff6b6b, #c92a2a)', 'linear-gradient(135deg, #11998e, #38ef7d)'
+        'linear-gradient(135deg, #1e293b, #0f172a)', 'linear-gradient(135deg, #ff6b6b, #c92a2a)',
+        'linear-gradient(135deg, #11998e, #38ef7d)'
     ];
     const grid = document.getElementById('gradientsGrid');
     if (grid) {
@@ -579,58 +292,17 @@ function loadGradients() {
     }
 }
 
-function loadPatterns() {
-    const patterns = [
-        'repeating-linear-gradient(45deg, #ddd 0px, #ddd 2px, transparent 2px, transparent 8px)',
-        'radial-gradient(circle at 10px 10px, #ddd 2px, transparent 2px) 0 0 / 20px 20px'
-    ];
-    const grid = document.getElementById('patternsGrid');
-    if (grid) {
-        grid.innerHTML = patterns.map(p => `<div class="pattern-item" style="background: ${p};" data-pattern="${p}"></div>`).join('');
-        document.querySelectorAll('.pattern-item').forEach(item => {
-            item.addEventListener('click', () => {
-                canvas.setBackgroundColor(item.dataset.pattern, () => canvas.renderAll());
-                saveToHistory();
-                showToast('Pattern applied');
-            });
-        });
-    }
-}
-
-// ========================================
-// UPLOAD & EDIT POSTER
-// ========================================
 document.getElementById('uploadImageBtn')?.addEventListener('click', () => {
     const file = document.getElementById('imageUpload')?.files[0];
     if (!file) { showToast('Select an image first'); return; }
     const reader = new FileReader();
-    reader.onload = (ev) => {
-        fabric.Image.fromURL(ev.target.result, (img) => {
+    reader.onload = (e) => {
+        fabric.Image.fromURL(e.target.result, (img) => {
             img.scaleToWidth(200);
-            img.id = 'uploaded_' + Date.now();
-            canvas.add(img);
-            canvas.setActiveObject(img);
-            canvas.renderAll();
-            saveToHistory();
-            showToast('Image added to canvas');
-        });
-    };
-    reader.readAsDataURL(file);
-});
-
-document.getElementById('editPosterBtn')?.addEventListener('click', () => {
-    const file = document.getElementById('posterUpload')?.files[0];
-    if (!file) { showToast('Select a poster to edit'); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        fabric.Image.fromURL(ev.target.result, (img) => {
-            img.scaleToWidth(canvas.width);
-            img.set({ left: 0, top: 0 });
-            canvas.clear();
             canvas.add(img);
             canvas.renderAll();
             saveToHistory();
-            showToast('Poster loaded! You can now add elements on top.');
+            showToast('Image added');
         });
     };
     reader.readAsDataURL(file);
@@ -640,180 +312,95 @@ function loadSavedImages() {
     const container = document.getElementById('uploadedImagesList');
     if (!container) return;
     const saved = JSON.parse(localStorage.getItem('uploaded_images') || '[]');
-    container.innerHTML = saved.map(img => `<img src="${img}" class="uploaded-img" data-src="${img}">`).join('');
-    document.querySelectorAll('.uploaded-img').forEach(img => {
-        img.addEventListener('click', () => {
-            fabric.Image.fromURL(img.dataset.src, (fabricImg) => {
-                fabricImg.scaleToWidth(200);
-                canvas.add(fabricImg);
-                canvas.renderAll();
-                saveToHistory();
-                showToast('Image added to canvas');
-            });
-        });
-    });
+    container.innerHTML = saved.map(img => `<img src="${img}" class="uploaded-img">`).join('');
 }
 
-// ========================================
-// UNDO / REDO
-// ========================================
 function saveToHistory() {
     const state = JSON.stringify(canvas.toJSON());
-    if (historyIndex < historyStates.length - 1) {
-        historyStates = historyStates.slice(0, historyIndex + 1);
-    }
+    if (historyIndex < historyStates.length - 1) historyStates = historyStates.slice(0, historyIndex + 1);
     historyStates.push(state);
     historyIndex = historyStates.length - 1;
-    if (historyStates.length > 50) {
-        historyStates.shift();
-        historyIndex--;
-    }
+    if (historyStates.length > 50) { historyStates.shift(); historyIndex--; }
 }
 
 function undo() {
     if (historyIndex > 0) {
         historyIndex--;
-        const state = JSON.parse(historyStates[historyIndex]);
-        canvas.loadFromJSON(state, () => {
-            canvas.renderAll();
-            updateLayersList();
-            showToast('↩️ Undo');
-        });
+        canvas.loadFromJSON(JSON.parse(historyStates[historyIndex]), () => { canvas.renderAll(); updateLayersList(); showToast('↩️ Undo'); });
     }
 }
 
 function redo() {
     if (historyIndex < historyStates.length - 1) {
         historyIndex++;
-        const state = JSON.parse(historyStates[historyIndex]);
-        canvas.loadFromJSON(state, () => {
-            canvas.renderAll();
-            updateLayersList();
-            showToast('↪️ Redo');
-        });
+        canvas.loadFromJSON(JSON.parse(historyStates[historyIndex]), () => { canvas.renderAll(); updateLayersList(); showToast('↪️ Redo'); });
     }
 }
 
-// ========================================
-// LAYERS MANAGEMENT
-// ========================================
 function updateLayersList() {
-    const objects = canvas.getObjects();
-    const layersList = document.getElementById('layersList');
-    if (!layersList) return;
-    const activeObj = canvas.getActiveObject();
-    layersList.innerHTML = objects.map((obj, i) => `
-        <div class="layer-item ${obj === activeObj ? 'selected' : ''}" data-index="${i}">
-            <i class="fas ${obj.type === 'text' ? 'fa-font' : 'fa-shape'}"></i>
-            <span>${obj.type || 'element'} ${i + 1}</span>
-        </div>
-    `).join('');
+    const objs = canvas.getObjects();
+    const list = document.getElementById('layersList');
+    if (!list) return;
+    const active = canvas.getActiveObject();
+    list.innerHTML = objs.map((o, i) => `<div class="layer-item ${o === active ? 'selected' : ''}" data-index="${i}"><i class="fas ${o.type === 'text' ? 'fa-font' : 'fa-shape'}"></i><span>${o.type || 'element'} ${i+1}</span></div>`).join('');
     document.querySelectorAll('.layer-item').forEach(item => {
         item.addEventListener('click', () => {
-            const index = parseInt(item.dataset.index);
-            canvas.setActiveObject(objects[index]);
+            canvas.setActiveObject(objs[parseInt(item.dataset.index)]);
             canvas.renderAll();
             updateLayersList();
         });
     });
 }
 
-document.getElementById('bringForwardBtn')?.addEventListener('click', () => {
-    const obj = canvas.getActiveObject();
-    if (obj) canvas.bringForward(obj);
-    updateLayersList();
-});
+document.getElementById('bringForwardBtn')?.addEventListener('click', () => { const o = canvas.getActiveObject(); if (o) canvas.bringForward(o); updateLayersList(); });
+document.getElementById('sendBackwardBtn')?.addEventListener('click', () => { const o = canvas.getActiveObject(); if (o) canvas.sendBackwards(o); updateLayersList(); });
+document.getElementById('deleteSelectedBtn')?.addEventListener('click', () => { const o = canvas.getActiveObject(); if (o) { canvas.remove(o); updateLayersList(); saveToHistory(); showToast('Element deleted'); } });
+document.getElementById('undoBtn')?.addEventListener('click', undo);
+document.getElementById('redoBtn')?.addEventListener('click', redo);
 
-document.getElementById('sendBackwardBtn')?.addEventListener('click', () => {
-    const obj = canvas.getActiveObject();
-    if (obj) canvas.sendBackwards(obj);
-    updateLayersList();
-});
-
-document.getElementById('deleteSelectedBtn')?.addEventListener('click', () => {
-    const obj = canvas.getActiveObject();
-    if (obj) {
-        canvas.remove(obj);
-        selectedObjectId = null;
-        updateLayersList();
-        saveToHistory();
-        showToast('Element deleted');
-    }
-});
-
-// ========================================
-// AI QUOTE GENERATION (Grok API)
-// ========================================
 document.getElementById('generateQuoteBtn')?.addEventListener('click', async () => {
     const prompt = document.getElementById('aiPrompt')?.value;
-    if (!prompt) { showToast('Please enter a topic'); return; }
+    if (!prompt) { showToast('Enter a topic'); return; }
     showLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/generate-slos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/generate-slos`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ subject: prompt, topic: prompt })
         });
-        let quoteText = `"${prompt} is the key to success. Keep pushing forward!"`;
-        let quoteAuthor = 'AI Generator';
-        if (response.ok) {
-            const data = await response.json();
-            if (data.slos && data.slos[0]) {
-                quoteText = `"${data.slos[0]}"`;
-                quoteAuthor = 'AI Assistant';
-            }
+        let quote = `"${prompt} is the key to success. Keep pushing forward!" - AI Generator`;
+        if (res.ok) {
+            const data = await res.json();
+            if (data.slos && data.slos[0]) quote = `"${data.slos[0]}" - AI Assistant`;
         }
-        const text = new fabric.Text(`${quoteText}\n\n- ${quoteAuthor}`, {
-            left: canvas.width / 2, top: canvas.height / 2, fontSize: 24, fontFamily: 'Inter',
-            fill: '#1e293b', textAlign: 'center', originX: 'center', originY: 'center'
-        });
-        canvas.add(text);
-        canvas.renderAll();
-        saveToHistory();
-        showToast('✨ AI quote generated!');
-    } catch (error) {
-        showToast('AI quote generated (offline mode)');
-    } finally {
-        showLoading(false);
-    }
+        const t = new fabric.Text(quote, { left: canvas.width/2, top: canvas.height/2, fontSize: 24, fontFamily: 'Inter', textAlign: 'center', originX: 'center', originY: 'center' });
+        canvas.add(t); canvas.renderAll(); saveToHistory(); showToast('✨ AI quote generated!');
+    } catch(e) { showToast('AI quote generated (offline)'); }
+    finally { showLoading(false); }
 });
 
-// ========================================
-// EXPORT FUNCTIONS
-// ========================================
-async function exportAs(format) {
+async function exportAs(f) {
     showLoading(true);
     try {
-        const dataURL = canvas.toDataURL({ format: format === 'jpg' ? 'jpeg' : 'png', multiplier: 2 });
-        if (format === 'png' || format === 'jpg') {
-            const link = document.createElement('a');
-            link.download = `poster.${format}`;
-            link.href = dataURL;
-            link.click();
-        } else if (format === 'pdf') {
+        const d = canvas.toDataURL({ format: f === 'jpg' ? 'jpeg' : 'png', multiplier: 2 });
+        if (f === 'png' || f === 'jpg') { const a = document.createElement('a'); a.download = `poster.${f}`; a.href = d; a.click(); }
+        else if (f === 'pdf') {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? 'landscape' : 'portrait' });
-            pdf.addImage(dataURL, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+            pdf.addImage(d, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
             pdf.save('poster.pdf');
         }
-        showToast(`${format.toUpperCase()} exported!`);
-    } catch (error) {
-        showToast('Export failed');
-    } finally {
-        showLoading(false);
-    }
+        showToast(`${f.toUpperCase()} exported!`);
+    } catch(e) { showToast('Export failed'); }
+    finally { showLoading(false); }
 }
 
 document.getElementById('exportPNG')?.addEventListener('click', () => exportAs('png'));
 document.getElementById('exportJPG')?.addEventListener('click', () => exportAs('jpg'));
 document.getElementById('exportPDF')?.addEventListener('click', () => exportAs('pdf'));
 
-// ========================================
-// SAVE & LOAD (LocalStorage)
-// ========================================
 document.getElementById('saveToLocal')?.addEventListener('click', () => {
     const designs = JSON.parse(localStorage.getItem('saved_designs') || '[]');
-    designs.unshift({ id: Date.now(), data: JSON.stringify(canvas.toJSON()), timestamp: new Date().toISOString() });
+    designs.unshift({ id: Date.now(), data: JSON.stringify(canvas.toJSON()) });
     localStorage.setItem('saved_designs', JSON.stringify(designs.slice(0, 20)));
     showToast('Design saved to browser!');
 });
@@ -821,159 +408,82 @@ document.getElementById('saveToLocal')?.addEventListener('click', () => {
 document.getElementById('loadFromLocal')?.addEventListener('click', () => {
     const designs = JSON.parse(localStorage.getItem('saved_designs') || '[]');
     if (designs.length === 0) { showToast('No saved designs'); return; }
-    canvas.loadFromJSON(JSON.parse(designs[0].data), () => {
-        canvas.renderAll();
-        updateLayersList();
-        saveToHistory();
-        showToast('Design loaded!');
-    });
+    canvas.loadFromJSON(JSON.parse(designs[0].data), () => { canvas.renderAll(); updateLayersList(); saveToHistory(); showToast('Design loaded!'); });
 });
 
-// ========================================
-// TIDB API INTEGRATION (Usage + Reactions)
-// ========================================
 async function loadUsageFromAPI() {
     try {
-        const response = await fetch(`${API_BASE}/usage?tool_slug=${currentToolSlug}`);
-        if (response.ok) {
-            const data = await response.json();
-            const usageSpan = document.getElementById('usageCount');
-            if (usageSpan) usageSpan.innerText = data.count || 0;
-        }
-    } catch (error) {
-        const count = localStorage.getItem(`${currentToolSlug}_usage`) || '0';
-        const usageSpan = document.getElementById('usageCount');
-        if (usageSpan) usageSpan.innerText = count;
-    }
+        const res = await fetch(`${API_BASE}/usage?tool_slug=${currentToolSlug}`);
+        if (res.ok) { const d = await res.json(); document.getElementById('usageCount').innerText = d.count || 0; }
+    } catch(e) { const c = localStorage.getItem(`${currentToolSlug}_usage`) || '0'; document.getElementById('usageCount').innerText = c; }
 }
-
 async function trackUsage() {
-    try {
-        await fetch(`${API_BASE}/increment-usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: currentToolSlug, user_id: userId })
-        });
-    } catch (error) {
-        let count = parseInt(localStorage.getItem(`${currentToolSlug}_usage`) || '0');
-        count++;
-        localStorage.setItem(`${currentToolSlug}_usage`, count);
-        const usageSpan = document.getElementById('usageCount');
-        if (usageSpan) usageSpan.innerText = count;
-    }
+    try { await fetch(`${API_BASE}/increment-usage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool_slug: currentToolSlug, user_id: userId }) }); }
+    catch(e) { let c = parseInt(localStorage.getItem(`${currentToolSlug}_usage`) || '0'); c++; localStorage.setItem(`${currentToolSlug}_usage`, c); document.getElementById('usageCount').innerText = c; }
 }
-
 async function loadReactionsFromAPI() {
     try {
-        const response = await fetch(`${API_BASE}/reactions?tool_slug=${currentToolSlug}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.reactions) updateReactionUI(data.reactions);
-        }
-    } catch (error) {
-        const saved = localStorage.getItem(`${currentToolSlug}_reactions`);
-        if (saved) updateReactionUI(JSON.parse(saved));
-    }
+        const res = await fetch(`${API_BASE}/reactions?tool_slug=${currentToolSlug}`);
+        if (res.ok) { const d = await res.json(); if (d.reactions) updateReactionUI(d.reactions); }
+    } catch(e) { const s = localStorage.getItem(`${currentToolSlug}_reactions`); if (s) updateReactionUI(JSON.parse(s)); }
 }
-
-async function addReactionToAPI(reactionType) {
-    const emojiMap = { 'like': '👍', 'love': '❤️', 'wow': '😮', 'sad': '😢', 'laugh': '😂', 'celebrate': '🎉' };
+async function addReactionToAPI(type) {
+    const map = { like:'👍', love:'❤️', wow:'😮', sad:'😢', laugh:'😂', celebrate:'🎉' };
     try {
-        const response = await fetch(`${API_BASE}/add-reaction`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: currentToolSlug, emoji: emojiMap[reactionType], user_id: userId })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            if (data.counts) updateReactionUI(data.counts);
-            showToast('Reaction added!');
-        } else {
-            addReactionToLocal(reactionType);
-        }
-    } catch (error) {
-        addReactionToLocal(reactionType);
-    }
+        const res = await fetch(`${API_BASE}/add-reaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool_slug: currentToolSlug, emoji: map[type], user_id: userId }) });
+        if (res.ok) { const d = await res.json(); if (d.counts) updateReactionUI(d.counts); showToast('Reaction added!'); }
+        else addReactionToLocal(type);
+    } catch(e) { addReactionToLocal(type); }
 }
-
-function addReactionToLocal(reactionType) {
-    if (userReacted[reactionType]) { showToast('You already reacted with this emoji'); return; }
-    userReacted[reactionType] = true;
-    currentReactions[reactionType] = (currentReactions[reactionType] || 0) + 1;
+function addReactionToLocal(type) {
+    if (userReacted[type]) { showToast('Already reacted'); return; }
+    userReacted[type] = true;
+    currentReactions[type] = (currentReactions[type] || 0) + 1;
     localStorage.setItem(`${currentToolSlug}_reactions`, JSON.stringify(currentReactions));
     updateReactionUI(currentReactions);
     showToast('Reaction added (offline)');
 }
-
-function updateReactionUI(reactions) {
-    const likeSpan = document.getElementById('likeCount');
-    const loveSpan = document.getElementById('loveCount');
-    const wowSpan = document.getElementById('wowCount');
-    const sadSpan = document.getElementById('sadCount');
-    const laughSpan = document.getElementById('laughCount');
-    const celebrateSpan = document.getElementById('celebrateCount');
-    if (likeSpan) likeSpan.innerText = reactions.like || 0;
-    if (loveSpan) loveSpan.innerText = reactions.love || 0;
-    if (wowSpan) wowSpan.innerText = reactions.wow || 0;
-    if (sadSpan) sadSpan.innerText = reactions.sad || 0;
-    if (laughSpan) laughSpan.innerText = reactions.laugh || 0;
-    if (celebrateSpan) celebrateSpan.innerText = reactions.celebrate || 0;
+function updateReactionUI(r) {
+    document.getElementById('likeCount').innerText = r.like || 0;
+    document.getElementById('loveCount').innerText = r.love || 0;
+    document.getElementById('wowCount').innerText = r.wow || 0;
+    document.getElementById('sadCount').innerText = r.sad || 0;
+    document.getElementById('laughCount').innerText = r.laugh || 0;
+    document.getElementById('celebrateCount').innerText = r.celebrate || 0;
 }
-
 document.querySelectorAll('.reaction-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const reaction = btn.dataset.reaction;
-        addReactionToAPI(reaction);
-    });
+    btn.addEventListener('click', () => addReactionToAPI(btn.dataset.reaction));
 });
-
-// ========================================
-// SHARE FUNCTIONS
-// ========================================
 async function trackShare(platform) {
-    try {
-        await fetch(`${API_BASE}/add-share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: currentToolSlug, platform: platform, user_id: userId })
-        });
-    } catch (error) {}
-    const shareUrl = window.location.href;
-    if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-    else if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=Check%20out%20my%20poster!&url=${encodeURIComponent(shareUrl)}`, '_blank');
-    else if (platform === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent('Check out my poster! ' + shareUrl)}`, '_blank');
-    else if (platform === 'copy') { navigator.clipboard.writeText(shareUrl); showToast('Link copied!'); }
+    try { await fetch(`${API_BASE}/add-share`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool_slug: currentToolSlug, platform, user_id: userId }) }); } catch(e) {}
+    const url = window.location.href;
+    if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    else if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=Check%20out%20my%20poster!&url=${encodeURIComponent(url)}`, '_blank');
+    else if (platform === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent('Check out my poster! ' + url)}`, '_blank');
+    else if (platform === 'copy') { navigator.clipboard.writeText(url); showToast('Link copied!'); }
     showToast('Thanks for sharing!');
 }
-
 document.querySelectorAll('.share-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const platform = btn.dataset.platform;
-        trackShare(platform);
-    });
+    btn.addEventListener('click', () => trackShare(btn.dataset.platform));
 });
 
-// ========================================
-// UI HELPERS
-// ========================================
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.innerText = message;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
 }
-
 function showLoading(show) {
-    const modal = document.getElementById('loadingModal');
-    if (!modal) return;
-    if (show) modal.classList.add('active');
-    else modal.classList.remove('active');
+    const m = document.getElementById('loadingModal');
+    if (!m) return;
+    if (show) m.classList.add('active');
+    else m.classList.remove('active');
 }
 
-// ========================================
-// DARK MODE
-// ========================================
+document.getElementById('toggleSidebarBtn')?.addEventListener('click', () => document.getElementById('sidebar')?.classList.toggle('collapsed'));
+document.getElementById('closeSidebarBtn')?.addEventListener('click', () => document.getElementById('sidebar')?.classList.add('collapsed'));
+document.getElementById('toggleLayersBtn')?.addEventListener('click', () => document.getElementById('layersPanel')?.classList.toggle('collapsed'));
 document.getElementById('darkModeBtn')?.addEventListener('click', () => {
     darkMode = !darkMode;
     document.body.classList.toggle('dark-mode', darkMode);
@@ -982,48 +492,22 @@ document.getElementById('darkModeBtn')?.addEventListener('click', () => {
     if (btn) btn.innerHTML = darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     showToast(darkMode ? 'Dark mode on' : 'Light mode on');
 });
-
-// ========================================
-// SIDEBAR & PANEL TOGGLES
-// ========================================
-document.getElementById('toggleSidebarBtn')?.addEventListener('click', () => {
-    document.getElementById('sidebar')?.classList.toggle('collapsed');
-});
-
-document.getElementById('closeSidebarBtn')?.addEventListener('click', () => {
-    document.getElementById('sidebar')?.classList.add('collapsed');
-});
-
-document.getElementById('toggleLayersBtn')?.addEventListener('click', () => {
-    document.getElementById('layersPanel')?.classList.toggle('collapsed');
-});
-
-document.getElementById('undoBtn')?.addEventListener('click', undo);
-document.getElementById('redoBtn')?.addEventListener('click', redo);
-
-// Navigation Tabs
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const navName = btn.dataset.nav;
+        const nav = btn.dataset.nav;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.nav-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
-        const panel = document.getElementById(`${navName}-panel`);
-        if (panel) panel.classList.add('active');
+        document.getElementById(`${nav}-panel`)?.classList.add('active');
     });
 });
-
-// Template search
 document.getElementById('templateSearch')?.addEventListener('input', (e) => {
-    const search = e.target.value.toLowerCase();
-    document.querySelectorAll('.template-card').forEach(card => {
-        const name = card.querySelector('.template-name')?.innerText.toLowerCase() || '';
-        card.style.display = name.includes(search) ? 'block' : 'none';
+    const s = e.target.value.toLowerCase();
+    document.querySelectorAll('.template-card').forEach(c => {
+        const n = c.querySelector('.template-name')?.innerText.toLowerCase() || '';
+        c.style.display = n.includes(s) ? 'block' : 'none';
     });
 });
 
-function setupEventListeners() {
-    console.log('✅ All event listeners configured');
-}
-
+function setupEventListeners() { console.log('✅ Event listeners ready'); }
 console.log('🎉 PosterForge Pro Fully Loaded!');
