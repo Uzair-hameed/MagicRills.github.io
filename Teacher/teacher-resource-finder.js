@@ -1,12 +1,13 @@
 // ========================================
 // POSTERFORGE PRO - COMPLETE JAVASCRIPT
 // FULLY INTEGRATED: TiDB + Vercel + Grok API + Reactions + Usage Counter
-// 80 Templates | 100 Stickers | CORS Handled
+// 111 TEMPLATES (template1.json to template111.json)
+// 100 STICKERS (sticker1.png.png to sticker100.png.png)
 // ========================================
 
 let canvas = null;
 let currentToolSlug = 'teacher-resource-finder';
-let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+let userId = localStorage.getItem('userId') || 'user_' + Date.now() '_' + Math.random().toString(36).substr(2, 9);
 let darkMode = localStorage.getItem('darkMode') === 'true';
 let selectedObjectId = null;
 let currentReactions = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 };
@@ -22,12 +23,14 @@ const TEMPLATES_BASE_URL = GITHUB_BASE + 'templates/';
 const STICKERS_BASE_URL = GITHUB_BASE + 'stickers/';
 const API_BASE = '/api';
 
-// Template numbers 1 to 80 (as confirmed by you)
-const TEMPLATE_NUMBERS = [1, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-    51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-    61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
-    71, 72, 73, 74, 75, 76, 77, 78, 79, 80];
+// ========================================
+// TEMPLATE NUMBERS (1 to 111 - ALL EXISTING)
+// ========================================
+const TEMPLATE_NUMBERS = [];
+for (let i = 1; i <= 111; i++) {
+    TEMPLATE_NUMBERS.push(i);
+}
+
 const TOTAL_STICKERS = 100;
 
 // ========================================
@@ -35,7 +38,7 @@ const TOTAL_STICKERS = 100;
 // ========================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('PosterForge Pro Initializing...');
-    console.log('📁 Loading from:', TEMPLATES_BASE_URL);
+    console.log('📁 Loading 111 templates from:', TEMPLATES_BASE_URL);
     
     initializeCanvas();
     
@@ -63,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     saveToHistory();
     
-    showToast('✨ PosterForge Pro Ready!');
+    showToast('✨ PosterForge Pro Ready! 111 Templates Loaded!');
 });
 
 // ========================================
@@ -78,7 +81,7 @@ function initializeCanvas() {
         selection: true
     });
     
-    const welcomeText = new fabric.Text('Welcome to PosterForge Pro!\n\n✨ Click on templates or stickers to get started!\nDrag to move | Click to select | Use corners to resize/rotate', {
+    const welcomeText = new fabric.Text('Welcome to PosterForge Pro!\n\n✨ ' + TEMPLATE_NUMBERS.length + ' Templates & ' + TOTAL_STICKERS + ' Stickers Ready!\nClick any template or sticker to start!\nDrag to move | Click to select | Use corners to resize/rotate', {
         left: 400, top: 450, fontSize: 18, fontFamily: 'Inter', fill: '#1e293b',
         textAlign: 'center', originX: 'center', originY: 'center'
     });
@@ -113,42 +116,29 @@ function initializeCanvas() {
 }
 
 // ========================================
-// LOAD ALL TEMPLATES (WITH CORS HANDLING)
+// LOAD ALL 111 TEMPLATES (NO SCANNING - DIRECT LOAD)
 // ========================================
 async function loadAllTemplates() {
     const grid = document.getElementById('templatesGrid');
     if (!grid) return;
     
-    grid.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Loading templates from GitHub...</div>';
+    grid.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Loading ' + TEMPLATE_NUMBERS.length + ' templates from GitHub...</div>';
     let loadedCount = 0;
-    
-    // First, test if we can access GitHub
-    try {
-        const testResponse = await fetch('https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main/templates/template1.json', { method: 'HEAD' });
-        if (!testResponse.ok) {
-            grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ Cannot access GitHub. Check your internet or CORS settings.</div>';
-            return;
-        }
-    } catch (error) {
-        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ Network error. Cannot reach GitHub.</div>';
-        return;
-    }
+    let failedCount = 0;
     
     // Load templates one by one
     for (const num of TEMPLATE_NUMBERS) {
         const fileUrl = `${TEMPLATES_BASE_URL}template${num}.json`;
         
         try {
-            console.log(`Loading template ${num} from:`, fileUrl);
             const response = await fetch(fileUrl);
             
             if (!response.ok) {
-                console.warn(`Template ${num} not found (${response.status})`);
+                failedCount++;
                 continue;
             }
             
             const templateData = await response.json();
-            console.log(`✅ Template ${num} loaded successfully`);
             
             const card = document.createElement('div');
             card.className = 'template-card';
@@ -170,7 +160,6 @@ async function loadAllTemplates() {
                         canvas.renderAll();
                         saveToHistory();
                         showToast(`✨ Template ${num} loaded!`);
-                        console.log(`✅ Template ${num} rendered on canvas`);
                     });
                 } catch (err) {
                     console.error(`Error loading template ${num}:`, err);
@@ -181,15 +170,21 @@ async function loadAllTemplates() {
             grid.appendChild(card);
             loadedCount++;
             
+            // Small delay to avoid overwhelming the browser
+            if (loadedCount % 10 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            
         } catch (error) {
-            console.error(`Error fetching template ${num}:`, error);
+            failedCount++;
+            console.warn(`Template ${num} error:`, error);
         }
     }
     
     if (loadedCount === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Please check:<br>' + TEMPLATES_BASE_URL + '</div>';
+        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Check GitHub folder.</div>';
     } else {
-        console.log(`✅ ${loadedCount} templates loaded successfully`);
+        console.log(`✅ Templates: ${loadedCount} loaded, ${failedCount} failed`);
         showToast(`✅ ${loadedCount} templates ready!`);
     }
 }
@@ -201,7 +196,7 @@ async function loadAllStickers() {
     const stickersGrid = document.getElementById('stickersGrid');
     if (!stickersGrid) return;
     
-    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> 📂 My Stickers</div>';
+    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> 📂 My Stickers (100)</div>';
     
     const stickersContainer = document.createElement('div');
     stickersContainer.style.display = 'grid';
@@ -238,7 +233,7 @@ async function loadAllStickers() {
             processedCount++;
             if (processedCount === TOTAL_STICKERS) {
                 if (loadedCount === 0) {
-                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found. Check folder: ' + STICKERS_BASE_URL + '</div>';
+                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found.</div>';
                 }
                 stickersGrid.appendChild(stickersContainer);
             }
@@ -939,3 +934,4 @@ function setupEventListeners() {
 }
 
 console.log('🎉 PosterForge Pro Fully Loaded!');
+console.log('📁 111 Templates | 100 Stickers');
