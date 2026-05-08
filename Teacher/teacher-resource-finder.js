@@ -1,44 +1,77 @@
 // ========================================
-// POSTERFORGE PRO - COMPLETE JAVASCRIPT
-// FULLY INTEGRATED: TiDB + Vercel + Grok API + Reactions + Usage Counter
-// 111 TEMPLATES (template1.json to template111.json)
-// 100 STICKERS (sticker1.png.png to sticker100.png.png)
+// TEACHER RESOURCE FINDER - POSTER DESIGNER PRO
+// Fully Integrated: TiDB + Vercel + Grok API
+// Templates: Dynamic (1-120) | Stickers: 1-104
 // ========================================
 
 let canvas = null;
 let currentToolSlug = 'teacher-resource-finder';
-let userId = localStorage.getItem('userId') || 'user_' + Date.now() '_' + Math.random().toString(36).substr(2, 9);
+let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 let darkMode = localStorage.getItem('darkMode') === 'true';
 let selectedObjectId = null;
-let currentReactions = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 };
-let userReacted = { like: false, love: false, wow: false, sad: false, laugh: false, celebrate: false };
 let historyStates = [];
 let historyIndex = -1;
+
+// Reaction counts
+let currentReactions = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+let userReacted = { like: false, love: false, wow: false, sad: false, angry: false, laugh: false, celebrate: false };
 
 // ========================================
 // GITHUB CONFIGURATION
 // ========================================
 const GITHUB_BASE = 'https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main/';
-const TEMPLATES_BASE_URL = '/templates/';
+const TEMPLATES_BASE_URL = GITHUB_BASE + 'templates/';
 const STICKERS_BASE_URL = GITHUB_BASE + 'stickers/';
-const API_BASE = '/api';
+
+// CLOUDFLARE WORKER API (from test-db.js)
+const API_BASE = 'https://teacher-resource-finder.uzairhameed01.workers.dev/api';
 
 // ========================================
-// TEMPLATE NUMBERS (1 to 111 - ALL EXISTING)
+// TEMPLATE NUMBERS (1 to 120 - Dynamic Discovery)
+// Templates aage peeche hain, is liye sab try karenge
 // ========================================
-const TEMPLATE_NUMBERS = [];
-for (let i = 1; i <= 111; i++) {
-    TEMPLATE_NUMBERS.push(i);
-}
+const MAX_TEMPLATE_NUMBER = 120;
+let loadedTemplatesCount = 0;
+let totalTemplatesFound = 0;
 
-const TOTAL_STICKERS = 100;
+// ========================================
+// STICKER NUMBERS (1 to 104 - Confirmed)
+// ========================================
+const TOTAL_STICKERS = 104;
+
+// ========================================
+// LOCAL QUOTES DATABASE (Fallback for AI)
+// ========================================
+const LOCAL_QUOTES = {
+    education: [
+        { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+        { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King" },
+        { text: "Education is not preparation for life; education is life itself.", author: "John Dewey" }
+    ],
+    love: [
+        { text: "Where there is love there is life.", author: "Mahatma Gandhi" },
+        { text: "Love is composed of a single soul inhabiting two bodies.", author: "Aristotle" }
+    ],
+    success: [
+        { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" }
+    ],
+    islamic: [
+        { text: "Indeed, Allah is with those who are patient.", author: "Quran" },
+        { text: "The best among you are those who have the best manners and character.", author: "Prophet Muhammad (PBUH)" }
+    ],
+    default: [
+        { text: "Creativity is intelligence having fun.", author: "Albert Einstein" },
+        { text: "Design is not just what it looks like and feels like. Design is how it works.", author: "Steve Jobs" }
+    ]
+};
 
 // ========================================
 // INITIALIZATION
 // ========================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('PosterForge Pro Initializing...');
-    console.log('📁 Loading 111 templates from:', TEMPLATES_BASE_URL);
+    console.log('========================================');
+    console.log('Teacher Resource Finder - Initializing...');
+    console.log('========================================');
     
     initializeCanvas();
     
@@ -50,23 +83,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     localStorage.setItem('userId', userId);
     
-    // Load all data
+    // Load all components
     await loadAllTemplates();
     await loadAllStickers();
     loadElements();
     loadGradients();
-    loadPatterns();
-    loadSavedImages();
     
-    // API Integrations
+    // Load stats from API
     await loadUsageFromAPI();
     await trackUsage();
     await loadReactionsFromAPI();
+    await loadStatsFromAPI();
     
     setupEventListeners();
     saveToHistory();
     
-    showToast('✨ PosterForge Pro Ready! 111 Templates Loaded!');
+    showToast('✨ Teacher Resource Finder Ready!');
 });
 
 // ========================================
@@ -81,13 +113,21 @@ function initializeCanvas() {
         selection: true
     });
     
-    const welcomeText = new fabric.Text('Welcome to PosterForge Pro!\n\n✨ ' + TEMPLATE_NUMBERS.length + ' Templates & ' + TOTAL_STICKERS + ' Stickers Ready!\nClick any template or sticker to start!\nDrag to move | Click to select | Use corners to resize/rotate', {
-        left: 400, top: 450, fontSize: 18, fontFamily: 'Inter', fill: '#1e293b',
-        textAlign: 'center', originX: 'center', originY: 'center'
+    // Welcome message
+    const welcomeText = new fabric.Text('Teacher Resource Finder\n\nPoster Designer Pro\n\nClick on templates or stickers to start!\nDrag to move | Click to select | Use corners to resize/rotate', {
+        left: 400,
+        top: 450,
+        fontSize: 18,
+        fontFamily: 'Inter',
+        fill: '#1e293b',
+        textAlign: 'center',
+        originX: 'center',
+        originY: 'center'
     });
     canvas.add(welcomeText);
     canvas.renderAll();
     
+    // Canvas events
     canvas.on('selection:created', (e) => {
         if (e.selected && e.selected[0]) {
             selectedObjectId = e.selected[0].id;
@@ -116,185 +156,292 @@ function initializeCanvas() {
 }
 
 // ========================================
-// LOAD ALL 111 TEMPLATES (NO SCANNING - DIRECT LOAD)
+// LOAD ALL TEMPLATES (1 to 120 - Dynamic)
+// Jo bhi mil jaye, load kar do
 // ========================================
 async function loadAllTemplates() {
     const grid = document.getElementById('templatesGrid');
     if (!grid) return;
     
-    grid.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Loading ' + TEMPLATE_NUMBERS.length + ' templates from GitHub...</div>';
-    let loadedCount = 0;
-    let failedCount = 0;
+    grid.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading templates (0 found)...</div>';
     
-    // Load templates one by one
-    for (const num of TEMPLATE_NUMBERS) {
-        const fileUrl = `${TEMPLATES_BASE_URL}template${num}.json`;
-        
+    let foundTemplates = [];
+    
+    for (let num = 1; num <= MAX_TEMPLATE_NUMBER; num++) {
         try {
-            const response = await fetch(fileUrl);
+            const url = `${TEMPLATES_BASE_URL}template${num}.json`;
             
-            if (!response.ok) {
-                failedCount++;
-                continue;
+            const response = await fetch(url);
+            if (response.ok) {
+                const templateData = await response.json();
+                foundTemplates.push({ num, data: templateData });
+                console.log(`✅ Template ${num} found`);
+            } else {
+                // Silent fail - template not found
             }
-            
-            const templateData = await response.json();
-            
-            const card = document.createElement('div');
-            card.className = 'template-card';
-            card.setAttribute('data-template-num', num);
-            card.innerHTML = `
-                <div class="template-preview" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-palette" style="color: white; font-size: 32px;"></i>
-                </div>
-                <div class="template-name">Template ${num}</div>
-            `;
-            
-            // Store template data in card for faster access
-            card.templateData = templateData;
-            
-            card.addEventListener('click', (e) => {
-                try {
-                    console.log(`Loading template ${num} to canvas...`);
-                    canvas.loadFromJSON(card.templateData, () => {
-                        canvas.renderAll();
-                        saveToHistory();
-                        showToast(`✨ Template ${num} loaded!`);
-                    });
-                } catch (err) {
-                    console.error(`Error loading template ${num}:`, err);
-                    showToast(`Error loading template ${num}`);
-                }
-            });
-            
-            grid.appendChild(card);
-            loadedCount++;
-            
-            // Small delay to avoid overwhelming the browser
-            if (loadedCount % 10 === 0) {
-                await new Promise(resolve => setTimeout(resolve, 10));
-            }
-            
         } catch (error) {
-            failedCount++;
-            console.warn(`Template ${num} error:`, error);
+            // Silent fail
         }
-    }
-    
-    if (loadedCount === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Check GitHub folder.</div>';
-    } else {
-        console.log(`✅ Templates: ${loadedCount} loaded, ${failedCount} failed`);
-        showToast(`✅ ${loadedCount} templates ready!`);
-    }
-}
-
-// ========================================
-// LOAD ALL STICKERS (100 stickers)
-// ========================================
-async function loadAllStickers() {
-    const stickersGrid = document.getElementById('stickersGrid');
-    if (!stickersGrid) return;
-    
-    stickersGrid.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> 📂 My Stickers (100)</div>';
-    
-    const stickersContainer = document.createElement('div');
-    stickersContainer.style.display = 'grid';
-    stickersContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    stickersContainer.style.gap = '12px';
-    stickersContainer.style.marginTop = '8px';
-    
-    let loadedCount = 0;
-    let processedCount = 0;
-    
-    for (let i = 1; i <= TOTAL_STICKERS; i++) {
-        const fileName = `sticker${i}.png.png`;
-        const imgUrl = `${STICKERS_BASE_URL}${fileName}`;
         
-        const img = new Image();
-        img.onload = () => {
-            const stickerDiv = document.createElement('div');
-            stickerDiv.className = 'sticker-item';
-            stickerDiv.innerHTML = `
-                <img src="${imgUrl}" alt="Sticker ${i}" style="width: 100%; height: auto; border-radius: 8px;">
-                <span>Sticker ${i}</span>
-            `;
-            stickerDiv.addEventListener('click', () => addStickerToCanvas(imgUrl, i));
-            stickersContainer.appendChild(stickerDiv);
-            loadedCount++;
-            processedCount++;
-            
-            if (processedCount === TOTAL_STICKERS) {
-                stickersGrid.appendChild(stickersContainer);
-                console.log(`✅ Stickers: ${loadedCount} loaded`);
-            }
-        };
-        img.onerror = () => {
-            processedCount++;
-            if (processedCount === TOTAL_STICKERS) {
-                if (loadedCount === 0) {
-                    stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">❌ No stickers found.</div>';
-                }
-                stickersGrid.appendChild(stickersContainer);
-            }
-        };
-        img.src = imgUrl;
+        // Update progress every 10 templates
+        if (num % 10 === 0) {
+            grid.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading templates (${foundTemplates.length} found so far)...</div>`;
+        }
     }
     
-    setTimeout(() => {
-        if (loadedCount === 0 && stickersContainer.children.length === 0) {
-            stickersContainer.innerHTML = '<div style="text-align:center; padding:20px; color: gray; grid-column: span 4;">⏳ Loading stickers...</div>';
-            stickersGrid.appendChild(stickersContainer);
+    totalTemplatesFound = foundTemplates.length;
+    loadedTemplatesCount = totalTemplatesFound;
+    
+    // Display templates
+    grid.innerHTML = '';
+    
+    if (totalTemplatesFound === 0) {
+        grid.innerHTML = '<div style="text-align:center; padding:20px; color: red;">❌ No templates found! Please check GitHub connection.</div>';
+        return;
+    }
+    
+    for (const template of foundTemplates) {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+        
+        // Try to get preview from template data
+        let previewIcon = '🎨';
+        let previewColor = 'linear-gradient(135deg, #667eea, #764ba2)';
+        
+        if (template.data && template.data.objects && template.data.objects[0]) {
+            const firstObj = template.data.objects[0];
+            if (firstObj.fill) {
+                previewColor = typeof firstObj.fill === 'string' ? firstObj.fill : previewColor;
+            }
         }
-    }, 5000);
+        
+        card.innerHTML = `
+            <div class="template-preview" style="background: ${previewColor};">
+                <span style="font-size: 40px;">${previewIcon}</span>
+            </div>
+            <div class="template-name">Template ${template.num}</div>
+        `;
+        
+        card.addEventListener('click', () => loadTemplate(template.data, template.num));
+        grid.appendChild(card);
+    }
+    
+    console.log(`✅ Total templates loaded: ${totalTemplatesFound}`);
+    showToast(`✅ ${totalTemplatesFound} templates loaded!`);
 }
 
-function addStickerToCanvas(imageUrl, stickerNumber) {
-    fabric.Image.fromURL(imageUrl, (img) => {
-        img.scaleToWidth(120);
-        img.set({
-            left: canvas.width / 2 - 60,
-            top: canvas.height / 2 - 60,
-            id: 'sticker_' + Date.now()
+function loadTemplate(templateData, templateNum) {
+    showLoading(true);
+    try {
+        // Check if it's valid fabric.js JSON
+        if (templateData.objects || templateData.version) {
+            canvas.loadFromJSON(templateData, () => {
+                canvas.renderAll();
+                saveToHistory();
+                showToast(`✨ Template ${templateNum} loaded successfully!`);
+                showLoading(false);
+            }, (err) => {
+                console.error('Error loading template:', err);
+                createFallbackTemplate(templateNum);
+                showLoading(false);
+            });
+        } else {
+            // Create basic template from data
+            createBasicTemplate(templateNum, templateData);
+            showLoading(false);
+        }
+    } catch (error) {
+        console.error(`Error with template ${templateNum}:`, error);
+        createFallbackTemplate(templateNum);
+        showLoading(false);
+    }
+}
+
+function createFallbackTemplate(num) {
+    canvas.clear();
+    
+    const gradient = new fabric.Gradient({
+        type: 'linear',
+        coords: { x1: 0, y1: 0, x2: canvas.width, y2: canvas.height },
+        colorStops: [
+            { offset: 0, color: '#2563eb' },
+            { offset: 1, color: '#1e293b' }
+        ]
+    });
+    
+    canvas.setBackgroundColor(gradient, () => {
+        const title = new fabric.Text(`Template ${num}`, {
+            left: canvas.width / 2,
+            top: canvas.height / 2 - 50,
+            fontSize: 36,
+            fontFamily: 'Inter',
+            fill: '#ffffff',
+            textAlign: 'center',
+            originX: 'center',
+            fontWeight: 'bold'
         });
-        canvas.add(img);
-        canvas.setActiveObject(img);
+        
+        const subtitle = new fabric.Text('Teacher Resource Finder - Click to edit text', {
+            left: canvas.width / 2,
+            top: canvas.height / 2 + 30,
+            fontSize: 18,
+            fontFamily: 'Inter',
+            fill: '#cccccc',
+            textAlign: 'center',
+            originX: 'center'
+        });
+        
+        canvas.add(title, subtitle);
         canvas.renderAll();
         saveToHistory();
-        showToast(`✅ Sticker ${stickerNumber} added!`);
-    }, () => {
-        showToast('Failed to load sticker');
+        showToast(`✨ Template ${num} loaded!`);
+    });
+}
+
+function createBasicTemplate(num, data) {
+    canvas.clear();
+    canvas.setBackgroundColor('#f0f0f0', () => {
+        const title = new fabric.Text(data.title || `Template ${num}`, {
+            left: canvas.width / 2,
+            top: 100,
+            fontSize: 32,
+            fontFamily: 'Inter',
+            fill: '#1e293b',
+            textAlign: 'center',
+            originX: 'center'
+        });
+        canvas.add(title);
+        canvas.renderAll();
+        saveToHistory();
+        showToast(`✨ Template ${num} loaded!`);
     });
 }
 
 // ========================================
-// LOAD ELEMENTS (Shapes, Icons, Stickers, Frames)
+// LOAD ALL STICKERS (1 to 104)
+// ========================================
+async function loadAllStickers() {
+    const stickersContainer = document.getElementById('stickersGrid');
+    if (!stickersContainer) return;
+    
+    stickersContainer.innerHTML = '<div class="stickers-title"><i class="fas fa-smile"></i> Stickers Collection (1-104)</div>';
+    const container = document.createElement('div');
+    container.className = 'stickers-grid';
+    
+    let loadedCount = 0;
+    
+    for (let i = 1; i <= TOTAL_STICKERS; i++) {
+        const url = `${STICKERS_BASE_URL}sticker${i}.png.png`;
+        
+        const div = document.createElement('div');
+        div.className = 'sticker-item';
+        div.innerHTML = `<div class="sticker-loading"><i class="fas fa-spinner fa-spin"></i></div><span>Sticker ${i}</span>`;
+        
+        const img = new Image();
+        
+        img.onload = () => {
+            div.innerHTML = `<img src="${url}" alt="Sticker ${i}"><span>Sticker ${i}</span>`;
+            div.addEventListener('click', () => addStickerToCanvas(url, i));
+            loadedCount++;
+        };
+        
+        img.onerror = () => {
+            // Try without double extension
+            const fallbackUrl = `${STICKERS_BASE_URL}sticker${i}.png`;
+            const fallbackImg = new Image();
+            fallbackImg.onload = () => {
+                div.innerHTML = `<img src="${fallbackUrl}" alt="Sticker ${i}"><span>Sticker ${i}</span>`;
+                div.addEventListener('click', () => addStickerToCanvas(fallbackUrl, i));
+                loadedCount++;
+            };
+            fallbackImg.onerror = () => {
+                div.innerHTML = `<div style="font-size: 32px;">🎨</div><span>Sticker ${i}</span>`;
+                div.addEventListener('click', () => addEmojiFallback(i));
+                loadedCount++;
+            };
+            fallbackImg.src = fallbackUrl;
+        };
+        
+        img.src = url;
+        container.appendChild(div);
+    }
+    
+    stickersContainer.appendChild(container);
+    
+    setTimeout(() => {
+        console.log(`✅ Stickers loaded: ${loadedCount}`);
+        showToast(`✅ ${loadedCount} stickers loaded!`);
+    }, 3000);
+}
+
+function addStickerToCanvas(url, num) {
+    showLoading(true);
+    fabric.Image.fromURL(url, (img) => {
+        if (img) {
+            img.scaleToWidth(120);
+            img.set({
+                left: canvas.width / 2 - 60,
+                top: canvas.height / 2 - 60,
+                id: 'sticker_' + Date.now()
+            });
+            canvas.add(img);
+            canvas.setActiveObject(img);
+            canvas.renderAll();
+            saveToHistory();
+            showToast(`✅ Sticker ${num} added!`);
+        } else {
+            addEmojiFallback(num);
+        }
+        showLoading(false);
+    }, () => {
+        addEmojiFallback(num);
+        showLoading(false);
+    });
+}
+
+function addEmojiFallback(num) {
+    const emojis = ['⭐', '❤️', '🔥', '👑', '🌟', '💎', '🎈', '🎉', '🎁', '🏆', '🌈', '⚡', '☀️', '🌙', '🌸', '🍎', '📚', '✏️', '🔬', '🎨'];
+    const emoji = emojis[num % emojis.length];
+    const text = new fabric.Text(emoji, {
+        left: canvas.width / 2 - 30,
+        top: canvas.height / 2 - 30,
+        fontSize: 64,
+        fontFamily: 'Segoe UI Emoji',
+        id: 'sticker_fallback_' + Date.now()
+    });
+    canvas.add(text);
+    canvas.setActiveObject(text);
+    canvas.renderAll();
+    saveToHistory();
+    showToast(`✅ Sticker ${num} added!`);
+}
+
+// ========================================
+// ELEMENTS (Shapes, Icons, Frames)
 // ========================================
 function loadElements() {
     const shapes = [
-        { name: 'Square', icon: 'fa-square', type: 'rect', w: 80, h: 80 },
-        { name: 'Circle', icon: 'fa-circle', type: 'circle', r: 40 },
-        { name: 'Rectangle', icon: 'fa-rectangle', type: 'rect', w: 120, h: 60 },
-        { name: 'Triangle', icon: 'fa-triangle', type: 'triangle', w: 80, h: 80 },
-        { name: 'Star', icon: 'fa-star', type: 'star' },
-        { name: 'Heart', icon: 'fa-heart', type: 'heart' },
-        { name: 'Diamond', icon: 'fa-gem', type: 'diamond', w: 60, h: 60 },
-        { name: 'Circle Outline', icon: 'fa-circle', type: 'circle', r: 40, fill: 'transparent', stroke: '#2563eb', strokeWidth: 3 }
+        { name: 'Square', icon: 'fa-square', type: 'rect', w: 80, h: 80, color: '#2563eb' },
+        { name: 'Circle', icon: 'fa-circle', type: 'circle', r: 40, color: '#2563eb' },
+        { name: 'Rectangle', icon: 'fa-rectangle-ad', type: 'rect', w: 120, h: 60, color: '#2563eb' },
+        { name: 'Triangle', icon: 'fa-triangle-exclamation', type: 'triangle', w: 80, h: 80, color: '#f59e0b' },
+        { name: 'Star', icon: 'fa-star', type: 'star', color: '#f59e0b' },
+        { name: 'Heart', icon: 'fa-heart', type: 'heart', color: '#ef4444' },
+        { name: 'Diamond', icon: 'fa-gem', type: 'diamond', color: '#10b981' }
     ];
     
-    const icons = ['fa-star', 'fa-heart', 'fa-bell', 'fa-calendar', 'fa-clock', 'fa-envelope', 'fa-phone', 'fa-user', 'fa-book'];
-    
-    const emojiStickers = ['⭐', '❤️', '🔥', '👑', '🌟', '💎', '🎈', '🎉', '🎁', '🏆', '🌈', '⚡', '☀️', '🌙', '🌸', '🍎', '📚'];
+    const icons = [
+        'fa-star', 'fa-heart', 'fa-bell', 'fa-calendar', 'fa-clock',
+        'fa-envelope', 'fa-phone', 'fa-user', 'fa-book', 'fa-graduation-cap'
+    ];
     
     const frames = [
-        { name: 'Basic', style: 'solid', w: 2 },
-        { name: 'Dashed', style: 'dashed', w: 2 },
-        { name: 'Dotted', style: 'dotted', w: 2 }
+        { name: 'Basic', style: 'solid', width: 3, color: '#2563eb' },
+        { name: 'Dashed', style: 'dashed', width: 2, color: '#ef4444' },
+        { name: 'Dotted', style: 'dotted', width: 2, color: '#10b981' }
     ];
     
-    const elementsGrid = document.getElementById('elementsGrid');
-    if (!elementsGrid) return;
-    
+    const grid = document.getElementById('elementsGrid');
     let currentType = 'shapes';
     
     function renderElements() {
@@ -303,24 +450,22 @@ function loadElements() {
             html = shapes.map(s => `<div class="element-card" data-shape='${JSON.stringify(s)}'><i class="fas ${s.icon}"></i><span>${s.name}</span></div>`).join('');
         } else if (currentType === 'icons') {
             html = icons.map(i => `<div class="element-card" data-icon="${i}"><i class="fas ${i}"></i><span>Icon</span></div>`).join('');
-        } else if (currentType === 'stickers') {
-            html = emojiStickers.map(s => `<div class="element-card" data-sticker="${s}"><span style="font-size: 32px;">${s}</span><span>Sticker</span></div>`).join('');
         } else if (currentType === 'frames') {
-            html = frames.map(f => `<div class="element-card" data-frame='${JSON.stringify(f)}'><i class="fas fa-border-all"></i><span>${f.name}</span></div>`).join('');
+            html = frames.map(f => `<div class="element-card" data-frame='${JSON.stringify(f)}'><i class="fas fa-border-all"></i><span>${f.name} Frame</span></div>`).join('');
         }
-        elementsGrid.innerHTML = html;
+        grid.innerHTML = html;
         
         document.querySelectorAll('[data-shape]').forEach(el => {
-            el.addEventListener('click', () => addShape(JSON.parse(el.dataset.shape)));
+            const shape = JSON.parse(el.dataset.shape);
+            el.addEventListener('click', () => addShape(shape));
         });
         document.querySelectorAll('[data-icon]').forEach(el => {
-            el.addEventListener('click', () => addIcon(el.dataset.icon));
-        });
-        document.querySelectorAll('[data-sticker]').forEach(el => {
-            el.addEventListener('click', () => addEmojiSticker(el.dataset.sticker));
+            const icon = el.dataset.icon;
+            el.addEventListener('click', () => addIcon(icon));
         });
         document.querySelectorAll('[data-frame]').forEach(el => {
-            el.addEventListener('click', () => addFrame(JSON.parse(el.dataset.frame)));
+            const frame = JSON.parse(el.dataset.frame);
+            el.addEventListener('click', () => addFrame(frame));
         });
     }
     
@@ -336,54 +481,64 @@ function loadElements() {
     });
 }
 
-function addShape(shapeData) {
+function addShape(shape) {
     let obj;
     const left = Math.random() * (canvas.width - 200) + 100;
     const top = Math.random() * (canvas.height - 200) + 100;
     
-    if (shapeData.type === 'rect') {
-        obj = new fabric.Rect({ left, top, width: shapeData.w, height: shapeData.h, fill: '#2563eb' });
-    } else if (shapeData.type === 'circle' && shapeData.fill === 'transparent') {
-        obj = new fabric.Circle({ left, top, radius: shapeData.r, fill: 'transparent', stroke: '#2563eb', strokeWidth: 3 });
-    } else if (shapeData.type === 'circle') {
-        obj = new fabric.Circle({ left, top, radius: shapeData.r, fill: '#2563eb' });
-    } else if (shapeData.type === 'triangle') {
-        obj = new fabric.Triangle({ left, top, width: shapeData.w, height: shapeData.h, fill: '#2563eb' });
-    } else if (shapeData.type === 'star') {
-        const points = [];
-        for (let i = 0; i < 10; i++) {
-            const angle = (i * 36 - 90) * Math.PI / 180;
-            const radius = i % 2 === 0 ? 40 : 20;
-            points.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
-        }
-        obj = new fabric.Polygon(points, { left, top, fill: '#f59e0b' });
-    } else if (shapeData.type === 'heart') {
-        obj = new fabric.Path('M 0,-30 C 20,-50 50,-20 0,30 C -50,-20 -20,-50 0,-30 Z', { left, top, fill: '#ef4444', scaleX: 0.8, scaleY: 0.8 });
-    } else if (shapeData.type === 'diamond') {
-        obj = new fabric.Polygon([
-            { x: 0, y: -30 }, { x: 30, y: 0 }, { x: 0, y: 30 }, { x: -30, y: 0 }
-        ], { left, top, fill: '#2563eb' });
+    switch(shape.type) {
+        case 'rect':
+            obj = new fabric.Rect({ left, top, width: shape.w, height: shape.h, fill: shape.color });
+            break;
+        case 'circle':
+            obj = new fabric.Circle({ left, top, radius: shape.r, fill: shape.color });
+            break;
+        case 'triangle':
+            obj = new fabric.Triangle({ left, top, width: shape.w, height: shape.h, fill: shape.color });
+            break;
+        case 'star':
+            const points = [];
+            for (let i = 0; i < 10; i++) {
+                const angle = (i * 36 - 90) * Math.PI / 180;
+                const radius = i % 2 === 0 ? 40 : 20;
+                points.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
+            }
+            obj = new fabric.Polygon(points, { left, top, fill: shape.color });
+            break;
+        case 'heart':
+            obj = new fabric.Path('M 0,-30 C 20,-50 50,-20 0,30 C -50,-20 -20,-50 0,-30 Z', 
+                { left, top, fill: shape.color, scaleX: 0.8, scaleY: 0.8 });
+            break;
+        case 'diamond':
+            obj = new fabric.Polygon([
+                { x: 0, y: -30 }, { x: 30, y: 0 }, { x: 0, y: 30 }, { x: -30, y: 0 }
+            ], { left, top, fill: shape.color });
+            break;
+        default:
+            obj = new fabric.Rect({ left, top, width: 60, height: 60, fill: '#2563eb' });
     }
     
-    if (obj) {
-        obj.id = 'shape_' + Date.now();
-        canvas.add(obj);
-        canvas.setActiveObject(obj);
-        canvas.renderAll();
-        saveToHistory();
-        showToast(`✅ Added ${shapeData.name}`);
-    }
+    obj.id = 'shape_' + Date.now();
+    canvas.add(obj);
+    canvas.setActiveObject(obj);
+    canvas.renderAll();
+    saveToHistory();
+    showToast(`✅ Added ${shape.name}`);
 }
 
 function addIcon(iconClass) {
-    const left = Math.random() * (canvas.width - 150) + 100;
-    const top = Math.random() * (canvas.height - 150) + 100;
-    const iconMap = { 
-        'fa-star': '★', 'fa-heart': '❤️', 'fa-bell': '🔔', 'fa-calendar': '📅', 
-        'fa-clock': '🕐', 'fa-envelope': '✉️', 'fa-phone': '📞', 'fa-user': '👤', 'fa-book': '📖'
+    const iconMap = {
+        'fa-star': '★', 'fa-heart': '❤️', 'fa-bell': '🔔', 'fa-calendar': '📅',
+        'fa-clock': '🕐', 'fa-envelope': '✉️', 'fa-phone': '📞', 'fa-user': '👤',
+        'fa-book': '📖', 'fa-graduation-cap': '🎓'
     };
     const char = iconMap[iconClass] || '◆';
-    const text = new fabric.Text(char, { left, top, fontSize: 48, fontFamily: 'Segoe UI Emoji', fill: '#2563eb' });
+    const left = Math.random() * (canvas.width - 150) + 100;
+    const top = Math.random() * (canvas.height - 150) + 100;
+    
+    const text = new fabric.Text(char, { 
+        left, top, fontSize: 48, fontFamily: 'Segoe UI Emoji', fill: '#2563eb' 
+    });
     text.id = 'icon_' + Date.now();
     canvas.add(text);
     canvas.setActiveObject(text);
@@ -392,35 +547,28 @@ function addIcon(iconClass) {
     showToast('✅ Added icon');
 }
 
-function addEmojiSticker(sticker) {
-    const left = Math.random() * (canvas.width - 100) + 100;
-    const top = Math.random() * (canvas.height - 100) + 100;
-    const text = new fabric.Text(sticker, { left, top, fontSize: 48, fontFamily: 'Segoe UI Emoji' });
-    text.id = 'sticker_' + Date.now();
-    canvas.add(text);
-    canvas.setActiveObject(text);
-    canvas.renderAll();
-    saveToHistory();
-    showToast('✅ Added sticker');
-}
-
-function addFrame(frameData) {
+function addFrame(frame) {
     const left = Math.random() * (canvas.width - 300) + 150;
     const top = Math.random() * (canvas.height - 300) + 150;
+    
+    const dashArray = frame.style === 'dashed' ? [10, 5] : frame.style === 'dotted' ? [5, 5] : null;
+    
     const rect = new fabric.Rect({
-        left, top, width: 200, height: 200, fill: 'transparent', stroke: '#2563eb',
-        strokeWidth: frameData.w,
-        strokeDashArray: frameData.style === 'dashed' ? [10, 5] : frameData.style === 'dotted' ? [5, 5] : null
+        left, top, width: 200, height: 200,
+        fill: 'transparent',
+        stroke: frame.color,
+        strokeWidth: frame.width,
+        strokeDashArray: dashArray
     });
     rect.id = 'frame_' + Date.now();
     canvas.add(rect);
     canvas.renderAll();
     saveToHistory();
-    showToast(`✅ Added ${frameData.name} frame`);
+    showToast(`✅ Added ${frame.name} frame`);
 }
 
 // ========================================
-// TEXT MANAGEMENT
+// TEXT CUSTOMIZATION
 // ========================================
 document.getElementById('addTextBtn')?.addEventListener('click', () => {
     const textValue = document.getElementById('customText')?.value || 'Your Text Here';
@@ -452,7 +600,6 @@ function updateSelectedText() {
         fontSize: parseInt(document.getElementById('fontSize')?.value),
         fill: document.getElementById('textColor')?.value
     });
-    
     canvas.renderAll();
     saveToHistory();
 }
@@ -469,6 +616,25 @@ document.getElementById('textBoldBtn')?.addEventListener('click', () => {
     if (obj && obj.type === 'text') {
         obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold');
         canvas.renderAll();
+        saveToHistory();
+    }
+});
+
+document.getElementById('textItalicBtn')?.addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (obj && obj.type === 'text') {
+        obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic');
+        canvas.renderAll();
+        saveToHistory();
+    }
+});
+
+document.getElementById('textUnderlineBtn')?.addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (obj && obj.type === 'text') {
+        obj.set('underline', !obj.underline);
+        canvas.renderAll();
+        saveToHistory();
     }
 });
 
@@ -479,6 +645,7 @@ document.querySelectorAll('.align-btn').forEach(btn => {
             obj.set('textAlign', btn.dataset.align);
             canvas.renderAll();
             saveToHistory();
+            showToast(`Text aligned ${btn.dataset.align}`);
         }
     });
 });
@@ -492,12 +659,26 @@ document.getElementById('applyColorBtn')?.addEventListener('click', () => {
     showToast('Background color applied');
 });
 
+document.getElementById('applyImageBtn')?.addEventListener('click', () => {
+    const file = document.getElementById('bgImageUpload')?.files[0];
+    if (!file) { showToast('Select an image first'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        fabric.Image.fromURL(ev.target.result, (img) => {
+            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+            saveToHistory();
+            showToast('Background image applied');
+        });
+    };
+    reader.readAsDataURL(file);
+});
+
 function loadGradients() {
     const gradients = [
         'linear-gradient(135deg, #667eea, #764ba2)', 'linear-gradient(135deg, #f093fb, #f5576c)',
         'linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)',
         'linear-gradient(135deg, #1e293b, #0f172a)', 'linear-gradient(135deg, #ff6b6b, #c92a2a)',
-        'linear-gradient(135deg, #11998e, #38ef7d)'
+        'linear-gradient(135deg, #11998e, #38ef7d)', 'linear-gradient(135deg, #f2994a, #f2c94c)'
     ];
     const grid = document.getElementById('gradientsGrid');
     if (grid) {
@@ -512,26 +693,8 @@ function loadGradients() {
     }
 }
 
-function loadPatterns() {
-    const patterns = [
-        'repeating-linear-gradient(45deg, #ddd 0px, #ddd 2px, transparent 2px, transparent 8px)',
-        'radial-gradient(circle at 10px 10px, #ddd 2px, transparent 2px) 0 0 / 20px 20px'
-    ];
-    const grid = document.getElementById('patternsGrid');
-    if (grid) {
-        grid.innerHTML = patterns.map(p => `<div class="pattern-item" style="background: ${p};" data-pattern="${p}"></div>`).join('');
-        document.querySelectorAll('.pattern-item').forEach(item => {
-            item.addEventListener('click', () => {
-                canvas.setBackgroundColor(item.dataset.pattern, () => canvas.renderAll());
-                saveToHistory();
-                showToast('Pattern applied');
-            });
-        });
-    }
-}
-
 // ========================================
-// UPLOAD & EDIT POSTER
+// UPLOAD IMAGE
 // ========================================
 document.getElementById('uploadImageBtn')?.addEventListener('click', () => {
     const file = document.getElementById('imageUpload')?.files[0];
@@ -540,11 +703,12 @@ document.getElementById('uploadImageBtn')?.addEventListener('click', () => {
     reader.onload = (ev) => {
         fabric.Image.fromURL(ev.target.result, (img) => {
             img.scaleToWidth(200);
+            img.id = 'uploaded_' + Date.now();
             canvas.add(img);
             canvas.setActiveObject(img);
             canvas.renderAll();
             saveToHistory();
-            showToast('Image added');
+            showToast('Image added to canvas');
         });
     };
     reader.readAsDataURL(file);
@@ -562,17 +726,101 @@ document.getElementById('editPosterBtn')?.addEventListener('click', () => {
             canvas.add(img);
             canvas.renderAll();
             saveToHistory();
-            showToast('Poster loaded! Add elements on top.');
+            showToast('Poster loaded! You can now add elements on top.');
         });
     };
     reader.readAsDataURL(file);
 });
 
-function loadSavedImages() {
-    const container = document.getElementById('uploadedImagesList');
-    if (!container) return;
-    const saved = JSON.parse(localStorage.getItem('uploaded_images') || '[]');
-    container.innerHTML = saved.map(img => `<img src="${img}" class="uploaded-img">`).join('');
+// ========================================
+// AI QUOTE GENERATION (Grok API + Fallback)
+// ========================================
+document.getElementById('generateQuoteBtn')?.addEventListener('click', async () => {
+    const prompt = document.getElementById('aiPrompt')?.value;
+    if (!prompt) { showToast('Please enter a topic'); return; }
+    
+    showLoading(true);
+    
+    try {
+        // Try API first
+        const response = await fetch(`${API_BASE}/generate-quote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: prompt, tool_slug: currentToolSlug })
+        });
+        
+        let quoteText = '';
+        let quoteAuthor = '';
+        
+        if (response.ok) {
+            const data = await response.json();
+            quoteText = data.quote || data.text;
+            quoteAuthor = data.author || 'Grok AI';
+        } else {
+            // Fallback to local quotes
+            const fallback = getLocalQuote(prompt);
+            quoteText = fallback.text;
+            quoteAuthor = fallback.author;
+        }
+        
+        const text = new fabric.Text(`"${quoteText}"\n\n- ${quoteAuthor}`, {
+            left: canvas.width / 2,
+            top: canvas.height / 2,
+            fontSize: 24,
+            fontFamily: 'Inter',
+            fill: '#1e293b',
+            textAlign: 'center',
+            originX: 'center',
+            originY: 'center',
+            id: 'ai_quote_' + Date.now()
+        });
+        
+        canvas.add(text);
+        canvas.setActiveObject(text);
+        canvas.renderAll();
+        saveToHistory();
+        showToast('✨ AI quote added to canvas!');
+        
+    } catch (error) {
+        console.error('AI Quote error:', error);
+        const fallback = getLocalQuote(prompt);
+        const text = new fabric.Text(`"${fallback.text}"\n\n- ${fallback.author}`, {
+            left: canvas.width / 2,
+            top: canvas.height / 2,
+            fontSize: 24,
+            fontFamily: 'Inter',
+            fill: '#1e293b',
+            textAlign: 'center',
+            originX: 'center',
+            originY: 'center',
+            id: 'ai_quote_' + Date.now()
+        });
+        canvas.add(text);
+        canvas.setActiveObject(text);
+        canvas.renderAll();
+        saveToHistory();
+        showToast('✨ Quote added (offline mode)!');
+    } finally {
+        showLoading(false);
+    }
+});
+
+function getLocalQuote(prompt) {
+    const lowerPrompt = prompt.toLowerCase();
+    let category = 'default';
+    
+    if (lowerPrompt.includes('education') || lowerPrompt.includes('learn') || lowerPrompt.includes('school')) {
+        category = 'education';
+    } else if (lowerPrompt.includes('love') || lowerPrompt.includes('heart')) {
+        category = 'love';
+    } else if (lowerPrompt.includes('success')) {
+        category = 'success';
+    } else if (lowerPrompt.includes('islamic') || lowerPrompt.includes('allah')) {
+        category = 'islamic';
+    }
+    
+    const quotes = LOCAL_QUOTES[category] || LOCAL_QUOTES.default;
+    return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
 // ========================================
@@ -594,7 +842,8 @@ function saveToHistory() {
 function undo() {
     if (historyIndex > 0) {
         historyIndex--;
-        canvas.loadFromJSON(JSON.parse(historyStates[historyIndex]), () => {
+        const state = JSON.parse(historyStates[historyIndex]);
+        canvas.loadFromJSON(state, () => {
             canvas.renderAll();
             updateLayersList();
             showToast('↩️ Undo');
@@ -605,7 +854,8 @@ function undo() {
 function redo() {
     if (historyIndex < historyStates.length - 1) {
         historyIndex++;
-        canvas.loadFromJSON(JSON.parse(historyStates[historyIndex]), () => {
+        const state = JSON.parse(historyStates[historyIndex]);
+        canvas.loadFromJSON(state, () => {
             canvas.renderAll();
             updateLayersList();
             showToast('↪️ Redo');
@@ -662,42 +912,6 @@ document.getElementById('deleteSelectedBtn')?.addEventListener('click', () => {
 });
 
 // ========================================
-// AI QUOTE GENERATION (Grok API)
-// ========================================
-document.getElementById('generateQuoteBtn')?.addEventListener('click', async () => {
-    const prompt = document.getElementById('aiPrompt')?.value;
-    if (!prompt) { showToast('Enter a topic'); return; }
-    showLoading(true);
-    try {
-        const response = await fetch(`${API_BASE}/generate-slos`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subject: prompt, topic: prompt })
-        });
-        let quoteText = `"${prompt} is the key to success. Keep pushing forward!"`;
-        let quoteAuthor = 'AI Generator';
-        if (response.ok) {
-            const data = await response.json();
-            if (data.slos && data.slos[0]) {
-                quoteText = `"${data.slos[0]}"`;
-                quoteAuthor = 'AI Assistant';
-            }
-        }
-        const text = new fabric.Text(`${quoteText}\n\n- ${quoteAuthor}`, {
-            left: canvas.width / 2, top: canvas.height / 2, fontSize: 24, fontFamily: 'Inter',
-            fill: '#1e293b', textAlign: 'center', originX: 'center', originY: 'center'
-        });
-        canvas.add(text);
-        canvas.renderAll();
-        saveToHistory();
-        showToast('✨ AI quote generated!');
-    } catch (error) {
-        showToast('AI quote generated (offline)');
-    } finally {
-        showLoading(false);
-    }
-});
-
-// ========================================
 // EXPORT FUNCTIONS
 // ========================================
 async function exportAs(format) {
@@ -728,28 +942,7 @@ document.getElementById('exportJPG')?.addEventListener('click', () => exportAs('
 document.getElementById('exportPDF')?.addEventListener('click', () => exportAs('pdf'));
 
 // ========================================
-// SAVE & LOAD
-// ========================================
-document.getElementById('saveToLocal')?.addEventListener('click', () => {
-    const designs = JSON.parse(localStorage.getItem('saved_designs') || '[]');
-    designs.unshift({ id: Date.now(), data: JSON.stringify(canvas.toJSON()) });
-    localStorage.setItem('saved_designs', JSON.stringify(designs.slice(0, 20)));
-    showToast('Design saved to browser!');
-});
-
-document.getElementById('loadFromLocal')?.addEventListener('click', () => {
-    const designs = JSON.parse(localStorage.getItem('saved_designs') || '[]');
-    if (designs.length === 0) { showToast('No saved designs'); return; }
-    canvas.loadFromJSON(JSON.parse(designs[0].data), () => {
-        canvas.renderAll();
-        updateLayersList();
-        saveToHistory();
-        showToast('Design loaded!');
-    });
-});
-
-// ========================================
-// TIDB API INTEGRATION
+// TIDB API INTEGRATION (Usage + Reactions + Shares)
 // ========================================
 async function loadUsageFromAPI() {
     try {
@@ -769,7 +962,8 @@ async function loadUsageFromAPI() {
 async function trackUsage() {
     try {
         await fetch(`${API_BASE}/increment-usage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tool_slug: currentToolSlug, user_id: userId })
         });
     } catch (error) {
@@ -795,15 +989,24 @@ async function loadReactionsFromAPI() {
 }
 
 async function addReactionToAPI(reactionType) {
-    const emojiMap = { 'like': '👍', 'love': '❤️', 'wow': '😮', 'sad': '😢', 'laugh': '😂', 'celebrate': '🎉' };
+    const emojiMap = { 'like': '👍', 'love': '❤️', 'wow': '😮', 'sad': '😢', 'angry': '😠', 'laugh': '😂', 'celebrate': '🎉' };
+    
+    if (userReacted[reactionType]) {
+        showToast('You already reacted with this emoji');
+        return;
+    }
+    
     try {
         const response = await fetch(`${API_BASE}/add-reaction`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tool_slug: currentToolSlug, emoji: emojiMap[reactionType], user_id: userId })
         });
+        
         if (response.ok) {
             const data = await response.json();
             if (data.counts) updateReactionUI(data.counts);
+            userReacted[reactionType] = true;
             showToast('Reaction added!');
         } else {
             addReactionToLocal(reactionType);
@@ -814,7 +1017,7 @@ async function addReactionToAPI(reactionType) {
 }
 
 function addReactionToLocal(reactionType) {
-    if (userReacted[reactionType]) { showToast('Already reacted'); return; }
+    if (userReacted[reactionType]) return;
     userReacted[reactionType] = true;
     currentReactions[reactionType] = (currentReactions[reactionType] || 0) + 1;
     localStorage.setItem(`${currentToolSlug}_reactions`, JSON.stringify(currentReactions));
@@ -827,41 +1030,72 @@ function updateReactionUI(reactions) {
     const loveSpan = document.getElementById('loveCount');
     const wowSpan = document.getElementById('wowCount');
     const sadSpan = document.getElementById('sadCount');
+    const angrySpan = document.getElementById('angryCount');
     const laughSpan = document.getElementById('laughCount');
     const celebrateSpan = document.getElementById('celebrateCount');
+    
     if (likeSpan) likeSpan.innerText = reactions.like || 0;
     if (loveSpan) loveSpan.innerText = reactions.love || 0;
     if (wowSpan) wowSpan.innerText = reactions.wow || 0;
     if (sadSpan) sadSpan.innerText = reactions.sad || 0;
+    if (angrySpan) angrySpan.innerText = reactions.angry || 0;
     if (laughSpan) laughSpan.innerText = reactions.laugh || 0;
     if (celebrateSpan) celebrateSpan.innerText = reactions.celebrate || 0;
 }
 
 document.querySelectorAll('.reaction-btn').forEach(btn => {
-    btn.addEventListener('click', () => addReactionToAPI(btn.dataset.reaction));
+    btn.addEventListener('click', () => {
+        const reaction = btn.dataset.reaction;
+        addReactionToAPI(reaction);
+    });
 });
 
 // ========================================
-// SHARE FUNCTIONS
+// SOCIAL SHARING
 // ========================================
 async function trackShare(platform) {
     try {
         await fetch(`${API_BASE}/add-share`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tool_slug: currentToolSlug, platform: platform, user_id: userId })
         });
     } catch (error) {}
+    
     const shareUrl = window.location.href;
     if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-    else if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=Check%20out%20my%20poster!&url=${encodeURIComponent(shareUrl)}`, '_blank');
-    else if (platform === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent('Check out my poster! ' + shareUrl)}`, '_blank');
+    else if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=Check%20out%20this%20poster%20designer!&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    else if (platform === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent('Check out this poster designer! ' + shareUrl)}`, '_blank');
+    else if (platform === 'linkedin') window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    else if (platform === 'email') window.location.href = `mailto:?subject=Check out this Poster Designer&body=${encodeURIComponent(shareUrl)}`;
     else if (platform === 'copy') { navigator.clipboard.writeText(shareUrl); showToast('Link copied!'); }
+    
     showToast('Thanks for sharing!');
 }
 
 document.querySelectorAll('.share-btn').forEach(btn => {
-    btn.addEventListener('click', () => trackShare(btn.dataset.platform));
+    btn.addEventListener('click', () => {
+        const platform = btn.dataset.platform;
+        trackShare(platform);
+    });
 });
+
+// ========================================
+// LOAD STATS FROM API
+// ========================================
+async function loadStatsFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE}/stats?tool_slug=${currentToolSlug}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('statUsage').innerText = data.totalUsage || 0;
+            document.getElementById('statShares').innerText = data.totalShares || 0;
+            document.getElementById('statUsers').innerText = data.uniqueUsers || 0;
+        }
+    } catch (error) {
+        console.log('Stats API failed');
+    }
+}
 
 // ========================================
 // UI HELPERS
@@ -882,7 +1116,7 @@ function showLoading(show) {
 }
 
 // ========================================
-// DARK MODE & SIDEBAR
+// DARK MODE
 // ========================================
 document.getElementById('darkModeBtn')?.addEventListener('click', () => {
     darkMode = !darkMode;
@@ -893,6 +1127,20 @@ document.getElementById('darkModeBtn')?.addEventListener('click', () => {
     showToast(darkMode ? 'Dark mode on' : 'Light mode on');
 });
 
+// ========================================
+// SCROLL BUTTONS
+// ========================================
+document.getElementById('scrollUpBtn')?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+document.getElementById('scrollDownBtn')?.addEventListener('click', () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+});
+
+// ========================================
+// SIDEBAR & PANEL TOGGLES
+// ========================================
 document.getElementById('toggleSidebarBtn')?.addEventListener('click', () => {
     document.getElementById('sidebar')?.classList.toggle('collapsed');
 });
@@ -925,7 +1173,7 @@ document.getElementById('templateSearch')?.addEventListener('input', (e) => {
     const search = e.target.value.toLowerCase();
     document.querySelectorAll('.template-card').forEach(card => {
         const name = card.querySelector('.template-name')?.innerText.toLowerCase() || '';
-        card.style.display = name.includes(search) ? 'block' : 'none';
+        card.style.display = name.includes(search) ? 'flex' : 'none';
     });
 });
 
@@ -933,5 +1181,8 @@ function setupEventListeners() {
     console.log('✅ All event listeners configured');
 }
 
-console.log('🎉 PosterForge Pro Fully Loaded!');
-console.log('📁 111 Templates | 100 Stickers');
+console.log('========================================');
+console.log('🎉 Teacher Resource Finder Ready!');
+console.log(`📁 Templates: Dynamic (1-${MAX_TEMPLATE_NUMBER})`);
+console.log(`📁 Stickers: 1-${TOTAL_STICKERS}`);
+console.log('========================================');
