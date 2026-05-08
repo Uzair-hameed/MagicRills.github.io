@@ -3,748 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="description" content="اردو پی ڈی ایف ورڈ کنورٹر - AI پاورڈ، تیز، اور مکمل طور پر مفت اردو کنورژن ٹول۔ TiDB + Vercel + Grok API انٹیگریٹڈ">
-    <meta name="keywords" content="اردو پی ڈی ایف کنورٹر, اردو ورڈ کنورٹر, pdf to word urdu, urdu converter, ai urdu converter">
-    <meta name="author" content="Urdu Converter Team">
-    <title>اردو کنورٹر 2.0 | AI پاورڈ پی ڈی ایف سے ورڈ | TiDB + Grok API</title>
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/128/18232/18232191.png">
-    <link rel="stylesheet" href="urdu-language-pdf-word-converter.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>اردو کنورٹر 3.0 | TiDB + Grok AI | مکمل کنورژن حل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+        /* CSS will be in separate file but included here for completeness */
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Noto Nastaliq Urdu',serif;direction:rtl;background:#f0f9ff;color:#1e293b;transition:all 0.3s}
+        body.dark{background:#0f172a;color:#f1f5f9}
+        .container{max-width:1300px;margin:0 auto;padding:0 20px}
+        
+        /* Hero Section */
+        .hero-section{background:linear-gradient(135deg,#0f172a,#1e1b4b,#4c1d95,#be185d);min-height:85vh;display:flex;align-items:center;justify-content:center;text-align:center;color:white;position:relative;overflow:hidden}
+        .hero-container{position:relative;z-index:10;padding:60px 20px}
+        .hero-title{font-size:clamp(32px,8vw,56px);font-weight:800;margin-bottom:20px}
+        .gradient-text{background:linear-gradient(135deg,#a78bfa,#67e8f9,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .hero-subtitle{font-size:clamp(14px,4vw,18px);margin-bottom:30px;opacity:0.9}
+        .hero-stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-bottom:30px}
+        .hero-stat{text-align:center}
+        .hero-stat i{font-size:32px;color:#a78bfa;margin-bottom:8px;display:block}
+        .hero-stat span{font-size:28px;font-weight:700;display:block}
+        
+        .hero-btn{padding:14px 32px;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;transition:0.3s;display:inline-flex;align-items:center;gap:10px;border:none}
+        .hero-btn.primary{background:linear-gradient(135deg,#6366f1,#06b6d4);color:white}
+        .hero-btn.secondary{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:white;border:1px solid rgba(255,255,255,0.3)}
+        .hero-btn.tertiary{background:linear-gradient(135deg,#8b5cf6,#ec4899);color:white}
+        .hero-btn:hover{transform:translateY(-3px)}
+        
+        /* Stats Row */
+        .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:30px 0}
+        .stat-card{background:white;border-radius:16px;padding:16px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);cursor:pointer;transition:0.2s}
+        body.dark .stat-card{background:#1e293b}
+        .stat-card:hover{transform:translateY(-3px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
+        .stat-card-1{border-bottom:3px solid #6366f1}
+        .stat-card-2{border-bottom:3px solid #ec4899}
+        .stat-card-3{border-bottom:3px solid #06b6d4}
+        .stat-card-4{border-bottom:3px solid #10b981}
+        .stat-card-5{border-bottom:3px solid #f59e0b}
+        .stat-card i{font-size:32px}
+        .stat-card-1 i{color:#6366f1}
+        .stat-card-2 i{color:#ec4899}
+        .stat-card-3 i{color:#06b6d4}
+        .stat-card-4 i{color:#10b981}
+        .stat-card-5 i{color:#f59e0b}
+        .stat-info{display:flex;flex-direction:column}
+        .stat-label{font-size:11px;color:#64748b}
+        body.dark .stat-label{color:#94a3b8}
+        .stat-value{font-size:24px;font-weight:700}
+        
+        /* Converter Card */
+        .converter-card{background:white;border-radius:24px;padding:32px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);margin-bottom:30px}
+        body.dark .converter-card{background:#1e293b}
+        
+        /* Tabs */
+        .tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;border-bottom:1px solid #e2e8f0;padding-bottom:16px}
+        .tab-btn{padding:10px 24px;border:none;background:transparent;border-radius:12px;cursor:pointer;font-family:inherit;font-size:14px;color:#64748b;transition:0.2s;display:flex;align-items:center;gap:8px}
+        .tab-btn:hover{background:#f1f5f9}
+        body.dark .tab-btn:hover{background:#334155}
+        .tab-btn.active{background:linear-gradient(135deg,#6366f1,#06b6d4);color:white}
+        .tab-pane{display:none;animation:fadeIn 0.3s}
+        .tab-pane.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        
+        /* Drop Zone */
+        .drop-zone{border:2px dashed #6366f1;border-radius:16px;padding:48px;text-align:center;cursor:pointer;background:#f1f5f9;transition:0.2s}
+        body.dark .drop-zone{background:#334155}
+        .drop-zone.drag-over{border-color:#10b981;background:#e0e7ff}
+        .drop-icon i{font-size:48px;margin:0 8px;color:#6366f1}
+        .browse-btn{background:linear-gradient(135deg,#6366f1,#06b6d4);color:white;border:none;padding:12px 28px;border-radius:12px;cursor:pointer;margin-top:16px;display:inline-flex;align-items:center;gap:8px}
+        
+        /* Paste Text */
+        .paste-text{width:100%;min-height:200px;padding:16px;border:1px solid #e2e8f0;border-radius:16px;font-family:inherit;font-size:14px;background:white;resize:vertical}
+        body.dark .paste-text{background:#0f172a;border-color:#334155;color:white}
+        
+        /* Conversion Methods Grid */
+        .conversion-methods-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+        .method-card{background:#f1f5f9;border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:0.3s;border:2px solid transparent}
+        body.dark .method-card{background:#334155}
+        .method-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px -5px rgba(0,0,0,0.1)}
+        .method-icon i{font-size:40px;margin-bottom:12px}
+        .method-name{font-weight:700;margin-bottom:8px}
+        .method-desc{font-size:11px;color:#64748b}
+        body.dark .method-desc{color:#94a3b8}
+        
+        /* Format Options */
+        .format-buttons{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+        .format-option{padding:8px 18px;border:1px solid #e2e8f0;background:white;border-radius:50px;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:8px}
+        body.dark .format-option{background:#1e293b;border-color:#334155}
+        .format-option.active{background:linear-gradient(135deg,#6366f1,#06b6d4);color:white;border:none}
+        
+        /* Convert Button */
+        .convert-btn{width:100%;padding:16px;background:linear-gradient(135deg,#10b981,#14b8a6);color:white;border:none;border-radius:16px;font-size:16px;font-weight:600;cursor:pointer;margin:16px 0;transition:0.2s}
+        .convert-btn:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(16,185,129,0.4)}
+        
+        /* Progress Section */
+        .progress-section{display:none;margin:16px 0;padding:16px;background:#f1f5f9;border-radius:12px}
+        body.dark .progress-section{background:#334155}
+        .progress-bar-container{height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin:8px 0}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#06b6d4,#10b981);border-radius:10px;transition:width 0.3s}
+        
+        /* Result Section */
+        .result-text{width:100%;min-height:300px;padding:16px;border:1px solid #e2e8f0;border-radius:16px;font-family:inherit;font-size:14px;background:white;resize:vertical}
+        body.dark .result-text{background:#0f172a;border-color:#334155;color:white}
+        .result-stats{display:flex;gap:24px;margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#64748b;flex-wrap:wrap}
+        
+        /* Reactions */
+        .reactions-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0}
+        .reaction{padding:8px 20px;border:1px solid #e2e8f0;background:white;border-radius:50px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:0.2s}
+        body.dark .reaction{background:#1e293b;border-color:#334155}
+        .reaction:hover{transform:scale(1.05);border-color:#ec4899}
+        
+        /* Share Buttons */
+        .sharing-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px 0}
+        .share-btn{padding:8px 16px;border:none;border-radius:12px;cursor:pointer;color:white;display:inline-flex;align-items:center;gap:8px;font-size:13px}
+        .share-btn.facebook{background:#1877f2}
+        .share-btn.twitter{background:#1da1f2}
+        .share-btn.whatsapp{background:#25d366}
+        .share-btn.copy{background:linear-gradient(135deg,#6366f1,#06b6d4)}
+        
+        /* History */
+        .history-list{max-height:300px;overflow-y:auto}
+        .history-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f1f5f9;border-radius:12px;margin-bottom:8px}
+        body.dark .history-item{background:#334155}
+        
+        /* Toast */
+        .toast-container{position:fixed;bottom:20px;right:20px;z-index:1100;display:flex;flex-direction:column;gap:8px}
+        .toast{padding:12px 20px;background:white;border-radius:12px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);border-right:3px solid;animation:slideIn 0.3s}
+        .toast.success{border-right-color:#10b981}
+        .toast.error{border-right-color:#ef4444}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        
+        /* Scroll Buttons */
+        .scroll-btn{position:fixed;left:20px;width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#06b6d4);color:white;border:none;cursor:pointer;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:1000;transition:0.2s}
+        .scroll-btn:hover{transform:scale(1.1)}
+        .scroll-up{bottom:80px}
+        .scroll-down{bottom:20px}
+        
+        /* Responsive */
+        @media(max-width:768px){.container{padding:0 12px}.stats-row{grid-template-columns:1fr}.conversion-methods-grid{grid-template-columns:1fr}.share-btn span{display:none}.share-btn{width:40px;height:40px;justify-content:center}}
+        @media(max-width:480px){.hero-title{font-size:24px}.hero-stats{gap:16px}.hero-stat span{font-size:18px}}
+        
+        /* Footer */
+        .footer{margin-top:48px;padding-top:24px;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#64748b}
+        body.dark .footer{border-top-color:#334155}
+    </style>
 </head>
 <body>
 
-    <!-- Hero Section - Prominent with Animation -->
-    <section class="hero-section">
-        <div class="hero-bg-animation">
-            <div class="gradient-orb orb-1"></div>
-            <div class="gradient-orb orb-2"></div>
-            <div class="gradient-orb orb-3"></div>
+<section class="hero-section">
+    <div class="hero-container">
+        <h1 class="hero-title">اردو دستاویزات کو <span class="gradient-text">تیزی اور درستی سے</span> تبدیل کریں</h1>
+        <p class="hero-subtitle">TiDB + Grok AI + 4 کنورژن طریقے | مکمل طور پر مفت</p>
+        <div class="hero-stats">
+            <div class="hero-stat"><i class="fas fa-file-alt"></i><span id="heroTotalConversions">0</span><small>کل کنورژنز</small></div>
+            <div class="hero-stat"><i class="fas fa-heart"></i><span id="heroTotalReactions">0</span><small>ری ایکشنز</small></div>
+            <div class="hero-stat"><i class="fas fa-share-alt"></i><span id="heroTotalShares">0</span><small>کل شیئرز</small></div>
+            <div class="hero-stat"><i class="fas fa-brain"></i><span>Grok AI</span><small>انٹیگریٹڈ</small></div>
         </div>
-        <div class="hero-container">
-            <div class="hero-badge">
-                <i class="fas fa-robot"></i>
-                <span>AI پاورڈ | ورژن 2.0</span>
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h1 class="hero-title">
-                اردو دستاویزات کو<br>
-                <span class="gradient-text">تیزی اور درستی سے</span>
-                تبدیل کریں
-            </h1>
-            <p class="hero-subtitle">
-                PDF, تصاویر، ورڈ، آواز - 50+ فارمیٹس سپورٹ<br>
-                TiDB + Grok AI سے چلنے والا تیز ترین اردو کنورژن ٹول
-            </p>
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <i class="fas fa-file-alt"></i>
-                    <span id="heroTotalConversions">0</span>
-                    <small>فائلیں کنورٹ</small>
-                </div>
-                <div class="hero-stat">
-                    <i class="fas fa-users"></i>
-                    <span id="heroTotalUsers">0</span>
-                    <small>خوش صارفین</small>
-                </div>
-                <div class="hero-stat">
-                    <i class="fas fa-star"></i>
-                    <span>4.9</span>
-                    <small>صارفین کی ریٹنگ</small>
-                </div>
-                <div class="hero-stat">
-                    <i class="fas fa-bolt"></i>
-                    <span>&lt;3s</span>
-                    <small>اوسط رفتار</small>
-                </div>
-            </div>
-            <div class="hero-buttons">
-                <button class="hero-btn primary" id="scrollToConverter">
-                    <i class="fas fa-arrow-down"></i>
-                    کنورٹر شروع کریں
-                    <span class="btn-glow"></span>
-                </button>
-                <button class="hero-btn secondary" id="watchDemoBtn">
-                    <i class="fas fa-play"></i>
-                    ڈیمو دیکھیں
-                </button>
-            </div>
+        <div class="hero-buttons">
+            <button class="hero-btn primary" id="scrollToConverter"><i class="fas fa-arrow-down"></i> کنورٹر شروع کریں</button>
+            <button class="hero-btn secondary" id="demoBtn"><i class="fas fa-play"></i> ڈیمو</button>
+            <button class="hero-btn tertiary" id="compareBtn"><i class="fas fa-chart-simple"></i> طریقوں کا موازنہ</button>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Main Container -->
-    <div class="container" id="mainContainer">
-        
-        <!-- Floating Stats Bar -->
-        <div class="floating-stats" id="floatingStats">
-            <div class="floating-stat">
-                <i class="fas fa-chart-line"></i>
-                <span id="floatingUsage">0</span>
-                <small>استعمال</small>
-            </div>
-            <div class="floating-stat">
-                <i class="fas fa-heart"></i>
-                <span id="floatingReactions">0</span>
-                <small>ری ایکشنز</small>
-            </div>
-            <div class="floating-stat">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <span id="floatingToday">0</span>
-                <small>آج</small>
-            </div>
-        </div>
-
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
-            <div class="header-top">
-                <div class="logo-section">
-                    <div class="logo-icon">
-                        <img src="https://cdn-icons-png.flaticon.com/128/18232/18232191.png" alt="logo" width="40">
-                    </div>
-                    <div class="logo-text">
-                        <h1>اردو کنورٹر <span class="version-badge">v2.0</span></h1>
-                        <p>TiDB + Vercel + Grok API | AI پاورڈ</p>
-                    </div>
-                </div>
-                <div class="nav-buttons">
-                    <button class="nav-home-btn" id="homeBtn">
-                        <i class="fas fa-home"></i>
-                        <span>ہوم</span>
-                    </button>
-                    <button class="nav-back-btn" id="backBtn">
-                        <i class="fas fa-arrow-right"></i>
-                        <span>واپس</span>
-                    </button>
-                    <button class="nav-dashboard-btn" id="dashboardBtn">
-                        <i class="fas fa-chart-simple"></i>
-                        <span>ڈیش بورڈ</span>
-                    </button>
-                    <button class="dark-toggle" id="darkToggle">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Stats Row - Multi Color -->
-            <div class="stats-row">
-                <div class="stat-card stat-card-1" data-tooltip="کل کنورژنز">
-                    <i class="fas fa-chart-line"></i>
-                    <div class="stat-info">
-                        <span class="stat-label">کل استعمال</span>
-                        <span class="stat-value" id="totalUsage">0</span>
-                    </div>
-                </div>
-                <div class="stat-card stat-card-2" data-tooltip="صارفین کے ری ایکشنز">
-                    <i class="fas fa-heart"></i>
-                    <div class="stat-info">
-                        <span class="stat-label">ری ایکشنز</span>
-                        <span class="stat-value" id="totalReactions">0</span>
-                    </div>
-                </div>
-                <div class="stat-card stat-card-3" data-tooltip="کل شیئرز">
-                    <i class="fas fa-share-alt"></i>
-                    <div class="stat-info">
-                        <span class="stat-label">کل شیئرز</span>
-                        <span class="stat-value" id="totalSharesCount">0</span>
-                    </div>
-                </div>
-                <div class="stat-card stat-card-4" data-tooltip="آج کے کنورژنز">
-                    <i class="fas fa-calendar-day"></i>
-                    <div class="stat-info">
-                        <span class="stat-label">آج کے استعمال</span>
-                        <span class="stat-value" id="todayUsageCount">0</span>
-                    </div>
-                </div>
-                <div class="stat-card stat-card-5" data-tooltip="متوسط رفتار">
-                    <i class="fas fa-bolt"></i>
-                    <div class="stat-info">
-                        <span class="stat-label">اوسط رفتار</span>
-                        <span class="stat-value" id="avgSpeed">2.5</span>
-                        <span class="stat-unit">s</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Converter Section -->
-        <div class="converter-section">
-            <div class="converter-card">
-                
-                <!-- Quick Actions Bar -->
-                <div class="quick-actions">
-                    <button class="quick-action" data-action="clear">
-                        <i class="fas fa-trash-alt"></i>
-                        <span>صاف کریں</span>
-                    </button>
-                    <button class="quick-action" data-action="sample">
-                        <i class="fas fa-file-alt"></i>
-                        <span>نمونہ فائل</span>
-                    </button>
-                    <button class="quick-action" data-action="history">
-                        <i class="fas fa-history"></i>
-                        <span>تاریخ</span>
-                    </button>
-                    <button class="quick-action" data-action="export">
-                        <i class="fas fa-download"></i>
-                        <span>ایکسپورٹ</span>
-                    </button>
-                </div>
-                
-                <!-- Tabs - 5 Tabs -->
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="upload">
-                        <i class="fas fa-cloud-upload-alt"></i> اپ لوڈ
-                    </button>
-                    <button class="tab-btn" data-tab="paste">
-                        <i class="fas fa-paste"></i> پیسٹ
-                    </button>
-                    <button class="tab-btn" data-tab="url">
-                        <i class="fas fa-link"></i> یو آر ایل
-                    </button>
-                    <button class="tab-btn" data-tab="audio">
-                        <i class="fas fa-microphone"></i> آواز
-                    </button>
-                    <button class="tab-btn" data-tab="batch">
-                        <i class="fas fa-layer-group"></i> بیچ
-                    </button>
-                </div>
-
-                <!-- Tab 1: Upload Tab -->
-                <div class="tab-pane active" id="uploadTab">
-                    <div class="drop-zone" id="dropZone">
-                        <div class="drop-icon">
-                            <i class="fas fa-file-pdf"></i>
-                            <i class="fas fa-file-image"></i>
-                            <i class="fas fa-file-word"></i>
-                            <i class="fas fa-file-audio"></i>
-                        </div>
-                        <p>فائل یہاں ڈراپ کریں یا کلک کریں</p>
-                        <p class="drop-hint">PDF, JPG, PNG, DOC, DOCX, MP3, WAV (زیادہ سے زیادہ 50MB)</p>
-                        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.mp3,.wav,.gif,.bmp,.tiff" hidden multiple>
-                        <button class="browse-btn" id="browseBtn">
-                            <i class="fas fa-folder-open"></i> براؤز کریں
-                        </button>
-                        <div class="file-details" id="fileDetails">
-                            <div class="file-info-text">
-                                <i class="fas fa-info-circle"></i>
-                                <span id="fileName">کوئی فائل منتخب نہیں</span>
-                            </div>
-                            <div class="file-size" id="fileSize"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab 2: Paste Tab -->
-                <div class="tab-pane" id="pasteTab">
-                    <textarea class="paste-text" id="pasteText" placeholder="یہاں اردو متن پیسٹ کریں...&#10;&#10;مثال:&#10;آزادی کا مطلب یہ نہیں کہ انسان اپنی خواہشات کا غلام بن جائے۔&#10;بلکہ آزادی کا صحیح مطلب اپنی خواہشات پر قابو پانا ہے۔"></textarea>
-                    <div class="paste-actions">
-                        <div class="paste-stats">
-                            <span><i class="fas fa-font"></i> <span id="pasteWordCount">0</span> الفاظ</span>
-                            <span><i class="fas fa-text-height"></i> <span id="pasteCharCount">0</span> حروف</span>
-                        </div>
-                        <button class="clear-paste-btn" id="clearPasteBtn">
-                            <i class="fas fa-eraser"></i> صاف کریں
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tab 3: URL Tab -->
-                <div class="tab-pane" id="urlTab">
-                    <div class="url-box">
-                        <input type="text" id="urlInput" placeholder="https://example.com/file.pdf" class="url-input">
-                        <button class="fetch-btn" id="fetchBtn">
-                            <i class="fas fa-download"></i> فetch کریں
-                        </button>
-                    </div>
-                    <div class="url-hint">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>محفوظ URLs سپورٹ: PDF, DOCX, TXT (زیادہ سے زیادہ 25MB)</span>
-                    </div>
-                </div>
-
-                <!-- Tab 4: Audio Tab (New - Speech to Text) -->
-                <div class="tab-pane" id="audioTab">
-                    <div class="audio-recorder">
-                        <div class="audio-controls">
-                            <button class="record-btn" id="recordBtn">
-                                <i class="fas fa-microphone"></i>
-                                <span>ریکارڈ شروع کریں</span>
-                            </button>
-                            <button class="stop-btn" id="stopBtn" disabled>
-                                <i class="fas fa-stop"></i>
-                                <span>روکیں</span>
-                            </button>
-                        </div>
-                        <div class="audio-status" id="audioStatus">
-                            <i class="fas fa-info-circle"></i>
-                            <span>مائیکروفون کی اجازت درکار ہے</span>
-                        </div>
-                        <div class="audio-wave" id="audioWave" style="display: none;">
-                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                        </div>
-                    </div>
-                    <div class="divider">
-                        <span>یا</span>
-                    </div>
-                    <div class="upload-audio">
-                        <p>آڈیو فائل اپ لوڈ کریں</p>
-                        <input type="file" id="audioFileInput" accept=".mp3,.wav,.m4a,.ogg" hidden>
-                        <button class="upload-audio-btn" id="uploadAudioBtn">
-                            <i class="fas fa-upload"></i> آڈیو فائل منتخب کریں
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tab 5: Batch Tab (New - Multiple Files) -->
-                <div class="tab-pane" id="batchTab">
-                    <div class="batch-zone" id="batchZone">
-                        <div class="batch-icon">
-                            <i class="fas fa-folder-open"></i>
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <p>متعدد فائلیں منتخب کریں</p>
-                        <p class="batch-hint">ایک ساتھ 20 فائلیں تک سپورٹ</p>
-                        <input type="file" id="batchFileInput" accept=".pdf,.jpg,.jpeg,.png" hidden multiple>
-                        <button class="batch-select-btn" id="batchSelectBtn">
-                            <i class="fas fa-layer-group"></i> فائلیں منتخب کریں
-                        </button>
-                    </div>
-                    <div class="batch-list" id="batchList"></div>
-                    <button class="batch-convert-btn" id="batchConvertBtn" style="display: none;">
-                        <i class="fas fa-play-circle"></i> سب تبدیل کریں (<span id="batchCount">0</span> فائلیں)
-                    </button>
-                </div>
-
-                <!-- File Analysis Section (Graphical) -->
-                <div class="analysis-section" id="analysisSection" style="display: none;">
-                    <div class="analysis-header">
-                        <div class="analysis-title">
-                            <i class="fas fa-chart-pie"></i>
-                            <h3>فائل تجزیہ</h3>
-                        </div>
-                        <button class="analysis-close" id="analysisClose">&times;</button>
-                    </div>
-                    <div class="analysis-grid">
-                        <div class="analysis-item">
-                            <div class="analysis-label">فائل کی قسم</div>
-                            <div class="analysis-value" id="analysisFileType">-</div>
-                            <div class="analysis-progress"><div class="progress-fill" id="typeProgress" style="width: 0%"></div></div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-label">فائل سائز</div>
-                            <div class="analysis-value" id="analysisFileSize">-</div>
-                            <div class="analysis-progress"><div class="progress-fill fill-blue" id="sizeProgress" style="width: 0%"></div></div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-label">صفحات / فریمز</div>
-                            <div class="analysis-value" id="analysisPages">-</div>
-                            <div class="analysis-progress"><div class="progress-fill fill-green" id="pagesProgress" style="width: 0%"></div></div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-label">متن کا معیار</div>
-                            <div class="analysis-value" id="analysisQuality">-</div>
-                            <div class="analysis-progress"><div class="progress-fill fill-purple" id="qualityProgress" style="width: 0%"></div></div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-label">فارمیٹنگ</div>
-                            <div class="analysis-value" id="analysisFormatting">-</div>
-                            <div class="analysis-progress"><div class="progress-fill fill-orange" id="formatProgress" style="width: 0%"></div></div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-label">اوریجیبلٹی اسکور</div>
-                            <div class="analysis-value" id="analysisScore">-</div>
-                            <div class="analysis-progress"><div class="progress-fill fill-pink" id="scoreProgress" style="width: 0%"></div></div>
-                        </div>
-                    </div>
-                    <div class="analysis-recommendation" id="analysisRecommendation"></div>
-                </div>
-
-                <!-- AI Features Bar (New - Grok API) -->
-                <div class="ai-features-bar">
-                    <div class="ai-features-title">
-                        <i class="fas fa-brain"></i>
-                        <span>AI پاورڈ فیچرز (Grok API)</span>
-                    </div>
-                    <div class="ai-features-buttons">
-                        <button class="ai-feature" id="aiSummarizeBtn">
-                            <i class="fas fa-compress-alt"></i>
-                            <span>خلاصہ</span>
-                        </button>
-                        <button class="ai-feature" id="aiTranslateBtn">
-                            <i class="fas fa-language"></i>
-                            <span>ترجمہ</span>
-                        </button>
-                        <button class="ai-feature" id="aiGrammarBtn">
-                            <i class="fas fa-spell-check"></i>
-                            <span>گرامر چیک</span>
-                        </button>
-                        <button class="ai-feature" id="aiTtsBtn">
-                            <i class="fas fa-volume-up"></i>
-                            <span>آواز سنیں</span>
-                        </button>
-                        <button class="ai-feature" id="aiEnhanceBtn">
-                            <i class="fas fa-magic"></i>
-                            <span>بہتر بنائیں</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Conversion Options -->
-                <div class="options-row">
-                    <div class="option-group">
-                        <div class="option-chip">
-                            <input type="checkbox" id="preserveFormat" checked>
-                            <label>فارمیٹنگ محفوظ رکھیں</label>
-                        </div>
-                        <div class="option-chip">
-                            <input type="checkbox" id="ocrMode">
-                            <label>OCR (تصویر سے متن)</label>
-                        </div>
-                    </div>
-                    <div class="option-group">
-                        <div class="option-chip">
-                            <input type="checkbox" id="extractTables">
-                            <label>ٹیبلز نکالیں</label>
-                        </div>
-                        <div class="option-chip">
-                            <input type="checkbox" id="fastMode" checked>
-                            <label>تیز موڈ</label>
-                        </div>
-                    </div>
-                    <div class="option-group">
-                        <div class="option-chip">
-                            <input type="checkbox" id="removeWatermark">
-                            <label>واٹر مارک ہٹائیں</label>
-                        </div>
-                        <div class="option-chip">
-                            <input type="checkbox" id="autoSave">
-                            <label>آٹو سیو</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Page Range for PDF -->
-                <div class="page-range-panel" id="pageRangePanel" style="display: none;">
-                    <div class="page-range-title">
-                        <i class="fas fa-pager"></i>
-                        <span>صفحہ رینج (PDF)</span>
-                    </div>
-                    <div class="range-inputs">
-                        <input type="number" id="startPage" placeholder="سے" min="1" class="range-input">
-                        <span class="range-sep">سے</span>
-                        <input type="number" id="endPage" placeholder="تک" min="1" class="range-input">
-                        <span class="range-sep">تک</span>
-                        <button class="range-apply-btn" id="applyRangeBtn">لاگو کریں</button>
-                    </div>
-                </div>
-
-                <!-- Output Format Selector -->
-                <div class="format-row">
-                    <span class="format-label"><i class="fas fa-file-export"></i> آؤٹ پٹ فارمیٹ:</span>
-                    <div class="format-buttons">
-                        <button class="format-option active" data-format="docx">
-                            <i class="fab fa-microsoft"></i> DOCX
-                        </button>
-                        <button class="format-option" data-format="doc">
-                            <i class="fas fa-file-word"></i> DOC
-                        </button>
-                        <button class="format-option" data-format="pdf">
-                            <i class="fas fa-file-pdf"></i> PDF
-                        </button>
-                        <button class="format-option" data-format="txt">
-                            <i class="fas fa-file-alt"></i> TXT
-                        </button>
-                        <button class="format-option" data-format="rtf">
-                            <i class="fas fa-file-text"></i> RTF
-                        </button>
-                        <button class="format-option" data-format="html">
-                            <i class="fab fa-html5"></i> HTML
-                        </button>
-                        <button class="format-option" data-format="csv">
-                            <i class="fas fa-table"></i> CSV
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Main Convert Button -->
-                <button class="convert-btn" id="convertBtn">
-                    <i class="fas fa-exchange-alt"></i>
-                    تبدیل کریں
-                    <span class="btn-loader" style="display: none;"></span>
-                </button>
-
-                <!-- Progress Section with Percentage -->
-                <div class="progress-section" id="progressSection" style="display: none;">
-                    <div class="progress-header">
-                        <div class="progress-title-area">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span class="progress-title">کنورژن جاری ہے</span>
-                        </div>
-                        <span class="progress-percentage" id="progressPercentage">0%</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-details">
-                        <span id="progressText">تیار کیا جا رہا ہے...</span>
-                    </div>
-                    <div class="progress-time">
-                        <i class="fas fa-hourglass-half"></i>
-                        <span id="elapsedTime">0.0</span> سیکنڈز
-                    </div>
-                </div>
-
-                <!-- Speed Indicator -->
-                <div class="speed-indicator" id="speedIndicator">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>کنورژن سپیڈ: </span>
-                    <strong id="conversionSpeed">-</strong>
-                    <span> / سیکنڈ</span>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- AI Result Section (Grok API Response) -->
-        <div class="ai-result-section" id="aiResultSection" style="display: none;">
-            <div class="ai-result-card">
-                <div class="ai-result-header">
-                    <div class="ai-result-title">
-                        <i class="fas fa-brain"></i>
-                        <h3>AI تجزیہ (Grok API)</h3>
-                    </div>
-                    <button class="close-ai-result" id="closeAiResult">&times;</button>
-                </div>
-                <div class="ai-result-content" id="aiResultContent">
-                    <div class="ai-loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>AI تجزیہ کر رہا ہے...</span>
-                    </div>
-                </div>
-                <div class="ai-result-actions">
-                    <button class="ai-copy-btn" id="aiCopyBtn">
-                        <i class="fas fa-copy"></i> کاپی کریں
-                    </button>
-                    <button class="ai-apply-btn" id="aiApplyBtn">
-                        <i class="fas fa-check"></i> متن پر لگائیں
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Result Section -->
-        <div class="result-section" id="resultSection" style="display: none;">
-            <div class="result-card">
-                <div class="result-header">
-                    <div class="result-title">
-                        <i class="fas fa-file-alt"></i>
-                        <h3>کنورٹڈ متن</h3>
-                    </div>
-                    <div class="result-actions-buttons">
-                        <button class="result-btn copy" id="copyResultBtn">
-                            <i class="fas fa-copy"></i> کاپی
-                        </button>
-                        <button class="result-btn download" id="downloadResultBtn">
-                            <i class="fas fa-download"></i> ڈاؤن لوڈ
-                        </button>
-                        <button class="result-btn print" id="printResultBtn">
-                            <i class="fas fa-print"></i> پرنٹ
-                        </button>
-                        <button class="result-btn share" id="shareResultBtn">
-                            <i class="fas fa-share-alt"></i> شیئر
-                        </button>
-                        <button class="result-btn save" id="saveHistoryBtn">
-                            <i class="fas fa-save"></i> محفوظ کریں
-                        </button>
-                    </div>
-                </div>
-                <textarea class="result-text" id="resultText" readonly placeholder="کنورٹ شدہ متن یہاں ظاہر ہوگا..."></textarea>
-                <div class="result-stats">
-                    <span><i class="fas fa-font"></i> <strong id="wordCount">0</strong> الفاظ</span>
-                    <span><i class="fas fa-text-height"></i> <strong id="charCount">0</strong> حروف</span>
-                    <span><i class="fas fa-align-left"></i> <strong id="lineCount">0</strong> سطریں</span>
-                    <span><i class="fas fa-clock"></i> <strong id="conversionTime">0</strong> سیکنڈز</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reactions Section (TiDB Integrated) -->
-        <div class="reactions-section">
-            <div class="reactions-card">
-                <div class="reactions-header">
-                    <i class="fas fa-smile-wink"></i>
-                    <span>کیا یہ مددگار تھا؟ اپنا ردعمل دیں</span>
-                    <small class="reactions-saved-hint">(TiDB میں محفوظ)</small>
-                </div>
-                <div class="reactions-buttons" id="reactionsContainer">
-                    <button class="reaction" data-emoji="👍" data-name="like">
-                        <span class="reaction-emoji">👍</span>
-                        <span class="reaction-count" id="likeCount">0</span>
-                    </button>
-                    <button class="reaction" data-emoji="❤️" data-name="love">
-                        <span class="reaction-emoji">❤️</span>
-                        <span class="reaction-count" id="loveCount">0</span>
-                    </button>
-                    <button class="reaction" data-emoji="😮" data-name="wow">
-                        <span class="reaction-emoji">😮</span>
-                        <span class="reaction-count" id="wowCount">0</span>
-                    </button>
-                    <button class="reaction" data-emoji="😢" data-name="sad">
-                        <span class="reaction-emoji">😢</span>
-                        <span class="reaction-count" id="sadCount">0</span>
-                    </button>
-                    <button class="reaction" data-emoji="😠" data-name="angry">
-                        <span class="reaction-emoji">😠</span>
-                        <span class="reaction-count" id="angryCount">0</span>
-                    </button>
-                    <button class="reaction" data-emoji="😂" data-name="laugh">
-                        <span class="reaction-emoji">😂</span>
-                        <span class="reaction-count" id="laughCount">0</span>
-                    </button>
-                    <button class="reaction" data-emoji="🎉" data-name="celebrate">
-                        <span class="reaction-emoji">🎉</span>
-                        <span class="reaction-count" id="celebrateCount">0</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sharing Section -->
-        <div class="sharing-section">
-            <div class="sharing-card">
-                <div class="sharing-header">
-                    <i class="fas fa-share-alt"></i>
-                    <span>دوستوں کے ساتھ شیئر کریں</span>
-                    <small>(شیئر ٹریک ہوتا ہے)</small>
-                </div>
-                <div class="sharing-buttons">
-                    <button class="share-btn facebook" data-platform="facebook">
-                        <i class="fab fa-facebook-f"></i>
-                        <span>Facebook</span>
-                    </button>
-                    <button class="share-btn twitter" data-platform="twitter">
-                        <i class="fab fa-twitter"></i>
-                        <span>Twitter</span>
-                    </button>
-                    <button class="share-btn whatsapp" data-platform="whatsapp">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>WhatsApp</span>
-                    </button>
-                    <button class="share-btn linkedin" data-platform="linkedin">
-                        <i class="fab fa-linkedin-in"></i>
-                        <span>LinkedIn</span>
-                    </button>
-                    <button class="share-btn telegram" data-platform="telegram">
-                        <i class="fab fa-telegram"></i>
-                        <span>Telegram</span>
-                    </button>
-                    <button class="share-btn email" data-platform="email">
-                        <i class="fas fa-envelope"></i>
-                        <span>Email</span>
-                    </button>
-                    <button class="share-btn copy" data-platform="copy">
-                        <i class="fas fa-link"></i>
-                        <span>لنک کاپی</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- History Section -->
-        <div class="history-section" id="historySection" style="display: none;">
-            <div class="history-card">
-                <div class="history-header">
-                    <h3><i class="fas fa-history"></i> کنورژن ہسٹری</h3>
-                    <button class="clear-history-btn" id="clearHistoryBtn">
-                        <i class="fas fa-trash-alt"></i> سب ڈیلیٹ کریں
-                    </button>
-                </div>
-                <div class="history-list" id="historyList">
-                    <div class="empty-history">
-                        <i class="fas fa-clock"></i>
-                        <p>کوئی ہسٹری نہیں</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <i class="fas fa-file-alt"></i>
-                    <span>اردو کنورٹر v2.0</span>
-                </div>
-                <div class="footer-links">
-                    <a href="#">پرائیویسی پالیسی</a>
-                    <a href="#">شرائط استعمال</a>
-                    <a href="#">مدد</a>
-                    <a href="#">API</a>
-                </div>
-                <div class="footer-tech">
-                    <span><i class="fas fa-database"></i> TiDB</span>
-                    <span><i class="fas fa-cloud"></i> Vercel</span>
-                    <span><i class="fas fa-brain"></i> Grok API</span>
-                </div>
-                <div class="footer-copyright">
-                    <p>© 2024 اردو کنورٹر | تمام حقوق محفوظ ہیں | TiDB + Vercel + Grok API انٹیگریٹڈ</p>
-                </div>
-            </div>
-        </footer>
-
+<div class="container">
+    <div class="stats-row">
+        <div class="stat-card stat-card-1"><i class="fas fa-chart-line"></i><div class="stat-info"><span class="stat-label">کل استعمال</span><span class="stat-value" id="totalUsage">0</span></div></div>
+        <div class="stat-card stat-card-2"><i class="fas fa-heart"></i><div class="stat-info"><span class="stat-label">ری ایکشنز</span><span class="stat-value" id="totalReactions">0</span></div></div>
+        <div class="stat-card stat-card-3"><i class="fas fa-share-alt"></i><div class="stat-info"><span class="stat-label">کل شیئرز</span><span class="stat-value" id="totalSharesCount">0</span></div></div>
+        <div class="stat-card stat-card-4"><i class="fas fa-calendar-day"></i><div class="stat-info"><span class="stat-label">آج کے استعمال</span><span class="stat-value" id="todayUsage">0</span></div></div>
+        <div class="stat-card stat-card-5"><i class="fas fa-bolt"></i><div class="stat-info"><span class="stat-label">کامیابی کی شرح</span><span class="stat-value" id="successRate">99</span><span class="stat-unit">%</span></div></div>
     </div>
 
-    <!-- Scroll Buttons -->
-    <button class="scroll-btn scroll-up" id="scrollUp">
-        <i class="fas fa-chevron-up"></i>
-    </button>
-    <button class="scroll-btn scroll-down" id="scrollDown">
-        <i class="fas fa-chevron-down"></i>
-    </button>
+    <div class="converter-card">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="upload"><i class="fas fa-cloud-upload-alt"></i> اپ لوڈ</button>
+            <button class="tab-btn" data-tab="paste"><i class="fas fa-paste"></i> پیسٹ</button>
+            <button class="tab-btn" data-tab="url"><i class="fas fa-link"></i> یو آر ایل</button>
+            <button class="tab-btn" data-tab="batch"><i class="fas fa-layer-group"></i> بیچ</button>
+        </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+        <div class="tab-pane active" id="uploadTab">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-icon"><i class="fas fa-file-pdf"></i></div>
+                <p>فائل یہاں ڈراپ کریں یا کلک کریں</p>
+                <input type="file" id="fileInput" accept=".pdf" hidden>
+                <button class="browse-btn" id="browseBtn"><i class="fas fa-folder-open"></i> براؤز کریں</button>
+                <div id="fileDetails" style="margin-top:12px;font-size:12px;color:#64748b">کوئی فائل منتخب نہیں</div>
+            </div>
+        </div>
 
-    <!-- Premium Modal -->
-    <div class="premium-modal" id="premiumModal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <i class="fas fa-crown"></i>
-                <h3>پریمیم فیچرز</h3>
-                <button class="modal-close">&times;</button>
+        <div class="tab-pane" id="pasteTab">
+            <textarea class="paste-text" id="pasteText" placeholder="یہاں اردو متن پیسٹ کریں..."></textarea>
+            <div style="display:flex;justify-content:space-between;margin-top:12px">
+                <div><span id="pasteWordCount">0</span> الفاظ | <span id="pasteCharCount">0</span> حروف</div>
+                <button class="clear-paste-btn" id="clearPasteBtn" style="padding:6px 16px;background:#ef4444;color:white;border:none;border-radius:12px;cursor:pointer">صاف کریں</button>
             </div>
-            <div class="modal-body">
-                <div class="premium-feature">
-                    <i class="fas fa-infinity"></i>
-                    <span>لا محدود فائل سائز</span>
-                </div>
-                <div class="premium-feature">
-                    <i class="fas fa-rocket"></i>
-                    <span>تیز ترین کنورژن سپیڈ</span>
-                </div>
-                <div class="premium-feature">
-                    <i class="fas fa-robot"></i>
-                    <span>ایڈوانس AI فیچرز</span>
-                </div>
-                <div class="premium-feature">
-                    <i class="fas fa-headset"></i>
-                    <span>24/7 سپورٹ</span>
-                </div>
+        </div>
+
+        <div class="tab-pane" id="urlTab">
+            <div style="display:flex;gap:12px">
+                <input type="text" id="urlInput" placeholder="https://example.com/file.pdf" style="flex:1;padding:12px;border:1px solid #e2e8f0;border-radius:12px">
+                <button id="fetchBtn" style="padding:12px 24px;background:#06b6d4;color:white;border:none;border-radius:12px;cursor:pointer">Fetch</button>
             </div>
-            <div class="modal-footer">
-                <button class="modal-btn primary">اپ گریڈ کریں</button>
-                <button class="modal-btn secondary close-modal">بعد میں</button>
+        </div>
+
+        <div class="tab-pane" id="batchTab">
+            <div style="border:2px dashed #f59e0b;border-radius:16px;padding:32px;text-align:center;cursor:pointer" id="batchZone">
+                <i class="fas fa-layer-group fa-3x"></i>
+                <p>متعدد فائلیں منتخب کریں</p>
+                <input type="file" id="batchFileInput" accept=".pdf" hidden multiple>
+                <button id="batchSelectBtn" style="margin-top:12px;padding:8px 20px;background:#f59e0b;color:white;border:none;border-radius:12px;cursor:pointer">فائلیں منتخب کریں</button>
             </div>
+            <div id="batchList" style="margin-top:16px"></div>
+            <button id="batchConvertBtn" style="display:none;width:100%;margin-top:16px;padding:12px;background:#10b981;color:white;border:none;border-radius:12px;cursor:pointer">سب تبدیل کریں</button>
+        </div>
+
+        <!-- 4 Conversion Methods -->
+        <div class="conversion-methods-grid">
+            <div class="method-card" id="methodStandard">
+                <div class="method-icon"><i class="fas fa-file-pdf" style="color:#3b82f6"></i></div>
+                <div class="method-name">معیاری طریقہ</div>
+                <div class="method-desc">تیز ترین، بنیادی ایکسٹریکشن</div>
+            </div>
+            <div class="method-card" id="methodSmart">
+                <div class="method-icon"><i class="fas fa-location-dot" style="color:#10b981"></i></div>
+                <div class="method-name">سمارٹ طریقہ</div>
+                <div class="method-desc">پوزیشن بیسڈ سپیسیس</div>
+            </div>
+            <div class="method-card" id="methodEnhanced">
+                <div class="method-icon"><i class="fas fa-ruler-combined" style="color:#f59e0b"></i></div>
+                <div class="method-name">اعلیٰ طریقہ</div>
+                <div class="method-desc">15+ اردو قواعد کے ساتھ</div>
+            </div>
+            <div class="method-card" id="methodAI">
+                <div class="method-icon"><i class="fas fa-brain" style="color:#8b5cf6"></i></div>
+                <div class="method-name">AI طریقہ (Grok)</div>
+                <div class="method-desc">مکمل AI مرمت</div>
+            </div>
+        </div>
+
+        <!-- Format Options -->
+        <div class="format-buttons">
+            <button class="format-option active" data-format="txt">TXT</button>
+            <button class="format-option" data-format="docx">DOCX</button>
+            <button class="format-option" data-format="pdf">PDF</button>
+        </div>
+
+        <!-- Convert Button -->
+        <button class="convert-btn" id="convertBtn"><i class="fas fa-exchange-alt"></i> تبدیل کریں</button>
+
+        <!-- Progress Section -->
+        <div class="progress-section" id="progressSection">
+            <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+            <div style="display:flex;justify-content:space-between"><span id="progressText">تیار کیا جا رہا ہے...</span><span id="progressPercent">0%</span></div>
         </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="urdu-language-pdf-word-converter.js"></script>
+    <!-- Result Section -->
+    <div id="resultSection" style="display:none;margin-bottom:30px">
+        <div class="converter-card">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px">
+                <h3><i class="fas fa-file-alt"></i> کنورٹڈ متن <span id="usedMethodBadge" style="font-size:12px;padding:2px 8px;border-radius:20px;background:#6366f1;color:white;margin-right:10px"></span></h3>
+                <div style="display:flex;gap:8px">
+                    <button id="copyResultBtn" style="padding:6px 16px;background:#06b6d4;color:white;border:none;border-radius:12px;cursor:pointer"><i class="fas fa-copy"></i> کاپی</button>
+                    <button id="downloadResultBtn" style="padding:6px 16px;background:#10b981;color:white;border:none;border-radius:12px;cursor:pointer"><i class="fas fa-download"></i> ڈاؤن لوڈ</button>
+                    <button id="printResultBtn" style="padding:6px 16px;background:#f59e0b;color:white;border:none;border-radius:12px;cursor:pointer"><i class="fas fa-print"></i> پرنٹ</button>
+                </div>
+            </div>
+            <textarea class="result-text" id="resultText" readonly placeholder="کنورٹ شدہ متن یہاں ظاہر ہوگا..."></textarea>
+            <div class="result-stats"><span><i class="fas fa-font"></i> <strong id="wordCount">0</strong> الفاظ</span><span><i class="fas fa-text-height"></i> <strong id="charCount">0</strong> حروف</span><span><i class="fas fa-clock"></i> <strong id="conversionTime">0</strong> سیکنڈز</span></div>
+        </div>
+    </div>
+
+    <!-- AI Result Section -->
+    <div id="aiResultSection" style="display:none;margin-bottom:30px">
+        <div class="converter-card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:16px"><h3><i class="fas fa-brain"></i> AI نتیجہ (Grok)</h3><button id="closeAiResult" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button></div>
+            <div id="aiResultContent" style="background:#f1f5f9;padding:16px;border-radius:12px;min-height:100px"></div>
+            <div style="display:flex;gap:8px;margin-top:12px"><button id="aiCopyBtn" style="padding:6px 16px;background:#06b6d4;color:white;border:none;border-radius:12px;cursor:pointer">کاپی</button><button id="aiApplyBtn" style="padding:6px 16px;background:#10b981;color:white;border:none;border-radius:12px;cursor:pointer">متن پر لگائیں</button></div>
+        </div>
+    </div>
+
+    <!-- Reactions -->
+    <div class="converter-card" style="margin-bottom:30px">
+        <h3><i class="fas fa-smile-wink"></i> کیا یہ مددگار تھا؟</h3>
+        <div class="reactions-buttons" id="reactionsContainer">
+            <button class="reaction" data-emoji="👍" data-type="like">👍 <span id="likeCount">0</span></button>
+            <button class="reaction" data-emoji="❤️" data-type="love">❤️ <span id="loveCount">0</span></button>
+            <button class="reaction" data-emoji="😮" data-type="wow">😮 <span id="wowCount">0</span></button>
+            <button class="reaction" data-emoji="😢" data-type="sad">😢 <span id="sadCount">0</span></button>
+            <button class="reaction" data-emoji="😠" data-type="angry">😠 <span id="angryCount">0</span></button>
+            <button class="reaction" data-emoji="😂" data-type="laugh">😂 <span id="laughCount">0</span></button>
+            <button class="reaction" data-emoji="🎉" data-type="celebrate">🎉 <span id="celebrateCount">0</span></button>
+        </div>
+    </div>
+
+    <!-- Sharing -->
+    <div class="converter-card" style="margin-bottom:30px">
+        <h3><i class="fas fa-share-alt"></i> دوستوں کے ساتھ شیئر کریں</h3>
+        <div class="sharing-buttons">
+            <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i><span>Facebook</span></button>
+            <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i><span>Twitter</span></button>
+            <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></button>
+            <button class="share-btn copy" data-platform="copy"><i class="fas fa-link"></i><span>لنک کاپی</span></button>
+        </div>
+    </div>
+
+    <!-- History -->
+    <div class="converter-card" id="historySection" style="display:none;margin-bottom:30px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px"><h3><i class="fas fa-history"></i> کنورژن ہسٹری</h3><button id="clearHistoryBtn" style="padding:6px 16px;background:#ef4444;color:white;border:none;border-radius:12px;cursor:pointer">سب ڈیلیٹ</button></div>
+        <div id="historyList" class="history-list"><div class="empty-history" style="text-align:center;padding:40px">کوئی ہسٹری نہیں</div></div>
+    </div>
+
+    <footer class="footer"><p>© 2024 اردو کنورٹر | TiDB + Vercel + Grok API | 4 کنورژن طریقے | مکمل طور پر مفت</p></footer>
+</div>
+
+<button class="scroll-btn scroll-up" id="scrollUp"><i class="fas fa-chevron-up"></i></button>
+<button class="scroll-btn scroll-down" id="scrollDown"><i class="fas fa-chevron-down"></i></button>
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="urdu-language-pdf-word-converter.js"></script>
 </body>
 </html>
