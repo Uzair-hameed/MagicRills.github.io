@@ -415,32 +415,54 @@ async function extractPDFText(file, progressCallback) {
             try {
                 const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
                 let fullText = '';
+                
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    let pageText = '';
+                    
+                    // ✅ صحیح طریقہ - spaces کو محفوظ رکھتا ہے
+                    let lastY = null;
+                    let currentLine = [];
+                    
                     for (let item of content.items) {
-                        pageText += item.str + ' ';
+                        const y = item.transform[5];
+                        
+                        // Agar nayi line hai toh previous line save karein
+                        if (lastY !== null && Math.abs(y - lastY) > 5) {
+                            if (currentLine.length > 0) {
+                                fullText += currentLine.join(' ') + '\n';
+                                currentLine = [];
+                            }
+                        }
+                        currentLine.push(item.str);
+                        lastY = y;
                     }
-                    fullText += pageText + '\n\n';
+                    
+                    // Last line save karein
+                    if (currentLine.length > 0) {
+                        fullText += currentLine.join(' ');
+                    }
+                    
+                    fullText += '\n\n';
+                    
                     if (progressCallback) progressCallback(i, pdf.numPages);
                 }
+                
+                // ✅ اردو سپیسنگ درست کریں
+                fullText = fullText.replace(/([۔؟!])([^\s\u0600-\u06FF])/g, '$1 $2');
+                fullText = fullText.replace(/([\u0600-\u06FF])([A-Za-z0-9])/g, '$1 $2');
+                fullText = fullText.replace(/([A-Za-z0-9])([\u0600-\u06FF])/g, '$1 $2');
+                fullText = fullText.replace(/\s+/g, ' ');
+                fullText = fullText.replace(/ ([۔؟!])/g, '$1');
+                
                 resolve(fullText);
-            } catch (error) { reject(error); }
+            } catch (error) { 
+                reject(error); 
+            }
         };
         reader.onerror = reject;
         reader.readAsArrayBuffer(file);
     });
-}
-
-function enhanceUrduText(text) {
-    if (!text) return '';
-    let fixed = text;
-    fixed = fixed.replace(/([۔؟!])([^\s])/g, '$1 $2');
-    fixed = fixed.replace(/([کگھدذرزژسشصضطظعغفقلمنویہھی])([آابپتٹثجچحخ])/g, '$1 $2');
-    fixed = fixed.replace(/\s+/g, ' ');
-    fixed = fixed.replace(/([۔؟!])\s+/g, '$1\n');
-    return fixed;
 }
 
 // ============================================
