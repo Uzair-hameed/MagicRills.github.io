@@ -8,8 +8,7 @@
 // ============================================
 const CONFIG = {
     TOOL_SLUG: 'urdu-pdf-converter',
-    // YOUR CLOUDFLARE WORKER URL
-    API_BASE: 'https://urdu-pdf-converter.uzairhameed01.workers.dev/api',
+    API_BASE: 'https://urdu-language-pdf-word-converter.uzairhameed01.workers.dev/api',
     VERSION: '4.0',
     MAX_FILE_SIZE: 50 * 1024 * 1024
 };
