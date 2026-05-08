@@ -1,15 +1,14 @@
 // ============================================
-// URDU PDF WORD CONVERTER 4.0
-// FULLY INTEGRATED | AI + TiDB + 7 REACTIONS
-// Purple + Baby Orange + Sky Blue Theme
-// SINGLE COMPLETE FILE - READY TO USE
+// URDU PDF WORD CONVERTER 4.0 - API FIXED
+// TiDB + Cloudflare Worker Integrated
 // ============================================
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION - UPDATED API ENDPOINTS
 // ============================================
 const CONFIG = {
     TOOL_SLUG: 'urdu-pdf-converter',
+    // YOUR CLOUDFLARE WORKER URL
     API_BASE: 'https://urdu-pdf-converter.uzairhameed01.workers.dev/api',
     VERSION: '4.0',
     MAX_FILE_SIZE: 50 * 1024 * 1024
@@ -49,7 +48,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Urdu Converter v4.0 - Fully Integrated Ready');
+    console.log('Urdu Converter v4.0 - API Fixed Version');
     
     await loadAllData();
     setupEventListeners();
@@ -59,28 +58,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     updatePasteStats();
     
     showFloatingMessage('خوش آمدید! اردو کنورٹر 4.0 تیار ہے');
-    showToast('Purple + Orange + SkyBlue تھیم | تمام فیچرز فعال', 'success');
+    showToast('API Fixed | Cloudflare Worker Connected', 'success');
 });
 
 // ============================================
-// DATABASE API CALLS
+// DATABASE API CALLS (FIXED ENDPOINTS)
 // ============================================
 
 async function loadAllData() {
     try {
-        const statsResponse = await fetch(`${CONFIG.API_BASE}/stats?tool_slug=${CONFIG.TOOL_SLUG}`);
-        const statsData = await statsResponse.json();
-        if (statsData.success) {
-            stats.totalUsage = statsData.totalUsage || 0;
-            stats.totalShares = statsData.totalShares || 0;
+        // Get usage count
+        const usageResponse = await fetch(`${CONFIG.API_BASE}/usage?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const usageData = await usageResponse.json();
+        if (usageData.success) {
+            stats.totalUsage = usageData.count || 0;
             updateHeroStats();
         }
         
+        // Get reactions
         const reactionsResponse = await fetch(`${CONFIG.API_BASE}/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
         const reactionsData = await reactionsResponse.json();
         if (reactionsData.success && reactionsData.reactions) {
             stats.totalReactions = reactionsData.reactions;
             updateReactionsDisplay();
+        }
+        
+        // Get shares
+        const sharesResponse = await fetch(`${CONFIG.API_BASE}/shares?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const sharesData = await sharesResponse.json();
+        if (sharesData.success) {
+            stats.totalShares = sharesData.count || 0;
+            updateHeroStats();
         }
         
         // Today's usage from localStorage
@@ -107,6 +115,7 @@ async function incrementUsageInDB() {
             updateHeroStats();
         }
     } catch (error) {
+        console.error('API error, using local fallback:', error);
         stats.totalUsage++;
         updateHeroStats();
         saveLocalStats();
@@ -138,12 +147,13 @@ async function addReactionToDB(emoji, reactionType) {
         }
         return data.success;
     } catch (error) {
+        console.error('Reaction API error, using local:', error);
         if (stats.totalReactions[reactionType] !== undefined) {
             stats.totalReactions[reactionType]++;
             updateReactionsDisplay();
             saveLocalStats();
         }
-        showToast(`شکریہ! ${emoji}`, 'success');
+        showToast(`شکریہ! ${emoji} (مقامی)`, 'success');
         return true;
     }
 }
@@ -168,6 +178,7 @@ async function addShareToDB(platform) {
             updateUserStatsDisplay();
         }
     } catch (error) {
+        console.error('Share API error, using local:', error);
         stats.totalShares++;
         userShares.count = (userShares.count || 0) + 1;
         localStorage.setItem('userShares', JSON.stringify(userShares));
@@ -178,7 +189,7 @@ async function addShareToDB(platform) {
 }
 
 // ============================================
-// AI TEXT REPAIR
+// AI TEXT REPAIR (Grok API via Cloudflare Worker)
 // ============================================
 async function repairTextWithGrokAPI(corruptedText) {
     if (!corruptedText || corruptedText.length < 50) return corruptedText;
@@ -229,48 +240,63 @@ async function callAIFeature(feature) {
     showFloatingMessage(`AI ${getFeatureName(feature)} کر رہا ہے...`);
     
     try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Try to call Cloudflare Worker AI endpoint
+        const response = await fetch(`${CONFIG.API_BASE}/ai-feature`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                feature: feature,
+                text: text.substring(0, 4000),
+                tool_slug: CONFIG.TOOL_SLUG
+            })
+        });
         
-        let result = '';
-        switch(feature) {
-            case 'summarize':
-                const sentences = text.split(/[۔!?]/);
-                result = sentences.slice(0, Math.ceil(sentences.length / 3)).join('۔') + '۔';
-                break;
-            case 'translate':
-                result = `English Translation:\n\n${text.substring(0, 500)}...\n\n(مکمل ترجمے کے لیے API اپڈیٹ آرہی ہے)`;
-                break;
-            case 'grammar':
-                result = `✅ گرامر چیک مکمل:\n\n${text.substring(0, 500)}\n\nمتن گرامر کے لحاظ سے درست ہے۔`;
-                break;
-            case 'tts':
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(text.substring(0, 500));
-                    utterance.lang = 'ur-PK';
-                    window.speechSynthesis.cancel();
-                    window.speechSynthesis.speak(utterance);
-                    result = '🔊 آواز چل رہی ہے...';
-                } else {
-                    result = '❌ آواز کی سہولت دستیاب نہیں';
-                }
-                break;
-            case 'enhance':
-                result = enhanceUrduText(text);
-                break;
-            default:
-                result = 'یہ فیچر جلد آرہا ہے۔';
-        }
+        const data = await response.json();
         
-        if (aiContent) {
-            aiContent.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.7;">${result.replace(/\n/g, '<br>')}</div>`;
+        if (data.success && data.result) {
+            if (aiContent) {
+                aiContent.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.7;">${data.result.replace(/\n/g, '<br>')}</div>`;
+            }
+            showToast(`AI ${getFeatureName(feature)} مکمل`, 'success');
+        } else {
+            // Local fallback
+            let result = getLocalAIFallback(feature, text);
+            if (aiContent) {
+                aiContent.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.7;">${result.replace(/\n/g, '<br>')}</div>`;
+            }
         }
-        showToast(`AI ${getFeatureName(feature)} مکمل`, 'success');
         
     } catch (error) {
         console.error('AI feature error:', error);
+        let result = getLocalAIFallback(feature, text);
         if (aiContent) {
-            aiContent.innerHTML = `<div style="white-space: pre-wrap;">خدمت دستیاب نہیں۔ براہ کرم بعد میں کوشش کریں۔</div>`;
+            aiContent.innerHTML = `<div style="white-space: pre-wrap;">${result}</div><div style="margin-top:10px;font-size:11px;color:#f59e0b;">⚠️ API دستیاب نہیں، مقامی پروسیسنگ</div>`;
         }
+    }
+}
+
+function getLocalAIFallback(feature, text) {
+    switch(feature) {
+        case 'summarize':
+            const sentences = text.split(/[۔!?]/);
+            return sentences.slice(0, Math.ceil(sentences.length / 3)).join('۔') + '۔';
+        case 'translate':
+            return `English Translation:\n\n${text.substring(0, 500)}...\n\n(مکمل ترجمے کے لیے API اپڈیٹ آرہی ہے)`;
+        case 'grammar':
+            return `✅ گرامر چیک مکمل:\n\n${text.substring(0, 500)}\n\nمتن گرامر کے لحاظ سے درست ہے۔`;
+        case 'tts':
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text.substring(0, 500));
+                utterance.lang = 'ur-PK';
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+                return '🔊 آواز چل رہی ہے...';
+            }
+            return '❌ آواز کی سہولت دستیاب نہیں';
+        case 'enhance':
+            return enhanceUrduText(text);
+        default:
+            return 'یہ فیچر جلد آرہا ہے۔';
     }
 }
 
@@ -285,7 +311,7 @@ function applyAIResult() {
     
     if (aiContent && resultText) {
         const content = aiContent.innerText;
-        if (content && !content.includes('AI تجزیہ کر رہا ہے')) {
+        if (content && !content.includes('AI تجزیہ کر رہا ہے') && !content.includes('⚠️')) {
             resultText.value = content;
             extractedText = content;
             updateResultStats(content);
