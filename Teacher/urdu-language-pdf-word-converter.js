@@ -1,234 +1,328 @@
-/* ============================================
-   URDU PDF WORD CONVERTER - MAIN JAVASCRIPT
-   Version 2.1 | Layout Preservation for Urdu
-   TiDB + Vercel + Grok API Integrated
-   Fixed: Spacing, RTL, Line Breaks for Urdu Documents
-   Total Features: 149
-   ============================================ */
+// ============================================
+// URDU PDF WORD CONVERTER - COMPLETE VERSION
+// TiDB + Grok API + Vercel Integrated
+// Version 3.0 | 4 Conversion Methods | Full Database Sync
+// ============================================
 
 // ============================================
 // CONFIGURATION
 // ============================================
 const CONFIG = {
-    TOOL_SLUG: 'urdu-language-pdf-word-converter',
-    API_BASE: 'https://urdu-converter.uzairhameed01.workers.dev',
-    MAX_FILE_SIZE: 50 * 1024 * 1024,
-    MAX_BATCH_FILES: 20,
-    SUPPORTED_FORMATS: {
-        input: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'txt', 'mp3', 'wav'],
-        output: ['docx', 'doc', 'pdf', 'txt', 'rtf', 'html', 'csv']
-    },
-    EMOJIS: [
-        { emoji: '👍', name: 'like' },
-        { emoji: '❤️', name: 'love' },
-        { emoji: '😮', name: 'wow' },
-        { emoji: '😢', name: 'sad' },
-        { emoji: '😠', name: 'angry' },
-        { emoji: '😂', name: 'laugh' },
-        { emoji: '🎉', name: 'celebrate' }
-    ]
+    TOOL_SLUG: 'urdu-pdf-converter',
+    API_BASE: '/api',
+    VERSION: '3.0',
+    MAX_FILE_SIZE: 50 * 1024 * 1024
 };
 
-// ============================================
-// GLOBAL VARIABLES
-// ============================================
+// User Session
+let userId = localStorage.getItem('userId');
+if (!userId) {
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('userId', userId);
+}
+
+// Global Variables
 let currentFile = null;
 let extractedText = '';
-let currentOutputFormat = 'docx';
-let userId = generateUserId();
-let batchFiles = [];
-let mediaRecorder = null;
-let isRecording = false;
-let conversionStartTime = null;
+let currentFormat = 'txt';
+let currentMethod = 'standard';
+let conversionHistory = [];
+let conversionStartTime = 0;
 
+// Statistics
+let stats = {
+    totalUsage: 0,
+    totalReactions: { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 },
+    totalShares: 0
+};
+
+// PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 // ============================================
-// UTILITY FUNCTIONS
+// INITIALIZATION
 // ============================================
-
-function generateUserId() {
-    let id = localStorage.getItem('userId');
-    if (!id) {
-        id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('userId', id);
-    }
-    return id;
-}
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    const icon = type === 'success' ? 'fa-check-circle' : 
-                  type === 'error' ? 'fa-exclamation-circle' : 
-                  type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-    toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function updateProgress(percent, message) {
-    const progressSection = document.getElementById('progressSection');
-    const progressFill = document.getElementById('progressFill');
-    const progressPercentage = document.getElementById('progressPercentage');
-    const progressText = document.getElementById('progressText');
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Urdu Converter v3.0 - TiDB + Grok API Integrated');
     
-    if (progressSection) progressSection.style.display = 'block';
-    if (progressFill) progressFill.style.width = percent + '%';
-    if (progressPercentage) progressPercentage.textContent = percent + '%';
-    if (progressText) progressText.textContent = message;
+    // Load all data from database
+    await loadAllData();
     
-    if (conversionStartTime) {
-        const elapsed = (Date.now() - conversionStartTime) / 1000;
-        const elapsedSpan = document.getElementById('elapsedTime');
-        if (elapsedSpan) elapsedSpan.textContent = elapsed.toFixed(1);
-    }
+    // Setup event listeners
+    setupEventListeners();
     
-    if (percent >= 100) {
-        setTimeout(() => {
-            if (progressSection) progressSection.style.display = 'none';
-        }, 2000);
-    }
-}
-
-function updateResultStats(text) {
-    const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-    const chars = text.length;
-    const lines = text.split('\n').length;
+    // Load history from localStorage (fallback)
+    loadLocalHistory();
     
-    const wordSpan = document.getElementById('wordCount');
-    const charSpan = document.getElementById('charCount');
-    const lineSpan = document.getElementById('lineCount');
-    
-    if (wordSpan) wordSpan.textContent = words;
-    if (charSpan) charSpan.textContent = chars;
-    if (lineSpan) lineSpan.textContent = lines;
-    
-    if (conversionStartTime) {
-        const conversionTime = (Date.now() - conversionStartTime) / 1000;
-        const timeSpan = document.getElementById('conversionTime');
-        if (timeSpan) timeSpan.textContent = conversionTime.toFixed(1);
-        const speedSpan = document.getElementById('avgSpeed');
-        if (speedSpan) speedSpan.textContent = conversionTime.toFixed(1);
-    }
-}
+    // Show welcome message
+    showToast('خوش آمدید! اردو کنورٹر v3.0 تیار ہے - TiDB + Grok AI انٹیگریٹڈ', 'success');
+});
 
 // ============================================
-// CORE PDF EXTRACTION - WITH LAYOUT PRESERVATION
-// THIS IS THE FIX FOR URDU FORMATTING ISSUES
+// DATABASE API CALLS (TiDB via Backend)
 // ============================================
 
-async function extractFromPDFWithLayout(file, startPage = 1, endPage = null) {
+// Load all data from database
+async function loadAllData() {
+    try {
+        // Load usage stats
+        const usageResponse = await fetch(`${CONFIG.API_BASE}/usage?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const usageData = await usageResponse.json();
+        if (usageData.success) {
+            stats.totalUsage = usageData.count || 0;
+            updateUsageDisplay();
+        }
+        
+        // Load reactions
+        const reactionsResponse = await fetch(`${CONFIG.API_BASE}/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const reactionsData = await reactionsResponse.json();
+        if (reactionsData.success && reactionsData.reactions) {
+            stats.totalReactions = reactionsData.reactions;
+            updateReactionsDisplay();
+        }
+        
+        // Load shares
+        const sharesResponse = await fetch(`${CONFIG.API_BASE}/shares?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const sharesData = await sharesResponse.json();
+        if (sharesData.success) {
+            stats.totalShares = sharesData.count || 0;
+            updateSharesDisplay();
+        }
+    } catch (error) {
+        console.error('Error loading data from database:', error);
+        // Use localStorage as fallback
+        loadLocalStats();
+    }
+}
+
+// Increment usage in database
+async function incrementUsageInDB() {
+    try {
+        const response = await fetch(`${CONFIG.API_BASE}/increment-usage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_slug: CONFIG.TOOL_SLUG,
+                user_id: userId
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            stats.totalUsage = data.total_usage || stats.totalUsage + 1;
+            updateUsageDisplay();
+        }
+    } catch (error) {
+        console.error('Error incrementing usage:', error);
+        // Local fallback
+        stats.totalUsage++;
+        updateUsageDisplay();
+        saveLocalStats();
+    }
+}
+
+// Add reaction to database
+async function addReactionToDB(emoji, reactionType) {
+    try {
+        const response = await fetch(`${CONFIG.API_BASE}/add-reaction`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_slug: CONFIG.TOOL_SLUG,
+                emoji: emoji,
+                reaction_type: reactionType,
+                user_id: userId
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(`شکریہ! آپ کا ردعمل ${emoji} محفوظ ہو گیا`, 'success');
+            // Reload reactions to get updated counts
+            await loadAllData();
+        } else if (data.already_reacted) {
+            showToast('آپ پہلے ہی اس ایموجی پر ردعمل دے چکے ہیں', 'warning');
+        }
+        return data.success;
+    } catch (error) {
+        console.error('Error adding reaction:', error);
+        // Local fallback
+        if (stats.totalReactions[reactionType] !== undefined) {
+            stats.totalReactions[reactionType]++;
+            updateReactionsDisplay();
+            saveLocalStats();
+        }
+        showToast(`شکریہ! آپ کا ردعمل ${emoji} (مقامی طور پر محفوظ)`, 'success');
+        return true;
+    }
+}
+
+// Add share to database
+async function addShareToDB(platform) {
+    try {
+        const response = await fetch(`${CONFIG.API_BASE}/add-share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_slug: CONFIG.TOOL_SLUG,
+                platform: platform,
+                user_id: userId
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            stats.totalShares++;
+            updateSharesDisplay();
+        }
+    } catch (error) {
+        console.error('Error adding share:', error);
+        stats.totalShares++;
+        updateSharesDisplay();
+        saveLocalStats();
+    }
+}
+
+// AI Text Repair using Grok API
+async function repairTextWithGrokAPI(corruptedText) {
+    if (!corruptedText || corruptedText.length < 50) {
+        return corruptedText;
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.API_BASE}/repair-urdu-text`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: corruptedText.substring(0, 8000),
+                tool_slug: CONFIG.TOOL_SLUG
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success && data.repaired_text) {
+            showToast('AI نے متن کو بہتر کر دیا ہے', 'success');
+            return data.repaired_text;
+        }
+        return corruptedText;
+    } catch (error) {
+        console.error('Grok API error:', error);
+        showToast('AI سروس دستیاب نہیں، معیاری طریقہ استعمال ہو رہا ہے', 'warning');
+        return corruptedText;
+    }
+}
+
+// ============================================
+// LOCAL STORAGE FALLBACK
+// ============================================
+function saveLocalStats() {
+    localStorage.setItem('converter_stats', JSON.stringify({
+        totalUsage: stats.totalUsage,
+        totalReactions: stats.totalReactions,
+        totalShares: stats.totalShares
+    }));
+}
+
+function loadLocalStats() {
+    const saved = localStorage.getItem('converter_stats');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            stats.totalUsage = data.totalUsage || 0;
+            stats.totalReactions = data.totalReactions || { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+            stats.totalShares = data.totalShares || 0;
+            updateUsageDisplay();
+            updateReactionsDisplay();
+            updateSharesDisplay();
+        } catch(e) {}
+    }
+}
+
+function saveLocalHistory() {
+    localStorage.setItem('converter_history', JSON.stringify(conversionHistory));
+}
+
+function loadLocalHistory() {
+    const saved = localStorage.getItem('converter_history');
+    if (saved) {
+        try {
+            conversionHistory = JSON.parse(saved);
+            displayHistory();
+        } catch(e) {}
+    }
+}
+
+// ============================================
+// UI UPDATE FUNCTIONS
+// ============================================
+function updateUsageDisplay() {
+    const elements = ['totalUsage', 'heroTotalConversions'];
+    elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = stats.totalUsage;
+    });
+    
+    // Today's usage (estimate - last 24 hours from localStorage)
+    const todayUsage = localStorage.getItem('todayUsage') || Math.floor(stats.totalUsage * 0.05);
+    const todayEl = document.getElementById('todayUsage');
+    if (todayEl) todayEl.innerText = todayUsage;
+}
+
+function updateReactionsDisplay() {
+    const mapping = {
+        likeCount: 'like',
+        loveCount: 'love',
+        wowCount: 'wow',
+        sadCount: 'sad',
+        angryCount: 'angry',
+        laughCount: 'laugh',
+        celebrateCount: 'celebrate'
+    };
+    
+    for (const [elementId, reactionKey] of Object.entries(mapping)) {
+        const el = document.getElementById(elementId);
+        if (el && stats.totalReactions[reactionKey] !== undefined) {
+            el.innerText = stats.totalReactions[reactionKey];
+        }
+    }
+    
+    const totalReactions = Object.values(stats.totalReactions).reduce((a, b) => a + b, 0);
+    const totalReactionsEl = document.getElementById('totalReactions');
+    if (totalReactionsEl) totalReactionsEl.innerText = totalReactions;
+    
+    const heroTotalReactions = document.getElementById('heroTotalReactions');
+    if (heroTotalReactions) heroTotalReactions.innerText = totalReactions;
+}
+
+function updateSharesDisplay() {
+    const elements = ['totalSharesCount', 'heroTotalShares'];
+    elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = stats.totalShares;
+    });
+}
+
+// ============================================
+// PDF TEXT EXTRACTION METHODS
+// ============================================
+
+// Method 1: Standard Extraction
+async function extractStandard(file, progressCallback) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async function(e) {
             try {
-                const typedarray = new Uint8Array(e.target.result);
-                const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                const totalPages = pdf.numPages;
-                const end = endPage || totalPages;
-                const start = Math.max(1, Math.min(startPage, totalPages));
-                const endPageNum = Math.min(end, totalPages);
-                
+                const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
                 let fullText = '';
-                let previousPageHeight = 0;
-                
-                for (let pageNum = start; pageNum <= endPageNum; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 2.0 });
-                    const textContent = await page.getTextContent();
-                    
-                    // Extract all text items with their positions
-                    const textItems = textContent.items.map(item => ({
-                        text: item.str,
-                        x: item.transform[4],
-                        y: item.transform[5],
-                        width: item.width,
-                        height: item.height,
-                        fontName: item.fontName,
-                        fontSize: Math.abs(item.transform[0])
-                    }));
-                    
-                    // Group items by Y position (same line)
-                    const lines = [];
-                    const tolerance = 5;
-                    
-                    textItems.forEach(item => {
-                        let foundLine = false;
-                        for (let line of lines) {
-                            if (Math.abs(line.y - item.y) <= tolerance) {
-                                line.items.push(item);
-                                foundLine = true;
-                                break;
-                            }
-                        }
-                        if (!foundLine) {
-                            lines.push({ y: item.y, items: [item] });
-                        }
-                    });
-                    
-                    // Sort lines from top to bottom
-                    lines.sort((a, b) => b.y - a.y);
-                    
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
                     let pageText = '';
-                    
-                    for (let line of lines) {
-                        // Sort items from right to left (for Urdu RTL)
-                        line.items.sort((a, b) => b.x - a.x);
-                        
-                        let lineText = '';
-                        let lastX = null;
-                        
-                        for (let item of line.items) {
-                            // Calculate spacing between words
-                            if (lastX !== null) {
-                                const gap = lastX - (item.x + item.width);
-                                if (gap > 3) {
-                                    lineText += ' ';
-                                }
-                            }
-                            lineText += item.text;
-                            lastX = item.x;
-                        }
-                        
-                        // Preserve indentation based on x position
-                        if (line.items.length > 0 && line.items[0].x > 50) {
-                            pageText += '    ' + lineText + '\n';
-                        } else {
-                            pageText += lineText + '\n';
-                        }
+                    for (let item of content.items) {
+                        pageText += item.str + ' ';
                     }
-                    
-                    // Add page separator
-                    if (pageNum > start) {
-                        fullText += '\n';
-                    }
-                    
-                    fullText += pageText;
-                    
-                    const percent = Math.round(((pageNum - start + 1) / (endPageNum - start + 1)) * 100);
-                    updateProgress(percent, `صفحہ ${pageNum}/${endPageNum} پروسیس ہو رہا ہے (پوزیشن محفوظ)۔۔۔`);
-                    
-                    await new Promise(r => setTimeout(r, 10));
+                    fullText += pageText + '\n\n';
+                    if (progressCallback) progressCallback(i, pdf.numPages);
                 }
-                
-                // Post-process Urdu text
-                fullText = postProcessUrduText(fullText);
                 resolve(fullText);
-                
             } catch (error) {
                 reject(error);
             }
@@ -238,445 +332,331 @@ async function extractFromPDFWithLayout(file, startPage = 1, endPage = null) {
     });
 }
 
-function postProcessUrduText(text) {
-    // Remove excessive spaces but keep meaningful ones
-    text = text.replace(/[ \t]+/g, ' ');
-    
-    // Fix line breaks - preserve paragraph structure
-    text = text.replace(/([۔؟!])\n/g, '$1\n\n');
-    
-    // Remove multiple consecutive newlines (max 2)
-    text = text.replace(/\n{3,}/g, '\n\n');
-    
-    // Fix common Urdu PDF extraction issues
-    text = text.replace(/[\u200C\u200D]/g, '');
-    
-    // Ensure proper spacing after punctuation
-    text = text.replace(/([،؛.])/g, '$1 ');
-    
-    // Fix broken Urdu words (common PDF issue)
-    text = text.replace(/([ء-ی])([ء-ی])/g, '$1$2');
-    
-    return text.trim();
-}
-
-// Main PDF extraction function (now uses layout preservation)
-async function extractFromPDF(file, startPage = 1, endPage = null) {
-    return await extractFromPDFWithLayout(file, startPage, endPage);
-}
-
-// ============================================
-// IMAGE OCR EXTRACTION
-// ============================================
-
-async function extractFromImage(file) {
-    updateProgress(5, 'OCR شروع ہو رہا ہے۔۔۔');
-    
-    return new Promise((resolve, reject) => {
-        const worker = Tesseract.createWorker({
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    const progress = Math.round(m.progress * 100);
-                    updateProgress(progress, `تصویر سے متن نکالا جا رہا ہے۔۔۔ (${progress}%)`);
-                }
-            }
-        });
-        
-        (async () => {
-            await worker.load();
-            await worker.loadLanguage('urd');
-            await worker.initialize('urd');
-            const { data: { text } } = await worker.recognize(file);
-            await worker.terminate();
-            resolve(postProcessUrduText(text));
-        })().catch(reject);
-    });
-}
-
-async function extractFromTextFile(file) {
+// Method 2: Smart Position-Based Extraction
+async function extractSmart(file, progressCallback) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = function(e) { resolve(e.target.result); };
+        reader.onload = async function(e) {
+            try {
+                const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    let lastX = null, lastY = null;
+                    let currentLine = [];
+                    
+                    for (let item of textContent.items) {
+                        const x = item.transform[4];
+                        const y = item.transform[5];
+                        
+                        if (lastY !== null && Math.abs(y - lastY) > 5) {
+                            currentLine.sort((a, b) => a.x - b.x);
+                            fullText += currentLine.map(i => i.str).join(' ') + '\n';
+                            currentLine = [];
+                        }
+                        
+                        if (lastX !== null && (x - lastX) > (item.width || 10) * 0.5) {
+                            currentLine.push({ x: lastX + 999, str: ' ' });
+                        }
+                        
+                        currentLine.push({ x: x, str: item.str });
+                        lastX = x;
+                        lastY = y;
+                    }
+                    
+                    if (currentLine.length) {
+                        currentLine.sort((a, b) => a.x - b.x);
+                        fullText += currentLine.map(i => i.str).join(' ');
+                    }
+                    fullText += '\n\n';
+                    if (progressCallback) progressCallback(i, pdf.numPages);
+                }
+                resolve(fullText);
+            } catch (error) {
+                reject(error);
+            }
+        };
         reader.onerror = reject;
-        reader.readAsText(file, 'UTF-8');
+        reader.readAsArrayBuffer(file);
     });
+}
+
+// Method 3: Enhanced Rule-Based Urdu Fix
+function enhanceUrduText(text) {
+    if (!text) return '';
+    
+    let fixed = text;
+    
+    // Rule 1: Add space after sentence terminators
+    fixed = fixed.replace(/([۔؟!])([^\s])/g, '$1 $2');
+    
+    // Rule 2: Fix common Urdu patterns
+    fixed = fixed.replace(/([کگھدذرزژسشصضطظعغفقلمنویہھی])([آابپتٹثجچحخ])/g, '$1 $2');
+    
+    // Rule 3: Add space after numbers
+    fixed = fixed.replace(/([۰-۹0-9])([آابپتٹثجچحخ])/g, '$1 $2');
+    
+    // Rule 4: Fix missing spaces after common short words
+    const shortWords = ['کہ', 'سے', 'پر', 'میں', 'نے', 'تو', 'یا', 'تا', 'کیا', 'ہی', 'بھی', 'اور', 'پھر', 'اگر', 'لیکن'];
+    shortWords.forEach(word => {
+        const regex = new RegExp(`(${word})([آابپتٹثجچحخدرڑزژسشصضطظعغفقلمنویھ])`, 'g');
+        fixed = fixed.replace(regex, `$1 $2`);
+    });
+    
+    // Rule 5: Fix multiple spaces
+    fixed = fixed.replace(/\s+/g, ' ');
+    
+    // Rule 6: Add new line after sentence
+    fixed = fixed.replace(/([۔؟!])\s+/g, '$1\n');
+    
+    return fixed;
 }
 
 // ============================================
 // MAIN CONVERSION FUNCTION
 // ============================================
-
 async function startConversion() {
-    const pasteText = document.getElementById('pasteText').value.trim();
-    
-    if (!currentFile && !pasteText && batchFiles.length === 0) {
-        showToast('براہ کرم کوئی فائل منتخب کریں یا متن پیسٹ کریں', 'error');
+    // Check for input
+    if (!currentFile && !document.getElementById('pasteText')?.value.trim()) {
+        showToast('براہ کرم PDF فائل اپ لوڈ کریں یا متن پیسٹ کریں', 'error');
         return;
     }
     
-    const convertBtn = document.getElementById('convertBtn');
-    convertBtn.disabled = true;
-    convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> کنورٹ ہو رہا ہے۔۔۔';
     conversionStartTime = Date.now();
     
+    // Show progress
+    const progressSection = document.getElementById('progressSection');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressSection) progressSection.style.display = 'block';
+    if (progressText) progressText.innerText = 'کنورژن شروع ہو رہا ہے...';
+    if (progressFill) progressFill.style.width = '0%';
+    if (progressPercent) progressPercent.innerText = '0%';
+    
+    let finalText = '';
+    let usedMethod = '';
+    
     try {
-        await incrementUsage();
-        
-        let text = '';
-        
-        if (pasteText) {
-            text = pasteText;
-            updateProgress(100, 'متن کنورٹ ہو گیا!');
-        } else if (currentFile) {
-            const isPDF = currentFile.type === 'application/pdf';
-            const isImage = currentFile.type.match('image.*');
-            const isText = currentFile.type === 'text/plain';
-            const useOCR = document.getElementById('ocrMode')?.checked || false;
+        if (currentFile && currentFile.type === 'application/pdf') {
+            // PDF Conversion
+            if (currentMethod === 'standard') {
+                if (progressText) progressText.innerText = 'معیاری طریقہ استعمال ہو رہا ہے...';
+                finalText = await extractStandard(currentFile, (current, total) => {
+                    const percent = (current / total) * 80;
+                    if (progressFill) progressFill.style.width = percent + '%';
+                    if (progressPercent) progressPercent.innerText = Math.floor(percent) + '%';
+                    if (progressText) progressText.innerText = `معیاری: صفحہ ${current}/${total}`;
+                });
+                usedMethod = 'standard';
+                
+            } else if (currentMethod === 'smart') {
+                if (progressText) progressText.innerText = 'سمارٹ طریقہ استعمال ہو رہا ہے...';
+                finalText = await extractSmart(currentFile, (current, total) => {
+                    const percent = (current / total) * 80;
+                    if (progressFill) progressFill.style.width = percent + '%';
+                    if (progressPercent) progressPercent.innerText = Math.floor(percent) + '%';
+                    if (progressText) progressText.innerText = `سمارٹ: صفحہ ${current}/${total}`;
+                });
+                usedMethod = 'smart';
+                
+            } else if (currentMethod === 'enhanced') {
+                if (progressText) progressText.innerText = 'اعلیٰ طریقہ استعمال ہو رہا ہے...';
+                finalText = await extractStandard(currentFile, (current, total) => {
+                    const percent = (current / total) * 60;
+                    if (progressFill) progressFill.style.width = percent + '%';
+                    if (progressPercent) progressPercent.innerText = Math.floor(percent) + '%';
+                });
+                if (progressText) progressText.innerText = 'اعلیٰ: اردو قواعد لگائے جا رہے ہیں...';
+                finalText = enhanceUrduText(finalText);
+                usedMethod = 'enhanced';
+                
+            } else if (currentMethod === 'ai') {
+                if (progressText) progressText.innerText = 'AI طریقہ (Grok) استعمال ہو رہا ہے...';
+                let rawText = await extractStandard(currentFile, (current, total) => {
+                    const percent = (current / total) * 50;
+                    if (progressFill) progressFill.style.width = percent + '%';
+                    if (progressPercent) progressPercent.innerText = Math.floor(percent) + '%';
+                });
+                if (progressText) progressText.innerText = 'AI: متن کو بہتر کیا جا رہا ہے...';
+                if (progressFill) progressFill.style.width = '70%';
+                finalText = await repairTextWithGrokAPI(rawText);
+                usedMethod = 'ai';
+            }
             
-            if (isPDF) {
-                const startPage = parseInt(document.getElementById('startPage')?.value) || 1;
-                const endPage = parseInt(document.getElementById('endPage')?.value) || null;
-                text = await extractFromPDF(currentFile, startPage, endPage);
-                showToast('PDF کنورٹ ہو گئی (فارمیٹنگ محفوظ)', 'success');
-            } else if (isImage && useOCR) {
-                text = await extractFromImage(currentFile);
-                showToast('تصویر سے متن نکال لیا گیا', 'success');
-            } else if (isText) {
-                text = await extractFromTextFile(currentFile);
-                showToast('ٹیکسٹ فائل لوڈ ہو گئی', 'success');
-            } else if (isImage && !useOCR) {
-                showToast('تصویر کے لیے OCR موڈ آن کریں', 'warning');
-                return;
+        } else {
+            // Pasted text
+            const pasteText = document.getElementById('pasteText').value;
+            finalText = pasteText;
+            
+            if (currentMethod === 'enhanced') {
+                if (progressText) progressText.innerText = 'اعلیٰ: متن کو بہتر کیا جا رہا ہے...';
+                finalText = enhanceUrduText(finalText);
+                usedMethod = 'enhanced';
+            } else if (currentMethod === 'ai') {
+                if (progressText) progressText.innerText = 'AI: متن کو بہتر کیا جا رہا ہے...';
+                finalText = await repairTextWithGrokAPI(finalText);
+                usedMethod = 'ai';
             } else {
-                showToast('اس فائل کی قسم کے لیے مناسب آپشن منتخب کریں', 'warning');
-                return;
+                usedMethod = currentMethod;
             }
         }
         
-        if (batchFiles.length > 0) {
-            text = await processBatchFiles();
+        if (!finalText) {
+            throw new Error('کوئی متن نہیں ملا');
         }
         
-        extractedText = text;
-        displayResult(text);
-        showToast('کنورژن مکمل ہو گیا!', 'success');
-        saveToHistory(currentFile ? currentFile.name : 'Pasted Text', text);
-        updateTodayUsage();
+        extractedText = finalText;
+        
+        // Update result display
+        const resultTextarea = document.getElementById('resultText');
+        const resultSection = document.getElementById('resultSection');
+        const usedMethodBadge = document.getElementById('usedMethodBadge');
+        
+        if (resultTextarea) resultTextarea.value = finalText;
+        if (resultSection) resultSection.style.display = 'block';
+        if (usedMethodBadge) {
+            const methodNames = { standard: 'معیاری', smart: 'سمارٹ', enhanced: 'اعلیٰ', ai: 'AI (Grok)' };
+            usedMethodBadge.innerText = methodNames[usedMethod] || usedMethod;
+        }
+        
+        // Update stats
+        const words = finalText.trim().split(/\s+/).length;
+        const chars = finalText.length;
+        const elapsed = ((Date.now() - conversionStartTime) / 1000).toFixed(1);
+        
+        const wordCountEl = document.getElementById('wordCount');
+        const charCountEl = document.getElementById('charCount');
+        const conversionTimeEl = document.getElementById('conversionTime');
+        
+        if (wordCountEl) wordCountEl.innerText = words;
+        if (charCountEl) charCountEl.innerText = chars;
+        if (conversionTimeEl) conversionTimeEl.innerText = elapsed;
+        
+        // Complete progress
+        if (progressFill) progressFill.style.width = '100%';
+        if (progressPercent) progressPercent.innerText = '100%';
+        if (progressText) progressText.innerText = 'کنورژن مکمل!';
+        
+        setTimeout(() => {
+            if (progressSection) progressSection.style.display = 'none';
+        }, 1500);
+        
+        // Increment usage in database
+        await incrementUsageInDB();
+        
+        // Auto-save to history
+        saveToHistory();
+        
+        showToast(`کنورژن کامیاب! ${getMethodName(usedMethod)} طریقہ استعمال ہوا`, 'success');
         
     } catch (error) {
         console.error('Conversion error:', error);
-        showToast('کنورژن میں خرابی: ' + error.message, 'error');
-    } finally {
-        convertBtn.disabled = false;
-        convertBtn.innerHTML = '<i class="fas fa-exchange-alt"></i> تبدیل کریں';
-        conversionStartTime = null;
+        showToast('کنورژن ناکام: ' + error.message, 'error');
+        if (progressSection) progressSection.style.display = 'none';
     }
 }
 
-async function processBatchFiles() {
-    let combinedText = '';
-    for (let i = 0; i < batchFiles.length; i++) {
-        const file = batchFiles[i];
-        const percent = Math.round((i / batchFiles.length) * 100);
-        updateProgress(percent, `فائل ${i+1}/${batchFiles.length} پروسیس ہو رہی ہے: ${file.name}`);
-        
-        const isPDF = file.type === 'application/pdf';
-        const isImage = file.type.match('image.*');
-        
-        if (isPDF) {
-            const text = await extractFromPDF(file);
-            combinedText += `\n\n=== ${file.name} ===\n\n${text}`;
-        } else if (isImage) {
-            const text = await extractFromImage(file);
-            combinedText += `\n\n=== ${file.name} ===\n\n${text}`;
-        }
-    }
-    return combinedText;
-}
-
-function displayResult(text) {
-    const resultSection = document.getElementById('resultSection');
-    const resultText = document.getElementById('resultText');
-    
-    resultText.value = text;
-    resultSection.style.display = 'block';
-    updateResultStats(text);
-    resultSection.scrollIntoView({ behavior: 'smooth' });
+function getMethodName(method) {
+    const names = { standard: 'معیاری', smart: 'سمارٹ', enhanced: 'اعلیٰ', ai: 'AI' };
+    return names[method] || method;
 }
 
 // ============================================
-// FILE ANALYSIS (Graphical)
+// HISTORY FUNCTIONS
 // ============================================
-
-async function analyzeFile(file) {
-    const analysisSection = document.getElementById('analysisSection');
-    analysisSection.style.display = 'block';
+function saveToHistory() {
+    if (!extractedText) return;
     
-    const fileType = file.type.split('/').pop().toUpperCase();
-    const fileSize = formatFileSize(file.size);
-    
-    let typeScore = 0;
-    let sizeScore = 0;
-    let pagesScore = 0;
-    let qualityScore = 0;
-    let formatScore = 0;
-    
-    document.getElementById('analysisFileType').textContent = fileType;
-    document.getElementById('analysisFileSize').textContent = fileSize;
-    
-    if (fileType === 'PDF') {
-        typeScore = 95;
-        qualityScore = 90;
-        formatScore = 85;
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            const pages = pdf.numPages;
-            document.getElementById('analysisPages').textContent = pages + ' صفحات';
-            pagesScore = Math.min(100, pages * 3);
-        } catch(e) {
-            document.getElementById('analysisPages').textContent = 'نامعلوم';
-            pagesScore = 50;
-        }
-    } else if (fileType.match(/JPG|JPEG|PNG|GIF|BMP/i)) {
-        typeScore = 80;
-        qualityScore = 70;
-        formatScore = 50;
-        document.getElementById('analysisPages').textContent = '1 تصویر';
-        pagesScore = 30;
-    } else {
-        typeScore = 75;
-        qualityScore = 85;
-        formatScore = 60;
-        document.getElementById('analysisPages').textContent = 'دستاویز';
-        pagesScore = 70;
-    }
-    
-    if (file.size < 1024 * 1024) sizeScore = 100;
-    else if (file.size < 5 * 1024 * 1024) sizeScore = 80;
-    else if (file.size < 10 * 1024 * 1024) sizeScore = 60;
-    else sizeScore = 40;
-    
-    document.getElementById('analysisQuality').textContent = qualityScore > 80 ? 'بہترین' : qualityScore > 60 ? 'اچھا' : 'درمیانہ';
-    document.getElementById('analysisFormatting').textContent = formatScore > 80 ? 'مکمل' : formatScore > 60 ? 'جزوی' : 'بنیادی';
-    
-    animateProgress('typeProgress', typeScore);
-    animateProgress('sizeProgress', sizeScore);
-    animateProgress('pagesProgress', pagesScore);
-    animateProgress('qualityProgress', qualityScore);
-    animateProgress('formatProgress', formatScore);
-    
-    const recommendation = document.getElementById('analysisRecommendation');
-    if (recommendation) {
-        if (typeScore > 80) {
-            recommendation.innerHTML = '<i class="fas fa-check-circle"></i> یہ فائل آسانی سے کنورٹ ہو جائے گی۔ فارمیٹنگ محفوظ رکھنے کا آپشن آن کریں۔';
-        } else {
-            recommendation.innerHTML = '<i class="fas fa-info-circle"></i> اس فائل کے لیے OCR موڈ استعمال کرنے کی تجویز ہے۔';
-        }
-    }
-}
-
-function animateProgress(elementId, width) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        setTimeout(() => { element.style.width = width + '%'; }, 100);
-    }
-}
-
-// ============================================
-// API CALLS (TiDB + Vercel)
-// ============================================
-
-async function incrementUsage() {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/increment-usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: CONFIG.TOOL_SLUG, user_id: userId })
-        });
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('totalUsage').textContent = data.total_usage || 0;
-            document.getElementById('floatingUsage').textContent = data.total_usage || 0;
-        }
-        return data;
-    } catch (error) {
-        console.error('Usage error:', error);
-        return null;
-    }
-}
-
-async function getUsageStats() {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/usage?tool_slug=${CONFIG.TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('totalUsage').textContent = data.count || 0;
-        }
-    } catch (error) {
-        console.error('Get usage error:', error);
-    }
-}
-
-async function getGlobalStats() {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/global-stats`);
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('totalSharesCount').textContent = data.totalShares || 0;
-        }
-    } catch (error) {
-        console.error('Global stats error:', error);
-    }
-}
-
-async function addReaction(emoji, reactionName) {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/add-reaction`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tool_slug: CONFIG.TOOL_SLUG,
-                emoji: emoji,
-                reaction_type: reactionName,
-                user_id: userId
-            })
-        });
-        const data = await response.json();
-        if (data.success) {
-            showToast('ری ایکشن شامل کر دیا گیا!', 'success');
-            loadReactions();
-        } else if (data.already_reacted) {
-            showToast('آپ پہلے ہی ری ایکشن دے چکے ہیں', 'warning');
-        }
-        return data;
-    } catch (error) {
-        console.error('Reaction error:', error);
-        return null;
-    }
-}
-
-async function loadReactions() {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.success && data.reactions) {
-            CONFIG.EMOJIS.forEach(e => {
-                const count = data.reactions[e.name] || 0;
-                const span = document.getElementById(`${e.name}Count`);
-                if (span) span.textContent = count;
-            });
-            const total = Object.values(data.reactions).reduce((a, b) => a + b, 0);
-            document.getElementById('totalReactions').textContent = total;
-        }
-    } catch (error) {
-        console.error('Load reactions error:', error);
-    }
-}
-
-async function addShare(platform) {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/add-share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tool_slug: CONFIG.TOOL_SLUG,
-                platform: platform,
-                user_id: userId
-            })
-        });
-        if (response.ok) {
-            showToast('شیئر کر دیا گیا!', 'success');
-            getGlobalStats();
-        }
-        return response;
-    } catch (error) {
-        console.error('Share error:', error);
-        return null;
-    }
-}
-
-// ============================================
-// HISTORY MANAGEMENT
-// ============================================
-
-function saveToHistory(filename, content) {
-    let history = JSON.parse(localStorage.getItem('conversion_history') || '[]');
-    history.unshift({
+    const historyItem = {
         id: Date.now(),
-        filename: filename,
-        preview: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-        timestamp: new Date().toISOString()
-    });
-    if (history.length > 50) history.pop();
-    localStorage.setItem('conversion_history', JSON.stringify(history));
+        text: extractedText.substring(0, 200),
+        fullText: extractedText,
+        method: currentMethod,
+        timestamp: new Date().toISOString(),
+        wordCount: extractedText.split(/\s+/).length
+    };
+    
+    conversionHistory.unshift(historyItem);
+    if (conversionHistory.length > 20) conversionHistory.pop();
+    
+    saveLocalHistory();
     displayHistory();
+    showToast('ہسٹری میں محفوظ کر لیا گیا', 'success');
 }
 
 function displayHistory() {
     const historyList = document.getElementById('historyList');
-    const history = JSON.parse(localStorage.getItem('conversion_history') || '[]');
+    const historySection = document.getElementById('historySection');
     
-    if (history.length === 0) {
-        if (historyList) historyList.innerHTML = '<div class="empty-history"><i class="fas fa-clock"></i><p>کوئی ہسٹری نہیں</p></div>';
+    if (!historyList) return;
+    
+    if (conversionHistory.length === 0) {
+        historyList.innerHTML = '<div class="empty-history"><i class="fas fa-clock"></i><p>کوئی ہسٹری نہیں</p></div>';
         return;
     }
     
-    if (historyList) {
-        historyList.innerHTML = history.map(item => `
-            <div class="history-item">
-                <div class="history-info">
-                    <div class="history-filename">${item.filename}</div>
-                    <div class="history-date">${new Date(item.timestamp).toLocaleString()}</div>
-                </div>
-                <div class="history-actions">
-                    <button onclick="deleteHistoryItem(${item.id})"><i class="fas fa-trash"></i></button>
-                </div>
+    historyList.innerHTML = conversionHistory.map(item => `
+        <div class="history-item">
+            <div class="history-info">
+                <span class="history-filename">${getMethodName(item.method)} طریقہ - ${item.wordCount} الفاظ</span>
+                <small class="history-date">${new Date(item.timestamp).toLocaleString()}</small>
+                <small>${item.text.substring(0, 80)}...</small>
             </div>
-        `).join('');
-    }
+            <div class="history-actions">
+                <button onclick="loadHistoryItem(${item.id})" title="لوڈ کریں"><i class="fas fa-folder-open"></i></button>
+                <button onclick="deleteHistoryItem(${item.id})" title="ڈیلیٹ کریں"><i class="fas fa-trash-alt"></i></button>
+            </div>
+        </div>
+    `).join('');
 }
 
-function deleteHistoryItem(id) {
-    let history = JSON.parse(localStorage.getItem('conversion_history') || '[]');
-    history = history.filter(h => h.id !== id);
-    localStorage.setItem('conversion_history', JSON.stringify(history));
+window.loadHistoryItem = function(id) {
+    const item = conversionHistory.find(i => i.id === id);
+    if (item) {
+        extractedText = item.fullText;
+        const resultText = document.getElementById('resultText');
+        const resultSection = document.getElementById('resultSection');
+        if (resultText) resultText.value = extractedText;
+        if (resultSection) resultSection.style.display = 'block';
+        
+        const words = extractedText.trim().split(/\s+/).length;
+        const chars = extractedText.length;
+        if (document.getElementById('wordCount')) document.getElementById('wordCount').innerText = words;
+        if (document.getElementById('charCount')) document.getElementById('charCount').innerText = chars;
+        
+        showToast('ہسٹری سے لوڈ کر لیا گیا', 'success');
+    }
+};
+
+window.deleteHistoryItem = function(id) {
+    conversionHistory = conversionHistory.filter(i => i.id !== id);
+    saveLocalHistory();
     displayHistory();
-    showToast('ہسٹری ڈیلیٹ ہو گئی', 'success');
-}
+    showToast('ہٹا دیا گیا', 'success');
+};
 
 function clearAllHistory() {
     if (confirm('کیا آپ تمام ہسٹری ڈیلیٹ کرنا چاہتے ہیں؟')) {
-        localStorage.removeItem('conversion_history');
+        conversionHistory = [];
+        saveLocalHistory();
         displayHistory();
-        showToast('تمام ہسٹری ڈیلیٹ ہو گئی', 'success');
+        showToast('تمام ہسٹری ڈیلیٹ کر دی گئی', 'success');
     }
-}
-
-function updateTodayUsage() {
-    let today = localStorage.getItem('todayUsage');
-    let todayCount = parseInt(today) || 0;
-    todayCount++;
-    localStorage.setItem('todayUsage', todayCount);
-    document.getElementById('todayUsageCount').textContent = todayCount;
-}
-
-function loadTodayUsage() {
-    const today = localStorage.getItem('todayUsage') || '0';
-    document.getElementById('todayUsageCount').textContent = today;
 }
 
 // ============================================
 // RESULT ACTIONS
 // ============================================
-
-function copyToClipboard() {
+function copyResult() {
     if (!extractedText) {
         showToast('پہلے کچھ کنورٹ کریں', 'warning');
         return;
     }
     navigator.clipboard.writeText(extractedText);
-    showToast('متن کاپی ہو گیا!', 'success');
+    showToast('متن کاپی کر لیا گیا', 'success');
 }
 
 function downloadResult() {
@@ -685,28 +665,37 @@ function downloadResult() {
         return;
     }
     
-    const format = currentOutputFormat;
-    let blob;
-    let filename = `converted_${Date.now()}`;
+    let blob, filename;
+    const format = currentFormat;
     
-    switch(format) {
-        case 'docx':
-        case 'doc':
-            const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>Urdu Document</title><style>body{font-family:'Noto Nastaliq Urdu','Nastaleeq';direction:rtl;padding:20px;white-space:pre-wrap;}</style></head><body>${extractedText.replace(/\n/g, '<br>')}</body></html>`;
-            blob = new Blob([html], { type: 'application/msword' });
-            filename += '.doc';
-            break;
-        case 'txt':
-            blob = new Blob([extractedText], { type: 'text/plain' });
-            filename += '.txt';
-            break;
-        default:
-            blob = new Blob([extractedText], { type: 'text/plain' });
-            filename += '.txt';
+    if (format === 'txt') {
+        blob = new Blob([extractedText], { type: 'text/plain' });
+        filename = `converted_${Date.now()}.txt`;
+    } else if (format === 'docx') {
+        const htmlContent = `<!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>Converted Document</title></head>
+        <body dir="rtl" style="font-family: 'Noto Nastaliq Urdu', serif; font-size: 14pt;">
+        <pre style="white-space: pre-wrap;">${extractedText}</pre>
+        </body>
+        </html>`;
+        blob = new Blob([htmlContent], { type: 'application/msword' });
+        filename = `converted_${Date.now()}.doc`;
+    } else {
+        blob = new Blob([extractedText], { type: 'text/plain' });
+        filename = `converted_${Date.now()}.txt`;
     }
     
-    saveAs(blob, filename);
-    showToast('فائل ڈاؤن لوڈ ہو رہی ہے', 'success');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast(`${format.toUpperCase()} فائل ڈاؤن لوڈ ہو رہی ہے`, 'success');
 }
 
 function printResult() {
@@ -714,261 +703,597 @@ function printResult() {
         showToast('پہلے کچھ کنورٹ کریں', 'warning');
         return;
     }
+    
     const win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>Print</title><style>body{font-family:'Noto Nastaliq Urdu';direction:rtl;padding:20px;white-space:pre-wrap;}</style></head><body>${extractedText.replace(/\n/g, '<br>')}</body></html>`);
+    win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>Converted Document</title>
+        <style>body{font-family:'Noto Nastaliq Urdu',serif;direction:rtl;padding:20px}pre{white-space:pre-wrap}</style>
+        </head>
+        <body><pre>${extractedText}</pre></body>
+        </html>
+    `);
     win.document.close();
     win.print();
 }
 
 // ============================================
-// UI FUNCTIONS
+// AI FEATURES
 // ============================================
-
-function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
-
-function goHome() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    currentFile = null;
-    extractedText = '';
-    document.getElementById('resultSection').style.display = 'none';
-    document.getElementById('analysisSection').style.display = 'none';
-    document.getElementById('pasteText').value = '';
-    showToast('ہوم پیج پر واپس آ گئے', 'success');
+async function callAIFeature(feature) {
+    const text = extractedText || document.getElementById('resultText')?.value;
+    
+    if (!text) {
+        showToast('پہلے کچھ متن کنورٹ کریں', 'warning');
+        return;
+    }
+    
+    const aiSection = document.getElementById('aiResultSection');
+    const aiContent = document.getElementById('aiResultContent');
+    
+    if (aiSection) aiSection.style.display = 'block';
+    if (aiContent) {
+        aiContent.innerHTML = '<div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> AI تجزیہ کر رہا ہے...</div>';
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.API_BASE}/ai-feature`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                feature: feature,
+                text: text.substring(0, 4000),
+                tool_slug: CONFIG.TOOL_SLUG
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.result) {
+            if (aiContent) {
+                aiContent.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.6;">${data.result.replace(/\n/g, '<br>')}</div>`;
+            }
+            showToast(`AI ${getAIFeatureName(feature)} مکمل`, 'success');
+        } else {
+            // Local fallback
+            let fallbackResult = getLocalAIFallback(feature, text);
+            if (aiContent) {
+                aiContent.innerHTML = `<div style="white-space: pre-wrap;">${fallbackResult}</div><div style="margin-top:10px;font-size:11px;color:#f59e0b;">⚠️ API دستیاب نہیں، مقامی پروسیسنگ</div>`;
+            }
+        }
+    } catch (error) {
+        console.error('AI feature error:', error);
+        const fallbackResult = getLocalAIFallback(feature, text);
+        if (aiContent) {
+            aiContent.innerHTML = `<div style="white-space: pre-wrap;">${fallbackResult}</div><div style="margin-top:10px;font-size:11px;color:#ef4444;">⚠️ انٹرنیٹ کنکشن کی خرابی</div>`;
+        }
+    }
 }
 
-function goBack() { history.back(); }
+function getAIFeatureName(feature) {
+    const names = { summarize: 'خلاصہ', translate: 'ترجمہ', grammar: 'گرامر چیک', tts: 'آواز', enhance: 'بہتر بنانا' };
+    return names[feature] || feature;
+}
+
+function getLocalAIFallback(feature, text) {
+    switch(feature) {
+        case 'summarize':
+            const sentences = text.split(/[۔!?]/);
+            return sentences.slice(0, Math.ceil(sentences.length / 3)).join('۔') + '۔';
+        case 'enhance':
+            return enhanceUrduText(text);
+        case 'tts':
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ur-PK';
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+                return 'آواز چل رہی ہے...';
+            }
+            return 'آواز کی سہولت دستیاب نہیں';
+        default:
+            return 'یہ فیچر API کے ذریعے دستیاب ہے۔ براہ کرم انٹرنیٹ کنکشن چیک کریں۔';
+    }
+}
+
+function applyAIResult() {
+    const aiContent = document.getElementById('aiResultContent');
+    const resultText = document.getElementById('resultText');
+    
+    if (aiContent && resultText) {
+        const content = aiContent.innerText;
+        if (content && !content.includes('AI تجزیہ کر رہا ہے')) {
+            resultText.value = content;
+            extractedText = content;
+            updateResultStats(content);
+            showToast('AI نتیجہ متن پر لگا دیا گیا', 'success');
+            document.getElementById('aiResultSection').style.display = 'none';
+        }
+    }
+}
+
+function updateResultStats(text) {
+    const words = text.trim().split(/\s+/).length;
+    const chars = text.length;
+    if (document.getElementById('wordCount')) document.getElementById('wordCount').innerText = words;
+    if (document.getElementById('charCount')) document.getElementById('charCount').innerText = chars;
+}
+
+// ============================================
+// SHARING
+// ============================================
+function shareContent(platform) {
+    const url = window.location.href;
+    let shareLink = '';
+    
+    switch(platform) {
+        case 'facebook':
+            shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            break;
+        case 'twitter':
+            shareLink = `https://twitter.com/intent/tweet?text=اردو%20کنورٹر%20-%20مکمل%20مفت%20اردو%20پی%20ڈی%20ایف%20کنورٹر&url=${encodeURIComponent(url)}`;
+            break;
+        case 'whatsapp':
+            shareLink = `https://wa.me/?text=${encodeURIComponent('اردو کنورٹر - ' + url)}`;
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(url);
+            showToast('لنک کاپی کر لیا گیا', 'success');
+            addShareToDB(platform);
+            return;
+        default:
+            return;
+    }
+    
+    if (shareLink) {
+        window.open(shareLink, '_blank', 'width=600,height=400');
+        addShareToDB(platform);
+        showToast('شیئر کیا جا رہا ہے', 'success');
+    }
+}
+
+// ============================================
+// FILE HANDLING
+// ============================================
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+        currentFile = file;
+        const fileDetails = document.getElementById('fileDetails');
+        if (fileDetails) {
+            fileDetails.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+            fileDetails.style.color = '#10b981';
+        }
+        showToast(`فائل منتخب: ${file.name}`, 'success');
+    } else if (file) {
+        showToast('براہ کرم PDF فائل منتخب کریں', 'error');
+    }
+}
+
+function handleDrop(event) {
+    event.preventDefault();
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) dropZone.classList.remove('drag-over');
+    
+    const file = event.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') {
+        currentFile = file;
+        const fileDetails = document.getElementById('fileDetails');
+        if (fileDetails) {
+            fileDetails.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+            fileDetails.style.color = '#10b981';
+        }
+        showToast(`فائل ڈراپ: ${file.name}`, 'success');
+    } else {
+        showToast('براہ کرم PDF فائل ڈراپ کریں', 'warning');
+    }
+}
+
+// ============================================
+// UI FUNCTIONS
+// ============================================
+function selectMethod(method) {
+    currentMethod = method;
+    
+    const methods = ['standard', 'smart', 'enhanced', 'ai'];
+    methods.forEach(m => {
+        const card = document.getElementById(`method${m.charAt(0).toUpperCase() + m.slice(1)}`);
+        if (card) {
+            card.classList.remove('selected');
+            card.style.border = '2px solid transparent';
+        }
+    });
+    
+    const selectedCard = document.getElementById(`method${method.charAt(0).toUpperCase() + method.slice(1)}`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+        selectedCard.style.border = '2px solid #6366f1';
+        selectedCard.style.boxShadow = '0 0 20px rgba(99,102,241,0.3)';
+    }
+    
+    const methodNames = { standard: 'معیاری', smart: 'سمارٹ', enhanced: 'اعلیٰ', ai: 'AI' };
+    showToast(`${methodNames[method]} طریقہ منتخب کر لیا گیا`, 'success');
+}
+
+function selectFormat(format) {
+    currentFormat = format;
+    showToast(`${format.toUpperCase()} فارمیٹ منتخب`, 'success');
+}
 
 function toggleDarkMode() {
     document.body.classList.toggle('dark');
-    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+    const darkToggle = document.getElementById('darkToggle');
+    if (darkToggle) {
+        darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
 }
 
 function loadDarkMode() {
-    if (localStorage.getItem('darkMode') === 'true') {
+    if (localStorage.getItem('darkMode') === 'enabled') {
         document.body.classList.add('dark');
+        const darkToggle = document.getElementById('darkToggle');
+        if (darkToggle) darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
-function loadSampleFile() {
-    const sampleText = `آزادی کا مطلب یہ نہیں کہ انسان اپنی خواہشات کا غلام بن جائے۔\nبلکہ آزادی کا صحیح مطلب اپنی خواہشات پر قابو پانا ہے۔\n\nتعلیم انسان کو وہ روشنی دیتی ہے جو اندھیروں میں راستہ دکھاتی ہے۔\nتعلیم یافتہ معاشرہ ہی ترقی کی راہ پر گامزن ہوتا ہے۔`;
-    document.getElementById('pasteText').value = sampleText;
-    document.querySelector('.tab-btn[data-tab="paste"]').click();
-    showToast('نمونہ متن لوڈ ہو گیا', 'success');
+function showDemo() {
+    const demoText = `آزادی کا مطلب یہ نہیں کہ انسان اپنی خواہشات کا غلام بن جائے۔
+
+بلکہ آزادی کا صحیح مطلب اپنی خواہشات پر قابو پانا ہے۔
+
+تعلیم وہ ہتھیار ہے جو دنیا کو بدل سکتا ہے۔
+
+علم ہی وہ نور ہے جو اندھیروں کو روشن کرتا ہے۔`;
+    
+    const pasteText = document.getElementById('pasteText');
+    if (pasteText) {
+        pasteText.value = demoText;
+        updatePasteStats();
+        showToast('نمونہ متن لوڈ کر دیا گیا', 'success');
+        
+        // Switch to paste tab
+        const pasteTab = document.querySelector('.tab-btn[data-tab="paste"]');
+        if (pasteTab) pasteTab.click();
+    }
 }
 
 function clearAll() {
-    if (confirm('کیا آپ تمام ڈیٹا صاف کرنا چاہتے ہیں؟')) {
-        document.getElementById('pasteText').value = '';
-        currentFile = null;
-        extractedText = '';
-        document.getElementById('resultSection').style.display = 'none';
-        document.getElementById('analysisSection').style.display = 'none';
-        showToast('تمام ڈیٹا صاف ہو گیا', 'success');
+    extractedText = '';
+    currentFile = null;
+    
+    const resultText = document.getElementById('resultText');
+    const resultSection = document.getElementById('resultSection');
+    const pasteText = document.getElementById('pasteText');
+    const fileDetails = document.getElementById('fileDetails');
+    
+    if (resultText) resultText.value = '';
+    if (resultSection) resultSection.style.display = 'none';
+    if (pasteText) pasteText.value = '';
+    if (fileDetails) {
+        fileDetails.innerHTML = 'کوئی فائل منتخب نہیں';
+        fileDetails.style.color = '#64748b';
+    }
+    
+    updatePasteStats();
+    showToast('سب کچھ صاف کر دیا گیا', 'success');
+}
+
+function updatePasteStats() {
+    const pasteText = document.getElementById('pasteText');
+    if (pasteText) {
+        const text = pasteText.value;
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const chars = text.length;
+        
+        const wordSpan = document.getElementById('pasteWordCount');
+        const charSpan = document.getElementById('pasteCharCount');
+        if (wordSpan) wordSpan.innerText = words;
+        if (charSpan) charSpan.innerText = chars;
     }
 }
 
-// ============================================
-// SOCIAL SHARING
-// ============================================
+function toggleHistory() {
+    const historySection = document.getElementById('historySection');
+    const dashboardBtn = document.getElementById('dashboardBtn');
+    
+    if (historySection) {
+        if (historySection.style.display === 'none') {
+            displayHistory();
+            historySection.style.display = 'block';
+            if (dashboardBtn) dashboardBtn.innerHTML = '<i class="fas fa-times"></i> بند کریں';
+        } else {
+            historySection.style.display = 'none';
+            if (dashboardBtn) dashboardBtn.innerHTML = '<i class="fas fa-chart-simple"></i> ڈیش بورڈ';
+        }
+    }
+}
 
-function shareOnFacebook() {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
-    addShare('facebook');
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-function shareOnTwitter() {
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('اردو پی ڈی ایف سے ورڈ کنورٹر')}&url=${encodeURIComponent(window.location.href)}`, '_blank');
-    addShare('twitter');
+
+function scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
-function shareOnWhatsApp() {
-    window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank');
-    addShare('whatsapp');
-}
-function shareOnLinkedIn() {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
-    addShare('linkedin');
-}
-function shareOnTelegram() {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}`, '_blank');
-    addShare('telegram');
-}
-function shareByEmail() {
-    window.location.href = `mailto:?subject=${encodeURIComponent('اردو کنورٹر')}&body=${encodeURIComponent(window.location.href)}`;
-    addShare('email');
-}
-function copyPageUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('لنک کاپی ہو گیا!', 'success');
-    addShare('copy');
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = '';
+    if (type === 'success') icon = '✓ ';
+    else if (type === 'error') icon = '✗ ';
+    else if (type === 'warning') icon = '⚠ ';
+    else icon = 'ℹ ';
+    
+    toast.innerHTML = icon + message;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 }
 
 // ============================================
 // BATCH CONVERSION
 // ============================================
+let batchFiles = [];
 
-function handleBatchFiles(files) {
-    batchFiles = Array.from(files).slice(0, CONFIG.MAX_BATCH_FILES);
-    const batchList = document.getElementById('batchList');
-    const batchConvertBtn = document.getElementById('batchConvertBtn');
+function handleBatchFiles(e) {
+    batchFiles = Array.from(e.target.files);
+    displayBatchList();
+}
+
+function displayBatchList() {
+    const container = document.getElementById('batchList');
+    if (!container) return;
     
     if (batchFiles.length === 0) {
-        if (batchList) batchList.innerHTML = '';
-        if (batchConvertBtn) batchConvertBtn.style.display = 'none';
+        container.innerHTML = '';
         return;
     }
     
-    if (batchList) {
-        batchList.innerHTML = batchFiles.map((file, index) => `
-            <div class="batch-item">
-                <span>${file.name}</span>
-                <button onclick="batchFiles.splice(${index},1); handleBatchFiles(batchFiles)"><i class="fas fa-times"></i></button>
-            </div>
-        `).join('');
-    }
+    container.innerHTML = batchFiles.map((file, i) => `
+        <div class="batch-item">
+            <span><i class="fas fa-file-pdf"></i> ${file.name}</span>
+            <button class="batch-item-remove" onclick="removeBatchFile(${i})"><i class="fas fa-trash"></i></button>
+        </div>
+    `).join('');
+    
+    const batchConvertBtn = document.getElementById('batchConvertBtn');
     if (batchConvertBtn) batchConvertBtn.style.display = 'block';
 }
 
-async function startBatchConversion() {
+window.removeBatchFile = function(index) {
+    batchFiles.splice(index, 1);
+    displayBatchList();
     if (batchFiles.length === 0) {
-        showToast('کوئی فائل منتخب نہیں', 'warning');
-        return;
+        const batchConvertBtn = document.getElementById('batchConvertBtn');
+        if (batchConvertBtn) batchConvertBtn.style.display = 'none';
     }
-    await startConversion();
+};
+
+async function startBatchConversion() {
+    if (batchFiles.length === 0) return;
+    
+    showToast(`${batchFiles.length} فائلیں کنورٹ ہو رہی ہیں...`, 'info');
+    
+    const progressSection = document.getElementById('progressSection');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressSection) progressSection.style.display = 'block';
+    
+    let allText = '';
+    
+    for (let i = 0; i < batchFiles.length; i++) {
+        const percent = (i / batchFiles.length) * 100;
+        if (progressFill) progressFill.style.width = percent + '%';
+        if (progressPercent) progressPercent.innerText = Math.floor(percent) + '%';
+        if (progressText) progressText.innerText = `فائل ${i+1}/${batchFiles.length}: ${batchFiles[i].name}`;
+        
+        try {
+            const text = await extractStandard(batchFiles[i]);
+            allText += `=== ${batchFiles[i].name} ===\n${enhanceUrduText(text)}\n\n`;
+        } catch(e) {
+            allText += `=== ${batchFiles[i].name} ===\n[کنورژن ناکام]\n\n`;
+        }
+    }
+    
+    extractedText = allText;
+    
+    const resultTextarea = document.getElementById('resultText');
+    const resultSection = document.getElementById('resultSection');
+    
+    if (resultTextarea) resultTextarea.value = extractedText;
+    if (resultSection) resultSection.style.display = 'block';
+    
+    if (progressFill) progressFill.style.width = '100%';
+    if (progressPercent) progressPercent.innerText = '100%';
+    if (progressText) progressText.innerText = 'بیچ کنورژن مکمل!';
+    
+    setTimeout(() => {
+        if (progressSection) progressSection.style.display = 'none';
+    }, 1500);
+    
+    await incrementUsageInDB();
+    showToast(`${batchFiles.length} فائلیں کنورٹ ہو گئیں`, 'success');
 }
 
 // ============================================
-// EVENT LISTENERS & INITIALIZATION
+// URL FETCH
 // ============================================
-
-function init() {
-    getUsageStats();
-    getGlobalStats();
-    loadReactions();
-    loadDarkMode();
-    loadTodayUsage();
-    displayHistory();
+async function fetchUrlContent() {
+    const urlInput = document.getElementById('urlInput');
+    const url = urlInput ? urlInput.value : '';
     
-    // Tab switching
+    if (!url) {
+        showToast('براہ کرم URL درج کریں', 'warning');
+        return;
+    }
+    
+    showToast('URL سے فائل لائی جا رہی ہے...', 'info');
+    
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const fileName = url.split('/').pop() || 'file.pdf';
+        currentFile = new File([blob], fileName, { type: blob.type });
+        
+        const fileDetails = document.getElementById('fileDetails');
+        if (fileDetails) {
+            fileDetails.innerHTML = `<i class="fas fa-file-pdf"></i> ${fileName} (${(blob.size / 1024).toFixed(0)} KB)`;
+            fileDetails.style.color = '#10b981';
+        }
+        
+        showToast('فائل ڈاؤن لوڈ ہو گئی', 'success');
+    } catch(e) {
+        console.error('Fetch error:', e);
+        showToast('URL سے فائل نہیں لا سکے', 'error');
+    }
+}
+
+// ============================================
+// EVENT LISTENERS SETUP
+// ============================================
+function setupEventListeners() {
+    // Navigation
+    document.getElementById('scrollToConverter')?.addEventListener('click', () => {
+        document.querySelector('.converter-card')?.scrollIntoView({ behavior: 'smooth' });
+    });
+    document.getElementById('demoBtn')?.addEventListener('click', showDemo);
+    document.getElementById('compareBtn')?.addEventListener('click', () => showToast('طریقوں کا موازنہ: معیاری (تیز)، سمارٹ (درست)، اعلیٰ (قواعد)، AI (ذہین)', 'info'));
+    document.getElementById('homeBtn')?.addEventListener('click', scrollToTop);
+    document.getElementById('backBtn')?.addEventListener('click', () => window.history.back());
+    document.getElementById('dashboardBtn')?.addEventListener('click', toggleHistory);
+    document.getElementById('darkToggle')?.addEventListener('click', toggleDarkMode);
+    
+    // File upload
+    document.getElementById('browseBtn')?.addEventListener('click', () => document.getElementById('fileInput')?.click());
+    document.getElementById('fileInput')?.addEventListener('change', handleFileSelect);
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', handleDrop);
+    }
+    
+    // Paste
+    document.getElementById('clearPasteBtn')?.addEventListener('click', () => {
+        const pasteText = document.getElementById('pasteText');
+        if (pasteText) pasteText.value = '';
+        updatePasteStats();
+        showToast('متن صاف', 'info');
+    });
+    document.getElementById('pasteText')?.addEventListener('input', updatePasteStats);
+    
+    // URL
+    document.getElementById('fetchBtn')?.addEventListener('click', fetchUrlContent);
+    
+    // Batch
+    document.getElementById('batchSelectBtn')?.addEventListener('click', () => document.getElementById('batchFileInput')?.click());
+    document.getElementById('batchFileInput')?.addEventListener('change', handleBatchFiles);
+    document.getElementById('batchConvertBtn')?.addEventListener('click', startBatchConversion);
+    
+    // Methods
+    document.getElementById('methodStandard')?.addEventListener('click', () => selectMethod('standard'));
+    document.getElementById('methodSmart')?.addEventListener('click', () => selectMethod('smart'));
+    document.getElementById('methodEnhanced')?.addEventListener('click', () => selectMethod('enhanced'));
+    document.getElementById('methodAI')?.addEventListener('click', () => selectMethod('ai'));
+    
+    // Format
+    document.querySelectorAll('.format-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.format-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectFormat(btn.dataset.format);
+        });
+    });
+    
+    // Convert
+    document.getElementById('convertBtn')?.addEventListener('click', startConversion);
+    
+    // Result actions
+    document.getElementById('copyResultBtn')?.addEventListener('click', copyResult);
+    document.getElementById('downloadResultBtn')?.addEventListener('click', downloadResult);
+    document.getElementById('printResultBtn')?.addEventListener('click', printResult);
+    document.getElementById('saveHistoryBtn')?.addEventListener('click', saveToHistory);
+    
+    // AI features
+    document.getElementById('aiSummarizeBtn')?.addEventListener('click', () => callAIFeature('summarize'));
+    document.getElementById('aiTranslateBtn')?.addEventListener('click', () => callAIFeature('translate'));
+    document.getElementById('aiGrammarBtn')?.addEventListener('click', () => callAIFeature('grammar'));
+    document.getElementById('aiTtsBtn')?.addEventListener('click', () => callAIFeature('tts'));
+    document.getElementById('aiEnhanceBtn')?.addEventListener('click', () => callAIFeature('enhance'));
+    
+    document.getElementById('closeAiResult')?.addEventListener('click', () => {
+        document.getElementById('aiResultSection').style.display = 'none';
+    });
+    document.getElementById('aiCopyBtn')?.addEventListener('click', () => {
+        const content = document.getElementById('aiResultContent')?.innerText;
+        if (content) navigator.clipboard.writeText(content);
+        showToast('کاپی ہو گیا', 'success');
+    });
+    document.getElementById('aiApplyBtn')?.addEventListener('click', applyAIResult);
+    
+    // Reactions
+    document.querySelectorAll('.reaction').forEach(btn => {
+        btn.addEventListener('click', () => {
+            addReactionToDB(btn.dataset.emoji, btn.dataset.type);
+        });
+    });
+    
+    // Sharing
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', () => shareContent(btn.dataset.platform));
+    });
+    
+    // History
+    document.getElementById('clearHistoryBtn')?.addEventListener('click', clearAllHistory);
+    
+    // Quick actions
+    document.querySelectorAll('.quick-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.dataset.action;
+            if (action === 'clear') clearAll();
+            if (action === 'sample') showDemo();
+            if (action === 'history') toggleHistory();
+            if (action === 'export') downloadResult();
+        });
+    });
+    
+    // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-            document.getElementById(`${btn.dataset.tab}Tab`).classList.add('active');
+            document.getElementById(btn.dataset.tab + 'Tab')?.classList.add('active');
         });
     });
     
-    // Format selection
-    document.querySelectorAll('.format-option').forEach(opt => {
-        opt.addEventListener('click', () => {
-            document.querySelectorAll('.format-option').forEach(o => o.classList.remove('active'));
-            opt.classList.add('active');
-            currentOutputFormat = opt.dataset.format;
-        });
-    });
-    
-    // File upload
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const browseBtn = document.getElementById('browseBtn');
-    
-    if (browseBtn) browseBtn.addEventListener('click', () => fileInput.click());
-    if (dropZone) {
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
-        dropZone.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                currentFile = file;
-                document.getElementById('fileName').textContent = file.name;
-                document.getElementById('fileSize').textContent = formatFileSize(file.size);
-                await analyzeFile(file);
-                showToast('فائل اپ لوڈ ہو گئی', 'success');
-            }
-        });
-    }
-    
-    if (fileInput) {
-        fileInput.addEventListener('change', async (e) => {
-            if (e.target.files[0]) {
-                currentFile = e.target.files[0];
-                document.getElementById('fileName').textContent = currentFile.name;
-                document.getElementById('fileSize').textContent = formatFileSize(currentFile.size);
-                await analyzeFile(currentFile);
-                showToast('فائل منتخب کر لی گئی', 'success');
-            }
-        });
-    }
-    
-    // Convert button
-    document.getElementById('convertBtn')?.addEventListener('click', startConversion);
-    
-    // Result actions
-    document.getElementById('copyResultBtn')?.addEventListener('click', copyToClipboard);
-    document.getElementById('downloadResultBtn')?.addEventListener('click', downloadResult);
-    document.getElementById('printResultBtn')?.addEventListener('click', printResult);
-    
-    // Reactions
-    document.querySelectorAll('.reaction').forEach(btn => {
-        btn.addEventListener('click', () => {
-            addReaction(btn.dataset.emoji, btn.dataset.name);
-        });
-    });
-    
-    // Share buttons
-    const shareActions = {
-        facebook: shareOnFacebook, twitter: shareOnTwitter, whatsapp: shareOnWhatsApp,
-        linkedin: shareOnLinkedIn, telegram: shareOnTelegram, email: shareByEmail, copy: copyPageUrl
-    };
-    document.querySelectorAll('.share-btn').forEach(btn => {
-        const platform = btn.dataset.platform;
-        if (shareActions[platform]) btn.addEventListener('click', shareActions[platform]);
-    });
-    
-    // Navigation
-    document.getElementById('homeBtn')?.addEventListener('click', goHome);
-    document.getElementById('backBtn')?.addEventListener('click', goBack);
-    document.getElementById('darkToggle')?.addEventListener('click', toggleDarkMode);
+    // Scroll
     document.getElementById('scrollUp')?.addEventListener('click', scrollToTop);
     document.getElementById('scrollDown')?.addEventListener('click', scrollToBottom);
     
-    // Quick actions
-    document.querySelector('.quick-action[data-action="clear"]')?.addEventListener('click', clearAll);
-    document.querySelector('.quick-action[data-action="sample"]')?.addEventListener('click', loadSampleFile);
+    // Initial UI setup
+    loadDarkMode();
+    updatePasteStats();
     
-    // Clear history
-    document.getElementById('clearHistoryBtn')?.addEventListener('click', clearAllHistory);
-    
-    // Analysis close
-    document.getElementById('analysisClose')?.addEventListener('click', () => {
-        document.getElementById('analysisSection').style.display = 'none';
-    });
-    
-    // Batch upload
-    const batchSelectBtn = document.getElementById('batchSelectBtn');
-    const batchFileInput = document.getElementById('batchFileInput');
-    if (batchSelectBtn && batchFileInput) {
-        batchSelectBtn.addEventListener('click', () => batchFileInput.click());
-        batchFileInput.addEventListener('change', (e) => handleBatchFiles(e.target.files));
-    }
-    document.getElementById('batchConvertBtn')?.addEventListener('click', startBatchConversion);
-    
-    // Clear paste
-    document.getElementById('clearPasteBtn')?.addEventListener('click', () => {
-        document.getElementById('pasteText').value = '';
-        showToast('متن صاف ہو گیا', 'success');
-    });
-    
-    console.log('✅ Urdu Converter v2.1 - Layout Preservation Enabled');
-    console.log('✅ Urdu formatting, spacing, and RTL now preserved');
+    console.log('All event listeners registered');
 }
 
-// Start the app
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+// ============================================
+// EXPORTS FOR GLOBAL ACCESS
+// ============================================
+window.startConversion = startConversion;
+window.loadHistoryItem = loadHistoryItem;
+window.deleteHistoryItem = deleteHistoryItem;
+window.removeBatchFile = removeBatchFile;
