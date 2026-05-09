@@ -509,8 +509,7 @@ function generatePreview() {
         html += `<h3 style="margin-top:30px; color:#6B3FA0; border-right:3px solid #FF7B4A; padding-right:10px">حصہ دوم: انشائیہ سوالات</h3>`;
         subjData.forEach((q) => {
             html += `<div style="margin:20px 0;"><div><strong>${questionNum++}.</strong> ${escapeHtml(q.text)} <span class="marks">(${q.marks} نمبر)</span></div>`;
-           html += `<div class="answer-space"></div>`;
-html += `<div class="answer-space"></div>`;
+            for (let l = 0; l < (q.lines || 4); l++) html += `<div class="answer-space"></div>`;
             html += `</div>`;
         });
     }
