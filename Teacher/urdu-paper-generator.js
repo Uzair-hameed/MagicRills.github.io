@@ -1,7 +1,7 @@
 // ============================================
-// URDU PAPER GENERATOR - PROFESSIONAL V10
-// Cloudflare Worker Integrated | PDF/DOC Fixed
-// Purple + White Theme | Bloom's Taxonomy 5 Levels
+// URDU PAPER GENERATOR - PROFESSIONAL V11
+// PDF/DOC/Print Issues FIXED
+// MCQ Grid preserved in print | No duplicate signature
 // ============================================
 
 const CONFIG = {
@@ -542,7 +542,7 @@ function generateMarkingKey() {
     const allQuestions = [...objData, ...subjData];
     const totalMarks = allQuestions.reduce((a,b)=>a+b.marks,0);
     
-    let html = `<div class="marking-key"><h3>🔑 مارکنگ کلید</h3><table><thead><th>سوال نمبر</th><th>قسم</th><th>بلومز لیول</th><th>مشکل سطح</th><th>نمبر</th><th>تصحیح ہدایات</th></thead><tbody>`;
+    let html = `<div class="marking-key"><h3>🔑 مارکنگ کلید</h3><td><thead><th>سوال نمبر</th><th>قسم</th><th>بلومز لیول</th><th>مشکل سطح</th><th>نمبر</th><th>تصحیح ہدایات</th></thead><tbody>`;
     let qNum = 1;
     objData.forEach(q => {
         let instr = q.type === 'mcq' || q.type === 'scenario-mcq' ? `صحیح جواب پر ${q.marks} نمبر` : (q.type === 'fillblank' ? `درست جواب پر ${q.marks} نمبر` : `صحیح جواب پر ${q.marks} نمبر`);
@@ -550,7 +550,7 @@ function generateMarkingKey() {
     });
     subjData.forEach(q => {
         let instr = q.type === 'short' ? `مواد ${Math.round(q.marks*0.5)}، ترتیب ${Math.round(q.marks*0.3)}، تحریر ${Math.round(q.marks*0.2)}` : (q.type === 'long' ? `تعارف ${Math.round(q.marks*0.2)}، مواد ${Math.round(q.marks*0.5)}، اختتام ${Math.round(q.marks*0.3)}` : `جواب کے معیار کے مطابق نمبر`);
-        html += `<tr><td>${qNum++}<td>${getSubjectiveTypeName(q.type)}</td><td style="background:${getBloomColor(q.bloom)}20">${getBloomName(q.bloom)}</td><td>${getDifficultyName(q.difficulty)}</td><td>${q.marks}</td><td>${instr}</td></tr>`;
+        html += `<tr><td>${qNum++}</td><td>${getSubjectiveTypeName(q.type)}</td><td style="background:${getBloomColor(q.bloom)}20">${getBloomName(q.bloom)}</td><td>${getDifficultyName(q.difficulty)}</td><td>${q.marks}</td><td>${instr}</td></tr>`;
     });
     html += `</tbody></table><p><strong>کل نمبر:</strong> ${totalMarks} | <strong>33% پاس:</strong> ${Math.ceil(totalMarks*0.33)} | <strong>40% پاس:</strong> ${Math.ceil(totalMarks*0.4)} | <strong>50% پاس:</strong> ${Math.ceil(totalMarks*0.5)}</p></div>`;
     currentMarkingKeyHTML = html;
@@ -565,77 +565,314 @@ function downloadMarkingKey() {
     showToast('مارکنگ کلید ڈاؤن لوڈ ہو گئی');
 }
 
-// ========== PDF Export via Cloudflare Worker ==========
-async function exportPDF() {
-    showLoading();
-    try {
-        const paperHTML = document.getElementById('paperPreview').innerHTML;
-        if (!paperHTML || !paperHTML.trim()) {
-            showToast('پرچہ خالی ہے، پہلے سوالات شامل کریں', 'error');
-            hideLoading();
-            return;
-        }
-        
-        const response = await fetch(`${CONFIG.API_BASE}/api/generate-pdf`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                html: paperHTML,
-                filename: `urdu-paper-${Date.now()}`
-            })
-        });
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `urdu-paper-${Date.now()}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        showToast('PDF تیار ہے، براہ کرم پرنٹ → Save as PDF کریں');
-    } catch (error) {
-        console.error('PDF Error:', error);
-        showToast('PDF بنانے میں خرابی: ' + error.message, 'error');
-        // Fallback to print
-        printPaper();
+// ========== FIXED: Print Function ==========
+function printPaper() {
+    const objData = collectObjectiveData();
+    const subjData = collectSubjectiveData();
+    
+    if (objData.length === 0 && subjData.length === 0) {
+        showToast('پرچہ خالی ہے، پہلے سوالات شامل کریں', 'error');
+        return;
     }
-    hideLoading();
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(generatePrintHTML());
+    printWindow.document.close();
+    
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.onafterprint = function() {
+            printWindow.close();
+        };
+    };
 }
 
-// ========== DOC Export via Cloudflare Worker ==========
-async function exportDOC() {
-    showLoading();
-    try {
-        const paperHTML = document.getElementById('paperPreview').innerHTML;
-        if (!paperHTML || !paperHTML.trim()) {
-            showToast('پرچہ خالی ہے، پہلے سوالات شامل کریں', 'error');
-            hideLoading();
-            return;
+function generatePrintHTML() {
+    const school = document.getElementById('schoolName').value || 'اسکول کا نام';
+    const title = document.getElementById('paperTitle').value || 'پرچہ';
+    const term = document.getElementById('term').value;
+    const subject = document.getElementById('subject').value || 'مضمون';
+    const total = document.getElementById('totalMarks').value || '100';
+    const time = document.getElementById('time').value || '2 گھنٹے';
+    const instructions = document.getElementById('instructions').value;
+    const teacherSig = document.getElementById('teacherSignature').value || '__________';
+    
+    const objData = collectObjectiveData();
+    const subjData = collectSubjectiveData();
+    
+    let questionsHTML = '';
+    let qNum = 1;
+    
+    if (objData.length > 0) {
+        questionsHTML += `<h3 style="color:#6B3FA0; border-right:3px solid #FF7B4A; padding-right:10px; margin-top:25px;">حصہ اول: معروضی سوالات</h3>`;
+        
+        // Check if all objective questions are MCQ for grid layout
+        const allMcq = objData.every(q => q.type === 'mcq' || q.type === 'scenario-mcq');
+        
+        if (allMcq && objData.length > 1) {
+            const midPoint = Math.ceil(objData.length / 2);
+            const col1 = objData.slice(0, midPoint);
+            const col2 = objData.slice(midPoint);
+            
+            questionsHTML += `<div class="mcq-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">`;
+            
+            questionsHTML += `<div class="mcq-column">`;
+            col1.forEach((q) => {
+                questionsHTML += `
+                    <div class="mcq-item" style="margin-bottom: 20px; break-inside: avoid;">
+                        <div class="mcq-question" style="font-weight: bold; margin-bottom: 8px;">
+                            ${qNum++}. ${escapeHtml(q.text)} <span style="color:#666; font-size:12px;">(${q.marks} نمبر)</span>
+                        </div>
+                        <div class="mcq-options" style="margin-right: 20px;">
+                            ${q.options.filter(opt => opt).map((opt, idx) => `
+                                <div style="margin: 5px 0;">
+                                    <span style="margin-left: 10px;">${String.fromCharCode(65+idx)}.</span>
+                                    <span>${escapeHtml(opt)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            questionsHTML += `</div>`;
+            
+            questionsHTML += `<div class="mcq-column">`;
+            col2.forEach((q) => {
+                questionsHTML += `
+                    <div class="mcq-item" style="margin-bottom: 20px; break-inside: avoid;">
+                        <div class="mcq-question" style="font-weight: bold; margin-bottom: 8px;">
+                            ${qNum++}. ${escapeHtml(q.text)} <span style="color:#666; font-size:12px;">(${q.marks} نمبر)</span>
+                        </div>
+                        <div class="mcq-options" style="margin-right: 20px;">
+                            ${q.options.filter(opt => opt).map((opt, idx) => `
+                                <div style="margin: 5px 0;">
+                                    <span style="margin-left: 10px;">${String.fromCharCode(65+idx)}.</span>
+                                    <span>${escapeHtml(opt)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            questionsHTML += `</div>`;
+            questionsHTML += `</div>`;
+        } else {
+            objData.forEach((q) => {
+                if (q.type === 'mcq' || q.type === 'scenario-mcq') {
+                    questionsHTML += `
+                        <div class="mcq-item" style="margin-bottom: 20px;">
+                            <div class="mcq-question" style="font-weight: bold; margin-bottom: 8px;">
+                                ${qNum++}. ${escapeHtml(q.text)} <span style="color:#666; font-size:12px;">(${q.marks} نمبر)</span>
+                            </div>
+                            <div class="mcq-options" style="margin-right: 20px;">
+                                ${q.options.filter(opt => opt).map((opt, idx) => `
+                                    <div style="margin: 5px 0;">
+                                        <span style="margin-left: 10px;">${String.fromCharCode(65+idx)}.</span>
+                                        <span>${escapeHtml(opt)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else if (q.type === 'fillblank') {
+                    questionsHTML += `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold;">${qNum++}. ${escapeHtml(q.text)} <span style="color:#666;">(${q.marks} نمبر)</span></div>
+                            <div style="margin: 10px 0;"><input type="text" style="width: 250px; border: none; border-bottom: 1px solid #000; background: transparent;"></div>
+                        </div>
+                    `;
+                } else if (q.type === 'truefalse') {
+                    questionsHTML += `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold;">${qNum++}. ${escapeHtml(q.text)} <span style="color:#666;">(${q.marks} نمبر)</span></div>
+                            <div style="margin: 10px 0;">
+                                <span style="margin-left: 20px;">✅ صحیح</span>
+                                <span>❌ غلط</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
         }
-        
-        const response = await fetch(`${CONFIG.API_BASE}/api/generate-doc`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                html: paperHTML,
-                filename: `urdu-paper-${Date.now()}`
-            })
-        });
-        
-        const blob = await response.blob();
-        saveAs(blob, `urdu-paper-${Date.now()}.doc`);
-        showToast('DOC ڈاؤن لوڈ ہو گیا');
-    } catch (error) {
-        console.error('DOC Error:', error);
-        showToast('DOC بنانے میں خرابی، HTML ڈاؤن لوڈ کریں', 'error');
-        // Fallback to HTML
-        const blob = new Blob([paperHTML], { type: 'text/html' });
-        saveAs(blob, `urdu-paper-${Date.now()}.html`);
     }
-    hideLoading();
+    
+    if (subjData.length > 0) {
+        questionsHTML += `<h3 style="color:#6B3FA0; border-right:3px solid #FF7B4A; padding-right:10px; margin-top:30px;">حصہ دوم: انشائیہ سوالات</h3>`;
+        subjData.forEach((q) => {
+            const lines = q.lines || 4;
+            questionsHTML += `
+                <div style="margin-bottom: 25px; break-inside: avoid;">
+                    <div style="font-weight: bold;">${qNum++}. ${escapeHtml(q.text)} <span style="color:#666;">(${q.marks} نمبر)</span></div>
+                        ${Array(lines).fill().map(() => `<div style="border-bottom: 1px solid #ccc; margin: 8px 0; height: 20px;"></div>`).join('')}
+                </div>
+            `;
+        });
+    }
+    
+    if (objData.length === 0 && subjData.length === 0) {
+        questionsHTML = '<div style="text-align:center; padding:40px;">🚀 براہ کرم سوالات شامل کریں</div>';
+    }
+    
+    return `<!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <title>${escapeHtml(title)}</title>
+        <style>
+            @font-face {
+                font-family: 'Jameel Noori Nastaleeq';
+                src: url('https://raw.githubusercontent.com/urdufont/JameelNooriNastaleeq/master/JameelNooriNastaleeq.ttf') format('truetype');
+            }
+            
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Urdu Typesetting', serif;
+                background: white;
+                color: black;
+                direction: rtl;
+                line-height: 1.6;
+                padding: 20px;
+            }
+            
+            .paper {
+                max-width: 100%;
+                margin: 0 auto;
+            }
+            
+            .paper-header {
+                text-align: center;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #6B3FA0;
+                padding-bottom: 15px;
+            }
+            
+            .school-logo {
+                max-width: 60px;
+                margin-bottom: 8px;
+            }
+            
+            h2 {
+                color: #6B3FA0;
+                font-size: 1.3rem;
+                margin: 5px 0;
+            }
+            
+            h3 {
+                color: #8B5FBF;
+                font-size: 1.1rem;
+                margin: 10px 0;
+            }
+            
+            .mcq-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 20px !important;
+            }
+            
+            .mcq-item {
+                margin-bottom: 20px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            .mcq-options {
+                margin-right: 20px;
+            }
+            
+            .answer-space {
+                border-bottom: 1px solid #ccc;
+                margin: 8px 0;
+                height: 20px;
+            }
+            
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+            
+            @media print {
+                body {
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .mcq-grid {
+                    display: grid !important;
+                    grid-template-columns: 1fr 1fr !important;
+                    gap: 20px !important;
+                }
+                
+                .mcq-item {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+                
+                h3, .mcq-item, div[style*="margin-bottom: 25px"] {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="paper">
+            <div class="paper-header">
+                <img src="${currentLogo}" class="school-logo" style="max-width:60px;">
+                <h2>${escapeHtml(school)}</h2>
+                <h3>${escapeHtml(title)}</h3>
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; margin:10px 0;">
+                    <span>نام: ___________</span>
+                    <span>کلاس: ___________</span>
+                    <span>تاریخ: ___________</span>
+                    <span>رول نمبر: ___________</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                    <span>ٹرم: ${escapeHtml(term)}</span>
+                    <span>مضمون: ${escapeHtml(subject)}</span>
+                    <span>کل نمبر: ${escapeHtml(total)}</span>
+                    <span>وقت: ${escapeHtml(time)}</span>
+                </div>
+            </div>
+            
+            ${instructions ? `<div style="margin:15px 0;"><strong>ہدایات:</strong><br>${escapeHtml(instructions).replace(/\n/g,'<br>')}</div>` : ''}
+            
+            ${questionsHTML}
+            
+            <div style="margin-top: 50px; text-align: left;">
+                <p><strong>استاد کے دستخط:</strong> ${escapeHtml(teacherSig)}</p>
+                <div style="width: 200px; border-bottom: 1px solid #000; margin-top: 5px;"></div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">➖➖➖ نیک تمنائیں ➖➖➖</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+}
+
+// ========== FIXED: PDF Export using Print ==========
+async function exportPDF() {
+    showToast('پرنٹ ڈائیلاگ کھل رہا ہے... "Save as PDF" منتخب کریں');
+    setTimeout(() => printPaper(), 300);
+}
+
+// ========== FIXED: DOC Export ==========
+async function exportDOC() {
+    const objData = collectObjectiveData();
+    const subjData = collectSubjectiveData();
+    
+    if (objData.length === 0 && subjData.length === 0) {
+        showToast('پرچہ خالی ہے، پہلے سوالات شامل کریں', 'error');
+        return;
+    }
+    
+    const fullHTML = generatePrintHTML();
+    const blob = new Blob([fullHTML], { type: 'application/msword' });
+    saveAs(blob, `urdu-paper-${Date.now()}.doc`);
+    showToast('DOC ڈاؤن لوڈ ہو گیا');
 }
 
 function exportTXT() {
@@ -647,15 +884,6 @@ function exportTXT() {
     const blob = new Blob([content], { type: 'text/plain' });
     saveAs(blob, `urdu-paper-${Date.now()}.txt`);
     showToast('TXT ڈاؤن لوڈ ہو گیا');
-}
-
-function printPaper() {
-    const content = document.getElementById('paperPreview').innerHTML;
-    if (!content || !content.trim()) {
-        showToast('پرچہ خالی ہے', 'error');
-        return;
-    }
-    window.print();
 }
 
 // ========== Analysis Functions ==========
