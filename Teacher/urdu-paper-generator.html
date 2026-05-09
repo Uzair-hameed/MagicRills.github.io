@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>اردو پیپر جنریٹر - پروفیشنل ٹول</title>
+    <title>اردو پیپر جنریٹر - بلومز ٹیکسانومی کے ساتھ</title>
     <link rel="stylesheet" href="urdu-paper-generator.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,23 +11,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
-    <!-- Logo Upload Section -->
-    <div class="logo-container">
-        <div class="logo-wrapper" id="logoWrapper" onclick="document.getElementById('logoUpload').click()">
-            <img id="schoolLogo" src="https://cdn-icons-png.flaticon.com/128/15120/15120883.png" alt="Logo">
-            <div class="logo-overlay">📷 اپ لوڈ کریں</div>
-        </div>
-        <input type="file" id="logoUpload" accept="image/*" style="display:none" onchange="uploadLogo(event)">
-        <button class="remove-logo-btn" onclick="removeLogo()" id="removeLogoBtn" style="display:none">✖ ہٹائیں</button>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <button class="home-btn" onclick="window.location.href='https://magicrills.com'">🏠 ہوم</button>
+        <button class="back-btn" onclick="window.location.href='https://magicrills.com/category-pages/teacher.html'">🔙 واپس</button>
     </div>
 
-    <!-- Hero Section (Smaller) -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">📝 اردو پیپر جنریٹر</h1>
-            <p class="hero-subtitle">پیشہ ورانہ امتحانی پرچے تیار کریں۔ AI کی مدد سے</p>
-            <button class="hero-cta" onclick="scrollToMain()">🚀 شروع کریں</button>
+    <!-- Logo Upload -->
+    <div class="logo-container">
+        <div class="logo-wrapper" onclick="document.getElementById('logoUpload').click()">
+            <img id="schoolLogo" src="https://cdn-icons-png.flaticon.com/128/15120/15120883.png" alt="Logo">
+            <div class="logo-overlay">🖼️ تبدیل کریں</div>
         </div>
+        <input type="file" id="logoUpload" accept="image/*" style="display:none">
+        <button class="remove-logo-btn" id="removeLogoBtn" style="display:none" onclick="removeLogo()">✖</button>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1 class="hero-title">📝 اردو پیپر جنریٹر</h1>
+        <p class="hero-subtitle">بلومز ٹیکسانومی کے 5 لیولز کے ساتھ پیشہ ورانہ امتحانی پرچے تیار کریں</p>
+        <button class="hero-cta" onclick="document.querySelector('.tab').click()">🚀 شروع کریں</button>
     </section>
 
     <!-- Theme Toggle -->
@@ -37,147 +42,207 @@
     <button class="scroll-btn scroll-up" id="scrollUp">↑</button>
     <button class="scroll-btn scroll-down" id="scrollDown">↓</button>
 
-    <div class="container" id="mainContainer">
-        <!-- Usage & Reactions -->
-        <div class="stats-bar">
-            <div class="usage-card">
-                <span>📊 استعمال:</span>
-                <span id="toolUsageCount">0</span>
+    <div class="container">
+        <!-- Stats & Reactions Bar -->
+        <div class="stats-card">
+            <div class="usage-box">
+                <span>📊 استعمال شدہ</span>
+                <strong id="usageCount">0</strong>
+                <span>مرتبہ</span>
             </div>
-            <div class="reactions-bar">
-                <button class="reaction-btn" data-reaction="like">👍 <span id="likeCount">0</span></button>
-                <button class="reaction-btn" data-reaction="love">❤️ <span id="loveCount">0</span></button>
-                <button class="reaction-btn" data-reaction="wow">😮 <span id="wowCount">0</span></button>
-                <button class="reaction-btn" data-reaction="sad">😢 <span id="sadCount">0</span></button>
-                <button class="reaction-btn" data-reaction="angry">😠 <span id="angryCount">0</span></button>
-                <button class="reaction-btn" data-reaction="laugh">😂 <span id="laughCount">0</span></button>
-                <button class="reaction-btn" data-reaction="celebrate">🎉 <span id="celebrateCount">0</span></button>
+            <div class="reactions-box" id="reactionsBox">
+                <button class="reaction" data-reaction="like">👍 <span id="likeCount">0</span></button>
+                <button class="reaction" data-reaction="love">❤️ <span id="loveCount">0</span></button>
+                <button class="reaction" data-reaction="wow">😮 <span id="wowCount">0</span></button>
+                <button class="reaction" data-reaction="sad">😢 <span id="sadCount">0</span></button>
+                <button class="reaction" data-reaction="angry">😠 <span id="angryCount">0</span></button>
+                <button class="reaction" data-reaction="laugh">😂 <span id="laughCount">0</span></button>
+                <button class="reaction" data-reaction="celebrate">🎉 <span id="celebrateCount">0</span></button>
             </div>
         </div>
 
         <!-- Share Buttons -->
-        <div class="share-section">
-            <div class="share-buttons">
-                <button class="share-btn fb" onclick="shareOnFacebook()">📘 Facebook</button>
-                <button class="share-btn tw" onclick="shareOnTwitter()">🐦 Twitter</button>
-                <button class="share-btn wa" onclick="shareOnWhatsApp()">💚 WhatsApp</button>
-                <button class="share-btn li" onclick="shareOnLinkedIn()">🔗 LinkedIn</button>
-                <button class="share-btn copy" onclick="copyPageURL()">🔗 کاپی لنک</button>
-            </div>
+        <div class="share-card">
+            <button class="share-btn fb" onclick="shareOnFacebook()">📘 Facebook</button>
+            <button class="share-btn tw" onclick="shareOnTwitter()">🐦 Twitter</button>
+            <button class="share-btn wa" onclick="shareOnWhatsApp()">💚 WhatsApp</button>
+            <button class="share-btn li" onclick="shareOnLinkedIn()">🔗 LinkedIn</button>
+            <button class="share-btn email" onclick="shareOnEmail()">📧 Email</button>
+            <button class="share-btn copy" onclick="copyPageURL()">🔗 کاپی لنک</button>
         </div>
 
         <!-- Tabs -->
-        <div class="tab-container">
-            <button class="tab-btn active" data-tab="setup">🏠 سیٹ اپ</button>
-            <button class="tab-btn" data-tab="objective">📝 معروضی</button>
-            <button class="tab-btn" data-tab="subjective">✍️ انشائیہ</button>
-            <button class="tab-btn" data-tab="preview">👁️ پیش نظارہ</button>
-            <button class="tab-btn" data-tab="analysis">📊 تجزیہ</button>
-            <button class="tab-btn" data-tab="saved">💾 محفوظ</button>
+        <div class="tabs">
+            <button class="tab active" data-tab="setup">⚙️ سیٹ اپ</button>
+            <button class="tab" data-tab="objective">📝 معروضی</button>
+            <button class="tab" data-tab="subjective">✍️ انشائیہ</button>
+            <button class="tab" data-tab="preview">👁️ پیش نظارہ</button>
+            <button class="tab" data-tab="analysis">📊 تجزیہ</button>
+            <button class="tab" data-tab="saved">💾 محفوظ</button>
         </div>
 
-        <!-- Setup Tab -->
-        <div class="tab-content active" id="setupTab">
+        <!-- Tab: Setup -->
+        <div class="tab-pane active" id="setupPane">
             <div class="card">
-                <h2>بنیادی معلومات</h2>
-                <div class="form-row">
-                    <div class="form-group"><label>سکول کا نام</label><input type="text" id="schoolName" placeholder="سکول کا نام"></div>
-                    <div class="form-group"><label>پرچے کا عنوان</label><input type="text" id="paperTitle" placeholder="پرچے کا عنوان"></div>
+                <h2>📋 بنیادی معلومات</h2>
+                <div class="form-grid">
+                    <div class="input-group"><label>سکول کا نام</label><input type="text" id="schoolName" placeholder="سکول کا نام"></div>
+                    <div class="input-group"><label>پرچے کا عنوان</label><input type="text" id="paperTitle" placeholder="پرچے کا عنوان"></div>
+                    <div class="input-group"><label>ٹرم</label><select id="term"><option>پہلا ٹرم</option><option>دوسرا ٹرم</option><option>سالانہ</option></select></div>
+                    <div class="input-group"><label>مضمون</label><input type="text" id="subject" placeholder="مضمون"></div>
+                    <div class="input-group"><label>کل نمبر</label><input type="number" id="totalMarks" placeholder="کل نمبر"></div>
+                    <div class="input-group"><label>وقت</label><input type="text" id="time" placeholder="مثال: 2 گھنٹے"></div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label>ٹرم</label><select id="term"><option>پہلا</option><option>دوسرا</option><option>سالانہ</option></select></div>
-                    <div class="form-group"><label>مضمون</label><input type="text" id="subject" placeholder="مضمون"></div>
+                <div class="input-group"><label>ہدایات</label><textarea id="instructions" rows="3" placeholder="پرچے کی ہدایات..."></textarea></div>
+                
+                <!-- Bloom Percentage Settings -->
+                <div class="bloom-percentages">
+                    <h4>📊 بلومز ٹیکسانومی فیصد سیٹنگز</h4>
+                    <div class="bloom-percentages-grid">
+                        <div class="input-group"><label>📖 Knowledge</label><input type="number" id="bloomKnowledge" value="20" min="0" max="100" step="5"></div>
+                        <div class="input-group"><label>🧠 Comprehension</label><input type="number" id="bloomComprehension" value="30" min="0" max="100" step="5"></div>
+                        <div class="input-group"><label>⚡ Application</label><input type="number" id="bloomApplication" value="25" min="0" max="100" step="5"></div>
+                        <div class="input-group"><label>🔍 Analysis</label><input type="number" id="bloomAnalysis" value="15" min="0" max="100" step="5"></div>
+                        <div class="input-group"><label>🎨 Synthesis</label><input type="number" id="bloomSynthesis" value="10" min="0" max="100" step="5"></div>
+                    </div>
+                    <button class="btn-info" onclick="applyBloomPercentages()" style="margin-top:10px">📊 فیصد لاگو کریں</button>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label>کل نمبر</label><input type="number" id="totalMarks" placeholder="کل نمبر"></div>
-                    <div class="form-group"><label>وقت</label><input type="text" id="time" placeholder="مثال: 2 گھنٹے"></div>
-                </div>
-                <div class="form-group"><label>ہدایات</label><textarea id="instructions" rows="3" placeholder="پرچے کی ہدایات"></textarea></div>
-                <div class="form-group"><label>AI سے سوالات</label>
-                    <div class="ai-row"><input type="text" id="aiTopic" placeholder="موضوع"><select id="aiQuestionType"><option value="mcq">MCQ</option><option value="short">مختصر</option></select><button class="btn-ai" onclick="generateAIQuestions()">✨ AI بنائیں</button></div>
+                
+                <div class="ai-section">
+                    <h3>🤖 AI سے سوالات بنائیں</h3>
+                    <div class="ai-controls">
+                        <input type="text" id="aiTopic" placeholder="موضوع (مثلاً: قائداعظم)">
+                        <select id="aiType"><option value="mcq">MCQ</option><option value="short">مختصر جوابی</option><option value="long">طویل جوابی</option></select>
+                        <select id="aiDifficulty"><option value="easy">🟢 آسان</option><option value="medium" selected>🟡 اوسط</option><option value="hard">🔴 مشکل</option></select>
+                        <select id="aiBloom">
+                            <option value="knowledge">Knowledge-Based</option>
+                            <option value="comprehension" selected>Comprehension-Based</option>
+                            <option value="application">Application-Based</option>
+                            <option value="analysis">Analysis-Based</option>
+                            <option value="synthesis">Evaluation & Synthesis</option>
+                        </select>
+                        <button class="btn-ai" onclick="generateAIQuestions()">✨ AI بنائیں</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Objective Tab -->
-        <div class="tab-content" id="objectiveTab">
+        <!-- Tab: Objective -->
+        <div class="tab-pane" id="objectivePane">
             <div class="card">
-                <h2>معروضی سوالات</h2>
-                <select id="objectiveTypeSelect" class="question-type-select">
-                    <option value="mcq">📌 MCQ (چند انتخابی)</option>
-                    <option value="fillblank">⬜ خالی جگہ</option>
-                    <option value="matching">🔗 میچنگ کالم</option>
-                    <option value="problematic">⚠️ مشکل/مسئلہ پر مبنی MCQ</option>
-                    <option value="scenario">🎭 منظرنامہ پر مبنی MCQ</option>
-                </select>
-                <button class="btn-primary" onclick="addObjectiveQuestion()">+ سوال شامل کریں</button>
-                <div id="objectiveQuestionsContainer" class="questions-container"></div>
-            </div>
-        </div>
-
-        <!-- Subjective Tab -->
-        <div class="tab-content" id="subjectiveTab">
-            <div class="card">
-                <h2>انشائیہ سوالات</h2>
-                <select id="subjectiveTypeSelect" class="question-type-select">
-                    <option value="crq">📝 CRQ (مختصر جوابی)</option>
-                    <option value="erq">📄 ERQ (طویل جوابی)</option>
-                    <option value="case">🏥 کیس اسٹڈی</option>
-                    <option value="scenario_crq">🎭 منظرنامہ پر مبنی CRQ</option>
-                    <option value="problematic_long">⚠️ مسئلہ پر مبنی سوال</option>
-                    <option value="labelling">🏷️ لیبلنگ ڈایاگرام</option>
-                </select>
-                <button class="btn-primary" onclick="addSubjectiveQuestion()">+ سوال شامل کریں</button>
-                <div id="subjectiveQuestionsContainer" class="questions-container"></div>
-            </div>
-        </div>
-
-        <!-- Preview Tab -->
-        <div class="tab-content" id="previewTab">
-            <div class="card">
-                <h2>پرچے کا پیش نظارہ</h2>
-                <div class="export-buttons">
-                    <button class="btn-success" onclick="exportToPDF()">📄 PDF</button>
-                    <button class="btn-success" onclick="exportToDOC()">📝 DOC</button>
-                    <button class="btn-success" onclick="exportToTXT()">📃 TXT</button>
-                    <button class="btn-primary" onclick="saveToDatabase()">☁️ محفوظ کریں</button>
-                    <button class="btn-primary" onclick="printPaper()">🖨️ پرنٹ</button>
-                    <button class="btn-warning" onclick="generateMarkingKey()">🔑 مارکنگ کلید بنائیں</button>
+                <h2>📝 معروضی سوالات</h2>
+                <div class="question-toolbar">
+                    <select id="objType">
+                        <option value="mcq">📌 MCQ</option>
+                        <option value="fillblank">⬜ خالی جگہ</option>
+                        <option value="truefalse">✅ صحیح/غلط</option>
+                    </select>
+                    <select id="objDifficulty">
+                        <option value="easy">🟢 آسان</option>
+                        <option value="medium" selected>🟡 اوسط</option>
+                        <option value="hard">🔴 مشکل</option>
+                    </select>
+                    <select id="objBloom" onchange="updateObjectiveQuestionTypes()">
+                        <option value="knowledge">📖 Knowledge-Based</option>
+                        <option value="comprehension">🧠 Comprehension-Based</option>
+                        <option value="application">⚡ Application-Based</option>
+                        <option value="analysis">🔍 Analysis-Based</option>
+                        <option value="synthesis">🎨 Evaluation & Synthesis</option>
+                    </select>
+                    <button class="btn-primary" onclick="addObjective()">+ سوال شامل کریں</button>
                 </div>
-                <div class="paper-preview" id="paperPreview"></div>
-                <div class="teacher-signature">
-                    <label>اساتذہ کے دستخط:</label>
-                    <input type="text" id="teacherSignature" placeholder="استاد کا نام اور دستخط">
-                    <div class="signature-line"></div>
+                <div id="objectiveList" class="questions-list"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Subjective -->
+        <div class="tab-pane" id="subjectivePane">
+            <div class="card">
+                <h2>✍️ انشائیہ سوالات</h2>
+                <div class="question-toolbar">
+                    <select id="subjType">
+                        <option value="short">📝 مختصر جوابی</option>
+                        <option value="long">📄 طویل جوابی</option>
+                        <option value="essay">📖 مضمون</option>
+                        <option value="case">🏥 کیس اسٹڈی</option>
+                    </select>
+                    <select id="subjDifficulty">
+                        <option value="easy">🟢 آسان</option>
+                        <option value="medium" selected>🟡 اوسط</option>
+                        <option value="hard">🔴 مشکل</option>
+                    </select>
+                    <select id="subjBloom" onchange="updateSubjectiveQuestionTypes()">
+                        <option value="knowledge">📖 Knowledge-Based</option>
+                        <option value="comprehension">🧠 Comprehension-Based</option>
+                        <option value="application">⚡ Application-Based</option>
+                        <option value="analysis">🔍 Analysis-Based</option>
+                        <option value="synthesis">🎨 Evaluation & Synthesis</option>
+                    </select>
+                    <button class="btn-primary" onclick="addSubjective()">+ سوال شامل کریں</button>
+                </div>
+                <div id="subjectiveList" class="questions-list"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Preview -->
+        <div class="tab-pane" id="previewPane">
+            <div class="card">
+                <h2>👁️ پرچے کا پیش نظارہ</h2>
+                <div class="export-bar">
+                    <button class="btn-success" onclick="exportPDF()">📄 PDF ڈاؤن لوڈ</button>
+                    <button class="btn-success" onclick="exportDOC()">📝 DOC ڈاؤن لوڈ</button>
+                    <button class="btn-success" onclick="exportTXT()">📃 TXT ڈاؤن لوڈ</button>
+                    <button class="btn-primary" onclick="savePaper()">💾 محفوظ کریں</button>
+                    <button class="btn-primary" onclick="printPaper()">🖨️ پرنٹ کریں</button>
+                    <button class="btn-warning" onclick="generateMarkingKey()">🔑 مارکنگ کلید</button>
+                    <button class="btn-info" onclick="downloadMarkingKey()">📥 مارکنگ کلید ڈاؤن لوڈ</button>
+                    <button class="btn-info" onclick="exportAnalysisReport()">📊 تجزیہ رپورٹ</button>
+                </div>
+                <div class="border-controls">
+                    <label>📐 بارڈر:</label><select id="borderStyle" onchange="applyBorder()"><option value="simple">سادہ</option><option value="double">ڈبل</option><option value="dotted">ڈاٹڈ</option></select>
+                    <label>🎨 رنگ:</label><input type="color" id="borderColor" value="#6B3FA0" onchange="applyBorder()">
+                    <label>📏 موٹائی:</label><input type="range" id="borderWidth" min="1" max="5" value="2" onchange="applyBorder()">
+                </div>
+                <div class="paper-container" id="paperContainer"><div class="paper" id="paperPreview"></div></div>
+                <div id="markingKeyContainer" style="margin-top:15px"></div>
+                <div class="signature-section"><label>✍️ استاد کے دستخط:</label><input type="text" id="teacherSignature" placeholder="استاد کا نام"><div class="signature-line"></div></div>
+            </div>
+        </div>
+
+        <!-- Tab: Analysis -->
+        <div class="tab-pane" id="analysisPane">
+            <div class="analysis-card">
+                <h2>📊 تجزیہ رپورٹ</h2>
+                <div class="analysis-stats-grid" id="analysisStatsGrid"></div>
+                <div class="analysis-charts-row">
+                    <div class="analysis-chart"><h4>سوالات کی تقسیم</h4><canvas id="chartQuestions" width="200" height="200"></canvas></div>
+                    <div class="analysis-chart"><h4>نمبروں کی تقسیم</h4><canvas id="chartMarks" width="200" height="200"></canvas></div>
+                    <div class="analysis-chart"><h4>مشکل سطح</h4><canvas id="chartDifficulty" width="200" height="200"></canvas></div>
+                    <div class="analysis-chart"><h4>بلومز ٹیکسانومی</h4><canvas id="chartBloom" width="200" height="200"></canvas></div>
+                </div>
+                <div class="analysis-subsection">
+                    <h4>📋 بلومز ٹیکسانومی تفصیل</h4>
+                    <div id="analysisBloomTable"></div>
+                </div>
+                <div class="analysis-subsection">
+                    <h4>📋 سوالات کی تفصیل</h4>
+                    <div id="analysisQuestionsDetails"></div>
+                </div>
+                <div class="auto-advice-box" id="autoAdviceBox">
+                    <h4>💡 خودکار مشورہ</h4>
+                    <div id="autoAdviceContent"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Analysis Tab -->
-        <div class="tab-content" id="analysisTab">
-            <div class="card">
-                <h2>📊 تجزیاتی رپورٹ</h2>
-                <div class="analysis-stats" id="analysisStats"></div>
-                <div class="charts-container">
-                    <canvas id="questionsChart"></canvas>
-                    <canvas id="marksChart"></canvas>
-                </div>
-                <div id="marksBreakdown"></div>
-            </div>
-        </div>
-
-        <!-- Saved Tab -->
-        <div class="tab-content" id="savedTab">
-            <div class="card">
-                <h2>💾 محفوظ شدہ پرچے</h2>
-                <div id="savedDesignsList"></div>
-                <button class="btn-primary" onclick="loadSavedDesigns()">🔄 ریفریش</button>
-            </div>
+        <!-- Tab: Saved -->
+        <div class="tab-pane" id="savedPane">
+            <div class="card"><h2>💾 محفوظ شدہ پرچے</h2><div id="savedList"></div><button class="btn-primary" onclick="loadSavedPapers()" style="margin-top:15px">🔄 ریفریش</button></div>
         </div>
     </div>
 
+    <div id="loadingModal" class="modal"><div class="modal-content"><div class="spinner"></div><p>🤖 AI تیار کر رہا ہے...</p></div></div>
     <div id="toast" class="toast"></div>
-    <div id="loadingModal" class="modal"><div class="modal-content"><div class="spinner"></div><p>AI جنریٹ ہو رہا ہے...</p></div></div>
 
     <script src="urdu-paper-generator.js"></script>
 </body>
