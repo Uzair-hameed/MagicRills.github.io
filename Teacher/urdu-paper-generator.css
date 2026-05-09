@@ -1047,32 +1047,112 @@ body {
     .ai-controls { flex-direction: column; }
 }
 
-/* ========== PRINT STYLES ========== */
+/* ========== IMPROVED PRINT STYLES - FIXED ========== */
 @media print {
-    .nav-buttons, .logo-container, .theme-toggle, .scroll-btn,
-    .stats-card, .share-card, .tabs, .export-bar, .border-controls,
-    .signature-section input, .modal, .toast, .question-toolbar,
-    .ai-section, .btn-primary, .btn-success, .btn-warning, .btn-danger,
-    .analysis-card, .marking-key, #markingKeyContainer {
+    /* Hide all UI elements */
+    .nav-buttons, 
+    .logo-container, 
+    .theme-toggle, 
+    .scroll-btn,
+    .stats-card, 
+    .share-card, 
+    .tabs, 
+    .export-bar, 
+    .border-controls,
+    .modal, 
+    .toast,
+    .question-toolbar,
+    .ai-section,
+    .btn-primary, 
+    .btn-success, 
+    .btn-warning, 
+    .btn-danger,
+    .analysis-card, 
+    .marking-key,
+    #markingKeyContainer {
         display: none !important;
     }
     
-    .paper {
-        box-shadow: none;
-        padding: 0;
-        margin: 0;
+    /* Paper container */
+    .paper-container {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
-    .paper-container {
-        background: white;
-        padding: 0;
+    .paper {
+        background: white !important;
+        color: black !important;
+        padding: 15px !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* ✅ CRITICAL FIX: MCQ Grid stays as GRID in print */
+    .paper .mcq-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .paper .mcq-column {
+        display: block !important;
+    }
+    
+    .paper .mcq-item {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        background: #fafafa !important;
+        border: 1px solid #eee !important;
+    }
+    
+    /* Answer spaces */
+    .paper .answer-space {
+        border-bottom: 1px solid #ccc !important;
+        margin: 8px 0 !important;
+        height: 20px !important;
+        min-height: 20px !important;
+    }
+    
+    /* Prevent page breaks inside questions */
+    .paper h3, 
+    .paper .mcq-item,
+    .paper .paper-header,
+    .paper > div[style*="margin-bottom"] {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* ✅ FIX: Signature - no duplication */
+    .signature-section input {
+        display: none !important;
     }
     
     .signature-section {
         display: block !important;
+        margin-top: 40px !important;
+        border-top: 1px solid #000 !important;
     }
     
-    .tab-pane {
-        display: block !important;
+    .signature-section label {
+        color: black !important;
+    }
+    
+    /* Remove extra spaces */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+    
+    @page {
+        size: A4;
+        margin: 1.5cm;
+    }
+    
+    /* Ensure Urdu text is clear */
+    *, .paper, .paper * {
+        font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Urdu Typesetting', serif !important;
     }
 }
