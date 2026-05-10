@@ -1,419 +1,554 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/5677/5677910.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/5677/5677910.png" style="display: none;" width="200" /></a></div>
-
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"></meta>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
-    <title>Magicrills Basic Arithmetic Quiz</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Magicrills Pro - Full Math Game | All Features</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            margin: 0;
-            padding: 20px;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            overflow-x: hidden;
         }
-        .game-container {
-            background-color: #fff;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-            margin: 20px 0;
+        .container { width: 100%; min-height: 100vh; padding: 16px; }
+        .game-box {
+            background: rgba(255,255,255,0.95);
+            border-radius: 48px;
+            padding: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 25px 50px -12px black;
         }
-        .title {
-            color: #ff6b6b;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        .subtitle {
-            color: #4ecdc4;
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-        }
-        .level-selector {
-            margin-bottom: 30px;
-        }
-        .level-btn {
-            background-color: #ffd166;
+        [data-theme="dark"] .game-box { background: #1e1e2f; color: white; }
+        .nav-bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .nav-btn, .level-btn, .power-btn, .share-btn, .reaction-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border: none;
-            border-radius: 50px;
-            color: #333;
+            padding: 10px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 5px;
-            padding: 12px 25px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: 0.3s;
         }
-        .level-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        .level-btn.active {
-            background-color: #06d6a0;
-            color: #fff;
-        }
-        .quiz-screen {
-            display: none;
-        }
-        .question {
-            font-size: 2.5rem;
-            margin: 30px 0;
-            color: #333;
-        }
-        .options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
+        .level-btn { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .level-buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 20px 0; }
+        .question { font-size: 3.5rem; text-align: center; margin: 30px 0; font-weight: bold; word-break: break-word; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        @media (max-width: 600px) { .question { font-size: 2rem; } }
+        .options { display: grid; grid-template-columns: repeat(2,1fr); gap: 15px; margin: 20px 0; }
         .option-btn {
-            background-color: #a5dff9;
+            background: linear-gradient(135deg, #a5dff9, #7fc6f3);
             border: none;
-            border-radius: 15px;
+            padding: 20px;
+            border-radius: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 1.5rem;
-            padding: 15px;
-            transition: all 0.3s;
         }
-        .option-btn:hover {
-            background-color: #7fc6f3;
-            transform: scale(1.05);
-        }
-        .feedback {
-            font-size: 1.5rem;
-            margin: 20px 0;
-            min-height: 40px;
-        }
-        .correct {
-            color: #06d6a0;
-        }
-        .incorrect {
-            color: #ef476f;
-        }
-        .score {
-            font-size: 1.3rem;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .timer {
-            font-size: 1.2rem;
-            color: #ff6b6b;
-            margin-bottom: 20px;
-        }
-        .next-btn, .restart-btn {
-            background-color: #ff6b6b;
-            border: none;
-            border-radius: 50px;
-            color: #fff;
+        .stats { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .timer { font-size: 2rem; text-align: center; color: #f56565; font-family: monospace; }
+        .powerups { display: flex; justify-content: center; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+        .char-select { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
+        .char { font-size: 2rem; cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.3s; }
+        .char.selected { background: gold; transform: scale(1.2); }
+        .badges { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+        .badge { background: gold; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .reactions, .share-section { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+        .mascot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 3rem;
             cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 700;
-            padding: 12px 30px;
-            margin: 10px;
-            transition: all 0.3s;
+            animation: bounce 2s infinite;
+            z-index: 100;
         }
-        .next-btn:hover, .restart-btn:hover {
-            background-color: #ff8e8e;
-            transform: translateY(-3px);
+        @keyframes bounce { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-15px); } }
+        .toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; padding: 12px 24px; border-radius: 60px;
+            z-index: 200; animation: fadeOut 2s forwards;
         }
-        .game-over {
-            display: none;
-        }
-        .final-score {
-            font-size: 2rem;
-            color: #06d6a0;
-            margin: 20px 0;
-        }
-        .celebration {
-            font-size: 1.5rem;
-            color: #ff6b6b;
-            margin-bottom: 30px;
-        }
-        @media (max-width: 600px) {
-            .options {
-                grid-template-columns: 1fr;
-            }
-            .question {
-                font-size: 2rem;
-            }
-            .option-btn {
-                font-size: 1.2rem;
-            }
-            .title {
-                font-size: 2rem;
-            }
-            .subtitle {
-                font-size: 1rem;
-            }
-        }
+        @keyframes fadeOut { 0%{ opacity:1; } 70%{ opacity:1; } 100%{ opacity:0; } }
+        .next-btn { width: 100%; margin-top: 16px; padding: 16px; font-size: 1.2rem; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .progress-bar { width: 100%; height: 10px; background: #ddd; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #48bb78, #38a169); transition: width 0.3s; }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1 class="title">Magicrills Math Quiz</h1>
-        <p class="subtitle">Test your arithmetic skills!</p>
-        
-        <div class="level-selector">
-            <h2>Select Difficulty:</h2>
-            <button class="level-btn" data-level="easy">Easy</button>
-            <button class="level-btn" data-level="average">Average</button>
-            <button class="level-btn" data-level="hard">Hard</button>
-            <button class="level-btn" data-level="professional"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Professional</a></button>
+<div class="container">
+    <div class="game-box" id="gameBox">
+        <div class="nav-bar">
+            <a href="https://magicrills.com" class="nav-btn">🏠 Home</a>
+            <a href="https://magicrills.com/category-pages/kids-games.html" class="nav-btn">⬅ Back</a>
+            <button class="nav-btn" id="darkToggle">🌙 Dark</button>
+            <button class="nav-btn" id="musicToggle">🎵 Music On</button>
         </div>
-        
-        <div class="quiz-screen">
-            <div class="timer">Time: <span id="time">60</span>s</div>
-            <div class="score">Score: <span id="current-score">0</span></div>
-            <div class="question" id="question"></div>
-            <div class="options" id="options"></div>
-            <div class="feedback" id="feedback"></div>
-            <button class="next-btn" id="next-btn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Next Question</a></button>
-        </div>
-        
-        <div class="game-over">
-            <h2>Quiz Complete!</h2>
-            <div class="final-score">Your Score: <span id="final-score">0</span></div>
-            <div class="celebration" id="celebration"></div>
-            <button class="restart-btn" id="restart-btn"><a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Play Again</a></button>
-        </div>
-    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Game elements
-            const levelBtns = document.querySelectorAll('.level-btn');
-            const levelSelector = document.querySelector('.level-selector');
-            const quizScreen = document.querySelector('.quiz-screen');
-            const gameOverScreen = document.querySelector('.game-over');
-            const questionEl = document.getElementById('question');
-            const optionsEl = document.getElementById('options');
-            const feedbackEl = document.getElementById('feedback');
-            const nextBtn = document.getElementById('next-btn');
-            const restartBtn = document.getElementById('restart-btn');
-            const timeEl = document.getElementById('time');
-            const currentScoreEl = document.getElementById('current-score');
-            const finalScoreEl = document.getElementById('final-score');
-            const celebrationEl = document.getElementById('celebration');
+        <!-- Character Select -->
+        <div class="char-select" id="charSelect">
+            <div class="char" data-char="🤖">🤖</div>
+            <div class="char" data-char="🐱">🐱</div>
+            <div class="char" data-char="🦖">🦖</div>
+            <div class="char" data-char="🚀">🚀</div>
+        </div>
+
+        <!-- Level Panel -->
+        <div id="levelPanel">
+            <div class="level-buttons">
+                <button class="level-btn" data-level="easy">🌟 Easy (1-9)</button>
+                <button class="level-btn" data-level="average">⭐ Average (10-99)</button>
+                <button class="level-btn" data-level="hard">🔥 Hard (100-999)</button>
+                <button class="level-btn" data-level="professional">💎 Pro (1000-9999)</button>
+            </div>
+        </div>
+
+        <!-- Quiz Panel -->
+        <div id="quizPanel" style="display:none;">
+            <div class="stats">
+                <span>⭐ Score: <span id="scoreVal">0</span></span>
+                <span>🔥 Streak: <span id="streakVal">0</span></span>
+                <span>❤️ Lives: <span id="livesVal">3</span></span>
+                <span>✅ Correct: <span id="correctVal">0</span></span>
+            </div>
+            <div class="timer">⏱ <span id="timerSec">60</span>s</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="question" id="questionText">5 + 3 = ?</div>
+            <div class="options" id="optionsDiv"></div>
+            <div id="feedbackMsg" style="text-align:center; min-height:50px;"></div>
             
-            // Game variables
-            let currentLevel = '';
-            let score = 0;
-            let timeLeft = 60;
-            let timer;
-            let currentQuestion = {};
+            <div class="powerups">
+                <button class="power-btn" id="powerTime">⏰ +5 Sec</button>
+                <button class="power-btn" id="power5050">🎯 50-50</button>
+                <button class="power-btn" id="powerLife">❤️ Extra Life</button>
+                <button class="power-btn" id="voiceBtn">🎤 Voice Answer</button>
+            </div>
             
-            // Audio elements
-            const correctAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
-            const wrongAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
-            const levelUpAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3');
-            const gameOverAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3');
-            
-            // Event listeners
-            levelBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    currentLevel = this.getAttribute('data-level');
-                    levelBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    startGame();
-                });
-            });
-            
-            nextBtn.addEventListener('click', generateQuestion);
-            restartBtn.addEventListener('click', resetGame);
-            
-            // Game functions
-            function startGame() {
-                levelSelector.style.display = 'none';
-                quizScreen.style.display = 'block';
-                gameOverScreen.style.display = 'none';
-                score = 0;
-                currentScoreEl.textContent = score;
-                timeLeft = 60;
-                timeEl.textContent = timeLeft;
-                startTimer();
-                generateQuestion();
+            <button class="nav-btn next-btn" id="nextBtn" disabled>➡ Next Question</button>
+        </div>
+
+        <!-- Game Over -->
+        <div id="gameoverPanel" style="display:none; text-align:center;">
+            <h2>🏆 Game Over</h2>
+            <div style="font-size:2rem;">Score: <span id="finalScore">0</span></div>
+            <div class="badges" id="badgesDiv"></div>
+            <button class="level-btn" id="restartBtn">🔄 Play Again</button>
+        </div>
+
+        <!-- Reactions -->
+        <div class="reactions" id="reactionsDiv">
+            <button class="reaction-btn" data-emoji="👍">👍 <span id="likeCount">0</span></button>
+            <button class="reaction-btn" data-emoji="❤️">❤️ <span id="loveCount">0</span></button>
+            <button class="reaction-btn" data-emoji="😮">😮 <span id="wowCount">0</span></button>
+            <button class="reaction-btn" data-emoji="😢">😢 <span id="sadCount">0</span></button>
+            <button class="reaction-btn" data-emoji="😂">😂 <span id="laughCount">0</span></button>
+            <button class="reaction-btn" data-emoji="🎉">🎉 <span id="celebrateCount">0</span></button>
+        </div>
+
+        <!-- Share -->
+        <div class="share-section">
+            <button class="share-btn" data-platform="facebook">📘 Facebook</button>
+            <button class="share-btn" data-platform="twitter">🐦 Twitter</button>
+            <button class="share-btn" data-platform="whatsapp">💬 WhatsApp</button>
+            <button class="share-btn" data-platform="copy">🔗 Copy URL</button>
+        </div>
+        
+        <div style="text-align:center; margin-top:16px;">📊 Used <span id="usageCount">0</span> times</div>
+    </div>
+</div>
+
+<div class="mascot" id="mascot">🐧</div>
+
+<script>
+    // ========== GAME STATE ==========
+    let currentLevel = null;
+    let score = 0, correct = 0, wrong = 0, streak = 0, lives = 3;
+    let timeLeft = 60;
+    let timerInterval = null;
+    let currentQuestion = null;
+    let usedQuestions = [];
+    let gameActive = false;
+    let power5050Used = false;
+    let selectedChar = localStorage.getItem('selectedChar') || '🤖';
+    let musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
+    let bgMusic = null;
+
+    // DOM Elements
+    const levelPanel = document.getElementById('levelPanel');
+    const quizPanel = document.getElementById('quizPanel');
+    const gameoverPanel = document.getElementById('gameoverPanel');
+    const questionText = document.getElementById('questionText');
+    const optionsDiv = document.getElementById('optionsDiv');
+    const scoreSpan = document.getElementById('scoreVal');
+    const streakSpan = document.getElementById('streakVal');
+    const livesSpan = document.getElementById('livesVal');
+    const correctSpan = document.getElementById('correctVal');
+    const timerSpan = document.getElementById('timerSec');
+    const finalScoreSpan = document.getElementById('finalScore');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const feedbackMsg = document.getElementById('feedbackMsg');
+    const progressFill = document.getElementById('progressFill');
+
+    // ========== HELPER FUNCTIONS ==========
+    function showToast(msg) {
+        let t = document.createElement('div');
+        t.className = 'toast';
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+    }
+
+    function playSound(type) {
+        let audio = new Audio();
+        if (type === 'correct') audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3';
+        else if (type === 'wrong') audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3';
+        else audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3';
+        audio.volume = 0.4;
+        audio.play().catch(e => {});
+    }
+
+    function confettiEffect() {
+        if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        else {
+            for (let i = 0; i < 50; i++) {
+                let p = document.createElement('div');
+                p.style.position = 'fixed';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = '50%';
+                p.style.width = '8px';
+                p.style.height = '8px';
+                p.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                p.style.borderRadius = '50%';
+                p.style.pointerEvents = 'none';
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1000);
             }
-            
-            function startTimer() {
-                clearInterval(timer);
-                timer = setInterval(function() {
-                    timeLeft--;
-                    timeEl.textContent = timeLeft;
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        endGame();
-                    }
-                }, 1000);
-            }
-            
-            function generateQuestion() {
-                feedbackEl.textContent = '';
-                feedbackEl.className = 'feedback';
-                nextBtn.style.display = 'none';
-                
-                let num1, num2, answer;
-                const operation = Math.floor(Math.random() * 4); // 0-3 for +, -, *, /
-                
-                // Set number ranges based on difficulty
-                switch(currentLevel) {
-                    case 'easy':
-                        num1 = Math.floor(Math.random() * 10) + 1;
-                        num2 = Math.floor(Math.random() * 10) + 1;
-                        break;
-                    case 'average':
-                        num1 = Math.floor(Math.random() * 20) + 1;
-                        num2 = Math.floor(Math.random() * 20) + 1;
-                        break;
-                    case 'hard':
-                        num1 = Math.floor(Math.random() * 50) + 1;
-                        num2 = Math.floor(Math.random() * 50) + 1;
-                        break;
-                    case 'professional':
-                        num1 = Math.floor(Math.random() * 100) + 1;
-                        num2 = Math.floor(Math.random() * 100) + 1;
-                        break;
-                    default:
-                        num1 = Math.floor(Math.random() * 10) + 1;
-                        num2 = Math.floor(Math.random() * 10) + 1;
-                }
-                
-                // Generate question based on operation
-                switch(operation) {
-                    case 0: // Addition
-                        answer = num1 + num2;
-                        questionEl.textContent = `${num1} + ${num2} = ?`;
-                        break;
-                    case 1: // Subtraction
-                        if (num2 > num1) { // Ensure positive result
-                            [num1, num2] = [num2, num1];
-                        }
-                        answer = num1 - num2;
-                        questionEl.textContent = `${num1} - ${num2} = ?`;
-                        break;
-                    case 2: // Multiplication
-                        answer = num1 * num2;
-                        questionEl.textContent = `${num1} × ${num2} = ?`;
-                        break;
-                    case 3: // Division
-                        num2 = Math.max(1, num2); // Avoid division by zero
-                        answer = Math.floor(num1 / num2);
-                        questionEl.textContent = `${num1} ÷ ${num2} = ?`;
-                        break;
-                }
-                
-                currentQuestion = { num1, num2, operation, answer };
-                generateOptions(answer);
-            }
-            
-            function generateOptions(correctAnswer) {
-                optionsEl.innerHTML = '';
-                let options = [correctAnswer];
-                
-                // Generate 3 unique wrong answers
-                while (options.length < 4) {
-                    let randomOption;
-                    if (currentLevel === 'easy') {
-                        randomOption = Math.floor(Math.random() * 20) + 1;
-                    } else if (currentLevel === 'average') {
-                        randomOption = Math.floor(Math.random() * 40) + 1;
-                    } else if (currentLevel === 'hard') {
-                        randomOption = Math.floor(Math.random() * 100) + 1;
-                    } else {
-                        randomOption = Math.floor(Math.random() * 200) + 1;
-                    }
-                    
-                    if (!options.includes(randomOption) && randomOption !== correctAnswer) {
-                        options.push(randomOption);
-                    }
-                }
-                
-                // Shuffle options
-                options = shuffleArray(options);
-                
-                // Create option buttons
-                options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.className = 'option-btn';
-                    button.textContent = option;
-                    button.addEventListener('click', function() {
-                        checkAnswer(parseInt(this.textContent), this);
-                    });
-                    optionsEl.appendChild(button);
-                });
-            }
-            
-            function shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            }
-            
-            function checkAnswer(selectedAnswer, button) {
-                clearInterval(timer);
-                
-                if (selectedAnswer === currentQuestion.answer) {
-                    score += 10;
-                    currentScoreEl.textContent = score;
-                    feedbackEl.textContent = 'Correct! 🎉';
-                    feedbackEl.className = 'feedback correct';
-                    button.style.backgroundColor = '#06d6a0';
-                    correctAudio.play();
-                } else {
-                    feedbackEl.textContent = `Wrong! The correct answer was ${currentQuestion.answer}.`;
-                    feedbackEl.className = 'feedback incorrect';
-                    button.style.backgroundColor = '#ef476f';
-                    wrongAudio.play();
-                }
-                
-                // Disable all options and highlight correct answer
-                Array.from(optionsEl.children).forEach(btn => {
-                    btn.disabled = true;
-                    if (parseInt(btn.textContent) === currentQuestion.answer) {
-                        btn.style.backgroundColor = '#06d6a0';
-                    }
-                });
-                
-                nextBtn.style.display = 'inline-block';
-            }
-            
-            function endGame() {
-                quizScreen.style.display = 'none';
-                gameOverScreen.style.display = 'block';
-                finalScoreEl.textContent = score;
-                gameOverAudio.play();
-                
-                let message = '';
-                if (score >= 100) {
-                    message = 'Math Wizard! 🌟';
-                    levelUpAudio.play();
-                } else if (score >= 70) {
-                    message = 'Great Job! 👍';
-                } else if (score >= 40) {
-                    message = 'Not bad! 😊';
-                } else {
-                    message = 'Keep practicing! 💪';
-                }
-                celebrationEl.textContent = message;
-            }
-            
-            function resetGame() {
-                levelSelector.style.display = 'block';
-                quizScreen.style.display = 'none';
-                gameOverScreen.style.display = 'none';
-            }
+        }
+    }
+
+    // ========== QUESTION GENERATION (Digit based) ==========
+    function getRand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function generateQuestion() {
+        let minDigit = 1, maxDigit = 9;
+        if (currentLevel === 'easy') { minDigit = 1; maxDigit = 9; }
+        else if (currentLevel === 'average') { minDigit = 10; maxDigit = 99; }
+        else if (currentLevel === 'hard') { minDigit = 100; maxDigit = 999; }
+        else { minDigit = 1000; maxDigit = 9999; }
+
+        const ops = ['+', '-', '×', '÷'];
+        const op = ops[Math.floor(Math.random() * 4)];
+        let num1 = getRand(minDigit, maxDigit);
+        let num2 = getRand(minDigit, maxDigit);
+        let answer, qText;
+
+        if (op === '+') { answer = num1 + num2; qText = `${num1} + ${num2}`; }
+        else if (op === '-') {
+            if (num2 > num1) [num1, num2] = [num2, num1];
+            answer = num1 - num2;
+            qText = `${num1} - ${num2}`;
+        }
+        else if (op === '×') { answer = num1 * num2; qText = `${num1} × ${num2}`; }
+        else {
+            if (num2 === 0) num2 = 1;
+            answer = Math.floor(num1 / num2);
+            qText = `${num1} ÷ ${num2}`;
+        }
+
+        const key = `${qText}=${answer}`;
+        if (usedQuestions.includes(key) && usedQuestions.length < 300) return generateQuestion();
+        usedQuestions.push(key);
+        if (usedQuestions.length > 500) usedQuestions.shift();
+
+        let options = [answer];
+        while (options.length < 4) {
+            let offset = getRand(-Math.floor(maxDigit / 2), Math.floor(maxDigit / 2));
+            let cand = answer + offset;
+            if (cand > 0 && !options.includes(cand)) options.push(cand);
+        }
+        for (let i = options.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]];
+        }
+        return { text: qText + ' = ?', answer, options };
+    }
+
+    function loadQuestion() {
+        if (!gameActive) return;
+        power5050Used = false;
+        currentQuestion = generateQuestion();
+        questionText.innerText = currentQuestion.text;
+        optionsDiv.innerHTML = '';
+        currentQuestion.options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt);
+            optionsDiv.appendChild(btn);
         });
-    </script>
+        nextBtn.disabled = true;
+        feedbackMsg.innerHTML = '';
+        // Progress update
+        let progress = ((60 - timeLeft) / 60) * 100;
+        progressFill.style.width = Math.min(100, progress) + '%';
+    }
+
+    function checkAnswer(selected) {
+        if (!gameActive) return;
+        clearInterval(timerInterval);
+        let isCorrect = (selected == currentQuestion.answer);
+        
+        if (isCorrect) {
+            let bonus = 0;
+            if (streak >= 10) bonus = 25;
+            else if (streak >= 5) bonus = 15;
+            else if (streak >= 3) bonus = 5;
+            score += 10 + bonus;
+            correct++;
+            streak++;
+            
+            if (streak === 3) showToast('🔥 3 in a row! +5 bonus');
+            if (streak === 5) showToast('⭐ 5 in a row! +15 bonus');
+            if (streak === 10) { showToast('🏆 MEGA STREAK! +25 bonus'); confettiEffect(); }
+            
+            feedbackMsg.innerHTML = `✅ Correct! +${10 + bonus} points`;
+            feedbackMsg.style.color = '#48bb78';
+            playSound('correct');
+            document.getElementById('mascot').style.transform = 'scale(1.3)';
+            setTimeout(() => document.getElementById('mascot').style.transform = '', 300);
+            confettiEffect();
+        } else {
+            wrong++;
+            streak = 0;
+            lives--;
+            feedbackMsg.innerHTML = `❌ Wrong! Answer: ${currentQuestion.answer}`;
+            feedbackMsg.style.color = '#f56565';
+            playSound('wrong');
+            if (lives <= 0) { endGame(); return; }
+            showToast(`❤️ Lives left: ${lives}`);
+        }
+        
+        scoreSpan.innerText = score;
+        correctSpan.innerText = correct;
+        streakSpan.innerText = streak;
+        livesSpan.innerText = lives;
+        
+        // Disable options & highlight
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.disabled = true;
+            if (parseInt(btn.innerText) === currentQuestion.answer) btn.style.background = '#48bb78';
+            if (!isCorrect && parseInt(btn.innerText) === selected) btn.style.background = '#f56565';
+        });
+        nextBtn.disabled = false;
+    }
+
+    function nextQuestionHandler() {
+        startTimer();
+        loadQuestion();
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!gameActive) return;
+            timeLeft--;
+            timerSpan.innerText = timeLeft;
+            let progress = ((60 - timeLeft) / 60) * 100;
+            progressFill.style.width = Math.min(100, progress) + '%';
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function endGame() {
+        gameActive = false;
+        clearInterval(timerInterval);
+        quizPanel.style.display = 'none';
+        gameoverPanel.style.display = 'block';
+        finalScoreSpan.innerText = score;
+        
+        // Badges
+        let badgesHtml = '';
+        if (score >= 50) badgesHtml += '<div class="badge">🥉 Bronze</div>';
+        if (score >= 100) badgesHtml += '<div class="badge">🥈 Silver</div>';
+        if (score >= 200) badgesHtml += '<div class="badge">🥇 Gold</div>';
+        if (score >= 500) badgesHtml += '<div class="badge">💎 Diamond</div>';
+        if (badgesHtml === '') badgesHtml = '<div>Keep playing for badges!</div>';
+        document.getElementById('badgesDiv').innerHTML = badgesHtml;
+        playSound('gameover');
+    }
+
+    function startGame(level) {
+        currentLevel = level;
+        score = 0; correct = 0; wrong = 0; streak = 0; lives = 3;
+        timeLeft = 60;
+        usedQuestions = [];
+        gameActive = true;
+        power5050Used = false;
+        
+        scoreSpan.innerText = score;
+        correctSpan.innerText = correct;
+        streakSpan.innerText = streak;
+        livesSpan.innerText = lives;
+        timerSpan.innerText = timeLeft;
+        progressFill.style.width = '0%';
+        
+        levelPanel.style.display = 'none';
+        quizPanel.style.display = 'block';
+        gameoverPanel.style.display = 'none';
+        
+        startTimer();
+        loadQuestion();
+        
+        // Increment usage
+        let usage = parseInt(localStorage.getItem('magic_usage') || '0') + 1;
+        localStorage.setItem('magic_usage', usage);
+        document.getElementById('usageCount').innerText = usage;
+    }
+
+    function resetToLevel() {
+        gameActive = false;
+        clearInterval(timerInterval);
+        levelPanel.style.display = 'block';
+        quizPanel.style.display = 'none';
+        gameoverPanel.style.display = 'none';
+    }
+
+    // ========== POWER UPS ==========
+    document.getElementById('powerTime').onclick = () => {
+        if (gameActive) { timeLeft += 5; timerSpan.innerText = timeLeft; showToast('⏰ +5 seconds!'); }
+    };
+    document.getElementById('power5050').onclick = () => {
+        if (gameActive && !power5050Used) {
+            let btns = document.querySelectorAll('.option-btn');
+            let wrongBtns = Array.from(btns).filter(b => parseInt(b.innerText) !== currentQuestion.answer);
+            for (let i = 0; i < 2 && wrongBtns.length > 1; i++) {
+                let rem = wrongBtns.pop();
+                rem.style.display = 'none';
+            }
+            power5050Used = true;
+            showToast('🎯 50-50 used!');
+        }
+    };
+    document.getElementById('powerLife').onclick = () => {
+        if (gameActive && lives < 5) { lives++; livesSpan.innerText = lives; showToast(`❤️ +1 Life (${lives})`); }
+    };
+
+    // ========== VOICE COMMAND ==========
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = 'en-US';
+        recognition.onresult = (event) => {
+            let spoken = event.results[0][0].transcript;
+            let num = parseInt(spoken.match(/\d+/)?.[0]);
+            if (num && currentQuestion && gameActive && nextBtn.disabled === false) {
+                checkAnswer(num);
+            } else {
+                showToast(`🗣 You said: "${spoken}"`);
+            }
+        };
+        document.getElementById('voiceBtn').onclick = () => recognition.start();
+    } else {
+        document.getElementById('voiceBtn').style.display = 'none';
+    }
+
+    // ========== MUSIC ==========
+    function toggleMusic() {
+        musicEnabled = !musicEnabled;
+        localStorage.setItem('musicEnabled', musicEnabled);
+        if (musicEnabled && !bgMusic) {
+            bgMusic = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-game-level-music-689.mp3');
+            bgMusic.loop = true;
+            bgMusic.volume = 0.2;
+            bgMusic.play().catch(e => {});
+        } else if (bgMusic) {
+            bgMusic.pause();
+            bgMusic = null;
+        }
+        document.getElementById('musicToggle').innerText = musicEnabled ? '🎵 On' : '🔇 Off';
+    }
+    document.getElementById('musicToggle').onclick = toggleMusic;
+
+    // ========== DARK MODE ==========
+    function toggleDark() {
+        let dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+        if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('darkMode', dark);
+    }
+    document.getElementById('darkToggle').onclick = toggleDark;
+    if (localStorage.getItem('darkMode') === 'true') document.documentElement.setAttribute('data-theme', 'dark');
+
+    // ========== CHARACTER SELECTION ==========
+    document.querySelectorAll('.char').forEach(el => {
+        if (el.getAttribute('data-char') === selectedChar) el.classList.add('selected');
+        el.onclick = () => {
+            selectedChar = el.getAttribute('data-char');
+            localStorage.setItem('selectedChar', selectedChar);
+            document.querySelectorAll('.char').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('mascot').innerText = selectedChar;
+            showToast(`${selectedChar} is ready!`);
+        };
+    });
+    document.getElementById('mascot').innerText = selectedChar;
+
+    // ========== REACTIONS ==========
+    let reactions = JSON.parse(localStorage.getItem('magic_reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"laugh":0,"celebrate":0}');
+    function updateReactions() {
+        document.getElementById('likeCount').innerText = reactions.like;
+        document.getElementById('loveCount').innerText = reactions.love;
+        document.getElementById('wowCount').innerText = reactions.wow;
+        document.getElementById('sadCount').innerText = reactions.sad;
+        document.getElementById('laughCount').innerText = reactions.laugh;
+        document.getElementById('celebrateCount').innerText = reactions.celebrate;
+    }
+    function addReaction(emoji) {
+        let key = { '👍':'like', '❤️':'love', '😮':'wow', '😢':'sad', '😂':'laugh', '🎉':'celebrate' }[emoji];
+        if (key) { reactions[key]++; localStorage.setItem('magic_reactions', JSON.stringify(reactions)); updateReactions(); showToast(`Reaction ${emoji} added!`); }
+    }
+    updateReactions();
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.onclick = () => addReaction(btn.getAttribute('data-emoji'));
+    });
+
+    // ========== SHARE ==========
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.onclick = () => {
+            let plat = btn.getAttribute('data-platform');
+            let url = encodeURIComponent(window.location.href);
+            let text = encodeURIComponent('Magicrills Math Quiz - Test your skills!');
+            if (plat === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`);
+            else if (plat === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`);
+            else if (plat === 'whatsapp') window.open(`https://wa.me/?text=${text} ${url}`);
+            else if (plat === 'copy') { navigator.clipboard.writeText(window.location.href); showToast('URL copied!'); }
+        };
+    });
+
+    // ========== EVENT LISTENERS ==========
+    nextBtn.onclick = nextQuestionHandler;
+    restartBtn.onclick = resetToLevel;
+    document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.onclick = () => startGame(btn.getAttribute('data-level'));
+    });
+
+    // Load usage
+    let usage = parseInt(localStorage.getItem('magic_usage') || '0');
+    document.getElementById('usageCount').innerText = usage;
+
+    // Load confetti
+    let script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1';
+    document.head.appendChild(script);
+    
+    showToast(`✨ Welcome ${selectedChar}! Click or speak your answer ✨`);
+</script>
 </body>
 </html>
