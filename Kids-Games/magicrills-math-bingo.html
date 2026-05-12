@@ -1,896 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>🎮 MAGICRILLS MATH BINGO | 85+ Features | Gaming Interface</title>
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    user-select: none;
-  }
-
-  :root {
-    --neon-pink: #ff2d75;
-    --neon-blue: #00d4ff;
-    --neon-purple: #9d00ff;
-    --neon-yellow: #ffea00;
-    --dark-bg: #0a0a1a;
-    --card-bg: rgba(15, 15, 35, 0.7);
-    --glow: 0 0 10px rgba(0,212,255,0.5), 0 0 20px rgba(255,45,117,0.3);
-  }
-
-  body {
-    background: radial-gradient(ellipse at center, #0a0a2a 0%, #000000 100%);
-    min-height: 100vh;
-    font-family: 'Orbitron', 'Segoe UI', 'Courier New', monospace;
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  /* Moving Objects Background */
-  .moving-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .float-number {
-    position: absolute;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: rgba(0,212,255,0.2);
-    animation: floatAround 15s linear infinite;
-    font-family: monospace;
-  }
-
-  .float-star {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: var(--neon-yellow);
-    border-radius: 50%;
-    animation: twinkle 2s ease-in-out infinite;
-  }
-
-  @keyframes floatAround {
-    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
-  }
-
-  @keyframes twinkle {
-    0%, 100% { opacity: 0; transform: scale(1); }
-    50% { opacity: 1; transform: scale(2); }
-  }
-
-  /* Gaming Container */
-  .game-container {
-    position: relative;
-    z-index: 2;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Header with Gaming Style */
-  .gaming-header {
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
-    padding: 20px 30px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    box-shadow: var(--glow);
-    animation: headerGlow 2s ease-in-out infinite;
-  }
-
-  @keyframes headerGlow {
-    0%, 100% { box-shadow: 0 0 20px rgba(255,45,117,0.5); }
-    50% { box-shadow: 0 0 40px rgba(0,212,255,0.7); }
-  }
-
-  h1 {
-    font-size: 3rem;
-    background: linear-gradient(135deg, #fff, var(--neon-yellow));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: 0 0 30px rgba(255,234,0,0.3);
-    letter-spacing: 3px;
-  }
-
-  /* Stats Row - TOP (Correct Position) */
-  .stats-row-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 15px 25px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(0,212,255,0.3);
-  }
-
-  .stat-card {
-    background: rgba(0,0,0,0.5);
-    padding: 10px 20px;
-    border-radius: 12px;
-    text-align: center;
-    border-left: 3px solid var(--neon-blue);
-  }
-
-  .stat-label {
-    font-size: 0.8rem;
-    color: #aaa;
-    letter-spacing: 1px;
-  }
-
-  .stat-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--neon-yellow);
-  }
-
-  /* Bingo Card - CENTER (Correct Position) */
-  .bingo-section {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 25px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 2px solid rgba(0,212,255,0.3);
-    transition: all 0.3s;
-  }
-
-  .bingo-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    aspect-ratio: 1 / 0.8;
-  }
-
-  .bingo-tile {
-    background: linear-gradient(135deg, #1a1a3a, #0a0a2a);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid rgba(0,212,255,0.3);
-    position: relative;
-    animation: tilePop 0.3s ease;
-  }
-
-  @keyframes tilePop {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  .bingo-tile:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px var(--neon-blue);
-    border-color: var(--neon-blue);
-  }
-
-  .bingo-tile.marked {
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
-    animation: markBounce 0.4s ease;
-    border-color: var(--neon-yellow);
-  }
-
-  @keyframes markBounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); background: var(--neon-yellow); }
-    100% { transform: scale(1); }
-  }
-
-  .bingo-tile.free {
-    background: linear-gradient(135deg, var(--neon-yellow), #ff8800);
-    color: #000;
-  }
-
-  .bingo-tile.free::after {
-    content: "FREE";
-    position: absolute;
-    font-size: 0.6rem;
-    bottom: 5px;
-    font-weight: bold;
-  }
-
-  /* Problem Area - ABOVE Card */
-  .problem-area {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 20px;
-    text-align: center;
-    border: 2px solid var(--neon-pink);
-  }
-
-  .question-display {
-    font-size: 2.8rem;
-    font-weight: bold;
-    color: var(--neon-yellow);
-    text-shadow: 0 0 10px rgba(255,234,0,0.5);
-    margin-bottom: 20px;
-    min-height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.5);
-    border-radius: 15px;
-    padding: 20px;
-  }
-
-  .input-group {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .answer-input {
-    padding: 15px 25px;
-    font-size: 1.5rem;
-    text-align: center;
-    border: 2px solid var(--neon-blue);
-    border-radius: 50px;
-    background: #0a0a2a;
-    color: var(--neon-yellow);
-    width: 250px;
-    font-family: monospace;
-  }
-
-  .gaming-btn {
-    padding: 15px 30px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: monospace;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-    color: white;
-  }
-
-  .btn-secondary {
-    background: linear-gradient(135deg, var(--neon-pink), #ff6b6b);
-    color: white;
-  }
-
-  .btn-next {
-    background: linear-gradient(135deg, #00ff88, #00b4d8);
-    color: #000;
-  }
-
-  .gaming-btn:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-  }
-
-  /* Reactions & Share - BOTTOM (Correct Position) */
-  .social-section {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 20px;
-    margin-top: 20px;
-    border: 1px solid rgba(0,212,255,0.2);
-  }
-
-  .reactions-row {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .reaction-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 10px 15px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .reaction-item:hover {
-    transform: scale(1.1);
-    background: var(--neon-pink);
-  }
-
-  .reaction-emoji {
-    font-size: 1.8rem;
-  }
-
-  .reaction-count {
-    font-size: 0.8rem;
-    color: var(--neon-blue);
-  }
-
-  .share-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .share-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1.4rem;
-  }
-
-  .share-icon:hover {
-    transform: translateY(-5px) rotate(360deg);
-  }
-
-  /* Floating Gaming Elements */
-  .floating-powerup {
-    position: fixed;
-    bottom: 100px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    background: radial-gradient(circle, var(--neon-yellow), #ff8800);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    animation: floatPower 2s ease-in-out infinite;
-    cursor: pointer;
-    z-index: 100;
-    box-shadow: 0 0 20px rgba(255,234,0,0.5);
-  }
-
-  @keyframes floatPower {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-  }
-
-  /* Bingo Celebration */
-  .bingo-celebration {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 1000;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    animation: fadeIn 0.5s;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  /* Loading */
-  .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    z-index: 2000;
-    display: none;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .bingo-grid { gap: 6px; }
-    .bingo-tile { font-size: 1rem; }
-    .question-display { font-size: 1.5rem; }
-    h1 { font-size: 1.8rem; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Magicrills Sentence Builder | Ultimate English Learning Game</title>
+    <meta name="description" content="Master English sentences with 24 interactive learning modes. AI-powered sentence builder with gamification, achievements, and progress tracking.">
+    <meta name="keywords" content="sentence builder, english learning, grammar game, educational game">
+    <meta name="author" content="Magicrills">
+    <meta property="og:title" content="Magicrills Sentence Builder">
+    <meta property="og:description" content="Learn English sentences with fun games!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills.com/sentence-builder">
+    <link rel="canonical" href="https://magicrills.com/sentence-builder">
+    <link rel="stylesheet" href="magicrills-sentence-builder.css">
 </head>
 <body>
-
-<!-- Moving Objects Background -->
-<div class="moving-bg" id="movingBg"></div>
-
-<!-- Floating Power-up -->
-<div class="floating-powerup" id="powerup">⚡</div>
-
-<!-- Main Game Container -->
-<div class="game-container">
-  <!-- TOP: Header -->
-  <div class="gaming-header">
-    <h1>🎰 MAGICRILLS MATH BINGO 🎲</h1>
-    <p style="color: #ccc; margin-top: 10px;">85+ Features | Gaming Interface | AI Powered</p>
-  </div>
-
-  <!-- TOP: Stats Row -->
-  <div class="stats-row-top">
-    <div class="stat-card"><div class="stat-label">SCORE</div><div class="stat-value" id="score">0</div></div>
-    <div class="stat-card"><div class="stat-label">BINGOS</div><div class="stat-value" id="bingos">0</div></div>
-    <div class="stat-card"><div class="stat-label">STREAK</div><div class="stat-value" id="streak">0</div></div>
-    <div class="stat-card"><div class="stat-label">USAGE</div><div class="stat-value" id="usageCount">0</div></div>
-    <select id="levelSelect" style="padding:10px;border-radius:10px;background:#1a1a3a;color:white;border:1px solid #00d4ff;">
-      <option value="easy">🟢 EASY</option>
-      <option value="average">🟡 AVERAGE</option>
-      <option value="hard">🟠 HARD</option>
-      <option value="professional">🔴 PRO</option>
-    </select>
-    <button class="gaming-btn btn-primary" id="newGameBtn" style="padding:10px 20px;">🔄 NEW GAME</button>
-  </div>
-
-  <!-- Problem Area (Above Bingo Card) -->
-  <div class="problem-area">
-    <div class="question-display" id="questionText">⚡ SOLVE TO MARK ⚡</div>
-    <div class="input-group">
-      <input type="number" id="answerInput" class="answer-input" placeholder="ENTER ANSWER" disabled>
-      <button class="gaming-btn btn-primary" id="submitBtn">✓ SUBMIT</button>
-      <button class="gaming-btn btn-next" id="nextBtn">⏩ NEXT QUESTION</button>
+    <div id="confetti-canvas"></div>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
     </div>
-  </div>
-
-  <!-- Bingo Card (Center) -->
-  <div class="bingo-section">
-    <div class="bingo-grid" id="bingoGrid"></div>
-  </div>
-
-  <!-- Reactions & Share (Bottom) -->
-  <div class="social-section">
-    <div class="reactions-row" id="reactionsRow"></div>
-    <div class="share-buttons" id="shareButtons"></div>
-  </div>
-</div>
-
-<!-- Bingo Celebration -->
-<div class="bingo-celebration" id="bingoCelebration">
-  <div style="font-size: 6rem;">🎉 BINGO! 🎉</div>
-  <div style="font-size: 2rem; color: #ffea00; margin: 20px;">+50 BONUS!</div>
-  <button class="gaming-btn btn-primary" id="closeCelebration" style="padding:15px 40px;">CONTINUE</button>
-</div>
-
-<!-- Loading -->
-<div class="loading-overlay" id="loadingOverlay"><div style="color:white;font-size:2rem;">LOADING... ⚡</div></div>
-
-<script>
-// ========== 85 FEATURES GAMING INTERFACE ==========
-const TOOL_SLUG = 'magicrills-math-bingo';
-let score = 0, bingos = 0, streak = 0, usageCount = 0;
-let currentCard = [];
-let markedState = [];
-let currentQuestion = null;
-let questionHistory = [];
-let userId = 'user_' + Math.random().toString(36).substr(2, 9);
-
-// Sound Effects (Web Audio for gaming)
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    gain.gain.value = 0.3;
-    if(type === 'correct') { osc.frequency.value = 880; gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5); }
-    else if(type === 'wrong') { osc.frequency.value = 440; gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3); }
-    else if(type === 'bingo') { osc.frequency.value = 1318.52; gain.gain.value = 0.5; setTimeout(() => { osc.frequency.value = 1046.5; }, 100); }
-    else if(type === 'mark') { osc.frequency.value = 659.25; gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2); }
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.4);
-  } catch(e) { console.log('audio blocked'); }
-}
-
-// Moving Objects Generator
-function createMovingObjects() {
-  const container = document.getElementById('movingBg');
-  for(let i=0;i<50;i++) {
-    const el = document.createElement('div');
-    if(i%3===0) {
-      el.className = 'float-number';
-      el.textContent = ['+','-','×','÷','=',Math.floor(Math.random()*100)][Math.floor(Math.random()*6)];
-      el.style.left = Math.random() * 100 + '%';
-      el.style.animationDuration = 8 + Math.random() * 15 + 's';
-      el.style.animationDelay = Math.random() * 10 + 's';
-      el.style.fontSize = 1 + Math.random() * 2 + 'rem';
-    } else {
-      el.className = 'float-star';
-      el.style.left = Math.random() * 100 + '%';
-      el.style.top = Math.random() * 100 + '%';
-      el.style.animationDuration = 1 + Math.random() * 3 + 's';
-      el.style.animationDelay = Math.random() * 2 + 's';
-    }
-    container.appendChild(el);
-  }
-}
-createMovingObjects();
-
-// 8 Question Types with Full Randomization
-const questionTypes = ['equation', 'operator', 'complete', 'word', 'estimate', 'missing', 'compare', 'pattern'];
-function generateQuestion(level) {
-  let available = [...questionTypes];
-  if(questionHistory.length > 0) available = available.filter(t => t !== questionHistory[questionHistory.length-1]);
-  const type = available[Math.floor(Math.random() * available.length)];
-  questionHistory.push(type);
-  if(questionHistory.length > 20) questionHistory.shift();
-  
-  let min=-20, max=50;
-  if(level==='easy') { min=1; max=25; }
-  else if(level==='average') { min=1; max=50; }
-  else if(level==='hard') { min=-30; max=70; }
-  else { min=-50; max=100; }
-  
-  let a,b,c,answer,text;
-  
-  switch(type) {
-    case 'equation':
-      const op = ['+','-','*','/'][Math.floor(Math.random()*4)];
-      a = Math.floor(Math.random()*(max-min+1))+min;
-      b = Math.floor(Math.random()*(max-min+1))+min;
-      if(op==='/') { b = Math.max(1,b); a = b * (Math.floor(Math.random()*10)+1); answer = a/b; }
-      else if(op==='*') answer = a*b;
-      else if(op==='+') answer = a+b;
-      else answer = a-b;
-      text = `${a} ${op} ${b} = ?`;
-      break;
-    case 'operator':
-      a = Math.floor(Math.random()*50)+1;
-      b = Math.floor(Math.random()*50)+1;
-      const result = Math.random()>0.5 ? a+b : a-b;
-      text = `${a} ? ${b} = ${result}`;
-      answer = result === a+b ? '+' : '-';
-      break;
-    case 'complete':
-      a = Math.floor(Math.random()*50)+1;
-      const target = a + Math.floor(Math.random()*30)+1;
-      text = `${a} + ___ = ${target}`;
-      answer = target - a;
-      break;
-    case 'word':
-      const items = ['apples','coins','stars','gems','points'];
-      const item = items[Math.floor(Math.random()*items.length)];
-      const num1 = Math.floor(Math.random()*30)+5;
-      const num2 = Math.floor(Math.random()*15)+1;
-      text = `You have ${num1} ${item}. You give ${num2} away. How many left?`;
-      answer = num1 - num2;
-      break;
-    case 'estimate':
-      a = Math.floor(Math.random()*90)+10;
-      b = Math.floor(Math.random()*90)+10;
-      text = `Estimate: ${a} + ${b} ≈ ?`;
-      answer = Math.round((a+b)/10)*10;
-      break;
-    case 'missing':
-      const start = Math.floor(Math.random()*20)+1;
-      const diff = Math.floor(Math.random()*5)+1;
-      text = `${start}, ${start+diff}, __, ${start+diff*3}`;
-      answer = start + diff*2;
-      break;
-    case 'compare':
-      a = Math.floor(Math.random()*100);
-      b = Math.floor(Math.random()*100);
-      text = `${a} ___ ${b}`;
-      answer = a < b ? '<' : (a > b ? '>' : '=');
-      break;
-    default:
-      text = `5 + 3 = ?`;
-      answer = 8;
-  }
-  return { text, answer: typeof answer === 'number' ? Math.round(answer*100)/100 : answer, type };
-}
-
-// Bingo Card Generation
-function generateCard() {
-  const level = document.getElementById('levelSelect').value;
-  let min=1, max=25;
-  if(level==='average') { min=1; max=50; }
-  else if(level==='hard') { min=-20; max=50; }
-  else if(level==='professional') { min=-50; max=100; }
-  
-  const numbers = new Set();
-  while(numbers.size < 24) {
-    const num = Math.floor(Math.random()*(max-min+1))+min;
-    numbers.add(num);
-  }
-  const nums = Array.from(numbers);
-  const card = [...nums.slice(0,12), 'FREE', ...nums.slice(12)];
-  return card;
-}
-
-function renderCard() {
-  const grid = document.getElementById('bingoGrid');
-  grid.innerHTML = '';
-  for(let i=0;i<25;i++) {
-    const tile = document.createElement('div');
-    tile.className = 'bingo-tile';
-    if(currentCard[i] === 'FREE') tile.classList.add('free');
-    if(markedState[i]) tile.classList.add('marked');
-    tile.textContent = currentCard[i] === 'FREE' ? '⭐' : currentCard[i];
-    tile.onclick = () => {
-      if(markedState[i]) return;
-      if(currentCard[i] === 'FREE') {
-        markedState[i] = true;
-        renderCard();
-        playSound('mark');
-        checkBingo();
-      } else {
-        showToast('🔓 Solve question first!', '#ff6600');
-      }
-    };
-    grid.appendChild(tile);
-  }
-}
-
-async function checkBingo() {
-  // Rows
-  for(let i=0;i<5;i++) {
-    let rowWin = true;
-    for(let j=0;j<5;j++) if(!markedState[i*5+j]) rowWin = false;
-    if(rowWin) return triggerBingo();
-  }
-  // Columns
-  for(let i=0;i<5;i++) {
-    let colWin = true;
-    for(let j=0;j<5;j++) if(!markedState[i+j*5]) colWin = false;
-    if(colWin) return triggerBingo();
-  }
-  // Diagonals
-  let diag1=true, diag2=true;
-  for(let i=0;i<5;i++) { if(!markedState[i*6]) diag1=false; if(!markedState[4+i*4]) diag2=false; }
-  if(diag1 || diag2) return triggerBingo();
-}
-
-function triggerBingo() {
-  playSound('bingo');
-  bingos++;
-  score += 50;
-  streak += 5;
-  document.getElementById('bingos').innerText = bingos;
-  document.getElementById('score').innerText = score;
-  document.getElementById('streak').innerText = streak;
-  document.getElementById('bingoCelebration').style.display = 'flex';
-  // Generate confetti effect
-  for(let i=0;i<50;i++) createConfetti();
-}
-
-function createConfetti() {
-  const conf = document.createElement('div');
-  conf.style.position = 'fixed';
-  conf.style.left = Math.random() * 100 + '%';
-  conf.style.top = '-10px';
-  conf.style.width = '10px';
-  conf.style.height = '10px';
-  conf.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
-  conf.style.zIndex = '999';
-  document.body.appendChild(conf);
-  let pos = 0;
-  const interval = setInterval(() => {
-    pos += 5;
-    conf.style.top = pos + 'px';
-    if(pos > window.innerHeight) { clearInterval(interval); conf.remove(); }
-  }, 20);
-  setTimeout(() => conf.remove(), 2000);
-}
-
-document.getElementById('closeCelebration').onclick = () => {
-  document.getElementById('bingoCelebration').style.display = 'none';
-};
-
-// Submit & Next
-let currentAnswer = null;
-function loadNewQuestion() {
-  const level = document.getElementById('levelSelect').value;
-  currentQuestion = generateQuestion(level);
-  document.getElementById('questionText').innerHTML = `❓ ${currentQuestion.text}`;
-  currentAnswer = currentQuestion.answer;
-  document.getElementById('answerInput').value = '';
-  document.getElementById('answerInput').focus();
-}
-
-function submitAnswer() {
-  const userVal = document.getElementById('answerInput').value.trim();
-  if(!userVal) return showToast('📝 Enter answer!', '#ff4444');
-  let isCorrect = false;
-  const correctAns = currentAnswer;
-  if(typeof correctAns === 'number') {
-    if(parseFloat(userVal) === correctAns) isCorrect = true;
-  } else {
-    if(userVal.toLowerCase() === correctAns.toString().toLowerCase()) isCorrect = true;
-  }
-  
-  if(isCorrect) {
-    playSound('correct');
-    const added = 10 + Math.floor(streak/2);
-    score += added;
-    streak++;
-    document.getElementById('score').innerText = score;
-    document.getElementById('streak').innerText = streak;
-    showToast(`✅ CORRECT! +${added} POINTS`, '#00ff88');
+    <div class="toast-notification" id="toast"></div>
     
-    // Try to mark matching number
-    const numVal = parseFloat(userVal);
-    if(!isNaN(numVal)) {
-      let markedAny = false;
-      for(let i=0;i<currentCard.length;i++) {
-        if(!markedState[i] && currentCard[i] !== 'FREE' && parseFloat(currentCard[i]) === numVal) {
-          markedState[i] = true;
-          renderCard();
-          playSound('mark');
-          markedAny = true;
-          checkBingo();
-          break;
-        }
-      }
-      if(!markedAny) showToast('⚡ Correct! Number not on card.', '#ffaa00');
-    } else {
-      showToast('⚡ Correct answer!', '#00ff88');
-    }
-    loadNewQuestion();
-  } else {
-    playSound('wrong');
-    streak = 0;
-    score = Math.max(0, score - 5);
-    document.getElementById('score').innerText = score;
-    document.getElementById('streak').innerText = streak;
-    showToast(`❌ WRONG! Answer: ${correctAns}`, '#ff4444');
-    document.getElementById('answerInput').value = '';
-    document.getElementById('answerInput').focus();
-  }
-}
+    <!-- Scroll Buttons -->
+    <button class="scroll-btn scroll-up" id="scrollUpBtn" aria-label="Scroll to top">↑</button>
+    <button class="scroll-btn scroll-down" id="scrollDownBtn" aria-label="Scroll to bottom">↓</button>
 
-function showToast(msg, color) {
-  const toast = document.createElement('div');
-  toast.textContent = msg;
-  toast.style.position = 'fixed';
-  toast.style.bottom = '100px';
-  toast.style.left = '50%';
-  toast.style.transform = 'translateX(-50%)';
-  toast.style.background = color || '#00d4ff';
-  toast.style.color = 'white';
-  toast.style.padding = '12px 24px';
-  toast.style.borderRadius = '50px';
-  toast.style.zIndex = '2000';
-  toast.style.fontWeight = 'bold';
-  toast.style.fontFamily = 'monospace';
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2000);
-}
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <h1>✨ Magicrills Sentence Builder</h1>
+                <p>Master English Sentences | 24 Learning Modes | AI Powered</p>
+            </div>
+            <div class="header-actions">
+                <div class="dark-mode-toggle" id="darkModeToggle" role="button" aria-label="Dark mode toggle"></div>
+                <button class="icon-btn" id="focusModeBtn" title="Focus Mode (No Timer)">🎯</button>
+                <button class="icon-btn" id="soundToggleBtn" title="Sound Effects">🔊</button>
+                <button class="icon-btn" id="fontSizeBtn" title="Font Size">A🔍</button>
+                <button class="icon-btn" id="statsModalBtn" title="Your Statistics">📊</button>
+            </div>
+        </div>
 
-// Reactions & Share
-const reactions = { like:0, love:0, wow:0, sad:0, angry:0, laugh:0, celebrate:0 };
-const reactionEmojis = { like:'👍', love:'❤️', wow:'😮', sad:'😢', angry:'😠', laugh:'😂', celebrate:'🎉' };
-function renderReactions() {
-  const row = document.getElementById('reactionsRow');
-  row.innerHTML = Object.keys(reactions).map(r => `
-    <div class="reaction-item" data-reaction="${r}">
-      <div class="reaction-emoji">${reactionEmojis[r]}</div>
-      <div class="reaction-count" id="count-${r}">${reactions[r]}</div>
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="totalXP">0</div>
+                <div class="stat-label">Total XP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="userLevel">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="streakDays">0</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="accuracyRate">0%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalTimeSpent">0</div>
+                <div class="stat-label">Minutes</div>
+            </div>
+        </div>
+
+        <!-- Mode Grid (24 Modes) -->
+        <div class="mode-grid" id="modeGrid"></div>
+
+        <!-- Game Area -->
+        <div class="game-area" id="gameArea">
+            <div class="game-header">
+                <div class="current-mode" id="currentModeName">Select a mode to start</div>
+                <div class="timer-display" id="timerDisplay">⏱️ --s</div>
+                <div class="score-display">🎯 Score: <span id="currentScore">0</span> | ✅ <span id="correctCount">0</span> | ❌ <span id="wrongCount">0</span></div>
+            </div>
+            <div class="word-bank" id="wordBank"></div>
+            <div class="sentence-area" id="sentenceArea"></div>
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            <div class="hint-box" id="hintBox"></div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" id="checkBtn">✅ Check Answer</button>
+                <button class="btn btn-warning" id="resetBtn">🔄 Reset</button>
+                <button class="btn btn-outline" id="hintBtn">💡 Hint (-5 XP)</button>
+                <button class="btn btn-success" id="nextBtn" style="display:none;">➡️ Next Sentence</button>
+            </div>
+        </div>
+
+        <!-- Reactions & Share Section -->
+        <div class="reactions-section">
+            <div class="reactions" id="reactionsContainer">
+                <button class="reaction-btn" data-reaction="👍">👍<span class="reaction-count">0</span></button>
+                <button class="reaction-btn" data-reaction="❤️">❤️<span class="reaction-count">0</span></button>
+                <button class="reaction-btn" data-reaction="😮">😮<span class="reaction-count">0</span></button>
+                <button class="reaction-btn" data-reaction="😢">😢<span class="reaction-count">0</span></button>
+                <button class="reaction-btn" data-reaction="😠">😠<span class="reaction-count">0</span></button>
+                <button class="reaction-btn" data-reaction="😂">😂<span class="reaction-count">0</span></button>
+                <button class="reaction-btn" data-reaction="🎉">🎉<span class="reaction-count">0</span></button>
+            </div>
+            <div class="share-section" id="shareSection"></div>
+        </div>
+
+        <!-- XP & Level Section -->
+        <div class="xp-section" id="xpSection">
+            <div class="level-badge" id="levelBadge">Level 1</div>
+            <div class="progress-bar" style="flex:1;">
+                <div class="progress-fill" id="xpProgressFill" style="width:0%"></div>
+            </div>
+            <span id="xpText">0 / 100 XP</span>
+        </div>
+
+        <!-- Achievements -->
+        <div class="leaderboard" id="achievementsSection">
+            <h3>🏆 Achievements</h3>
+            <div class="achievements-grid" id="achievementsGrid"></div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard" id="leaderboardSection">
+            <h3>📊 Daily Leaderboard</h3>
+            <div id="leaderboardList">Loading...</div>
+        </div>
+
+        <!-- Mistake Tracker -->
+        <div class="mistake-tracker" id="mistakeTracker">
+            <h3>📝 Words to Practice</h3>
+            <div id="mistakeWordsList">No mistakes yet. Keep going!</div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2024 Magicrills.com | Master English Sentences</p>
+        </div>
     </div>
-  `).join('');
-  document.querySelectorAll('.reaction-item').forEach(el => {
-    el.onclick = () => {
-      const type = el.dataset.reaction;
-      reactions[type]++;
-      document.getElementById(`count-${type}`).innerText = reactions[type];
-      playSound('mark');
-      showToast(`${reactionEmojis[type]} Reaction +1`, '#ffaa00');
-      saveToLocal();
-    };
-  });
-}
 
-const shares = ['Facebook','Twitter','WhatsApp','LinkedIn','Copy'];
-function renderShares() {
-  const container = document.getElementById('shareButtons');
-  container.innerHTML = shares.map(s => `<div class="share-icon" data-share="${s}">${s==='Copy'?'🔗':s==='Facebook'?'📘':s==='Twitter'?'🐦':s==='WhatsApp'?'💬':'💼'}</div>`).join('');
-  document.querySelectorAll('.share-icon').forEach(el => {
-    el.onclick = () => {
-      const platform = el.dataset.share;
-      if(platform === 'Copy') {
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL Copied!', '#00ff88');
-      } else {
-        const url = encodeURIComponent(window.location.href);
-        window.open(`https://${platform.toLowerCase()}.com/share?url=${url}`, '_blank');
-      }
-      showToast(`📤 Shared on ${platform}`, '#00d4ff');
-      saveToLocal();
-    };
-  });
-}
+    <!-- Stats Modal -->
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <h2>📊 Your Statistics</h2>
+            <div class="stats-details">
+                <p>Total Sentences: <span id="statTotalSentences">0</span></p>
+                <p>Correct Answers: <span id="statCorrectAnswers">0</span></p>
+                <p>Wrong Answers: <span id="statWrongAnswers">0</span></p>
+                <p>Accuracy: <span id="statAccuracy">0</span>%</p>
+                <p>Total XP: <span id="statTotalXP">0</span></p>
+                <p>Current Level: <span id="statLevel">1</span></p>
+                <p>Longest Streak: <span id="statLongestStreak">0</span> days</p>
+            </div>
+            <button class="btn btn-primary" id="closeStatsBtn">Close</button>
+        </div>
+    </div>
 
-function saveToLocal() {
-  localStorage.setItem(`${TOOL_SLUG}_data`, JSON.stringify({ score, bingos, streak, reactions, usageCount }));
-}
-function loadSaved() {
-  const saved = localStorage.getItem(`${TOOL_SLUG}_data`);
-  if(saved) {
-    const data = JSON.parse(saved);
-    score = data.score || 0;
-    bingos = data.bingos || 0;
-    streak = data.streak || 0;
-    if(data.reactions) Object.assign(reactions, data.reactions);
-    document.getElementById('score').innerText = score;
-    document.getElementById('bingos').innerText = bingos;
-    document.getElementById('streak').innerText = streak;
-    document.getElementById('usageCount').innerText = usageCount;
-    renderReactions();
-  }
-}
-
-// Power-up
-document.getElementById('powerup').onclick = () => {
-  score += 25;
-  document.getElementById('score').innerText = score;
-  playSound('correct');
-  showToast('⚡ POWER-UP! +25 POINTS ⚡', '#ffea00');
-};
-
-function newGame() {
-  currentCard = generateCard();
-  markedState = new Array(25).fill(false);
-  markedState[12] = true; // FREE is pre-marked
-  renderCard();
-  loadNewQuestion();
-  document.getElementById('answerInput').disabled = false;
-  usageCount++;
-  document.getElementById('usageCount').innerText = usageCount;
-  saveToLocal();
-  playSound('mark');
-}
-
-// Initialize
-renderReactions();
-renderShares();
-loadSaved();
-newGame();
-
-document.getElementById('newGameBtn').onclick = () => newGame();
-document.getElementById('submitBtn').onclick = () => submitAnswer();
-document.getElementById('nextBtn').onclick = () => { loadNewQuestion(); playSound('wrong'); showToast('⏩ Skipped', '#888'); };
-document.getElementById('levelSelect').onchange = () => newGame();
-document.getElementById('answerInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') submitAnswer(); });
-
-// Audio context unlock
-document.body.addEventListener('click', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); });
-</script>
+    <script src="magicrills-sentence-builder.js"></script>
 </body>
 </html>
