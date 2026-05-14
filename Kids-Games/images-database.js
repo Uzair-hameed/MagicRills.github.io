@@ -1,7 +1,11 @@
+// ========================================
 // images-database.js
-// یہ صرف TEXT فائل ہے - کوئی تصویر اپلوڈ نہیں کرنی
+// Complete Google Drive Images Database
+// 228+ Images for All Urdu Letters
+// ========================================
 
-const URDU_IMAGES = {
+const URDU_IMAGES_DB = {
+    // Alif (ا) - 6 images
     'ا': {
         ids: [
             '1fkqAND0Wj0CZ-vin06nS-ANTG9yHwkC_',
@@ -10,7 +14,8 @@ const URDU_IMAGES = {
             '1skY1eplZ1J3EgC6JG8IAgUgmekWYhjaz',
             '11RmGlbx0zmvPiv49-iUXCzaGNAcQYEXe',
             '1t6ihscWHSzPlWTX_jxbwRZPlZ7YBCub6'
-        ]
+        ],
+        words: ['انار', 'آم', 'ابو', 'انگور', 'آئینہ']
     },
     'آ': {
         ids: [
@@ -20,7 +25,8 @@ const URDU_IMAGES = {
             '1CMObw5r8g2fb7qv-LQCKO9Xow4SR8YD_',
             '1GUtj2Ktsa7P6PSgTXi4Xh8-eM4buS7Pt',
             '1IRPiTGxlDuqD_0YaMZYTYgUmHQa0xM7D'
-        ]
+        ],
+        words: ['آب', 'آگ', 'آسمان', 'آلو', 'آزادی']
     },
     'ب': {
         ids: [
@@ -30,7 +36,8 @@ const URDU_IMAGES = {
             '1KjJnnzK7MVnR4Y1gxDuq5FgUS7vIZgoK',
             '195uQPWZsukNoAkVDipAdzStzStdOeAWH',
             '1PxAGGbLyWaZORmcMBOzC1NO02gEfiD7x'
-        ]
+        ],
+        words: ['بکری', 'بندر', 'بلی', 'بوٹ', 'بازار', 'بادام']
     },
     'پ': {
         ids: [
@@ -40,7 +47,8 @@ const URDU_IMAGES = {
             '100GEaX1ST7fh3XrNy-O9zV0liNjTLEYd',
             '19qLMks_EOThEtcIRtBLozpE70g9cf7An',
             '14Ofg1G4kJdTuhEHUML3U4z7jgQWHiX6-'
-        ]
+        ],
+        words: ['پانی', 'پھول', 'پتنگ', 'پہاڑ', 'پتہ', 'پاکستان']
     },
     'ت': {
         ids: [
@@ -50,7 +58,8 @@ const URDU_IMAGES = {
             '17DGLNryxH1EN6dVANlrN20yWQK2i0-Mw',
             '1c6kNYLkxGwUTX2YhVvNxI_bpcDrskU6j',
             '1NC365naAm8JHitPLEDeUh-_TxbNmD5G9'
-        ]
+        ],
+        words: ['توتا', 'تارا', 'تھیلا', 'تخت', 'تاج', 'تیر']
     },
     'ٹ': {
         ids: [
@@ -60,10 +69,12 @@ const URDU_IMAGES = {
             '11VifEs64W1Axpwwt5E4o_sJlIjBQJkqs',
             '17ylMaYjX7vFJboJVKvRIws6FhDhVZL22',
             '1eUvRzibJks-79mNK0Q10t2gyi0cvsFrJ'
-        ]
+        ],
+        words: ['ٹماٹر', 'ٹوپی', 'ٹرین', 'ٹھنڈا', 'ٹیبل', 'ٹوکری']
     },
     'ث': {
-        ids: ['1x0jwx6_7151_UeTigefA0mBCZT8hXgPP']
+        ids: ['1x0jwx6_7151_UeTigefA0mBCZT8hXgPP'],
+        words: ['ثمر', 'ثواب', 'ثریا']
     },
     'ج': {
         ids: [
@@ -73,7 +84,8 @@ const URDU_IMAGES = {
             '15biUB_wgBq_Fr2gu5C5N6eQq2Zb2IuXZ',
             '1usD2b4RLTJXvdAS41h2wmZpdxjAiH4Te',
             '1zZR_yASFBnyxhPram_tfUmlc0WOqegLQ'
-        ]
+        ],
+        words: ['جوتا', 'جہاز', 'جنگل', 'جگہ', 'جمنا', 'جنت']
     },
     'چ': {
         ids: [
@@ -83,7 +95,8 @@ const URDU_IMAGES = {
             '1IgX1hY_vwqUQGE95PUjKAWNt9mWoOfOf',
             '1Mz4HxGs_2u11UScOsadkYSB9RtLLUxHL',
             '13S5ak1Mv-Chr8QA2QljayPIaNuz43NU2'
-        ]
+        ],
+        words: ['چائے', 'چمچ', 'چاند', 'چھتری', 'چھوٹا', 'چراغ']
     },
     'ح': {
         ids: [
@@ -92,7 +105,8 @@ const URDU_IMAGES = {
             '19Dy19YLvj-a7XLSrsecWWPJBXeNrdjm-',
             '1PsQYmNMK-p2MbyYudwx5MhqS78M7-TPA',
             '1evXk2K2HUmGe_JFoMD5mRIjTuHdtDfh1'
-        ]
+        ],
+        words: ['حب', 'حیرت', 'حسین', 'حفاظت', 'حقیقت']
     },
     'خ': {
         ids: [
@@ -102,7 +116,8 @@ const URDU_IMAGES = {
             '1HKfJZ0yO2hwkQXFio54ObsJbhtVn75D8',
             '1g6bK-QpZ_ZiPPjdFROgf6mgBX8ZQM1fs',
             '1x5DJPCaN7Qf0Qv32KMG6AwYkV_Uepjol'
-        ]
+        ],
+        words: ['خوب', 'خواب', 'خوش', 'خوبصورت', 'خانہ', 'خزانہ']
     },
     'د': {
         ids: [
@@ -111,7 +126,8 @@ const URDU_IMAGES = {
             '16p8diMs3MvVVbmMlwDE2nd29Y5Pyk5Tz',
             '1-_JCuXs6uyE3zZEUitDIpsUV73P_3UlZ',
             '1chkOG-VeKv0ucomWfPdn5sinm-15evCb'
-        ]
+        ],
+        words: ['دودھ', 'درخت', 'دنیا', 'دکان', 'دوست']
     },
     'ڈ': {
         ids: [
@@ -119,7 +135,8 @@ const URDU_IMAGES = {
             '1daPOgtGd4ZADFkHEySUzygp4FvxUTTDc',
             '1ooN-tJH2K1N1CdmWWK8vKSWnRfCKZ_3r',
             '12Pc5hTndNzLxoib8oht3Zh5YxGv0yOq1'
-        ]
+        ],
+        words: ['ڈبہ', 'ڈاکو', 'ڈرائیور', 'ڈھول']
     },
     'ذ': {
         ids: [
@@ -128,7 +145,8 @@ const URDU_IMAGES = {
             '1kbGYXItC-zytKQ6-igwVrwT_joCoBkKj',
             '1Ens8MROM59vQ03fQY975tBAW_fhECEGe',
             '1Xk3pNWLLJEqHBgvSOK99ucVpyQ1UpyJX'
-        ]
+        ],
+        words: ['ذہن', 'ذائقہ', 'ذاتی', 'ذمہ داری']
     },
     'ر': {
         ids: [
@@ -138,14 +156,16 @@ const URDU_IMAGES = {
             '1lxlToamENEmZDeDXb2zaVR8gpo6n7bb7',
             '1TPnp4vwv5vFziQCjl2nARgS5sthDfnwg',
             '1QE2zLPTaVNgHJ7HpYo3tRfdoHCbzDQa1'
-        ]
+        ],
+        words: ['روٹی', 'رنگ', 'راستہ', 'راجہ', 'رحم', 'ریل']
     },
     'ڑ': {
         ids: [
             '1nPMjNdxAxeQxl84UOtLhZsbDm8K1YLhw',
             '1YiXgR2dmm2HL5-Ao2j39xkEnRjqCQjxd',
             '1fr0CQIsBar1Jni0WesF9aZiCOzsKA0s3'
-        ]
+        ],
+        words: ['ڑکنا', 'ڑیڑھی', 'ڑنگ']
     },
     'ز': {
         ids: [
@@ -155,7 +175,8 @@ const URDU_IMAGES = {
             '1nKqLGVAhK5jbff0Ra5G8JDX5tBk4jrOs',
             '1sFEIY_ZX2ev1qqu1idysW1eSOIPEZ2FE',
             '1cVNyIjEAiCzHav3U6LsYX92_AQSeblE8'
-        ]
+        ],
+        words: ['زمین', 'زرد', 'زیتون', 'زیبرا', 'زنجیر', 'زور']
     },
     'س': {
         ids: [
@@ -165,7 +186,8 @@ const URDU_IMAGES = {
             '1RnWC2d3ulJSfcRzgiTz9_EsFH-i0vxsS',
             '1DmXWzFK4zm9FD6BxmQXHU62trCWBVUup',
             '15kx1G-auwzK2bUGZPm5Q1h3Vb0lowQja'
-        ]
+        ],
+        words: ['سورج', 'سمندر', 'سفید', 'سائیکل', 'سکول', 'سبز']
     },
     'ش': {
         ids: [
@@ -175,7 +197,8 @@ const URDU_IMAGES = {
             '1MpDHkdmwjjGN5FzCmnaXUU8u5JdVr8C3',
             '1KVqUtmT-bfBlmRK743FAozIW2srV3Sg3',
             '1YyAYXGDKrSR2bvDR-3mBD1OY0spPhNjr'
-        ]
+        ],
+        words: ['شیر', 'شمال', 'شہر', 'شکریہ', 'شاعر', 'شبنم']
     },
     'ص': {
         ids: [
@@ -185,7 +208,8 @@ const URDU_IMAGES = {
             '1TpnJoj4-5RfXwZgDNem5J9i6fcIiS7nv',
             '1s7Pd3qHrjnq3ob07YM3O8z84zLttH0ml',
             '1A93NLA3_EI_jUCPVyj5mEodXPackbSdl'
-        ]
+        ],
+        words: ['صبح', 'صحت', 'صفائی', 'صداقت', 'صابر']
     },
     'ض': {
         ids: [
@@ -193,7 +217,8 @@ const URDU_IMAGES = {
             '1J0sRpd66csg53Q5JGR-0YWdeltWkVKnt',
             '1tq9qZ5qmfhNj_gTm_SH6L59JDvoMUfX0',
             '1Ziy0D5zVmN6vhpjIBVzv4PNQ8nG14kyb'
-        ]
+        ],
+        words: ['ضلع', 'ضیافت', 'ضرورت', 'ضمانت']
     },
     'ط': {
         ids: [
@@ -203,14 +228,16 @@ const URDU_IMAGES = {
             '1Kicp1ii5wc9ZJDg3lDrQErDOw_qi5Dwa',
             '14YRqAFJCGRfmIKOJDuJFPl5DyPheTN0C',
             '1BqJvfxVzppJxc3qXXfM78VjCeETpGN2M'
-        ]
+        ],
+        words: ['طاقت', 'طلب', 'طوطا', 'طبیب', 'طلا']
     },
     'ظ': {
         ids: [
             '1OULQpu0kA8aUZCcs3kImlHTF38dNrAWM',
             '18Cj9yIwJEXDgzGMGEj82g-Pl8ANjITIB',
             '1utPzNp8qbzN74A4JH-rWMkIngPcAqn6X'
-        ]
+        ],
+        words: ['ظالم', 'ظرف', 'ظہور']
     },
     'ع': {
         ids: [
@@ -220,7 +247,8 @@ const URDU_IMAGES = {
             '19MJXcqywk1ecYi4ftMg2TDWh6Dw43TKS',
             '1SHvuCkDRkNkN4dHlOJoaDLzYfUCUa1EG',
             '1F-bf-nm1J4t9NsVCf4waP_Djj0dkPynN'
-        ]
+        ],
+        words: ['علم', 'عمر', 'عید', 'عشق', 'عقاب', 'عاجز']
     },
     'غ': {
         ids: [
@@ -230,7 +258,8 @@ const URDU_IMAGES = {
             '189GFa1Y7_3-PeWGQYalGk1YiuoMzG5dl',
             '1O7qugSkRWO_dEaIEtqwlHTE0GLqylzGz',
             '1GvAGf_dGZGTQeMCXPUSB5GU0vw0a4Zox'
-        ]
+        ],
+        words: ['غم', 'غریب', 'غزل', 'غصہ', 'غار', 'غالب']
     },
     'ف': {
         ids: [
@@ -240,7 +269,8 @@ const URDU_IMAGES = {
             '1yndSkpCzqVoBcPBGQuNvswjT5f0loN5h',
             '15nF4hKK-W8M25uaqC6OcNWoFDGC3XL0e',
             '17zT2v1rusHo6c8fPFEoiivcp4W_AbzW9'
-        ]
+        ],
+        words: ['فولاد', 'فصل', 'فکر', 'فن', 'فرش', 'فہرست']
     },
     'ق': {
         ids: [
@@ -249,7 +279,8 @@ const URDU_IMAGES = {
             '1RbgqqmkDJ7UiH3v2VMwQq6BdWxOsePC3',
             '1yxQixH7ruifqB-5EwmbR0jHHGcgvm57a',
             '1nm88JKkFPVjdJ_h4TCr0G8wD6yqQVgTFe'
-        ]
+        ],
+        words: ['قلم', 'قلب', 'قمر', 'قوس', 'قدرت']
     },
     'ک': {
         ids: [
@@ -259,7 +290,8 @@ const URDU_IMAGES = {
             '1fs4BPhei7PPQO2PxjGvpraKouUoSB960',
             '1KIQ55LEmJ1qina2KytzenKT6p2_yhxEr',
             '1vmcT04uKD14KxNcZ40Cgu9OhJpPQ7wUG'
-        ]
+        ],
+        words: ['کتاب', 'کمرہ', 'کھیل', 'کاغذ', 'کبوتر', 'کلید']
     },
     'گ': {
         ids: [
@@ -269,7 +301,8 @@ const URDU_IMAGES = {
             '1zBhNTGfRdkmrCbQ5Gs9exHhLuDZ5sN5p',
             '1sBai-PjHCdCqlh2jOHqwUgzVmMp4D-cJ',
             '1RvGCrPZa8mIyamsTovuVBWX5r_yyzIHf'
-        ]
+        ],
+        words: ['گانا', 'گھر', 'گلابی', 'گاجر', 'گولی', 'گینڈا']
     },
     'ل': {
         ids: [
@@ -279,7 +312,8 @@ const URDU_IMAGES = {
             '1ysuFivfW38gYvb9aY7Kh7HjPfzTZtK68',
             '12NO44mEQAgNyRNKXhcDrx7uYSje9JYao',
             '1duPoyfADjUa1HnxE63q2NC8U1Z3lhXgW'
-        ]
+        ],
+        words: ['لفظ', 'لکڑی', 'لوگ', 'لڑکا', 'لیموں', 'لال']
     },
     'م': {
         ids: [
@@ -289,7 +323,8 @@ const URDU_IMAGES = {
             '10G9jcpEDsWMNjgumLiE0ScG3K8n2tkrK',
             '1_ZLWe07rb7LlGblQLLOm_DDohtqBBhVc',
             '1GecDeYbvm9qEtcqi8FxPjuBWO7tG7OEN'
-        ]
+        ],
+        words: ['مٹر', 'مکھن', 'مکان', 'مچھلی', 'مہمان', 'موز']
     },
     'ن': {
         ids: [
@@ -299,7 +334,8 @@ const URDU_IMAGES = {
             '1SxX0BCwPMynjMS_Vjo7l0hRNudRsXyES',
             '1mM3jHLPoepmDzVYyIz1GG0IVEN3LL9ns',
             '1tIqpXfZIB5-5Xie90zurCk09p203j8Xg'
-        ]
+        ],
+        words: ['نان', 'نہر', 'نظر', 'نمک', 'نوکر', 'نیند']
     },
     'و': {
         ids: [
@@ -309,7 +345,8 @@ const URDU_IMAGES = {
             '1OQsycvWzHHo_ZpXzhJsdZ2hKHG4U1uDu',
             '1pU-LsgiCbfddiyJWsPQ2FH2YM8DicFvE',
             '1daZmJxSHx7BHG2fxumQhbMIPx7p26ONr'
-        ]
+        ],
+        words: ['واپس', 'وزن', 'ورق', 'وطن', 'والد', 'وکیل']
     },
     'ہ': {
         ids: [
@@ -319,14 +356,16 @@ const URDU_IMAGES = {
             '1xXh8_XIm0Kv2efAeP8dGzJyhYCuSW-Rc',
             '1F5MEhwGW_HdY8caPUdiLXw8o_5E4x2Q1',
             '1wCyYHEwFpXmvBMd8IPNPzOWm-Mkp8z-'
-        ]
+        ],
+        words: ['ہاتھ', 'ہوا', 'ہنسی', 'ہیرا', 'ہفتہ', 'ہوائی']
     },
     'ء': {
         ids: [
             '1Ch6G8Q01soUy1NladS7rjMlsO3tckvGD',
             '1PqycHafOuSsZXXIeCndwoeZ6K1F-bOgq',
             '13vtGg36N4NH62dkZ2U8PBy7vIhvSh5WP'
-        ]
+        ],
+        words: ['آب', 'آگ', 'آواز']
     },
     'ی': {
         ids: [
@@ -335,25 +374,54 @@ const URDU_IMAGES = {
             '1crADm-lQIFdM743nuM8dMwPXajYhIXJI',
             '1vwlLaUsf3z4s-LHV27tTA2oJAdanCrFn',
             '1VgbKGs0M585Pgg0Rqj3wo0TwX_nyk2oK'
-        ]
+        ],
+        words: ['یاد', 'یار', 'یک', 'یخ', 'یونیورسٹی']
     },
     'ے': {
         ids: [
             '1x8N8Rg8i4-QwGQSgD4S8HSIOFKxm94u_',
             '1b6u115NUxGSDrZ5OuDsR3pzUocDbydhA',
             '1crADm-lQIFdM743nuM8dMwPXajYhIXJI'
-        ]
+        ],
+        words: ['ے', 'ےک']
     }
 };
 
-// Helper function
+// Helper functions
 function getImageUrl(imageId) {
     return `https://drive.google.com/uc?export=download&id=${imageId}`;
 }
 
 function getRandomImageForLetter(letter) {
-    const images = URDU_IMAGES[letter]?.ids;
-    if(!images || images.length === 0) return null;
-    const randomId = images[Math.floor(Math.random() * images.length)];
+    const letterData = URDU_IMAGES_DB[letter];
+    if (!letterData || !letterData.ids || letterData.ids.length === 0) {
+        return null;
+    }
+    const randomId = letterData.ids[Math.floor(Math.random() * letterData.ids.length)];
     return getImageUrl(randomId);
 }
+
+function getRandomWordForLetter(letter) {
+    const letterData = URDU_IMAGES_DB[letter];
+    if (!letterData || !letterData.words || letterData.words.length === 0) {
+        return null;
+    }
+    return letterData.words[Math.floor(Math.random() * letterData.words.length)];
+}
+
+function getAllLetters() {
+    return Object.keys(URDU_IMAGES_DB);
+}
+
+// Export for browser
+window.UrduImagesDB = {
+    images: URDU_IMAGES_DB,
+    getImageUrl: getImageUrl,
+    getRandomImageForLetter: getRandomImageForLetter,
+    getRandomWordForLetter: getRandomWordForLetter,
+    getAllLetters: getAllLetters
+};
+
+console.log('✅ images-database.js loaded!');
+console.log(`📸 Total Letters: ${Object.keys(URDU_IMAGES_DB).length}`);
+console.log(`🖼️ Total Images: ${Object.values(URDU_IMAGES_DB).reduce((sum, l) => sum + l.ids.length, 0)}`);
