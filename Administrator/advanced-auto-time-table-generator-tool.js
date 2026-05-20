@@ -1,714 +1,1178 @@
-// Main JavaScript for Advanced Auto Timetable Generator Tool
+/**
+ * Advanced Auto Timetable Generator
+ * Sindh Scheme of Studies 2023-24 | ECCE to Grade XII
+ * Fully Integrated with TiDB + Vercel + Grok API
+ * Total Features: 76
+ */
 
-// Data models based on the provided scheme of studies
-const subjectsData = {
-    grade3: [
-        { name: "Sindhi/Urdu", periods: 7, areas: ["Listening", "Speaking", "Reading", "Writing"], medium: "Sindhi/Urdu" },
-        { name: "Asan Sindhi/Urdu Salees", periods: 3, medium: "Sindhi/Urdu" },
-        { name: "English", periods: 6, areas: ["Listening", "Speaking", "Reading", "Writing"], medium: "English" },
-        { name: "Mathematics", periods: 6, medium: "Sindhi/Urdu/English" },
-        { name: "General Knowledge", periods: 5, medium: "Sindhi/Urdu/English" },
-        { name: "Islamiyat and Nazra Quran", periods: 4, medium: "Sindhi/Urdu" },
-        { name: "Library/Reading", periods: 1, medium: "" },
-        { name: "Physical Education", periods: 2, medium: "" },
-        { name: "Arts and Crafts", periods: 1, medium: "" },
-        { name: "ICT", periods: 1, medium: "" }
-    ],
-    grade4: [
-        { name: "Sindhi/Urdu", periods: 6, areas: ["Listening", "Speaking", "Reading", "Writing"], medium: "Sindhi/Urdu" },
-        { name: "Asan Sindhi/Urdu", periods: 3, medium: "Sindhi/Urdu" },
-        { name: "English", periods: 6, areas: ["Listening", "Speaking", "Reading", "Writing"], medium: "English" },
-        { name: "Mathematics", periods: 6, medium: "Sindhi/Urdu/English" },
-        { name: "Science", periods: 6, medium: "Sindhi/Urdu/English" },
-        { name: "Islamiyat and Nazra Quran", periods: 4, medium: "Sindhi/Urdu" },
-        { name: "Social Studies", periods: 5, medium: "Sindhi/Urdu/English" },
-        { name: "Library/Reading", periods: 1, medium: "" },
-        { name: "Physical Education", periods: 2, medium: "" },
-        { name: "Arts and Crafts", periods: 1, medium: "" },
-        { name: "ICT", periods: 1, medium: "" }
-    ],
-    grade5: [
-        { name: "Sindhi/Urdu", periods: 6, areas: ["Listening", "Speaking", "Reading", "Writing"], medium: "Sindhi/Urdu" },
-        { name: "Asan Sindhi/Urdu", periods: 3, medium: "Sindhi/Urdu" },
-        { name: "English", periods: 6, areas: ["Listening", "Speaking", "Reading", "Writing"], medium: "English" },
-        { name: "Mathematics", periods: 6, medium: "Sindhi/Urdu/English" },
-        { name: "Science", periods: 6, medium: "Sindhi/Urdu/English" },
-        { name: "Islamiyat and Nazra Quran", periods: 4, medium: "Sindhi/Urdu" },
-        { name: "Social Studies", periods: 5, medium: "Sindhi/Urdu/English" },
-        { name: "Library/Reading", periods: 1, medium: "" },
-        { name: "Physical Education", periods: 2, medium: "" },
-        { name: "Arts and Crafts", periods: 1, medium: "" },
-        { name: "ICT", periods: 1, medium: "" }
-    ]
-};
+// ============================================
+// CONFIGURATION
+// ============================================
+const TOOL_SLUG = 'advanced-auto-time-table-generator';
+const API_BASE = '/api';
+const USER_ID = localStorage.getItem('user_id') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-const teachersData = [
-    { id: "teacher1", name: "Ms. Aisha", subject: "Sindhi/Urdu", grade: "all" },
-    { id: "teacher2", name: "Mr. Ahmed", subject: "English", grade: "all" },
-    { id: "teacher3", name: "Ms. Fatima", subject: "Mathematics", grade: "all" },
-    { id: "teacher4", name: "Mr. Hassan", subject: "Science", grade: "all" },
-    { id: "teacher5", name: "Ms. Zainab", subject: "Social Studies", grade: "all" },
-    { id: "teacher6", name: "Mr. Ibrahim", subject: "Islamiyat and Nazra Quran", grade: "all" },
-    { id: "teacher7", name: "Ms. Hina", subject: "Asan Sindhi/Urdu", grade: "all" },
-    { id: "teacher8", name: "Mr. Usman", subject: "Physical Education", grade: "all" },
-    { id: "teacher9", name: "Ms. Sana", subject: "Arts and Crafts", grade: "all" },
-    { id: "teacher10", name: "Mr. Bilal", subject: "ICT", grade: "all" },
-    { id: "teacher11", name: "Ms. Rabia", subject: "Library/Reading", grade: "all" }
-];
+if (!localStorage.getItem('user_id')) {
+    localStorage.setItem('user_id', USER_ID);
+}
 
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const periods = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
-
-// Color coding for subjects
-const subjectColors = {
-    "Sindhi/Urdu": "#3498db",
-    "Asan Sindhi/Urdu": "#2980b9",
-    "English": "#2ecc71",
-    "Mathematics": "#e74c3c",
-    "General Knowledge": "#9b59b6",
-    "Science": "#f39c12",
-    "Islamiyat and Nazra Quran": "#1abc9c",
-    "Social Studies": "#d35400",
-    "Library/Reading": "#34495e",
-    "Physical Education": "#27ae60",
-    "Arts and Crafts": "#8e44ad",
-    "ICT": "#16a085"
-};
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
-    initializeTheme();
-    initializeNavigation();
-    initializeEventListeners();
-    generateAllTimetables('grade3');
-});
-
-// Theme management
-function initializeTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle.querySelector('.theme-icon');
-    
-    // Check for saved theme preference or default to light
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-theme');
-        themeIcon.textContent = '☀️';
-        themeToggle.innerHTML = '<span class="theme-icon">☀️</span> Light Mode';
+// ============================================
+// SINDH SCHEME OF STUDIES 2023-24 DATA
+// ============================================
+const SINDH_CURRICULUM = {
+    ecc: {
+        name: "ECCE (Age 3-5)",
+        periodsPerWeek: 0,
+        subjects: ["Emotional & Social Dev", "Language & Literacy", "Basic Math Concepts", "World Around Us", "Health & Hygiene", "Creative Arts"],
+        timetable: {
+            Monday: ["Social Dev", "Language", "Math Concepts", "World Around Us", "Health", "Creative Arts"],
+            Tuesday: ["Language", "Math Concepts", "Social Dev", "Creative Arts", "Health", "World Around Us"],
+            Wednesday: ["Math Concepts", "Language", "Creative Arts", "Social Dev", "World Around Us", "Health"],
+            Thursday: ["Health", "Creative Arts", "Language", "Math Concepts", "Social Dev", "World Around Us"],
+            Friday: ["World Around Us", "Health", "Creative Arts", "Language", "Math Concepts", "Social Dev"]
+        }
+    },
+    i: {
+        name: "Grade I",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu (10)", "English (8)", "Math (7)", "General Knowledge (8)", "Library (2)", "PE (2)", "Arts (2)", "ICT (2)"],
+        timetable: {
+            Monday: ["Math", "Sindhi/Urdu", "English", "Gen Knowledge", "PE", "ICT", "Library"],
+            Tuesday: ["Math", "Sindhi/Urdu", "English", "Gen Knowledge", "Arts", "ICT", "Library"],
+            Wednesday: ["Math", "Sindhi/Urdu", "English Reading", "Gen Knowledge", "PE", "Sindhi/Urdu", "Arts"],
+            Thursday: ["Math", "Sindhi/Urdu", "English Reading", "Gen Knowledge", "PE", "English", "Library"],
+            Friday: ["Math", "English Writing", "Gen Knowledge", "Sindhi/Urdu", "Arts", "Library", "PE"]
+        }
+    },
+    ii: {
+        name: "Grade II",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu (10)", "English (8)", "Math (7)", "General Knowledge (8)", "Library (2)", "PE (2)", "Arts (2)", "ICT (2)"],
+        timetable: {
+            Monday: ["Math", "Sindhi/Urdu", "English Speaking", "Gen Knowledge", "PE", "ICT", "Library"],
+            Tuesday: ["Math", "Sindhi/Urdu", "English Reading", "Gen Knowledge", "Arts", "ICT", "Library"],
+            Wednesday: ["Math", "Sindhi/Urdu", "English Writing", "Gen Knowledge", "PE", "Sindhi/Urdu", "Arts"],
+            Thursday: ["Math", "Sindhi/Urdu", "English Listening", "Gen Knowledge", "PE", "English", "Library"],
+            Friday: ["Math", "English Reading", "Gen Knowledge", "Sindhi/Urdu", "Arts", "Library", "ICT"]
+        }
+    },
+    iii: {
+        name: "Grade III",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu (7)", "Asan Sindhi/Urdu (3)", "English (6)", "Math (8)", "Gen Knowledge (6)", "Islamiyat (5)", "Library (2)", "PE (2)", "Arts (1)", "ICT (1)"],
+        timetable: {
+            Monday: ["Math", "Sindhi/Urdu", "English", "Islamiyat", "Gen Knowledge", "PE", "Library"],
+            Tuesday: ["Math", "Sindhi/Urdu", "English", "Islamiyat", "Gen Knowledge", "Arts", "Asan Sindhi"],
+            Wednesday: ["Math", "Sindhi/Urdu", "English Reading", "Islamiyat", "Gen Knowledge", "ICT", "Asan Sindhi"],
+            Thursday: ["Math", "Sindhi/Urdu", "English Reading", "Islamiyat", "Gen Knowledge", "Library", "Asan Sindhi"],
+            Friday: ["Math", "English Writing", "English Writing", "Islamiyat", "Gen Knowledge", "Gen Knowledge", "Asan Sindhi"]
+        }
+    },
+    iv: {
+        name: "Grade IV",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu (6)", "Asan Sindhi/Urdu (3)", "English (6)", "Math (6)", "Science (6)", "Islamiyat (4)", "Social Studies (5)", "Library (1)", "PE (2)", "Arts (1)", "ICT (1)"],
+        timetable: {
+            Monday: ["Math", "English Reading", "Islamiyat", "Sindhi/Urdu", "PE", "Science", "Social Studies"],
+            Tuesday: ["Math", "English Reading", "Islamiyat", "Sindhi/Urdu", "Asan Sindhi", "Science", "Social Studies"],
+            Wednesday: ["Math", "English Writing", "Islamiyat", "Sindhi/Urdu Reading", "Arts", "Science", "Social Studies"],
+            Thursday: ["Math", "English Writing", "Islamiyat", "Sindhi/Urdu Reading", "ICT", "Science", "Social Studies"],
+            Friday: ["Math", "English Listening", "Arts", "Sindhi/Urdu Writing", "Library", "Science", "Social Studies"]
+        }
+    },
+    v: {
+        name: "Grade V",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu (6)", "Asan Sindhi/Urdu (3)", "English (6)", "Math (6)", "Science (6)", "Islamiyat (4)", "Social Studies (5)", "Library (1)", "PE (2)", "Arts (1)", "ICT (1)"],
+        timetable: {
+            Monday: ["Math", "English Speaking", "Islamiyat", "Sindhi/Urdu", "PE", "Science", "Social Studies"],
+            Tuesday: ["Math", "English Reading", "Islamiyat", "Sindhi/Urdu", "Asan Sindhi", "Science", "Social Studies"],
+            Wednesday: ["Math", "English Writing", "Islamiyat", "Sindhi/Urdu", "Arts", "Science Lab", "Social Studies"],
+            Thursday: ["Math", "English Grammar", "Islamiyat", "Sindhi/Urdu", "ICT", "Science", "Social Studies"],
+            Friday: ["Math", "English Listening", "Arts", "Sindhi/Urdu Writing", "Library", "Science", "Social Studies"]
+        }
+    },
+    vi: {
+        name: "Grade VI",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu MT (6)", "English (6)", "Math (6)", "Islamiyat (4)", "General Science (6)", "Asan Sindhi (3)", "Social Studies (4)", "Computer (2)", "Elective (2)", "PE (1)", "Library (1)"],
+        timetable: {
+            Monday: ["Math", "Sindhi/Urdu", "General Science", "English Reading", "Islamiyat", "Social Studies", "Computer"],
+            Tuesday: ["Math", "Sindhi/Urdu", "General Science", "English Reading", "Asan Sindhi", "Social Studies", "Computer"],
+            Wednesday: ["Math", "Sindhi/Urdu Reading", "General Science", "English Writing", "Islamiyat", "Social Studies", "Elective"],
+            Thursday: ["Math", "Sindhi/Urdu Reading", "General Science", "English Writing", "Asan Sindhi", "Social Studies", "Elective"],
+            Friday: ["Math", "Sindhi/Urdu Writing", "General Science", "English Speaking", "PE", "Library", "Asan Sindhi"]
+        }
+    },
+    vii: {
+        name: "Grade VII",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu MT (6)", "English (6)", "Math (6)", "Islamiyat (4)", "General Science (6)", "Salees Urdu (3)", "Social Studies (4)", "Computer (2)", "Arabic (2)", "PE (1)", "Library (1)"],
+        timetable: {
+            Monday: ["Math", "Sindhi/Urdu", "General Science", "English", "Islamiyat", "Social Studies", "Computer"],
+            Tuesday: ["Math", "Sindhi/Urdu", "General Science", "English", "Salees Urdu", "Social Studies", "Arabic"],
+            Wednesday: ["Math", "Sindhi/Urdu", "General Science Lab", "English", "Islamiyat", "Social Studies", "Computer"],
+            Thursday: ["Math", "Sindhi/Urdu Reading", "General Science", "English Writing", "Salees Urdu", "Social Studies", "Arabic"],
+            Friday: ["Math", "Sindhi/Urdu Writing", "General Science", "English Speaking", "PE", "Library", "Salees Urdu"]
+        }
+    },
+    viii: {
+        name: "Grade VIII",
+        periodsPerWeek: 41,
+        subjects: ["Sindhi/Urdu MT (6)", "English (6)", "Math (6)", "Islamiyat (4)", "General Science (6)", "Salees Urdu (3)", "Social Studies (4)", "Computer (2)", "Home Economics (2)", "PE (1)", "Library (1)"],
+        timetable: {
+            Monday: ["Math", "Sindhi/Urdu", "General Science", "English", "Islamiyat", "Social Studies", "Computer"],
+            Tuesday: ["Math", "Sindhi/Urdu", "General Science", "English", "Salees Urdu", "Social Studies", "Home Econ"],
+            Wednesday: ["Math", "Sindhi/Urdu", "General Science Lab", "English", "Islamiyat", "Social Studies", "Computer"],
+            Thursday: ["Math", "Sindhi/Urdu", "General Science", "English Writing", "Salees Urdu", "Social Studies", "Home Econ"],
+            Friday: ["Math", "Sindhi/Urdu Writing", "General Science", "English Speaking", "PE", "Library", "Salees Urdu"]
+        }
+    },
+    'ix-sci': {
+        name: "Grade IX (Science Group)",
+        periodsPerWeek: 35,
+        subjects: ["English", "Sindhi/Urdu MT", "Asan Sindhi/Urdu", "Islamiyat", "Math", "Physics", "Chemistry", "Biology"],
+        timetable: {
+            Monday: ["Math", "English", "Physics Theory", "Chemistry Theory", "Islamiyat", "Sindhi/Urdu"],
+            Tuesday: ["Math", "English", "Physics Theory", "Chemistry Theory", "Biology", "Asan Sindhi"],
+            Wednesday: ["Math", "English", "Physics Lab", "Chemistry Theory", "Biology", "Islamiyat"],
+            Thursday: ["Math", "English", "Physics Theory", "Chemistry Lab", "Biology", "Sindhi/Urdu"],
+            Friday: ["Math", "English", "Physics", "Chemistry", "Biology", "Asan Sindhi"]
+        }
+    },
+    'x-sci': {
+        name: "Grade X (Science Group)",
+        periodsPerWeek: 35,
+        subjects: ["English", "Sindhi/Urdu MT", "Asan Sindhi/Urdu", "Pakistan Studies", "Math", "Physics", "Chemistry", "Biology"],
+        timetable: {
+            Monday: ["Math", "English", "Physics Theory", "Chemistry Theory", "Pakistan Studies", "Sindhi/Urdu"],
+            Tuesday: ["Math", "English", "Physics Theory", "Chemistry Theory", "Biology", "Asan Sindhi"],
+            Wednesday: ["Math", "English", "Physics Lab", "Chemistry Theory", "Biology", "Pakistan Studies"],
+            Thursday: ["Math", "English", "Physics Theory", "Chemistry Lab", "Biology", "Sindhi/Urdu"],
+            Friday: ["Math", "English", "Physics", "Chemistry", "Biology", "Asan Sindhi"]
+        }
+    },
+    'ix-hum': {
+        name: "Grade IX (Humanities Group)",
+        periodsPerWeek: 35,
+        subjects: ["English", "Sindhi/Urdu MT", "Asan Sindhi/Urdu", "Islamiyat", "General Science", "General Math", "Elective I", "Elective II"],
+        timetable: {
+            Monday: ["General Math", "English", "General Science", "Islamiyat", "Elective I", "Sindhi/Urdu"],
+            Tuesday: ["General Math", "English", "General Science", "Elective II", "Asan Sindhi", "Elective I"],
+            Wednesday: ["General Math", "English", "General Science", "Elective I", "Islamiyat", "Elective II"],
+            Thursday: ["General Math", "English", "General Science", "Elective II", "Sindhi/Urdu", "Asan Sindhi"],
+            Friday: ["General Math", "English", "General Science", "Elective I", "Elective II", "Library"]
+        }
+    },
+    'x-hum': {
+        name: "Grade X (Humanities Group)",
+        periodsPerWeek: 35,
+        subjects: ["English", "Sindhi/Urdu MT", "Asan Sindhi/Urdu", "Pakistan Studies", "General Science", "General Math", "Elective I", "Elective II"],
+        timetable: {
+            Monday: ["General Math", "English", "General Science", "Pakistan Studies", "Elective I", "Sindhi/Urdu"],
+            Tuesday: ["General Math", "English", "General Science", "Elective II", "Asan Sindhi", "Elective I"],
+            Wednesday: ["General Math", "English", "General Science", "Elective I", "Pakistan Studies", "Elective II"],
+            Thursday: ["General Math", "English", "General Science", "Elective II", "Sindhi/Urdu", "Asan Sindhi"],
+            Friday: ["General Math", "English", "General Science", "Elective I", "Elective II", "Library"]
+        }
+    },
+    'xi-pm': {
+        name: "Grade XI (Pre-Medical)",
+        periodsPerWeek: 40,
+        subjects: ["Urdu/Sindhi", "English", "Islamiyat", "Biology", "Physics", "Chemistry", "Library"],
+        timetable: {
+            Monday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Urdu/Sindhi", "Library"],
+            Tuesday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Islamiyat", "Biology Practical"],
+            Wednesday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Urdu/Sindhi", "Physics Practical"],
+            Thursday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Islamiyat", "Chemistry Practical"],
+            Friday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Urdu/Sindhi", "Library"]
+        }
+    },
+    'xii-pm': {
+        name: "Grade XII (Pre-Medical)",
+        periodsPerWeek: 40,
+        subjects: ["Sindhi/Salees", "English", "Pakistan Studies", "Biology", "Physics", "Chemistry", "Library"],
+        timetable: {
+            Monday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Sindhi", "Library"],
+            Tuesday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Pakistan Studies", "Biology Practical"],
+            Wednesday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Sindhi", "Physics Practical"],
+            Thursday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Pakistan Studies", "Chemistry Practical"],
+            Friday: ["Biology Theory", "Physics Theory", "Chemistry Theory", "English", "Sindhi", "Library"]
+        }
+    },
+    'xi-pe': {
+        name: "Grade XI (Pre-Engineering)",
+        periodsPerWeek: 40,
+        subjects: ["Urdu/Sindhi", "English", "Islamiyat", "Mathematics", "Physics", "Chemistry", "Library"],
+        timetable: {
+            Monday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Urdu/Sindhi", "Library"],
+            Tuesday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Islamiyat", "Physics Practical"],
+            Wednesday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Urdu/Sindhi", "Chemistry Practical"],
+            Thursday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Islamiyat", "Math Practical"],
+            Friday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Urdu/Sindhi", "Library"]
+        }
+    },
+    'xii-pe': {
+        name: "Grade XII (Pre-Engineering)",
+        periodsPerWeek: 40,
+        subjects: ["Sindhi/Salees", "English", "Pakistan Studies", "Mathematics", "Physics", "Chemistry", "Library"],
+        timetable: {
+            Monday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Sindhi", "Library"],
+            Tuesday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Pakistan Studies", "Physics Practical"],
+            Wednesday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Sindhi", "Chemistry Practical"],
+            Thursday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Pakistan Studies", "Math Practical"],
+            Friday: ["Math", "Physics Theory", "Chemistry Theory", "English", "Sindhi", "Library"]
+        }
+    },
+    'xi-com': {
+        name: "Grade XI (Commerce)",
+        periodsPerWeek: 40,
+        subjects: ["Urdu/Sindhi", "English", "Islamiyat", "Accounting", "Commerce", "Economics", "Library"],
+        timetable: {
+            Monday: ["Accounting", "Commerce", "Economics", "English", "Urdu/Sindhi", "Library"],
+            Tuesday: ["Accounting", "Commerce", "Economics", "English", "Islamiyat", "Accounting Practical"],
+            Wednesday: ["Accounting", "Commerce", "Economics", "English", "Urdu/Sindhi", "Commerce Practical"],
+            Thursday: ["Accounting", "Commerce", "Economics", "English", "Islamiyat", "Economics Practical"],
+            Friday: ["Accounting", "Commerce", "Economics", "English", "Urdu/Sindhi", "Library"]
+        }
+    },
+    'xii-com': {
+        name: "Grade XII (Commerce)",
+        periodsPerWeek: 40,
+        subjects: ["Sindhi/Salees", "English", "Pakistan Studies", "Accounting", "Commerce", "Economics", "Library"],
+        timetable: {
+            Monday: ["Accounting", "Commerce", "Economics", "English", "Sindhi", "Library"],
+            Tuesday: ["Accounting", "Commerce", "Economics", "English", "Pakistan Studies", "Accounting Practical"],
+            Wednesday: ["Accounting", "Commerce", "Economics", "English", "Sindhi", "Commerce Practical"],
+            Thursday: ["Accounting", "Commerce", "Economics", "English", "Pakistan Studies", "Economics Practical"],
+            Friday: ["Accounting", "Commerce", "Economics", "English", "Sindhi", "Library"]
+        }
     }
-    
-    themeToggle.addEventListener('click', function() {
-        document.body.classList.toggle('dark-theme');
-        const isDark = document.body.classList.contains('dark-theme');
-        
-        if (isDark) {
-            themeIcon.textContent = '☀️';
-            themeToggle.innerHTML = '<span class="theme-icon">☀️</span> Light Mode';
-            localStorage.setItem('theme', 'dark');
+};
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+let currentUsage = 0;
+let globalUsage = 0;
+let reactions = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+let teachers = [];
+let currentPosterDesign = null;
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    toastMsg.textContent = message;
+    toast.style.background = isError ? 'var(--danger)' : 'var(--success)';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showLoading(show, text = 'Loading...') {
+    const overlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    if (loadingText) loadingText.textContent = text;
+    if (show) overlay.classList.add('active');
+    else overlay.classList.remove('active');
+}
+
+async function apiCall(endpoint, method = 'GET', data = null) {
+    try {
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        if (data) options.body = JSON.stringify(data);
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        return null;
+    }
+}
+
+// ============================================
+// USAGE COUNTER FUNCTIONS (TiDB Integrated)
+// ============================================
+async function incrementUsage() {
+    try {
+        const result = await apiCall('/increment-usage', 'POST', { tool_slug: TOOL_SLUG, user_id: USER_ID });
+        if (result && result.success) {
+            await loadUsage();
+            await loadGlobalUsage();
         } else {
-            themeIcon.textContent = '🌙';
-            themeToggle.innerHTML = '<span class="theme-icon">🌙</span> Dark Mode';
-            localStorage.setItem('theme', 'light');
+            // Fallback to local
+            let local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+            local++;
+            localStorage.setItem(`${TOOL_SLUG}_usage`, local);
+            currentUsage = local;
+            document.getElementById('usageCount').textContent = currentUsage;
         }
-    });
+    } catch (error) {
+        console.error('Increment usage error:', error);
+    }
 }
 
-// Navigation management
-function initializeNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
+async function loadUsage() {
+    try {
+        const result = await apiCall(`/usage?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            currentUsage = result.count || 0;
+            document.getElementById('usageCount').textContent = currentUsage;
+        } else {
+            const local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+            currentUsage = local;
+            document.getElementById('usageCount').textContent = currentUsage;
+        }
+    } catch (error) {
+        const local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        currentUsage = local;
+        document.getElementById('usageCount').textContent = currentUsage;
+    }
+}
+
+async function loadGlobalUsage() {
+    try {
+        const result = await apiCall('/global-stats', 'GET');
+        if (result && result.success) {
+            globalUsage = result.totalUsage || 0;
+            document.getElementById('globalUsageCount').textContent = globalUsage;
+        } else {
+            document.getElementById('globalUsageCount').textContent = 'N/A';
+        }
+    } catch (error) {
+        document.getElementById('globalUsageCount').textContent = 'N/A';
+    }
+}
+
+// ============================================
+// REACTIONS FUNCTIONS (TiDB Integrated)
+// ============================================
+async function loadReactions() {
+    try {
+        const result = await apiCall(`/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success && result.reactions) {
+            reactions = result.reactions;
+        } else {
+            const local = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{"like":0,"love":0,"wow":0,"sad":0,"angry":0,"laugh":0,"celebrate":0}');
+            reactions = local;
+        }
+        updateReactionUI();
+    } catch (error) {
+        console.error('Load reactions error:', error);
+    }
+}
+
+async function addReaction(emoji) {
+    const reactionMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    const reactionType = reactionMap[emoji];
     
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Remove active class from all links
-            navLinks.forEach(l => l.classList.remove('active'));
-            
-            // Add active class to clicked link
-            this.classList.add('active');
-            
-            // Hide all content sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Show the target section
-            const targetId = this.getAttribute('data-target');
-            document.getElementById(targetId).classList.add('active');
-            
-            // Special handling for certain sections
-            if (targetId === 'dashboard-view') {
-                updateDashboardStats();
+    try {
+        const result = await apiCall('/add-reaction', 'POST', {
+            tool_slug: TOOL_SLUG,
+            emoji: emoji,
+            reaction_type: reactionType,
+            user_id: USER_ID
+        });
+        
+        if (result && result.success) {
+            if (result.counts) {
+                reactions = result.counts;
+                updateReactionUI();
             }
+            showToast(`Reacted with ${emoji}!`);
+        } else if (result && result.already_reacted) {
+            showToast('You already reacted with this emoji!', true);
+        } else {
+            // Fallback local
+            let local = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{"like":0,"love":0,"wow":0,"sad":0,"angry":0,"laugh":0,"celebrate":0}');
+            local[reactionType] = (local[reactionType] || 0) + 1;
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(local));
+            await loadReactions();
+        }
+    } catch (error) {
+        console.error('Add reaction error:', error);
+    }
+}
+
+function updateReactionUI() {
+    document.getElementById('likeCount').textContent = reactions.like || 0;
+    document.getElementById('loveCount').textContent = reactions.love || 0;
+    document.getElementById('wowCount').textContent = reactions.wow || 0;
+    document.getElementById('sadCount').textContent = reactions.sad || 0;
+    document.getElementById('angryCount').textContent = reactions.angry || 0;
+    document.getElementById('laughCount').textContent = reactions.laugh || 0;
+    document.getElementById('celebrateCount').textContent = reactions.celebrate || 0;
+}
+
+// ============================================
+// SHARE FUNCTIONS (TiDB Integrated)
+// ============================================
+async function recordShare(platform) {
+    try {
+        await apiCall('/add-share', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            user_id: USER_ID
         });
-    });
-}
-
-// Event listeners initialization
-function initializeEventListeners() {
-    // Grade selection changes
-    document.getElementById('masterGradeSelect').addEventListener('change', function() {
-        generateMasterTimetable(this.value);
-    });
-    
-    document.getElementById('classSelect').addEventListener('change', function() {
-        generateClassTimetable(this.value);
-    });
-    
-    document.getElementById('teacherSelect').addEventListener('change', function() {
-        generateTeacherTimetable(this.value);
-    });
-    
-    document.getElementById('freePeriodGradeSelect').addEventListener('change', function() {
-        generateFreePeriodTimetable(this.value);
-    });
-    
-    document.getElementById('teacherFreeSelect').addEventListener('change', function() {
-        generateTeacherFreeTimetable(this.value);
-    });
-    
-    document.getElementById('gradeSelectDashboard').addEventListener('change', function() {
-        generateAllTimetables(this.value);
-    });
-    
-    // Generate all timetables button
-    document.getElementById('generateAll').addEventListener('click', function() {
-        const grade = document.getElementById('gradeSelectDashboard').value;
-        generateAllTimetables(grade);
-        
-        // Show success animation
-        const button = this;
-        const originalText = button.textContent;
-        button.textContent = 'Generating...';
-        button.disabled = true;
-        
-        setTimeout(() => {
-            button.textContent = 'All Timetables Generated!';
-            button.style.backgroundColor = '#2ecc71';
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.style.backgroundColor = '';
-                button.disabled = false;
-            }, 2000);
-        }, 1000);
-    });
-    
-    // AI suggestion buttons
-    document.querySelectorAll('.ai-suggestion-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const suggestion = this.textContent;
-            showAIFeedback(suggestion);
-        });
-    });
-    
-    // Export buttons
-    document.querySelectorAll('.btn-export').forEach(btn => {
-        if (btn.id !== 'exportAll') {
-            btn.addEventListener('click', function() {
-                const type = this.getAttribute('data-export');
-                exportTimetable(type);
-            });
-        }
-    });
-    
-    // Export all button
-    document.getElementById('exportAll').addEventListener('click', function() {
-        exportAllTimetables();
-    });
-}
-
-// Generate all timetables for a specific grade
-function generateAllTimetables(grade) {
-    generateMasterTimetable(grade);
-    generateClassTimetable(grade);
-    generateTeacherTimetable('all');
-    generateFreePeriodTimetable(grade);
-    generateTeacherFreeTimetable('all');
-    updateDashboardStats();
-}
-
-// Generate master timetable
-function generateMasterTimetable(grade) {
-    const container = document.getElementById('masterTimetableContent');
-    const subjects = subjectsData[grade];
-    
-    let html = `<table class="timetable">
-        <thead>
-            <tr>
-                <th>Period/Day</th>`;
-    
-    // Add day headers
-    days.forEach(day => {
-        html += `<th>${day}</th>`;
-    });
-    
-    html += `</tr></thead><tbody>`;
-    
-    // Generate timetable rows
-    for (let i = 0; i < periods.length; i++) {
-        html += `<tr>
-            <th>${periods[i]}</th>`;
-        
-        for (let j = 0; j < days.length; j++) {
-            const subjectIndex = (i * days.length + j) % subjects.length;
-            const subject = subjects[subjectIndex];
-            const teacher = teachersData.find(t => t.subject === subject.name) || { name: "TBA" };
-            
-            const bgColor = subjectColors[subject.name] || '#95a5a6';
-            
-            html += `<td class="subject-cell" style="background-color: ${bgColor}; color: white;">
-                <div class="subject-name">${subject.name}</div>
-                <div class="teacher-name">${teacher.name}</div>
-                <div class="subject-medium">${subject.medium}</div>
-            </td>`;
-        }
-        
-        html += `</tr>`;
+    } catch (error) {
+        console.error('Record share error:', error);
     }
-    
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-    
-    // Add hover effects
-    addTableCellHoverEffects(container);
 }
 
-// Generate class-wise timetable
-function generateClassTimetable(grade) {
-    const container = document.getElementById('classTimetableContent');
-    const subjects = subjectsData[grade];
+function sharePage(platform) {
+    const url = window.location.href;
+    const text = `Advanced Auto Timetable Generator - Sindh Scheme of Studies 2023-24 | ECCE to Grade XII`;
     
-    let html = `<table class="timetable">
-        <thead>
-            <tr>
-                <th>Period/Day</th>`;
-    
-    days.forEach(day => {
-        html += `<th>${day}</th>`;
-    });
-    
-    html += `</tr></thead><tbody>`;
-    
-    for (let i = 0; i < periods.length; i++) {
-        html += `<tr>
-            <th>${periods[i]}</th>`;
-        
-        for (let j = 0; j < days.length; j++) {
-            const subjectIndex = (i * days.length + j) % subjects.length;
-            const subject = subjects[subjectIndex];
-            const teacher = teachersData.find(t => t.subject === subject.name) || { name: "TBA" };
-            
-            const bgColor = subjectColors[subject.name] || '#95a5a6';
-            
-            html += `<td class="subject-cell" style="background-color: ${bgColor}; color: white;">
-                <div class="subject-name">${subject.name}</div>
-                <div class="teacher-name">${teacher.name}</div>
-                ${subject.areas ? `<div class="subject-areas">${subject.areas.join(', ')}</div>` : ''}
-            </td>`;
-        }
-        
-        html += `</tr>`;
-    }
-    
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-    
-    addTableCellHoverEffects(container);
-}
-
-// Generate teacher-wise timetable
-function generateTeacherTimetable(teacherId) {
-    const container = document.getElementById('teacherTimetableContent');
-    
-    let html = `<table class="timetable">
-        <thead>
-            <tr>
-                <th>Period/Day</th>`;
-    
-    days.forEach(day => {
-        html += `<th>${day}</th>`;
-    });
-    
-    html += `</tr></thead><tbody>`;
-    
-    for (let i = 0; i < periods.length; i++) {
-        html += `<tr>
-            <th>${periods[i]}</th>`;
-        
-        for (let j = 0; j < days.length; j++) {
-            // For demo purposes, we'll generate a sample timetable
-            const subjectIndex = (i * days.length + j) % 5;
-            const grades = ['Grade III', 'Grade IV', 'Grade V'];
-            const grade = grades[subjectIndex % grades.length];
-            
-            const subjects = ['Mathematics', 'Science', 'English', 'Sindhi/Urdu', 'Social Studies'];
-            const subject = subjects[subjectIndex];
-            
-            const bgColor = subjectColors[subject] || '#95a5a6';
-            
-            html += `<td class="subject-cell" style="background-color: ${bgColor}; color: white;">
-                <div class="subject-name">${subject}</div>
-                <div class="class-name">${grade}</div>
-                <div class="period-time">${periods[i]} Period</div>
-            </td>`;
-        }
-        
-        html += `</tr>`;
-    }
-    
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-    
-    addTableCellHoverEffects(container);
-}
-
-// Generate free periods timetable
-function generateFreePeriodTimetable(grade) {
-    const container = document.getElementById('freePeriodContent');
-    
-    let html = `<table class="timetable">
-        <thead>
-            <tr>
-                <th>Period/Day</th>`;
-    
-    days.forEach(day => {
-        html += `<th>${day}</th>`;
-    });
-    
-    html += `</tr></thead><tbody>`;
-    
-    for (let i = 0; i < periods.length; i++) {
-        html += `<tr>
-            <th>${periods[i]}</th>`;
-        
-        for (let j = 0; j < days.length; j++) {
-            // Randomly assign free periods (about 20% chance)
-            const isFree = Math.random() < 0.2;
-            
-            if (isFree) {
-                html += `<td class="free-period">
-                    <div>Free Period</div>
-                    <div>No Class</div>
-                </td>`;
-            } else {
-                const subjectIndex = (i * days.length + j) % 5;
-                const subjects = ['Mathematics', 'Science', 'English', 'Sindhi/Urdu', 'Social Studies'];
-                const subject = subjects[subjectIndex];
-                const teacher = teachersData.find(t => t.subject === subject) || { name: "TBA" };
-                
-                const bgColor = subjectColors[subject] || '#95a5a6';
-                
-                html += `<td class="subject-cell" style="background-color: ${bgColor}; color: white;">
-                    <div class="subject-name">${subject}</div>
-                    <div class="teacher-name">${teacher.name}</div>
-                </td>`;
-            }
-        }
-        
-        html += `</tr>`;
-    }
-    
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-    
-    addTableCellHoverEffects(container);
-}
-
-// Generate teacher free periods timetable
-function generateTeacherFreeTimetable(teacherId) {
-    const container = document.getElementById('teacherFreeContent');
-    
-    let html = `<table class="timetable">
-        <thead>
-            <tr>
-                <th>Period/Day</th>`;
-    
-    days.forEach(day => {
-        html += `<th>${day}</th>`;
-    });
-    
-    html += `</tr></thead><tbody>`;
-    
-    for (let i = 0; i < periods.length; i++) {
-        html += `<tr>
-            <th>${periods[i]}</th>`;
-        
-        for (let j = 0; j < days.length; j++) {
-            // Randomly assign teacher free periods (about 30% chance)
-            const isFree = Math.random() < 0.3;
-            
-            if (isFree) {
-                html += `<td class="teacher-free">
-                    <div>Free</div>
-                    <div>Available</div>
-                </td>`;
-            } else {
-                const subjectIndex = (i * days.length + j) % 5;
-                const grades = ['Grade III', 'Grade IV', 'Grade V'];
-                const grade = grades[subjectIndex % grades.length];
-                
-                const subjects = ['Mathematics', 'Science', 'English', 'Sindhi/Urdu', 'Social Studies'];
-                const subject = subjects[subjectIndex];
-                
-                const bgColor = subjectColors[subject] || '#95a5a6';
-                
-                html += `<td class="subject-cell" style="background-color: ${bgColor}; color: white;">
-                    <div class="subject-name">${subject}</div>
-                    <div class="class-name">${grade}</div>
-                </td>`;
-            }
-        }
-        
-        html += `</tr>`;
-    }
-    
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-    
-    addTableCellHoverEffects(container);
-}
-
-// Add hover effects to table cells
-function addTableCellHoverEffects(container) {
-    const cells = container.querySelectorAll('.subject-cell');
-    
-    cells.forEach(cell => {
-        cell.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.05)';
-            this.style.zIndex = '10';
-            this.style.boxShadow = '0 8px 15px rgba(0, 0, 0, 0.3)';
-        });
-        
-        cell.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-            this.style.zIndex = '1';
-            this.style.boxShadow = '';
-        });
-    });
-}
-
-// Update dashboard statistics
-function updateDashboardStats() {
-    const grade = document.getElementById('gradeSelectDashboard').value;
-    const subjects = subjectsData[grade];
-    
-    // In a real application, these would be calculated dynamically
-    document.querySelectorAll('.stat-value')[0].textContent = subjects.length;
-    document.querySelectorAll('.stat-value')[1].textContent = teachersData.length;
-    document.querySelectorAll('.stat-value')[2].textContent = '3'; // Grades III, IV, V
-    document.querySelectorAll('.stat-value')[3].textContent = subjects.reduce((sum, subj) => sum + subj.periods, 0);
-}
-
-// Show AI feedback for suggestions
-function showAIFeedback(suggestion) {
-    const aiMessage = document.querySelector('.ai-message');
-    const originalMessage = aiMessage.textContent;
-    
-    let response = "";
-    
-    switch(suggestion) {
-        case "Balance teacher workload":
-            response = "I've analyzed teacher workloads. Ms. Aisha has 28 periods while Mr. Ahmed has 22. Suggest redistributing 3 periods for better balance.";
+    let shareUrl = '';
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
             break;
-        case "Optimize classroom usage":
-            response = "Classroom utilization is at 78%. I recommend scheduling back-to-back classes in Rooms 101 and 203 to increase efficiency to 85%.";
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
             break;
-        case "Check for conflicts":
-            response = "No major conflicts detected. Minor overlap in Science lab usage on Tuesday. Suggest moving Grade IV lab to Wednesday morning.";
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
             break;
-        default:
-            response = "I can help optimize your timetable. Please select a specific suggestion or ask a question.";
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            break;
+        case 'email':
+            shareUrl = `mailto:?subject=Auto Timetable Generator&body=${encodeURIComponent(text + '\n\n' + url)}`;
+            break;
     }
     
-    aiMessage.textContent = response;
-    
-    // Reset after 5 seconds
-    setTimeout(() => {
-        aiMessage.textContent = originalMessage;
-    }, 5000);
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        recordShare(platform);
+        showToast(`Shared on ${platform}!`);
+    }
 }
 
-// Export timetable functions
-function exportTimetable(type) {
-    const gradeSelect = document.getElementById(`${type}GradeSelect`) || 
-                        document.getElementById(`${type}Select`) || 
-                        document.getElementById('gradeSelectDashboard');
-    
-    const grade = gradeSelect ? gradeSelect.value : 'grade3';
-    
-    // Get the current timetable data
-    const timetableData = getTimetableData(type, grade);
-    
-    // Export to Word
-    exportToWord(type, grade, timetableData);
+async function copyUrl() {
+    await navigator.clipboard.writeText(window.location.href);
+    recordShare('copy');
+    showToast('URL Copied!');
 }
 
-function exportAllTimetables() {
-    const grade = document.getElementById('gradeSelectDashboard').value;
+// ============================================
+// TIMETABLE DISPLAY FUNCTIONS
+// ============================================
+function displayTimetable(gradeKey, containerId, titleElementId = null) {
+    const data = SINDH_CURRICULUM[gradeKey];
+    if (!data) {
+        showToast('Grade data not found', true);
+        return;
+    }
     
-    // Export all timetables
-    const types = ['master', 'class', 'teacher', 'free', 'teacher-free'];
+    const container = document.getElementById(containerId);
+    if (!container) return;
     
-    types.forEach(type => {
-        const timetableData = getTimetableData(type, grade);
-        exportToWord(type, grade, timetableData, true);
-    });
+    if (titleElementId) {
+        const titleEl = document.getElementById(titleElementId);
+        if (titleEl) titleEl.textContent = data.name;
+    }
     
-    // Show export all success message
-    const exportBtn = document.getElementById('exportAll');
-    const originalText = exportBtn.textContent;
-    exportBtn.textContent = 'Exporting All...';
-    exportBtn.disabled = true;
+    let html = '<table class="timetable-table"><thead><tr><th>Day</th>';
+    const periods = Object.values(data.timetable)[0]?.length || 6;
+    for (let i = 1; i <= periods; i++) {
+        html += `<th>Period ${i}</th>`;
+    }
+    html += '</tr></thead><tbody>';
     
-    setTimeout(() => {
-        exportBtn.textContent = 'All Exported!';
-        exportBtn.style.backgroundColor = '#2ecc71';
+    for (const [day, subjects] of Object.entries(data.timetable)) {
+        html += `<tr><td><strong>${day}</strong></td>`;
+        subjects.forEach(sub => {
+            html += `<td>${sub}</td>`;
+        });
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    html += `<div class="subject-summary"><strong>Subjects (${data.periodsPerWeek} periods/week):</strong> ${data.subjects.join(' • ')}</div>`;
+    
+    container.innerHTML = html;
+    incrementUsage();
+}
+
+function displayMasterTimetable() {
+    const container = document.getElementById('masterTimetableContainer');
+    if (!container) return;
+    
+    let html = '<h3>All Grades Master Timetable</h3>';
+    for (const [key, data] of Object.entries(SINDH_CURRICULUM)) {
+        html += `<h4>${data.name}</h4>`;
+        html += '<table class="timetable-table"><thead><tr><th>Day</th>';
+        const periods = Object.values(data.timetable)[0]?.length || 6;
+        for (let i = 1; i <= periods; i++) html += `<th>Period ${i}</th>`;
+        html += '</tr></thead><tbody>';
         
-        setTimeout(() => {
-            exportBtn.textContent = originalText;
-            exportBtn.style.backgroundColor = '';
-            exportBtn.disabled = false;
-        }, 3000);
-    }, 2000);
+        for (const [day, subjects] of Object.entries(data.timetable)) {
+            html += `<tr><td><strong>${day}</strong></td>`;
+            subjects.forEach(sub => html += `<td>${sub}</td>`);
+            html += '</tr>';
+        }
+        html += '</tbody></table><br>';
+    }
+    container.innerHTML = html;
+    incrementUsage();
 }
 
-// Get timetable data for export
-function getTimetableData(type, grade) {
-    let timetableData = {
-        title: getTitleForType(type),
-        grade: grade,
-        days: days,
-        periods: periods,
-        data: []
+// ============================================
+// TEACHER MANAGEMENT
+// ============================================
+function addTeacher() {
+    const name = document.getElementById('teacherName')?.value.trim();
+    const subjects = document.getElementById('teacherSubjects')?.value.trim();
+    
+    if (!name || !subjects) {
+        showToast('Please enter teacher name and subjects', true);
+        return;
+    }
+    
+    const teacher = {
+        name: name,
+        subjects: subjects.split(',').map(s => s.trim()),
+        timetable: generateTeacherTimetable(name)
     };
     
-    // In a real implementation, this would extract data from the actual timetable
-    // For now, we'll generate sample data
-    for (let i = 0; i < periods.length; i++) {
-        const row = [];
-        for (let j = 0; j < days.length; j++) {
-            if (type === 'free') {
-                const isFree = Math.random() < 0.2;
-                if (isFree) {
-                    row.push({ type: 'free', text: 'Free Period' });
-                } else {
-                    const subjects = ['Mathematics', 'Science', 'English', 'Sindhi/Urdu', 'Social Studies'];
-                    const subject = subjects[(i * days.length + j) % subjects.length];
-                    row.push({ type: 'subject', text: subject, subject: subject });
-                }
-            } else if (type === 'teacher-free') {
-                const isFree = Math.random() < 0.3;
-                if (isFree) {
-                    row.push({ type: 'free', text: 'Teacher Free' });
-                } else {
-                    const subjects = ['Mathematics', 'Science', 'English', 'Sindhi/Urdu', 'Social Studies'];
-                    const subject = subjects[(i * days.length + j) % subjects.length];
-                    row.push({ type: 'subject', text: subject, subject: subject });
-                }
-            } else {
-                const subjects = ['Mathematics', 'Science', 'English', 'Sindhi/Urdu', 'Social Studies'];
-                const subject = subjects[(i * days.length + j) % subjects.length];
-                row.push({ type: 'subject', text: subject, subject: subject });
-            }
+    teachers.push(teacher);
+    saveTeachers();
+    updateTeacherSelect();
+    showToast(`Teacher "${name}" added successfully!`);
+    
+    document.getElementById('teacherName').value = '';
+    document.getElementById('teacherSubjects').value = '';
+}
+
+function generateTeacherTimetable(teacherName) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const periods = 6;
+    const teacher = teachers.find(t => t.name === teacherName);
+    const subjects = teacher ? teacher.subjects : ['Free'];
+    const timetable = {};
+    
+    days.forEach(day => {
+        timetable[day] = [];
+        for (let i = 0; i < periods; i++) {
+            const randomSubject = subjects[Math.floor(Math.random() * subjects.length)] || 'Free';
+            timetable[day].push(randomSubject);
         }
-        timetableData.data.push(row);
+    });
+    return timetable;
+}
+
+function displayTeacherTimetable(teacherName) {
+    const teacher = teachers.find(t => t.name === teacherName);
+    if (!teacher) {
+        showToast('Teacher not found', true);
+        return;
     }
     
-    return timetableData;
+    const container = document.getElementById('teacherTimetableContainer');
+    if (!container) return;
+    
+    let html = `<h4>${teacher.name}'s Timetable</h4>`;
+    html += '<table class="timetable-table"><thead><tr><th>Day</th><th>Period 1</th><th>Period 2</th><th>Period 3</th><th>Period 4</th><th>Period 5</th><th>Period 6</th></tr></thead><tbody>';
+    
+    for (const [day, periods] of Object.entries(teacher.timetable)) {
+        html += `<tr><td><strong>${day}</strong></td>`;
+        periods.forEach(p => html += `<td>${p}</td>`);
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    html += `<div class="subject-summary"><strong>Subjects:</strong> ${teacher.subjects.join(', ')}</div>`;
+    
+    container.innerHTML = html;
 }
 
-function getTitleForType(type) {
-    const titles = {
-        'master': 'Master Timetable',
-        'class': 'Class-wise Timetable',
-        'teacher': 'Teacher-wise Timetable',
-        'free': 'Free Periods Timetable',
-        'teacher-free': 'Teacher Free Periods Timetable'
+function updateTeacherSelect() {
+    const select = document.getElementById('teacherSelect');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">-- Select Teacher --</option>';
+    teachers.forEach(teacher => {
+        const option = document.createElement('option');
+        option.value = teacher.name;
+        option.textContent = teacher.name;
+        select.appendChild(option);
+    });
+}
+
+function saveTeachers() {
+    localStorage.setItem(`${TOOL_SLUG}_teachers`, JSON.stringify(teachers));
+}
+
+function loadTeachers() {
+    const saved = localStorage.getItem(`${TOOL_SLUG}_teachers`);
+    if (saved) {
+        teachers = JSON.parse(saved);
+        updateTeacherSelect();
+    }
+}
+
+// ============================================
+// SUBJECT TIMETABLE
+// ============================================
+function displaySubjectTimetable() {
+    const subject = document.getElementById('subjectName')?.value.trim();
+    if (!subject) {
+        showToast('Please enter a subject name', true);
+        return;
+    }
+    
+    const container = document.getElementById('subjectTimetableContainer');
+    if (!container) return;
+    
+    let html = `<h4>Subject: ${subject}</h4>`;
+    html += '<table class="timetable-table"><thead><tr><th>Grade</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead><tbody>';
+    
+    for (const [key, data] of Object.entries(SINDH_CURRICULUM)) {
+        const schedule = [];
+        for (const [day, subjects] of Object.entries(data.timetable)) {
+            const hasSubject = subjects.some(s => s.toLowerCase().includes(subject.toLowerCase()));
+            schedule.push(hasSubject ? '✓' : '-');
+        }
+        html += `<tr><td>${data.name}</td><td>${schedule[0]}</td><td>${schedule[1]}</td><td>${schedule[2]}</td><td>${schedule[3]}</td><td>${schedule[4]}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    
+    container.innerHTML = html;
+}
+
+// ============================================
+// FREE PERIODS MANAGEMENT
+// ============================================
+function showFreePeriods() {
+    const type = document.getElementById('freeTypeSelect')?.value;
+    const container = document.getElementById('freePeriodsContainer');
+    if (!container) return;
+    
+    let html = '<table class="timetable-table"><thead><tr><th>Name</th><th>Day</th><th>Period</th></tr></thead><tbody>';
+    let hasFree = false;
+    
+    if (type === 'teacher') {
+        teachers.forEach(teacher => {
+            for (const [day, periods] of Object.entries(teacher.timetable)) {
+                periods.forEach((p, idx) => {
+                    if (p === 'Free' || p.toLowerCase() === 'free') {
+                        hasFree = true;
+                        html += `<tr><td>${teacher.name}</td><td>${day}</td><td>Period ${idx + 1}</td></tr>`;
+                    }
+                });
+            }
+        });
+    } else {
+        for (const [key, data] of Object.entries(SINDH_CURRICULUM)) {
+            for (const [day, periods] of Object.entries(data.timetable)) {
+                periods.forEach((p, idx) => {
+                    if (p === 'Free' || p === 'Library' || p === 'PE' || p === 'Arts') {
+                        hasFree = true;
+                        html += `<tr><td>${data.name}</td><td>${day}</td><td>Period ${idx + 1} (${p})</td></tr>`;
+                    }
+                });
+            }
+        }
+    }
+    
+    html += '</tbody></table>';
+    
+    if (!hasFree) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-clock"></i><p>No free periods found</p></div>';
+    } else {
+        container.innerHTML = html;
+    }
+}
+
+// ============================================
+// AI QUOTE GENERATOR (Grok API Integrated)
+// ============================================
+async function generateQuote() {
+    const prompt = document.getElementById('quotePrompt')?.value.trim();
+    if (!prompt) {
+        showToast('Please enter a topic for quote generation', true);
+        return;
+    }
+    
+    showLoading(true, 'Generating AI quote with Grok...');
+    
+    try {
+        const result = await apiCall('/generate-quote', 'POST', {
+            prompt: prompt,
+            topic: prompt,
+            category: 'inspiration'
+        });
+        
+        const container = document.getElementById('quoteDisplay');
+        if (container) {
+            if (result && result.success && result.quote) {
+                container.innerHTML = `
+                    <div class="quote-text">"${result.quote}"</div>
+                    <div class="quote-author">- ${result.author || 'Grok AI'}</div>
+                    <div class="quote-source"><small>Source: ${result.source || 'AI Generated'}</small></div>
+                `;
+                showToast('Quote generated successfully!');
+                
+                // Update poster preview
+                if (document.getElementById('posterQuote')) {
+                    document.getElementById('posterQuote').textContent = `"${result.quote}"`;
+                    document.getElementById('posterAuthor').textContent = `- ${result.author || 'AI Generator'}`;
+                }
+            } else {
+                // Fallback quotes
+                const fallbackQuotes = [
+                    { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+                    { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King" },
+                    { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+                    { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+                    { text: "Creativity is intelligence having fun.", author: "Albert Einstein" }
+                ];
+                const random = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+                container.innerHTML = `
+                    <div class="quote-text">"${random.text}"</div>
+                    <div class="quote-author">- ${random.author}</div>
+                    <div class="quote-source"><small>Source: Fallback Database</small></div>
+                `;
+                if (document.getElementById('posterQuote')) {
+                    document.getElementById('posterQuote').textContent = `"${random.text}"`;
+                    document.getElementById('posterAuthor').textContent = `- ${random.author}`;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Quote generation error:', error);
+        showToast('Failed to generate quote', true);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ============================================
+// POSTER GENERATOR (Save/Load from TiDB)
+// ============================================
+function updatePosterPreview() {
+    const bgColor = document.getElementById('posterBgColor')?.value || '#006633';
+    const textColor = document.getElementById('posterTextColor')?.value || '#ffffff';
+    const preview = document.getElementById('posterPreview');
+    if (preview) {
+        preview.style.background = bgColor;
+        preview.style.color = textColor;
+    }
+}
+
+async function saveDesign() {
+    const bgColor = document.getElementById('posterBgColor')?.value || '#006633';
+    const textColor = document.getElementById('posterTextColor')?.value || '#ffffff';
+    const quote = document.getElementById('posterQuote')?.innerText || '';
+    const author = document.getElementById('posterAuthor')?.innerText || '';
+    
+    const designData = {
+        bgColor: bgColor,
+        textColor: textColor,
+        quote: quote,
+        author: author,
+        timestamp: new Date().toISOString()
     };
     
-    return titles[type] || 'Timetable';
+    showLoading(true, 'Saving design to database...');
+    
+    try {
+        const result = await apiCall('/save-design', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: USER_ID,
+            design_name: `Design_${Date.now()}`,
+            design_json: JSON.stringify(designData)
+        });
+        
+        if (result && result.success) {
+            showToast('Design saved successfully!');
+        } else {
+            // Local fallback
+            const saved = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_designs`) || '[]');
+            saved.push(designData);
+            localStorage.setItem(`${TOOL_SLUG}_designs`, JSON.stringify(saved));
+            showToast('Design saved locally!');
+        }
+    } catch (error) {
+        console.error('Save design error:', error);
+        showToast('Failed to save design', true);
+    } finally {
+        showLoading(false);
+    }
 }
 
-// Export to Word function
-function exportToWord(type, grade, timetableData, isBatch = false) {
-    // Create a simple HTML representation for export
-    let htmlContent = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-              xmlns:w='urn:schemas-microsoft-com:office:word' 
-              xmlns='http://www.w3.org/TR/REC-html40'>
+async function loadDesigns() {
+    const container = document.getElementById('designsList');
+    const designsContainer = document.getElementById('savedDesignsContainer');
+    
+    showLoading(true, 'Loading saved designs...');
+    
+    try {
+        const result = await apiCall(`/get-designs?tool_slug=${TOOL_SLUG}&user_id=${USER_ID}`, 'GET');
+        
+        if (designsContainer) designsContainer.style.display = 'block';
+        
+        if (container) {
+            if (result && result.success && result.designs && result.designs.length > 0) {
+                let html = '<div class="designs-grid">';
+                result.designs.forEach(design => {
+                    let designData = {};
+                    try {
+                        designData = JSON.parse(design.design_json);
+                    } catch(e) { designData = {}; }
+                    html += `
+                        <div class="design-card" onclick="applyDesign('${design.id}')">
+                            <i class="fas fa-image"></i>
+                            <p>${design.design_name || 'Design'}</p>
+                            <small>${new Date(design.created_at).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                // Local fallback
+                const local = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_designs`) || '[]');
+                if (local.length > 0) {
+                    let html = '<div class="designs-grid">';
+                    local.forEach((design, idx) => {
+                        html += `
+                            <div class="design-card" onclick="applyLocalDesign(${idx})">
+                                <i class="fas fa-image"></i>
+                                <p>Local Design ${idx + 1}</p>
+                                <small>Saved Locally</small>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p class="empty-state">No saved designs found</p>';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Load designs error:', error);
+        if (container) container.innerHTML = '<p class="empty-state">Failed to load designs</p>';
+    } finally {
+        showLoading(false);
+    }
+}
+
+function applyDesign(designId) {
+    showToast('Feature: Apply design from database', true);
+}
+
+function applyLocalDesign(index) {
+    const designs = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_designs`) || '[]');
+    const design = designs[index];
+    if (design) {
+        if (design.bgColor) document.getElementById('posterBgColor').value = design.bgColor;
+        if (design.textColor) document.getElementById('posterTextColor').value = design.textColor;
+        if (design.quote) document.getElementById('posterQuote').textContent = design.quote;
+        if (design.author) document.getElementById('posterAuthor').textContent = design.author;
+        updatePosterPreview();
+        showToast('Design applied!');
+    }
+}
+
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
+function exportAsPDF(containerId, filename = 'timetable') {
+    const content = document.getElementById(containerId)?.innerHTML;
+    if (!content) {
+        showToast('No content to export', true);
+        return;
+    }
+    
+    const win = window.open('', '_blank');
+    win.document.write(`
+        <html>
         <head>
-            <meta charset="utf-8">
-            <title>${timetableData.title} - ${grade}</title>
+            <title>Sindh Timetable</title>
             <style>
-                body { font-family: Arial, sans-serif; }
-                h1 { color: #2F5496; text-align: center; }
-                h2 { color: #2F5496; }
-                table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-                th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-                th { background-color: #2F5496; color: white; font-weight: bold; }
-                .free-period { background-color: #f2f2f2; color: #666; font-style: italic; }
-                .subject-cell { font-weight: bold; }
-                @page { size: landscape; }
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+                th { background: #006633; color: white; }
+                .subject-summary { background: #f5f5f5; padding: 10px; margin-top: 10px; }
             </style>
         </head>
         <body>
-            <h1>${timetableData.title}</h1>
-            <h2>Grade: ${grade.replace('grade', 'Grade ').toUpperCase()}</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Period/Day</th>
+            <h1>Advanced Auto Timetable Generator</h1>
+            <h2>Sindh Scheme of Studies 2023-24</h2>
+            ${content}
+            <p>Generated by DCAR Sindh - ${new Date().toLocaleString()}</p>
+        </body>
+        </html>
+    `);
+    win.document.close();
+    win.print();
+    showToast('PDF Generated');
+}
+
+function exportAsDOC(containerId, filename = 'timetable') {
+    const content = document.getElementById(containerId)?.innerHTML;
+    if (!content) {
+        showToast('No content to export', true);
+        return;
+    }
+    
+    const html = `
+        <html>
+        <head>
+            <title>Sindh Timetable</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                table { border-collapse: collapse; width: 100%; }
+                th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+                th { background: #006633; color: white; }
+            </style>
+        </head>
+        <body>
+            <h1>Advanced Auto Timetable Generator</h1>
+            <h2>Sindh Scheme of Studies 2023-24</h2>
+            ${content}
+        </body>
+        </html>
     `;
     
-    // Add day headers
-    timetableData.days.forEach(day => {
-        htmlContent += `<th>${day}</th>`;
-    });
-    
-    htmlContent += `</tr></thead><tbody>`;
-    
-    // Add timetable rows
-    for (let i = 0; i < timetableData.periods.length; i++) {
-        htmlContent += `<tr><th>${timetableData.periods[i]}</th>`;
-        
-        for (let j = 0; j < timetableData.days.length; j++) {
-            const cell = timetableData.data[i][j];
-            if (cell.type === 'free') {
-                htmlContent += `<td class="free-period">${cell.text}</td>`;
-            } else {
-                htmlContent += `<td class="subject-cell">${cell.text}</td>`;
-            }
-        }
-        
-        htmlContent += `</tr>`;
+    const blob = new Blob([html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.doc`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('DOC Downloaded');
+}
+
+function exportAsTXT(containerId, filename = 'timetable') {
+    const content = document.getElementById(containerId)?.innerText;
+    if (!content) {
+        showToast('No content to export', true);
+        return;
     }
     
-    htmlContent += `</tbody></table></body></html>`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('TXT Downloaded');
+}
+
+// ============================================
+// DARK MODE
+// ============================================
+function initDarkMode() {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) document.body.classList.add('dark');
     
-    // Create and download the file
-    const blob = new Blob([htmlContent], { type: 'application/msword' });
-    const filename = `${timetableData.title.replace(/\s+/g, '_')}_${grade}.doc`;
-    
-    saveAs(blob, filename);
-    
-    if (!isBatch) {
-        // Show export success message
-        const exportBtn = document.querySelector(`.btn-export[data-export="${type}"]`);
-        if (exportBtn) {
-            const originalText = exportBtn.textContent;
-            exportBtn.textContent = 'Exporting...';
-            exportBtn.disabled = true;
-            
-            setTimeout(() => {
-                exportBtn.textContent = 'Exported!';
-                exportBtn.style.backgroundColor = '#2ecc71';
-                
-                setTimeout(() => {
-                    exportBtn.textContent = originalText;
-                    exportBtn.style.backgroundColor = '';
-                    exportBtn.disabled = false;
-                }, 2000);
-            }, 1000);
-        }
+    const toggle = document.getElementById('darkToggle');
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        });
     }
 }
+
+// ============================================
+// SCROLL BUTTONS
+// ============================================
+function initScrollButtons() {
+    const scrollUp = document.getElementById('scrollUp');
+    const scrollDown = document.getElementById('scrollDown');
+    
+    if (scrollUp) {
+        scrollUp.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+    
+    if (scrollDown) {
+        scrollDown.addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+    }
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+function initEventListeners() {
+    // Category cards
+    document.querySelectorAll('.cat-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const grade = card.dataset.grade;
+            if (grade && SINDH_CURRICULUM[grade]) {
+                displayTimetable(grade, 'classTimetableContainer');
+                document.getElementById('timetableTitle').textContent = SINDH_CURRICULUM[grade].name;
+            }
+        });
+    });
+    
+    // Class select
+    const classSelect = document.getElementById('classSelect');
+    if (classSelect) {
+        classSelect.addEventListener('change', (e) => {
+            if (e.target.value && SINDH_CURRICULUM[e.target.value]) {
+                displayTimetable(e.target.value, 'classTimetableContainer');
+            }
+        });
+    }
+    
+    // Generate master
+    const generateMaster = document.getElementById('generateMasterBtn');
+    if (generateMaster) {
+        generateMaster.addEventListener('click', () => {
+            displayMasterTimetable();
+            showToast('Master Timetable Generated!');
+        });
+    }
+    
+    // Reset master
+    const resetMaster = document.getElementById('resetMasterBtn');
+    if (resetMaster) {
+        resetMaster.addEventListener('click', () => {
+            document.getElementById('masterTimetableContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-plus"></i>
+                    <p>Click Generate to create Master Timetable for all grades</p>
+                </div>
+            `;
+        });
+    }
+    
+    // Reactions
+    document.querySelectorAll('.reaction').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const emoji = btn.dataset.emoji;
+            if (emoji) addReaction(emoji);
+        });
+    });
+    
+    // Refresh usage
+    const refreshUsage = document.getElementById('refreshUsageBtn');
+    if (refreshUsage) {
+        refreshUsage.addEventListener('click', () => {
+            loadUsage();
+            loadGlobalUsage();
+        });
+    }
+    
+    // Teacher
+    const addTeacherBtn = document.getElementById('addTeacherBtn');
+    if (addTeacherBtn) {
+        addTeacherBtn.addEventListener('click', addTeacher);
+    }
+    
+    const teacherSelect = document.getElementById('teacherSelect');
+    if (teacherSelect) {
+        teacherSelect.addEventListener('change', (e) => {
+            if (e.target.value) displayTeacherTimetable(e.target.value);
+        });
+    }
+    
+    // Subject
+    const viewSubjectBtn = document.getElementById('viewSubjectBtn');
+    if (viewSubjectBtn) {
+        viewSubjectBtn.addEventListener('click', displaySubjectTimetable);
+    }
+    
+    // Free periods
+    const showFreeBtn = document.getElementById('showFreeBtn');
+    if (showFreeBtn) {
+        showFreeBtn.addEventListener('click', showFreePeriods);
+    }
+    
+    // AI Quote
+    const generateQuoteBtn = document.getElementById('generateQuoteBtn');
+    if (generateQuoteBtn) {
+        generateQuoteBtn.addEventListener('click', generateQuote);
+    }
+    
+    // Poster
+    const updatePosterBtn = document.getElementById('updatePosterBtn');
+    if (updatePosterBtn) {
+        updatePosterBtn.addEventListener('click', updatePosterPreview);
+    }
+    
+    const saveDesignBtn = document.getElementById('saveDesignBtn');
+    if (saveDesignBtn) {
+        saveDesignBtn.addEventListener('click', saveDesign);
+    }
+    
+    const loadDesignsBtn = document.getElementById('loadDesignsBtn');
+    if (loadDesignsBtn) {
+        loadDesignsBtn.addEventListener('click', loadDesigns);
+    }
+    
+    // Export buttons
+    const exportClassPDF = document.getElementById('exportClassPDF');
+    if (exportClassPDF) {
+        exportClassPDF.addEventListener('click', () => exportAsPDF('classTimetableContainer', 'class_timetable'));
+    }
+    
+    const exportClassDOC = document.getElementById('exportClassDOC');
+    if (exportClassDOC) {
+        exportClassDOC.addEventListener('click', () => exportAsDOC('classTimetableContainer', 'class_timetable'));
+    }
+    
+    const exportClassTXT = document.getElementById('exportClassTXT');
+    if (exportClassTXT) {
+        exportClassTXT.addEventListener('click', () => exportAsTXT('classTimetableContainer', 'class_timetable'));
+    }
+    
+    const shareClassBtn = document.getElementById('shareClassBtn');
+    if (shareClassBtn) {
+        shareClassBtn.addEventListener('click', () => sharePage('facebook'));
+    }
+    
+    // Social share
+    document.querySelectorAll('.social').forEach(btn => {
+        if (btn.id === 'copyUrlBtn') {
+            btn.addEventListener('click', copyUrl);
+        } else {
+            btn.addEventListener('click', () => {
+                const platform = btn.dataset.platform;
+                if (platform) sharePage(platform);
+            });
+        }
+    });
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+async function init() {
+    showLoading(true, 'Loading Sindh Scheme of Studies 2023-24...');
+    
+    await loadUsage();
+    await loadGlobalUsage();
+    await loadReactions();
+    loadTeachers();
+    
+    initDarkMode();
+    initScrollButtons();
+    initEventListeners();
+    
+    // Set default poster colors
+    if (document.getElementById('posterBgColor')) {
+        document.getElementById('posterBgColor').value = '#006633';
+        document.getElementById('posterTextColor').value = '#ffffff';
+        updatePosterPreview();
+    }
+    
+    showLoading(false);
+    showToast('Advanced Auto Timetable Generator Ready! (76 Features Loaded)');
+}
+
+// Start the app
+init();
