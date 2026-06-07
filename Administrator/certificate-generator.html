@@ -2,309 +2,354 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Certificate Generator</title>
-    <link rel="stylesheet" href="certificate-generator.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Certificate Generator - Professional Certificate Maker with AI</title>
+    <meta name="description" content="Create professional certificates with 150+ features. AI support, dark mode, social sharing, and much more">
+    <meta name="keywords" content="certificate generator, online certificate maker, AI certificate, diploma maker, award certificate">
+    <meta name="author" content="MagicRills">
+    <link rel="canonical" href="https://magicrills.com/tools/certificate-generator.html">
+    
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@400;700;900&family=MedievalSharp&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=UnifrakturMaguntia&family=Dancing+Script:wght@400;500;600;700&family=Great+Vibes&family=Parisienne&family=Petit+Formal+Script&family=Rouge+Script&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2canvas for capturing the certificate -->
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&amp;family=Cinzel:wght@400;700;900&amp;family=MedievalSharp&amp;family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&amp;family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&amp;family=UnifrakturMaguntia&amp;family=Tajawal:wght@400;700;800&amp;family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- html2canvas & jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- jsPDF for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- docx.js for Word export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
-    <!-- FileSaver for downloads -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-certificate"></i> Advanced Certificate Generator</h1>
-            <p class="subtitle">Create professional certificates with custom designs and multiple export options</p>
-        </header>
-        
-        <div class="main-content">
-            <div class="controls">
-                <div class="control-group">
-                    <h3><i class="fas fa-palette"></i> Templates</h3>
-                    <div class="form-group">
-                        <label for="templateSelect">Select Template</label>
-                        <select id="templateSelect">
-                            <option value="1">Classic Elegant</option>
-                            <option value="2">Modern Professional</option>
-                            <option value="3">Vintage Parchment</option>
-                            <option value="4">Academic Honor</option>
-                            <option value="5">Corporate Achievement</option>
-                            <option value="6">Medieval Scroll</option>
-                            <option value="7">Artistic Floral</option>
-                            <option value="8">Minimalist Clean</option>
-                            <option value="9">Golden Luxury</option>
-                            <option value="10">Blue Corporate</option>
-                            <option value="11">Green Nature</option>
-                            <option value="12">Red Prestige</option>
-                            <option value="13">Purple Royal</option>
-                            <option value="14">Orange Energy</option>
-                            <option value="15">Tech Modern</option>
-                        </select>
+    <div class="app-container">
+        <!-- Hero Section with Smart Design -->
+        <section class="hero-section">
+            <div class="hero-bg-animation"></div>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-crown"></i>
+                    <span class="hero-badge-text">Professional Edition | 150+ Features</span>
+                </div>
+                <h1 class="hero-title">
+                    <span class="title-gradient">Certificate Generator</span>
+                </h1>
+                <p class="hero-subtitle hero-subtitle-text">Create stunning professional certificates with AI assistance</p>
+                
+                <!-- Language Switcher -->
+                <div class="language-switcher">
+                    <button class="lang-btn active" data-lang="en">🇬🇧 English</button>
+                    <button class="lang-btn" data-lang="ur">🇵🇰 اردو</button>
+                </div>
+                
+                <!-- Usage Counter Display -->
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line"></i>
+                        <span id="globalUsageCounter">0</span>
+                        <small class="stat-used-text">Used</small>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-heart"></i>
+                        <span id="globalReactionsCounter">0</span>
+                        <small class="stat-reactions-text">Reactions</small>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-share-alt"></i>
+                        <span id="globalSharesCounter">0</span>
+                        <small class="stat-shares-text">Shares</small>
                     </div>
                 </div>
                 
-                <div class="control-group">
-                    <h3><i class="fas fa-file-alt"></i> Certificate Details</h3>
-                    <div class="form-group">
-                        <label for="title">Certificate Title</label>
-                        <input id="title" type="text" value="Certificate of Achievement" />
-                    </div>
-                    <div class="form-group">
-                        <label for="subtitle">Subtitle</label>
-                        <input id="subtitle" type="text" value="This certificate is proudly presented to" />
-                    </div>
-                    <div class="form-group">
-                        <label for="recipient">Recipient Name</label>
-                        <input id="recipient" type="text" value="John Doe" />
-                    </div>
-                    <div class="form-group">
-                        <label for="bodyText">Body Text</label>
-                        <textarea id="bodyText">For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="date">Date</label>
-                        <input id="date" type="text" value="October 15, 2023" />
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <h3><i class="fas fa-font"></i> Font Customization</h3>
-                    <div class="form-group">
-                        <label for="titleFont">Title Font</label>
-                        <select id="titleFont">
-                            <option value="font-old-english">Old English</option>
-                            <option value="font-cinzel">Cinzel</option>
-                            <option value="font-almendra">Almendra</option>
-                            <option value="font-medieval">Medieval</option>
-                            <option value="font-playfair">Playfair Display</option>
-                            <option value="font-old-standard">Old Standard</option>
-                            <option value="font-modern">Modern</option>
-                            <option value="font-elegant">Elegant</option>
-                            <option value="font-dancing">Dancing Script</option>
-                            <option value="font-great-vibes">Great Vibes</option>
-                            <option value="font-parisienne">Parisienne</option>
-                            <option value="font-rouge">Rouge Script</option>
-                            <option value="font-tangerine">Tangerine</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="bodyFont">Body Font</label>
-                        <select id="bodyFont">
-                            <option value="font-old-english">Old English</option>
-                            <option value="font-cinzel">Cinzel</option>
-                            <option value="font-almendra">Almendra</option>
-                            <option value="font-medieval">Medieval</option>
-                            <option value="font-playfair">Playfair Display</option>
-                            <option value="font-old-standard">Old Standard</option>
-                            <option selected value="font-modern">Modern</option>
-                            <option value="font-elegant">Elegant</option>
-                            <option value="font-dancing">Dancing Script</option>
-                            <option value="font-great-vibes">Great Vibes</option>
-                            <option value="font-parisienne">Parisienne</option>
-                            <option value="font-rouge">Rouge Script</option>
-                            <option value="font-tangerine">Tangerine</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="signatureFont">Signature Font</label>
-                        <select id="signatureFont">
-                            <option value="font-old-english">Old English</option>
-                            <option value="font-cinzel">Cinzel</option>
-                            <option value="font-almendra">Almendra</option>
-                            <option value="font-medieval">Medieval</option>
-                            <option value="font-playfair">Playfair Display</option>
-                            <option value="font-old-standard">Old Standard</option>
-                            <option value="font-modern">Modern</option>
-                            <option selected value="font-elegant">Elegant</option>
-                            <option value="font-dancing">Dancing Script</option>
-                            <option value="font-great-vibes">Great Vibes</option>
-                            <option value="font-parisienne">Parisienne</option>
-                            <option value="font-rouge">Rouge Script</option>
-                            <option value="font-tangerine">Tangerine</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <h3><i class="fas fa-paint-brush"></i> Customization</h3>
-                    <div class="form-group">
-                        <label for="titleColor">Title Color</label>
-                        <div class="color-picker">
-                            <input id="titleColor" type="color" value="#4e54c8" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="borderColor">Border Color</label>
-                        <div class="color-picker">
-                            <input id="borderColor" type="color" value="#4e54c8" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="backgroundColor">Background Color</label>
-                        <div class="color-picker">
-                            <input id="backgroundColor" type="color" value="#ffffff" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="borderStyle">Border Style</label>
-                        <select id="borderStyle">
-                            <option value="solid">Solid</option>
-                            <option value="dotted">Dotted</option>
-                            <option value="dashed">Dashed</option>
-                            <option value="double">Double</option>
-                            <option value="ornate">Ornate Frame</option>
-                            <option value="floral">Floral Border</option>
-                            <option value="geometric">Geometric</option>
-                            <option value="scroll">Scroll Frame</option>
-                            <option value="ribbon">Ribbon Border</option>
-                            <option value="laurel">Laurel Wreath</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="bgPattern">Background Pattern</label>
-                        <select id="bgPattern">
-                            <option value="none">None</option>
-                            <option value="dots">Dots</option>
-                            <option value="lines">Lines</option>
-                            <option value="squares">Squares</option>
-                            <option value="zigzag">Zigzag</option>
-                            <option value="seamless">Seamless Pattern</option>
-                            <option value="watermark">Watermark</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <h3><i class="fas fa-images"></i> Logo & Signatures</h3>
-                    <div class="form-group">
-                        <label for="logoLeftUpload">Upload Left Logo</label>
-                        <input accept="image/*" id="logoLeftUpload" type="file" />
-                    </div>
-                    <div class="form-group">
-                        <label for="logoCenterUpload">Upload Center Logo</label>
-                        <input accept="image/*" id="logoCenterUpload" type="file" />
-                    </div>
-                    <div class="form-group">
-                        <label for="logoRightUpload">Upload Right Logo</label>
-                        <input accept="image/*" id="logoRightUpload" type="file" />
-                    </div>
-                    <div class="form-group">
-                        <label for="signature1">Signature 1 (Left - Name)</label>
-                        <input id="signature1" type="text" value="Jane Smith" />
-                    </div>
-                    <div class="form-group">
-                        <label for="signature1Title">Signature 1 (Title)</label>
-                        <input id="signature1Title" type="text" value="CEO, Company Inc." />
-                    </div>
-                    <div class="form-group">
-                        <label for="signature1Upload">Upload Signature 1</label>
-                        <input accept="image/*" id="signature1Upload" type="file" />
-                    </div>
-                    <div class="form-group">
-                        <label for="signature2">Signature 2 (Right - Name)</label>
-                        <input id="signature2" type="text" value="Robert Johnson" />
-                    </div>
-                    <div class="form-group">
-                        <label for="signature2Title">Signature 2 (Title)</label>
-                        <input id="signature2Title" type="text" value="Director of Education" />
-                    </div>
-                    <div class="form-group">
-                        <label for="signature2Upload">Upload Signature 2</label>
-                        <input accept="image/*" id="signature2Upload" type="file" />
-                    </div>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-reset" id="resetBtn">
-                        <i class="fas fa-redo"></i> Reset
+                <!-- CTA Buttons -->
+                <div class="hero-buttons">
+                    <button class="btn-primary" id="scrollToToolBtn">
+                        <i class="fas fa-magic"></i>
+                        <span class="btn-create-text">Create Now</span>
                     </button>
-                    <button class="btn btn-theme" id="themeBtn">
-                        <i class="fas fa-moon"></i> Dark Mode
+                    <button class="btn-outline" id="aiEnhanceBtn">
+                        <i class="fas fa-robot"></i>
+                        <span class="btn-ai-text">Enhance with AI</span>
                     </button>
                 </div>
             </div>
+            <div class="hero-wave">
+                <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+                </svg>
+            </div>
+        </section>
+        
+        <!-- Main Tool Container -->
+        <div class="main-tool-container" id="mainTool">
+            <div class="tool-header">
+                <div class="tool-actions">
+                    <button class="action-btn" id="darkModeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="action-btn" id="fullscreenBtn">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <a href="https://magicrills.com" class="action-btn" target="_blank">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <a href="https://magicrills.com/category-pages/administrator.html" class="action-btn" target="_blank">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-usage-badge">
+                    <i class="fas fa-fire"></i>
+                    <span id="toolUsageCounter">0</span>
+                    <small class="usage-text">times used</small>
+                </div>
+            </div>
             
-            <div class="preview">
-                <div id="certificate">
-                    <div class="cert-border"></div>
-                    <div class="cert-bg"></div>
-                    <div class="cert-content">
-                        <div class="cert-header">
-                            <div class="logo-left">
-                                <img alt="Left Logo" class="cert-logo" id="certLogoLeft" src="" />
+            <div class="tool-grid">
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <!-- Templates Section -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-palette"></i>
+                            <h3 class="templates-title">Templates</h3>
+                        </div>
+                        <div class="template-grid" id="templateGrid">
+                            <div class="template-item" data-template="1" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                                <span class="template-classic-text">Classic</span>
                             </div>
-                            <div class="logo-center">
-                                <img alt="Center Logo" class="cert-logo" id="certLogoCenter" src="" />
+                            <div class="template-item" data-template="2" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+                                <span class="template-modern-text">Modern</span>
                             </div>
-                            <div class="logo-right">
-                                <img alt="Right Logo" class="cert-logo" id="certLogoRight" src="" />
+                            <div class="template-item" data-template="3" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+                                <span class="template-professional-text">Professional</span>
+                            </div>
+                            <div class="template-item" data-template="4" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+                                <span class="template-elegant-text">Elegant</span>
+                            </div>
+                            <div class="template-item" data-template="5" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+                                <span class="template-creative-text">Creative</span>
+                            </div>
+                            <div class="template-item" data-template="6" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)">
+                                <span class="template-luxury-text">Luxury</span>
                             </div>
                         </div>
-                        
-                        <div class="cert-main">
-                            <h1 class="cert-title" id="certTitle">Certificate of Achievement</h1>
-                            <h2 class="cert-subtitle" id="certSubtitle">This certificate is proudly presented to</h2>
-                            
-                            <div class="cert-body">
-                                <div class="recipient-name" id="certRecipient">John Doe</div>
-                                <div class="body-text" id="certBodyText">For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.</div>
-                                <div class="cert-date" id="certDate">October 15, 2023</div>
-                            </div>
+                    </div>
+                    
+                    <!-- Certificate Details -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-edit"></i>
+                            <h3 class="details-title">Certificate Details</h3>
                         </div>
-                        
-                        <div class="cert-signature">
-                            <div class="signature-box signature-left">
-                                <img alt="Signature 1" class="signature-img" id="signature1Img" src="" />
-                                <div class="signature-line"></div>
-                                <p class="signature-name" id="signature1Name">Jane Smith</p>
-                                <p class="signature-title" id="signature1Title">CEO, Company Inc.</p>
-                            </div>
-                            
-                            <div class="signature-box signature-right">
-                                <img alt="Signature 2" class="signature-img" id="signature2Img" src="" />
-                                <div class="signature-line"></div>
-                                <p class="signature-name" id="signature2Name">Robert Johnson</p>
-                                <p class="signature-title" id="signature2Title">Director of Education</p>
-                            </div>
+                        <div class="form-group">
+                            <label class="title-label"><i class="fas fa-heading"></i> Title</label>
+                            <input type="text" id="certTitleInput" value="Certificate of Achievement" placeholder="Certificate Title">
+                        </div>
+                        <div class="form-group">
+                            <label class="subtitle-label"><i class="fas fa-tag"></i> Subtitle</label>
+                            <input type="text" id="certSubtitleInput" value="This certificate is proudly presented to">
+                        </div>
+                        <div class="form-group">
+                            <label class="recipient-label"><i class="fas fa-user"></i> Recipient Name</label>
+                            <input type="text" id="certRecipientInput" value="John Doe" placeholder="Full Name">
+                        </div>
+                        <div class="form-group">
+                            <label class="body-label"><i class="fas fa-paragraph"></i> Description</label>
+                            <textarea id="certBodyInput" rows="4">For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="date-label"><i class="fas fa-calendar"></i> Date</label>
+                            <input type="text" id="certDateInput" value="October 15, 2024">
+                        </div>
+                    </div>
+                    
+                    <!-- Font Customization -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-font"></i>
+                            <h3 class="fonts-title">Fonts</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="title-font-label">Title Font</label>
+                            <select id="titleFontSelect">
+                                <option value="font-inter">Inter (Modern)</option>
+                                <option value="font-cinzel">Cinzel (Elegant)</option>
+                                <option value="font-playfair">Playfair Display</option>
+                                <option value="font-old-english">Old English</option>
+                                <option value="font-medieval">MedievalSharp</option>
+                                <option value="font-almendra">Almendra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="body-font-label">Body Font</label>
+                            <select id="bodyFontSelect">
+                                <option value="font-inter">Inter (Modern)</option>
+                                <option value="font-playfair">Playfair Display</option>
+                                <option value="font-old-standard">Old Standard</option>
+                                <option value="font-almendra">Almendra</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Colors -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-fill-drip"></i>
+                            <h3 class="colors-title">Colors</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="title-color-label">Title Color</label>
+                            <input type="color" id="titleColorInput" value="#4e54c8">
+                        </div>
+                        <div class="form-group">
+                            <label class="border-color-label">Border Color</label>
+                            <input type="color" id="borderColorInput" value="#4e54c8">
+                        </div>
+                        <div class="form-group">
+                            <label class="pattern-label">Background Pattern</label>
+                            <select id="bgPatternSelect">
+                                <option value="none">None</option>
+                                <option value="dots">Dots</option>
+                                <option value="lines">Lines</option>
+                                <option value="squares">Squares</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Logo & Signatures -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-image"></i>
+                            <h3 class="logo-sign-title">Logo & Signatures</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="upload-logo-label">Upload Logo</label>
+                            <input type="file" id="logoUpload" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label class="signature1-name-label">Signature 1 - Name</label>
+                            <input type="text" id="signature1NameInput" value="Jane Smith">
+                        </div>
+                        <div class="form-group">
+                            <label class="signature1-title-label">Signature 1 - Title</label>
+                            <input type="text" id="signature1TitleInput" value="CEO, Company Inc.">
+                        </div>
+                        <div class="form-group">
+                            <label class="signature2-name-label">Signature 2 - Name</label>
+                            <input type="text" id="signature2NameInput" value="Robert Johnson">
+                        </div>
+                        <div class="form-group">
+                            <label class="signature2-title-label">Signature 2 - Title</label>
+                            <input type="text" id="signature2TitleInput" value="Director of Education">
+                        </div>
+                    </div>
+                    
+                    <!-- Reactions Section -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-smile"></i>
+                            <h3 class="reactions-title">Your Reaction</h3>
+                        </div>
+                        <div class="reactions-container" id="reactionsContainer">
+                            <button class="reaction-btn" data-reaction="👍">👍 <span class="reaction-count" id="reaction-like">0</span></button>
+                            <button class="reaction-btn" data-reaction="❤️">❤️ <span class="reaction-count" id="reaction-love">0</span></button>
+                            <button class="reaction-btn" data-reaction="😮">😮 <span class="reaction-count" id="reaction-wow">0</span></button>
+                            <button class="reaction-btn" data-reaction="😢">😢 <span class="reaction-count" id="reaction-sad">0</span></button>
+                            <button class="reaction-btn" data-reaction="😠">😠 <span class="reaction-count" id="reaction-angry">0</span></button>
+                            <button class="reaction-btn" data-reaction="😂">😂 <span class="reaction-count" id="reaction-laugh">0</span></button>
+                            <button class="reaction-btn" data-reaction="🎉">🎉 <span class="reaction-count" id="reaction-celebrate">0</span></button>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Sharing -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-share-alt"></i>
+                            <h3 class="share-title">Share</h3>
+                        </div>
+                        <div class="share-buttons">
+                            <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                            <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                            <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                            <button class="share-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                            <button class="share-btn email" data-platform="email"><i class="fas fa-envelope"></i></button>
+                            <button class="share-btn copy" data-platform="copy"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+                    
+                    <!-- Export Buttons -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <i class="fas fa-download"></i>
+                            <h3 class="download-title">Download</h3>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="btn-export" id="exportPDFBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button class="btn-export" id="exportDocBtn"><i class="fas fa-file-word"></i> DOC</button>
+                            <button class="btn-export" id="exportTxtBtn"><i class="fas fa-file-alt"></i> TXT</button>
+                            <button class="btn-export" id="resetBtn"><i class="fas fa-undo-alt"></i> Reset</button>
                         </div>
                     </div>
                 </div>
                 
-                <div class="export-options">
-                    <button class="btn" id="previewBtn">
-                        <i class="fas fa-eye"></i> Preview
-                    </button>
-                    <button class="btn btn-export" id="pdfBtn">
-                        <i class="fas fa-file-pdf"></i> Export as PDF
-                    </button>
-                    <button class="btn btn-export" id="docBtn">
-                        <i class="fas fa-file-word"></i> Export as Word
-                    </button>
-                    <button class="btn btn-export" id="pngBtn">
-                        <i class="fas fa-file-image"></i> Export as PNG
-                    </button>
-                    <button class="btn btn-export" id="jpegBtn">
-                        <i class="fas fa-file-image"></i> Export as JPEG
-                    </button>
+                <!-- Preview Panel -->
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <h3><i class="fas fa-eye"></i> <span class="live-preview-text">Live Preview</span></h3>
+                        <button class="ai-assist-btn" id="aiAssistBtn">
+                            <i class="fas fa-magic"></i> <span class="ai-assist-text">AI Assistant</span>
+                        </button>
+                    </div>
+                    <div class="certificate-wrapper" id="certificateWrapper">
+                        <div id="certificate">
+                            <div class="cert-border"></div>
+                            <div class="cert-bg"></div>
+                            <div class="cert-content">
+                                <div class="cert-logo-container">
+                                    <img id="certLogo" class="cert-logo" alt="Logo">
+                                </div>
+                                <h1 id="certTitle" class="cert-title">Certificate of Achievement</h1>
+                                <h2 id="certSubtitle" class="cert-subtitle">This certificate is proudly presented to</h2>
+                                <div class="cert-body">
+                                    <p id="certRecipient" class="recipient-name">John Doe</p>
+                                    <p id="certBody">For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.</p>
+                                    <p id="certDate" class="cert-date">October 15, 2024</p>
+                                </div>
+                                <div class="cert-signatures">
+                                    <div class="signature-item">
+                                        <div class="signature-line"></div>
+                                        <p id="signature1NameDisplay">Jane Smith</p>
+                                        <p id="signature1TitleDisplay">CEO, Company Inc.</p>
+                                    </div>
+                                    <div class="signature-item">
+                                        <div class="signature-line"></div>
+                                        <p id="signature2NameDisplay">Robert Johnson</p>
+                                        <p id="signature2TitleDisplay">Director of Education</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <footer>
-            <p>© 2023 Advanced Certificate Generator | All Rights Reserved</p>
-        </footer>
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Success!</span>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p id="loadingText">AI is processing...</p>
+        </div>
+        
+        <!-- Scroll Buttons -->
+        <button id="scrollUpBtn" class="scroll-btn up hidden"><i class="fas fa-chevron-up"></i></button>
+        <button id="scrollDownBtn" class="scroll-btn down"><i class="fas fa-chevron-down"></i></button>
     </div>
-
+    
+    <link rel="stylesheet" href="certificate-generator.css">
     <script src="certificate-generator.js"></script>
-    <script src="certificate-generator-pdf.js"></script>
-    <script src="certificate-generator-word.js"></script>
 </body>
 </html>
