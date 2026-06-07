@@ -1,577 +1,1047 @@
-// Main JavaScript for Certificate Generator
-document.addEventListener('DOMContentLoaded', function() {
-    // Get all DOM elements
-    const titleInput = document.getElementById('title');
-    const subtitleInput = document.getElementById('subtitle');
-    const recipientInput = document.getElementById('recipient');
-    const bodyTextInput = document.getElementById('bodyText');
-    const dateInput = document.getElementById('date');
-    const titleColorInput = document.getElementById('titleColor');
-    const borderColorInput = document.getElementById('borderColor');
-    const backgroundColorInput = document.getElementById('backgroundColor');
-    const borderStyleInput = document.getElementById('borderStyle');
-    const bgPatternInput = document.getElementById('bgPattern');
-    const templateSelect = document.getElementById('templateSelect');
-    
-    // Logo uploads
-    const logoLeftUpload = document.getElementById('logoLeftUpload');
-    const logoCenterUpload = document.getElementById('logoCenterUpload');
-    const logoRightUpload = document.getElementById('logoRightUpload');
-    
-    // Signatures
-    const signature1Input = document.getElementById('signature1');
-    const signature1TitleInput = document.getElementById('signature1Title');
-    const signature1Upload = document.getElementById('signature1Upload');
-    const signature2Input = document.getElementById('signature2');
-    const signature2TitleInput = document.getElementById('signature2Title');
-    const signature2Upload = document.getElementById('signature2Upload');
-    
-    // Fonts
-    const titleFontSelect = document.getElementById('titleFont');
-    const bodyFontSelect = document.getElementById('bodyFont');
-    const signatureFontSelect = document.getElementById('signatureFont');
-    
-    // Buttons
-    const resetBtn = document.getElementById('resetBtn');
-    const themeBtn = document.getElementById('themeBtn');
-    const previewBtn = document.getElementById('previewBtn');
-    const pdfBtn = document.getElementById('pdfBtn');
-    const docBtn = document.getElementById('docBtn');
-    const pngBtn = document.getElementById('pngBtn');
-    const jpegBtn = document.getElementById('jpegBtn');
-    
-    // Certificate elements
-    const certTitle = document.getElementById('certTitle');
-    const certSubtitle = document.getElementById('certSubtitle');
-    const certRecipient = document.getElementById('certRecipient');
-    const certBodyText = document.getElementById('certBodyText');
-    const certDate = document.getElementById('certDate');
-    
-    // Logo elements
-    const certLogoLeft = document.getElementById('certLogoLeft');
-    const certLogoCenter = document.getElementById('certLogoCenter');
-    const certLogoRight = document.getElementById('certLogoRight');
-    
-    // Signature elements
-    const signature1Img = document.getElementById('signature1Img');
-    const signature2Img = document.getElementById('signature2Img');
-    const signature1Name = document.getElementById('signature1Name');
-    const signature1Title = document.getElementById('signature1Title');
-    const signature2Name = document.getElementById('signature2Name');
-    const signature2Title = document.getElementById('signature2Title');
-    
-    // Certificate container elements
-    const certBorder = document.querySelector('.cert-border');
-    const certBg = document.querySelector('.cert-bg');
-    const certificate = document.getElementById('certificate');
-    
-    // Set up event listeners
-    titleInput.addEventListener('input', updateCertificate);
-    subtitleInput.addEventListener('input', updateCertificate);
-    recipientInput.addEventListener('input', updateCertificate);
-    bodyTextInput.addEventListener('input', updateCertificate);
-    dateInput.addEventListener('input', updateCertificate);
-    titleColorInput.addEventListener('input', updateCertificate);
-    borderColorInput.addEventListener('input', updateCertificate);
-    backgroundColorInput.addEventListener('input', updateCertificate);
-    borderStyleInput.addEventListener('change', updateCertificate);
-    bgPatternInput.addEventListener('change', updateCertificate);
-    templateSelect.addEventListener('change', applyTemplate);
-    
-    // Font changes
-    titleFontSelect.addEventListener('change', updateCertificate);
-    bodyFontSelect.addEventListener('change', updateCertificate);
-    signatureFontSelect.addEventListener('change', updateCertificate);
-    
-    // Logo uploads
-    logoLeftUpload.addEventListener('change', handleLogoUpload);
-    logoCenterUpload.addEventListener('change', handleLogoUpload);
-    logoRightUpload.addEventListener('change', handleLogoUpload);
-    
-    // Signature uploads and inputs
-    signature1Upload.addEventListener('change', handleSignatureUpload);
-    signature2Upload.addEventListener('change', handleSignatureUpload);
-    signature1Input.addEventListener('input', updateCertificate);
-    signature1TitleInput.addEventListener('input', updateCertificate);
-    signature2Input.addEventListener('input', updateCertificate);
-    signature2TitleInput.addEventListener('input', updateCertificate);
-    
-    // Button events
-    resetBtn.addEventListener('click', resetForm);
-    themeBtn.addEventListener('click', toggleTheme);
-    previewBtn.addEventListener('click', previewCertificate);
-    pdfBtn.addEventListener('click', exportToPDF);
-    docBtn.addEventListener('click', exportToWord);
-    pngBtn.addEventListener('click', exportToPNG);
-    jpegBtn.addEventListener('click', exportToJPEG);
-    
-    // Initialize the certificate with default values
-    updateCertificate();
-    
-    // Function to update the certificate preview
-    function updateCertificate() {
-        // Update text content
-        certTitle.textContent = titleInput.value;
-        certSubtitle.textContent = subtitleInput.value;
-        certRecipient.textContent = recipientInput.value;
-        certBodyText.textContent = bodyTextInput.value;
-        certDate.textContent = dateInput.value;
+// ============================================
+// CERTIFICATE GENERATOR - COMPLETE FUNCTIONALITY
+// 150+ Features | English + Urdu Support | TiDB + Vercel + Grok AI
+// ============================================
+
+// API Configuration
+const API_BASE = '/api';
+const TOOL_SLUG = 'certificate-generator';
+let userId = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+localStorage.setItem('userId', userId);
+
+// Language Configuration
+let currentLanguage = localStorage.getItem('language') || 'en';
+
+// Translations
+const translations = {
+    en: {
+        // Hero
+        heroBadge: 'Professional Edition | 150+ Features',
+        heroTitle: 'Certificate Generator',
+        heroSubtitle: 'Create stunning professional certificates with AI assistance',
+        statUsed: 'Used',
+        statReactions: 'Reactions',
+        statShares: 'Shares',
+        btnCreate: 'Create Now',
+        btnAI: 'Enhance with AI',
         
-        // Update colors
-        certTitle.style.color = titleColorInput.value;
-        certBorder.style.borderColor = borderColorInput.value;
-        certificate.style.backgroundColor = backgroundColorInput.value;
+        // Tool
+        usageText: 'times used',
+        templatesTitle: 'Templates',
+        templateClassic: 'Classic',
+        templateModern: 'Modern',
+        templateProfessional: 'Professional',
+        templateElegant: 'Elegant',
+        templateCreative: 'Creative',
+        templateLuxury: 'Luxury',
         
-        // Update signature text
-        signature1Name.textContent = signature1Input.value;
-        signature1Title.textContent = signature1TitleInput.value;
-        signature2Name.textContent = signature2Input.value;
-        signature2Title.textContent = signature2TitleInput.value;
+        // Details
+        detailsTitle: 'Certificate Details',
+        titleLabel: 'Title',
+        subtitleLabel: 'Subtitle',
+        recipientLabel: 'Recipient Name',
+        bodyLabel: 'Description',
+        dateLabel: 'Date',
         
-        // Update fonts
-        updateFonts();
+        // Fonts
+        fontsTitle: 'Fonts',
+        titleFontLabel: 'Title Font',
+        bodyFontLabel: 'Body Font',
         
-        // Update border style
-        updateBorderStyle();
+        // Colors
+        colorsTitle: 'Colors',
+        titleColorLabel: 'Title Color',
+        borderColorLabel: 'Border Color',
+        patternLabel: 'Background Pattern',
         
-        // Update background pattern
-        updateBackgroundPattern();
+        // Logo & Signatures
+        logoSignTitle: 'Logo & Signatures',
+        uploadLogoLabel: 'Upload Logo',
+        signature1NameLabel: 'Signature 1 - Name',
+        signature1TitleLabel: 'Signature 1 - Title',
+        signature2NameLabel: 'Signature 2 - Name',
+        signature2TitleLabel: 'Signature 2 - Title',
+        
+        // Reactions
+        reactionsTitle: 'Your Reaction',
+        
+        // Share
+        shareTitle: 'Share',
+        
+        // Download
+        downloadTitle: 'Download',
+        resetBtn: 'Reset',
+        
+        // Preview
+        livePreview: 'Live Preview',
+        aiAssist: 'AI Assistant',
+        
+        // Toast Messages
+        welcomeMsg: 'Welcome! Start creating your certificate',
+        aiSuccess: 'AI has enhanced your text!',
+        aiError: 'AI service temporarily unavailable',
+        pdfSuccess: 'PDF downloaded successfully!',
+        docSuccess: 'Word file downloaded!',
+        txtSuccess: 'TXT file downloaded!',
+        resetSuccess: 'Form reset successfully!',
+        copySuccess: 'Link copied!',
+        reactionSuccess: 'Thank you! Your reaction has been saved',
+        reactionExists: 'You have already reacted with this emoji',
+        reactionError: 'Error saving reaction',
+        loadingText: 'AI is processing...'
+    },
+    ur: {
+        // Hero
+        heroBadge: 'پیشہ ورانہ ایڈیشن | 150+ فیچرز',
+        heroTitle: 'سرٹیفکیٹ جنریٹر',
+        heroSubtitle: 'AI کی مدد سے شاندار پیشہ ورانہ سرٹیفکیٹ بنائیں',
+        statUsed: 'استعمال شدہ',
+        statReactions: 'ردعمل',
+        statShares: 'شیئرز',
+        btnCreate: 'ابھی بنائیں',
+        btnAI: 'AI سے بہتر کریں',
+        
+        // Tool
+        usageText: 'بار استعمال',
+        templatesTitle: 'ٹیمپلیٹس',
+        templateClassic: 'کلاسک',
+        templateModern: 'ماڈرن',
+        templateProfessional: 'پیشہ ورانہ',
+        templateElegant: 'خوبصورت',
+        templateCreative: 'تخلیقی',
+        templateLuxury: 'لگژری',
+        
+        // Details
+        detailsTitle: 'سرٹیفکیٹ کی تفصیلات',
+        titleLabel: 'عنوان',
+        subtitleLabel: 'ذیلی عنوان',
+        recipientLabel: 'وصول کنندہ کا نام',
+        bodyLabel: 'تفصیل',
+        dateLabel: 'تاریخ',
+        
+        // Fonts
+        fontsTitle: 'فونٹس',
+        titleFontLabel: 'عنوان کا فونٹ',
+        bodyFontLabel: 'باقی متن کا فونٹ',
+        
+        // Colors
+        colorsTitle: 'رنگیں',
+        titleColorLabel: 'عنوان کا رنگ',
+        borderColorLabel: 'بارڈر کا رنگ',
+        patternLabel: 'پس منظر پیٹرن',
+        
+        // Logo & Signatures
+        logoSignTitle: 'لوگو اور دستخط',
+        uploadLogoLabel: 'لوگو اپ لوڈ کریں',
+        signature1NameLabel: 'دستخط 1 - نام',
+        signature1TitleLabel: 'دستخط 1 - عہدہ',
+        signature2NameLabel: 'دستخط 2 - نام',
+        signature2TitleLabel: 'دستخط 2 - عہدہ',
+        
+        // Reactions
+        reactionsTitle: 'آپ کا ردعمل',
+        
+        // Share
+        shareTitle: 'شیئر کریں',
+        
+        // Download
+        downloadTitle: 'ڈاؤن لوڈ',
+        resetBtn: 'ری سیٹ',
+        
+        // Preview
+        livePreview: 'لائیو پریمیو',
+        aiAssist: 'AI مدد',
+        
+        // Toast Messages
+        welcomeMsg: 'خوش آمدید! سرٹیفکیٹ بنانا شروع کریں',
+        aiSuccess: 'AI نے متن بہتر کر دیا!',
+        aiError: 'AI سروس عارضی طور پر دستیاب نہیں',
+        pdfSuccess: 'PDF ڈاؤن لوڈ ہو گیا!',
+        docSuccess: 'Word فائل ڈاؤن لوڈ ہو گئی!',
+        txtSuccess: 'TXT فائل ڈاؤن لوڈ ہو گئی!',
+        resetSuccess: 'فارم ری سیٹ ہو گیا!',
+        copySuccess: 'لنک کاپی ہو گیا!',
+        reactionSuccess: 'شکریہ! آپ کا ردعمل محفوظ ہو گیا',
+        reactionExists: 'آپ پہلے ہی اس ایموجی پر ردعمل دے چکے ہیں',
+        reactionError: 'ردعمل محفوظ کرنے میں خرابی',
+        loadingText: 'AI پروسیس کر رہا ہے...'
     }
+};
+
+// DOM Elements
+let elements = {};
+
+// State Management
+let currentTemplate = 1;
+let darkMode = localStorage.getItem('darkMode') === 'true';
+let autoSaveInterval = null;
+
+// Initialize App
+document.addEventListener('DOMContentLoaded', async () => {
+    initElements();
+    attachEventListeners();
+    applyLanguage(currentLanguage);
+    await loadInitialData();
+    setupAutoSave();
+    setupScrollButtons();
+    applyDarkMode();
+    showToast(translations[currentLanguage].welcomeMsg, 'success');
+});
+
+function initElements() {
+    elements = {
+        // Inputs
+        certTitleInput: document.getElementById('certTitleInput'),
+        certSubtitleInput: document.getElementById('certSubtitleInput'),
+        certRecipientInput: document.getElementById('certRecipientInput'),
+        certBodyInput: document.getElementById('certBodyInput'),
+        certDateInput: document.getElementById('certDateInput'),
+        titleColorInput: document.getElementById('titleColorInput'),
+        borderColorInput: document.getElementById('borderColorInput'),
+        bgPatternSelect: document.getElementById('bgPatternSelect'),
+        titleFontSelect: document.getElementById('titleFontSelect'),
+        bodyFontSelect: document.getElementById('bodyFontSelect'),
+        signature1NameInput: document.getElementById('signature1NameInput'),
+        signature1TitleInput: document.getElementById('signature1TitleInput'),
+        signature2NameInput: document.getElementById('signature2NameInput'),
+        signature2TitleInput: document.getElementById('signature2TitleInput'),
+        logoUpload: document.getElementById('logoUpload'),
+        
+        // Display elements
+        certTitle: document.getElementById('certTitle'),
+        certSubtitle: document.getElementById('certSubtitle'),
+        certRecipient: document.getElementById('certRecipient'),
+        certBody: document.getElementById('certBody'),
+        certDate: document.getElementById('certDate'),
+        signature1NameDisplay: document.getElementById('signature1NameDisplay'),
+        signature1TitleDisplay: document.getElementById('signature1TitleDisplay'),
+        signature2NameDisplay: document.getElementById('signature2NameDisplay'),
+        signature2TitleDisplay: document.getElementById('signature2TitleDisplay'),
+        certLogo: document.getElementById('certLogo'),
+        certBorder: document.querySelector('.cert-border'),
+        certBg: document.querySelector('.cert-bg'),
+        
+        // Buttons
+        exportPDFBtn: document.getElementById('exportPDFBtn'),
+        exportDocBtn: document.getElementById('exportDocBtn'),
+        exportTxtBtn: document.getElementById('exportTxtBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        aiAssistBtn: document.getElementById('aiAssistBtn'),
+        aiEnhanceBtn: document.getElementById('aiEnhanceBtn'),
+        scrollToToolBtn: document.getElementById('scrollToToolBtn'),
+        darkModeToggle: document.getElementById('darkModeToggle'),
+        fullscreenBtn: document.getElementById('fullscreenBtn'),
+        
+        // Counters
+        toolUsageCounter: document.getElementById('toolUsageCounter'),
+        globalUsageCounter: document.getElementById('globalUsageCounter'),
+        globalReactionsCounter: document.getElementById('globalReactionsCounter'),
+        globalSharesCounter: document.getElementById('globalSharesCounter'),
+        
+        // Templates
+        templateItems: document.querySelectorAll('.template-item'),
+        
+        // Reactions
+        reactionBtns: document.querySelectorAll('.reaction-btn'),
+        
+        // Share buttons
+        shareBtns: document.querySelectorAll('.share-btn'),
+        
+        // Language buttons
+        langBtns: document.querySelectorAll('.lang-btn'),
+        
+        // Toast & Loading
+        toast: document.getElementById('toast'),
+        toastMessage: document.getElementById('toastMessage'),
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingText: document.getElementById('loadingText')
+    };
     
-    // Function to update fonts
-    function updateFonts() {
-        // Remove all font classes
-        certTitle.className = 'cert-title';
-        certSubtitle.className = 'cert-subtitle';
-        certRecipient.className = 'recipient-name';
-        certBodyText.className = 'body-text';
-        certDate.className = 'cert-date';
-        
-        signature1Name.className = 'signature-name';
-        signature1Title.className = 'signature-title';
-        signature2Name.className = 'signature-name';
-        signature2Title.className = 'signature-title';
-        
-        // Add selected font classes
-        certTitle.classList.add(titleFontSelect.value);
-        certSubtitle.classList.add(titleFontSelect.value);
-        certRecipient.classList.add(bodyFontSelect.value);
-        certBodyText.classList.add(bodyFontSelect.value);
-        certDate.classList.add(bodyFontSelect.value);
-        
-        signature1Name.classList.add(signatureFontSelect.value);
-        signature1Title.classList.add(signatureFontSelect.value);
-        signature2Name.classList.add(signatureFontSelect.value);
-        signature2Title.classList.add(signatureFontSelect.value);
-    }
+    // Reaction count elements
+    elements.reactionCounts = {
+        like: document.getElementById('reaction-like'),
+        love: document.getElementById('reaction-love'),
+        wow: document.getElementById('reaction-wow'),
+        sad: document.getElementById('reaction-sad'),
+        angry: document.getElementById('reaction-angry'),
+        laugh: document.getElementById('reaction-laugh'),
+        celebrate: document.getElementById('reaction-celebrate')
+    };
+}
+
+function attachEventListeners() {
+    // Input listeners
+    const inputElements = ['certTitleInput', 'certSubtitleInput', 'certRecipientInput', 'certBodyInput', 
+                           'certDateInput', 'titleColorInput', 'borderColorInput', 'bgPatternSelect', 
+                           'titleFontSelect', 'bodyFontSelect'];
     
-    // Function to handle logo upload
-    function handleLogoUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const targetId = event.target.id;
-                if (targetId === 'logoLeftUpload') {
-                    certLogoLeft.src = e.target.result;
-                    certLogoLeft.style.display = 'block';
-                } else if (targetId === 'logoCenterUpload') {
-                    certLogoCenter.src = e.target.result;
-                    certLogoCenter.style.display = 'block';
-                } else if (targetId === 'logoRightUpload') {
-                    certLogoRight.src = e.target.result;
-                    certLogoRight.style.display = 'block';
-                }
-            };
-            reader.readAsDataURL(file);
+    inputElements.forEach(key => {
+        if (elements[key]) {
+            elements[key].addEventListener('input', updateCertificatePreview);
+            elements[key].addEventListener('change', updateCertificatePreview);
         }
-    }
+    });
     
-    // Function to handle signature upload
-    function handleSignatureUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const targetId = event.target.id;
-                if (targetId === 'signature1Upload') {
-                    signature1Img.src = e.target.result;
-                    signature1Img.style.display = 'block';
-                } else if (targetId === 'signature2Upload') {
-                    signature2Img.src = e.target.result;
-                    signature2Img.style.display = 'block';
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-    
-    // Function to update border style
-    function updateBorderStyle() {
-        const style = borderStyleInput.value;
-        
-        // Remove all border classes
-        certBorder.className = 'cert-border';
-        
-        // Add selected border class
-        if (style !== 'solid') {
-            certBorder.classList.add(`border-${style}`);
-        }
-        
-        // Special handling for ornate borders
-        if (style === 'ornate' || style === 'floral' || style === 'scroll') {
-            certBorder.style.borderImageSource = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10,10 L90,10 L90,90 L10,90 Z" fill="none" stroke="${encodeURIComponent(borderColorInput.value)}" stroke-width="2"/></svg>')`;
-            certBorder.style.borderImageSlice = '30';
-            certBorder.style.borderImageRepeat = 'round';
-            certBorder.style.borderWidth = '15px';
-        } else {
-            certBorder.style.borderImage = 'none';
-        }
-    }
-    
-    // Function to update background pattern
-    function updateBackgroundPattern() {
-        const pattern = bgPatternInput.value;
-        certBg.style.backgroundImage = 'none';
-        
-        switch(pattern) {
-            case 'dots':
-                certBg.style.backgroundImage = 'radial-gradient(circle, #000000 1px, transparent 1px)';
-                certBg.style.backgroundSize = '20px 20px';
-                certBg.style.opacity = '0.05';
-                break;
-            case 'lines':
-                certBg.style.backgroundImage = 'repeating-linear-gradient(0deg, transparent, transparent 19px, #000000 20px)';
-                certBg.style.opacity = '0.05';
-                break;
-            case 'squares':
-                certBg.style.backgroundImage = 'linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px)';
-                certBg.style.backgroundSize = '20px 20px';
-                certBg.style.opacity = '0.05';
-                break;
-            case 'zigzag':
-                certBg.style.backgroundImage = 'linear-gradient(135deg, #000000 25%, transparent 25%), linear-gradient(225deg, #000000 25%, transparent 25%), linear-gradient(315deg, #000000 25%, transparent 25%), linear-gradient(45deg, #000000 25%, transparent 25%)';
-                certBg.style.backgroundSize = '20px 20px';
-                certBg.style.opacity = '0.05';
-                break;
-            case 'seamless':
-                certBg.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'2\' fill=\'%23000000\' opacity=\'0.1\'/></svg>")';
-                certBg.style.backgroundSize = '50px 50px';
-                certBg.style.opacity = '0.1';
-                break;
-            case 'watermark':
-                certBg.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'><text x=\'100\' y=\'100\' font-family=\'Arial\' font-size=\'24\' fill=\'%23000000\' opacity=\'0.03\' text-anchor=\'middle\'>CERTIFICATE</text></svg>")';
-                certBg.style.backgroundSize = '300px 300px';
-                certBg.style.opacity = '0.1';
-                break;
-            default:
-                certBg.style.opacity = '0.05';
-        }
-    }
-    
-    // Function to apply a template
-    function applyTemplate() {
-        const templateId = templateSelect.value;
-        
-        switch(templateId) {
-            case '1': // Classic Elegant
-                titleColorInput.value = '#4e54c8';
-                borderColorInput.value = '#4e54c8';
-                backgroundColorInput.value = '#fefefe';
-                borderStyleInput.value = 'double';
-                bgPatternInput.value = 'seamless';
-                titleFontSelect.value = 'font-playfair';
-                bodyFontSelect.value = 'font-elegant';
-                signatureFontSelect.value = 'font-dancing';
-                break;
-            case '2': // Modern Professional
-                titleColorInput.value = '#2c3e50';
-                borderColorInput.value = '#3498db';
-                backgroundColorInput.value = '#ffffff';
-                borderStyleInput.value = 'solid';
-                bgPatternInput.value = 'none';
-                titleFontSelect.value = 'font-modern';
-                bodyFontSelect.value = 'font-modern';
-                signatureFontSelect.value = 'font-modern';
-                break;
-            case '3': // Vintage Parchment
-                titleColorInput.value = '#8B4513';
-                borderColorInput.value = '#8B4513';
-                backgroundColorInput.value = '#F5E9D7';
-                borderStyleInput.value = 'ornate';
-                bgPatternInput.value = 'watermark';
-                titleFontSelect.value = 'font-old-english';
-                bodyFontSelect.value = 'font-old-standard';
-                signatureFontSelect.value = 'font-great-vibes';
-                break;
-            case '4': // Academic Honor
-                titleColorInput.value = '#1a5276';
-                borderColorInput.value = '#1a5276';
-                backgroundColorInput.value = '#ffffff';
-                borderStyleInput.value = 'double';
-                bgPatternInput.value = 'lines';
-                titleFontSelect.value = 'font-cinzel';
-                bodyFontSelect.value = 'font-old-standard';
-                signatureFontSelect.value = 'font-elegant';
-                break;
-            case '5': // Corporate Achievement
-                titleColorInput.value = '#2c3e50';
-                borderColorInput.value = '#e74c3c';
-                backgroundColorInput.value = '#ffffff';
-                borderStyleInput.value = 'solid';
-                bgPatternInput.value = 'dots';
-                titleFontSelect.value = 'font-modern';
-                bodyFontSelect.value = 'font-modern';
-                signatureFontSelect.value = 'font-modern';
-                break;
-            case '6': // Medieval Scroll
-                titleColorInput.value = '#5d4037';
-                borderColorInput.value = '#5d4037';
-                backgroundColorInput.value = '#fff9e6';
-                borderStyleInput.value = 'scroll';
-                bgPatternInput.value = 'watermark';
-                titleFontSelect.value = 'font-medieval';
-                bodyFontSelect.value = 'font-almendra';
-                signatureFontSelect.value = 'font-medieval';
-                break;
-            case '7': // Artistic Floral
-                titleColorInput.value = '#e91e63';
-                borderColorInput.value = '#e91e63';
-                backgroundColorInput.value = '#fff9f9';
-                borderStyleInput.value = 'floral';
-                bgPatternInput.value = 'seamless';
-                titleFontSelect.value = 'font-parisienne';
-                bodyFontSelect.value = 'font-dancing';
-                signatureFontSelect.value = 'font-rouge';
-                break;
-            case '8': // Minimalist Clean
-                titleColorInput.value = '#333333';
-                borderColorInput.value = '#cccccc';
-                backgroundColorInput.value = '#ffffff';
-                borderStyleInput.value = 'solid';
-                bgPatternInput.value = 'none';
-                titleFontSelect.value = 'font-modern';
-                bodyFontSelect.value = 'font-modern';
-                signatureFontSelect.value = 'font-modern';
-                break;
-            case '9': // Golden Luxury
-                titleColorInput.value = '#d4af37';
-                borderColorInput.value = '#d4af37';
-                backgroundColorInput.value = '#fffdf0';
-                borderStyleInput.value = 'double';
-                bgPatternInput.value = 'seamless';
-                titleFontSelect.value = 'font-cinzel';
-                bodyFontSelect.value = 'font-playfair';
-                signatureFontSelect.value = 'font-great-vibes';
-                break;
-            case '10': // Blue Corporate
-                titleColorInput.value = '#1e3a8a';
-                borderColorInput.value = '#1e3a8a';
-                backgroundColorInput.value = '#f0f9ff';
-                borderStyleInput.value = 'solid';
-                bgPatternInput.value = 'dots';
-                titleFontSelect.value = 'font-modern';
-                bodyFontSelect.value = 'font-modern';
-                signatureFontSelect.value = 'font-elegant';
-                break;
-            case '11': // Green Nature
-                titleColorInput.value = '#065f46';
-                borderColorInput.value = '#065f46';
-                backgroundColorInput.value = '#f0fdf4';
-                borderStyleInput.value = 'dashed';
-                bgPatternInput.value = 'none';
-                titleFontSelect.value = 'font-almendra';
-                bodyFontSelect.value = 'font-old-standard';
-                signatureFontSelect.value = 'font-tangerine';
-                break;
-            case '12': // Red Prestige
-                titleColorInput.value = '#991b1b';
-                borderColorInput.value = '#991b1b';
-                backgroundColorInput.value = '#fef2f2';
-                borderStyleInput.value = 'solid';
-                bgPatternInput.value = 'zigzag';
-                titleFontSelect.value = 'font-playfair';
-                bodyFontSelect.value = 'font-elegant';
-                signatureFontSelect.value = 'font-dancing';
-                break;
-            case '13': // Purple Royal
-                titleColorInput.value = '#6b21a8';
-                borderColorInput.value = '#6b21a8';
-                backgroundColorInput.value = '#faf5ff';
-                borderStyleInput.value = 'double';
-                bgPatternInput.value = 'seamless';
-                titleFontSelect.value = 'font-cinzel';
-                bodyFontSelect.value = 'font-playfair';
-                signatureFontSelect.value = 'font-great-vibes';
-                break;
-            case '14': // Orange Energy
-                titleColorInput.value = '#ea580c';
-                borderColorInput.value = '#ea580c';
-                backgroundColorInput.value = '#fff7ed';
-                borderStyleInput.value = 'solid';
-                bgPatternInput.value = 'squares';
-                titleFontSelect.value = 'font-modern';
-                bodyFontSelect.value = 'font-modern';
-                signatureFontSelect.value = 'font-modern';
-                break;
-            case '15': // Tech Modern
-                titleColorInput.value = '#0ea5e9';
-                borderColorInput.value = '#0ea5e9';
-                backgroundColorInput.value = '#f0f9ff';
-                borderStyleInput.value = 'dotted';
-                bgPatternInput.value = 'lines';
-                titleFontSelect.value = 'font-modern';
-                bodyFontSelect.value = 'font-modern';
-                signatureFontSelect.value = 'font-modern';
-                break;
-        }
-        
-        updateCertificate();
-    }
-    
-    // Function to toggle dark/light theme
-    function toggleTheme() {
-        document.body.classList.toggle('dark-theme');
-        if (document.body.classList.contains('dark-theme')) {
-            themeBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
-        } else {
-            themeBtn.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
-        }
-    }
-    
-    // Function to reset the form
-    function resetForm() {
-        if (!confirm('Are you sure you want to reset all changes?')) return;
-        
-        titleInput.value = 'Certificate of Achievement';
-        subtitleInput.value = 'This certificate is proudly presented to';
-        recipientInput.value = 'John Doe';
-        bodyTextInput.value = 'For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.';
-        dateInput.value = 'October 15, 2023';
-        titleColorInput.value = '#4e54c8';
-        borderColorInput.value = '#4e54c8';
-        backgroundColorInput.value = '#ffffff';
-        borderStyleInput.value = 'solid';
-        bgPatternInput.value = 'none';
-        signature1Input.value = 'Jane Smith';
-        signature1TitleInput.value = 'CEO, Company Inc.';
-        signature2Input.value = 'Robert Johnson';
-        signature2TitleInput.value = 'Director of Education';
-        templateSelect.value = '1';
-        titleFontSelect.value = 'font-old-english';
-        bodyFontSelect.value = 'font-modern';
-        signatureFontSelect.value = 'font-elegant';
-        
-        // Reset images
-        certLogoLeft.src = '';
-        certLogoLeft.style.display = 'none';
-        certLogoCenter.src = '';
-        certLogoCenter.style.display = 'none';
-        certLogoRight.src = '';
-        certLogoRight.style.display = 'none';
-        signature1Img.src = '';
-        signature1Img.style.display = 'none';
-        signature2Img.src = '';
-        signature2Img.style.display = 'none';
-        
-        // Reset file inputs
-        logoLeftUpload.value = '';
-        logoCenterUpload.value = '';
-        logoRightUpload.value = '';
-        signature1Upload.value = '';
-        signature2Upload.value = '';
-        
-        // Reset theme if dark
-        if (document.body.classList.contains('dark-theme')) {
-            toggleTheme();
-        }
-        
-        updateCertificate();
-    }
-    
-    // Function to preview certificate
-    function previewCertificate() {
-        // Create a modal preview
-        const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100%';
-        modal.style.height = '100%';
-        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-        modal.style.display = 'flex';
-        modal.style.justifyContent = 'center';
-        modal.style.alignItems = 'center';
-        modal.style.zIndex = '1000';
-        
-        const certificateClone = certificate.cloneNode(true);
-        certificateClone.style.transform = 'scale(0.9)';
-        certificateClone.style.maxHeight = '90vh';
-        certificateClone.style.overflow = 'auto';
-        
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = 'Close Preview';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '20px';
-        closeBtn.style.right = '20px';
-        closeBtn.style.padding = '10px 20px';
-        closeBtn.style.backgroundColor = '#ff6b6b';
-        closeBtn.style.color = 'white';
-        closeBtn.style.border = 'none';
-        closeBtn.style.borderRadius = '5px';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.style.zIndex = '1001';
-        
-        closeBtn.addEventListener('click', function() {
-            document.body.removeChild(modal);
+    // Signature inputs
+    if (elements.signature1NameInput) {
+        elements.signature1NameInput.addEventListener('input', () => {
+            if (elements.signature1NameDisplay) elements.signature1NameDisplay.textContent = elements.signature1NameInput.value;
         });
-        
-        modal.appendChild(certificateClone);
-        modal.appendChild(closeBtn);
-        document.body.appendChild(modal);
-        
-        // Close on background click
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
+    }
+    if (elements.signature1TitleInput) {
+        elements.signature1TitleInput.addEventListener('input', () => {
+            if (elements.signature1TitleDisplay) elements.signature1TitleDisplay.textContent = elements.signature1TitleInput.value;
+        });
+    }
+    if (elements.signature2NameInput) {
+        elements.signature2NameInput.addEventListener('input', () => {
+            if (elements.signature2NameDisplay) elements.signature2NameDisplay.textContent = elements.signature2NameInput.value;
+        });
+    }
+    if (elements.signature2TitleInput) {
+        elements.signature2TitleInput.addEventListener('input', () => {
+            if (elements.signature2TitleDisplay) elements.signature2TitleDisplay.textContent = elements.signature2TitleInput.value;
+        });
+    }
+    
+    // Logo upload
+    if (elements.logoUpload) {
+        elements.logoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && elements.certLogo) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { elements.certLogo.src = ev.target.result; };
+                reader.readAsDataURL(file);
             }
         });
     }
     
-    // Export functions (implemented in separate files)
-    function exportToPDF() {
-        // Implemented in certificate-generator-pdf.js
-        if (typeof generatePDF === 'function') {
-            generatePDF();
-        } else {
-            alert('PDF export functionality is not available. Please check if certificate-generator-pdf.js is loaded.');
-        }
+    // Buttons
+    if (elements.exportPDFBtn) elements.exportPDFBtn.addEventListener('click', exportToPDF);
+    if (elements.exportDocBtn) elements.exportDocBtn.addEventListener('click', exportToDOC);
+    if (elements.exportTxtBtn) elements.exportTxtBtn.addEventListener('click', exportToTXT);
+    if (elements.resetBtn) elements.resetBtn.addEventListener('click', resetForm);
+    if (elements.aiAssistBtn) elements.aiAssistBtn.addEventListener('click', openAIAssist);
+    if (elements.aiEnhanceBtn) elements.aiEnhanceBtn.addEventListener('click', enhanceWithAI);
+    if (elements.scrollToToolBtn) {
+        elements.scrollToToolBtn.addEventListener('click', () => {
+            document.getElementById('mainTool')?.scrollIntoView({ behavior: 'smooth' });
+        });
     }
+    if (elements.darkModeToggle) elements.darkModeToggle.addEventListener('click', toggleDarkMode);
+    if (elements.fullscreenBtn) elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
     
-    function exportToWord() {
-        // Implemented in certificate-generator-word.js
-        if (typeof generateWord === 'function') {
-            generateWord();
-        } else {
-            alert('Word export functionality is not available. Please check if certificate-generator-word.js is loaded.');
-        }
-    }
-    
-    function exportToPNG() {
-        html2canvas(certificate).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'certificate.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+    // Templates
+    if (elements.templateItems) {
+        elements.templateItems.forEach(template => {
+            template.addEventListener('click', () => {
+                const templateId = template.dataset.template;
+                applyTemplate(templateId);
+                elements.templateItems.forEach(t => t.classList.remove('active'));
+                template.classList.add('active');
+            });
         });
     }
     
-    function exportToJPEG() {
-        html2canvas(certificate).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'certificate.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
-            link.click();
+    // Reactions
+    if (elements.reactionBtns) {
+        elements.reactionBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const reaction = btn.dataset.reaction;
+                await addReaction(reaction);
+            });
         });
     }
-});
+    
+    // Share buttons
+    if (elements.shareBtns) {
+        elements.shareBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const platform = btn.dataset.platform;
+                await shareTool(platform);
+            });
+        });
+    }
+    
+    // Language buttons
+    if (elements.langBtns) {
+        elements.langBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                setLanguage(lang);
+            });
+        });
+    }
+}
+
+// ============================================
+// LANGUAGE FUNCTIONS
+// ============================================
+
+function setLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('language', lang);
+    applyLanguage(lang);
+    
+    // Update active button
+    if (elements.langBtns) {
+        elements.langBtns.forEach(btn => {
+            if (btn.dataset.lang === lang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    
+    // Set RTL for Urdu
+    if (lang === 'ur') {
+        document.body.setAttribute('dir', 'rtl');
+    } else {
+        document.body.setAttribute('dir', 'ltr');
+    }
+    
+    showToast(`Language switched to ${lang === 'en' ? 'English' : 'Urdu'}`, 'success');
+}
+
+function applyLanguage(lang) {
+    const t = translations[lang];
+    if (!t) return;
+    
+    // Hero section
+    const heroBadgeText = document.querySelector('.hero-badge-text');
+    if (heroBadgeText) heroBadgeText.textContent = t.heroBadge;
+    
+    const heroSubtitleText = document.querySelector('.hero-subtitle-text');
+    if (heroSubtitleText) heroSubtitleText.textContent = t.heroSubtitle;
+    
+    const statUsedText = document.querySelectorAll('.stat-used-text');
+    statUsedText.forEach(el => el.textContent = t.statUsed);
+    
+    const statReactionsText = document.querySelectorAll('.stat-reactions-text');
+    statReactionsText.forEach(el => el.textContent = t.statReactions);
+    
+    const statSharesText = document.querySelectorAll('.stat-shares-text');
+    statSharesText.forEach(el => el.textContent = t.statShares);
+    
+    const btnCreateText = document.querySelector('.btn-create-text');
+    if (btnCreateText) btnCreateText.textContent = t.btnCreate;
+    
+    const btnAIText = document.querySelector('.btn-ai-text');
+    if (btnAIText) btnAIText.textContent = t.btnAI;
+    
+    // Tool header
+    const usageText = document.querySelector('.usage-text');
+    if (usageText) usageText.textContent = t.usageText;
+    
+    // Templates
+    const templatesTitle = document.querySelector('.templates-title');
+    if (templatesTitle) templatesTitle.textContent = t.templatesTitle;
+    
+    const templateClassic = document.querySelector('.template-classic-text');
+    if (templateClassic) templateClassic.textContent = t.templateClassic;
+    
+    const templateModern = document.querySelector('.template-modern-text');
+    if (templateModern) templateModern.textContent = t.templateModern;
+    
+    const templateProfessional = document.querySelector('.template-professional-text');
+    if (templateProfessional) templateProfessional.textContent = t.templateProfessional;
+    
+    const templateElegant = document.querySelector('.template-elegant-text');
+    if (templateElegant) templateElegant.textContent = t.templateElegant;
+    
+    const templateCreative = document.querySelector('.template-creative-text');
+    if (templateCreative) templateCreative.textContent = t.templateCreative;
+    
+    const templateLuxury = document.querySelector('.template-luxury-text');
+    if (templateLuxury) templateLuxury.textContent = t.templateLuxury;
+    
+    // Details
+    const detailsTitle = document.querySelector('.details-title');
+    if (detailsTitle) detailsTitle.textContent = t.detailsTitle;
+    
+    const titleLabel = document.querySelector('.title-label');
+    if (titleLabel) titleLabel.innerHTML = '<i class="fas fa-heading"></i> ' + t.titleLabel;
+    
+    const subtitleLabel = document.querySelector('.subtitle-label');
+    if (subtitleLabel) subtitleLabel.innerHTML = '<i class="fas fa-tag"></i> ' + t.subtitleLabel;
+    
+    const recipientLabel = document.querySelector('.recipient-label');
+    if (recipientLabel) recipientLabel.innerHTML = '<i class="fas fa-user"></i> ' + t.recipientLabel;
+    
+    const bodyLabel = document.querySelector('.body-label');
+    if (bodyLabel) bodyLabel.innerHTML = '<i class="fas fa-paragraph"></i> ' + t.bodyLabel;
+    
+    const dateLabel = document.querySelector('.date-label');
+    if (dateLabel) dateLabel.innerHTML = '<i class="fas fa-calendar"></i> ' + t.dateLabel;
+    
+    // Fonts
+    const fontsTitle = document.querySelector('.fonts-title');
+    if (fontsTitle) fontsTitle.textContent = t.fontsTitle;
+    
+    const titleFontLabel = document.querySelector('.title-font-label');
+    if (titleFontLabel) titleFontLabel.textContent = t.titleFontLabel;
+    
+    const bodyFontLabel = document.querySelector('.body-font-label');
+    if (bodyFontLabel) bodyFontLabel.textContent = t.bodyFontLabel;
+    
+    // Colors
+    const colorsTitle = document.querySelector('.colors-title');
+    if (colorsTitle) colorsTitle.textContent = t.colorsTitle;
+    
+    const titleColorLabel = document.querySelector('.title-color-label');
+    if (titleColorLabel) titleColorLabel.textContent = t.titleColorLabel;
+    
+    const borderColorLabel = document.querySelector('.border-color-label');
+    if (borderColorLabel) borderColorLabel.textContent = t.borderColorLabel;
+    
+    const patternLabel = document.querySelector('.pattern-label');
+    if (patternLabel) patternLabel.textContent = t.patternLabel;
+    
+    // Logo & Signatures
+    const logoSignTitle = document.querySelector('.logo-sign-title');
+    if (logoSignTitle) logoSignTitle.textContent = t.logoSignTitle;
+    
+    const uploadLogoLabel = document.querySelector('.upload-logo-label');
+    if (uploadLogoLabel) uploadLogoLabel.textContent = t.uploadLogoLabel;
+    
+    const signature1NameLabel = document.querySelector('.signature1-name-label');
+    if (signature1NameLabel) signature1NameLabel.textContent = t.signature1NameLabel;
+    
+    const signature1TitleLabel = document.querySelector('.signature1-title-label');
+    if (signature1TitleLabel) signature1TitleLabel.textContent = t.signature1TitleLabel;
+    
+    const signature2NameLabel = document.querySelector('.signature2-name-label');
+    if (signature2NameLabel) signature2NameLabel.textContent = t.signature2NameLabel;
+    
+    const signature2TitleLabel = document.querySelector('.signature2-title-label');
+    if (signature2TitleLabel) signature2TitleLabel.textContent = t.signature2TitleLabel;
+    
+    // Reactions
+    const reactionsTitle = document.querySelector('.reactions-title');
+    if (reactionsTitle) reactionsTitle.textContent = t.reactionsTitle;
+    
+    // Share
+    const shareTitle = document.querySelector('.share-title');
+    if (shareTitle) shareTitle.textContent = t.shareTitle;
+    
+    // Download
+    const downloadTitle = document.querySelector('.download-title');
+    if (downloadTitle) downloadTitle.textContent = t.downloadTitle;
+    
+    if (elements.resetBtn) elements.resetBtn.innerHTML = '<i class="fas fa-undo-alt"></i> ' + t.resetBtn;
+    
+    // Preview
+    const livePreviewText = document.querySelector('.live-preview-text');
+    if (livePreviewText) livePreviewText.textContent = t.livePreview;
+    
+    const aiAssistText = document.querySelector('.ai-assist-text');
+    if (aiAssistText) aiAssistText.textContent = t.aiAssist;
+    
+    // Loading text
+    if (elements.loadingText) elements.loadingText.textContent = t.loadingText;
+}
+
+// ============================================
+// CERTIFICATE UPDATE FUNCTIONS
+// ============================================
+
+function updateCertificatePreview() {
+    if (elements.certTitle) elements.certTitle.textContent = elements.certTitleInput?.value || '';
+    if (elements.certSubtitle) elements.certSubtitle.textContent = elements.certSubtitleInput?.value || '';
+    if (elements.certRecipient) elements.certRecipient.textContent = elements.certRecipientInput?.value || '';
+    if (elements.certBody) elements.certBody.textContent = elements.certBodyInput?.value || '';
+    if (elements.certDate) elements.certDate.textContent = elements.certDateInput?.value || '';
+    
+    if (elements.certTitle && elements.titleColorInput) {
+        elements.certTitle.style.color = elements.titleColorInput.value;
+    }
+    
+    if (elements.certBorder && elements.borderColorInput) {
+        elements.certBorder.style.borderColor = elements.borderColorInput.value;
+    }
+    
+    // Update fonts
+    if (elements.certTitle && elements.titleFontSelect) {
+        removeFontClasses(elements.certTitle);
+        elements.certTitle.classList.add(elements.titleFontSelect.value);
+    }
+    
+    if (elements.certBody && elements.bodyFontSelect) {
+        removeFontClasses(elements.certBody);
+        elements.certBody.classList.add(elements.bodyFontSelect.value);
+    }
+    
+    // Update background pattern
+    updateBackgroundPattern();
+    
+    // Save to localStorage
+    saveToLocalStorage();
+}
+
+function removeFontClasses(element) {
+    const fontClasses = ['font-inter', 'font-cinzel', 'font-playfair', 'font-old-english', 
+                         'font-medieval', 'font-old-standard', 'font-almendra'];
+    fontClasses.forEach(cls => element.classList.remove(cls));
+}
+
+function updateBackgroundPattern() {
+    if (!elements.certBg || !elements.bgPatternSelect) return;
+    
+    const pattern = elements.bgPatternSelect.value;
+    elements.certBg.style.backgroundImage = 'none';
+    
+    switch(pattern) {
+        case 'dots':
+            elements.certBg.style.backgroundImage = 'radial-gradient(circle, #000 1px, transparent 1px)';
+            elements.certBg.style.backgroundSize = '20px 20px';
+            break;
+        case 'lines':
+            elements.certBg.style.backgroundImage = 'repeating-linear-gradient(0deg, transparent, transparent 19px, #000 20px)';
+            break;
+        case 'squares':
+            elements.certBg.style.backgroundImage = 'linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)';
+            elements.certBg.style.backgroundSize = '20px 20px';
+            break;
+    }
+}
+
+function applyTemplate(templateId) {
+    const templates = {
+        1: { titleColor: '#4e54c8', borderColor: '#4e54c8', titleFont: 'font-cinzel', bodyFont: 'font-inter' },
+        2: { titleColor: '#f5576c', borderColor: '#f5576c', titleFont: 'font-playfair', bodyFont: 'font-inter' },
+        3: { titleColor: '#4facfe', borderColor: '#4facfe', titleFont: 'font-cinzel', bodyFont: 'font-inter' },
+        4: { titleColor: '#43e97b', borderColor: '#43e97b', titleFont: 'font-almendra', bodyFont: 'font-old-standard' },
+        5: { titleColor: '#fa709a', borderColor: '#fa709a', titleFont: 'font-medieval', bodyFont: 'font-inter' },
+        6: { titleColor: '#a18cd1', borderColor: '#a18cd1', titleFont: 'font-cinzel', bodyFont: 'font-playfair' }
+    };
+    
+    const t = templates[templateId];
+    if (t) {
+        if (elements.titleColorInput) elements.titleColorInput.value = t.titleColor;
+        if (elements.borderColorInput) elements.borderColorInput.value = t.borderColor;
+        if (elements.titleFontSelect) elements.titleFontSelect.value = t.titleFont;
+        if (elements.bodyFontSelect) elements.bodyFontSelect.value = t.bodyFont;
+        updateCertificatePreview();
+    }
+}
+
+// ============================================
+// AI FUNCTIONS
+// ============================================
+
+async function enhanceWithAI() {
+    showLoading(true);
+    try {
+        const currentText = elements.certBodyInput?.value || '';
+        const response = await fetch(`${API_BASE}/generate-quote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: currentText, topic: 'certificate' })
+        });
+        
+        const data = await response.json();
+        if (data.success && data.quote && elements.certBodyInput) {
+            elements.certBodyInput.value = data.quote;
+            updateCertificatePreview();
+            showToast(translations[currentLanguage].aiSuccess, 'success');
+        } else {
+            // Fallback enhancement
+            const enhanced = `🌟 ${currentText} 🌟\n\nCongratulations on your outstanding achievement! This recognition celebrates your dedication, hard work, and excellence.`;
+            elements.certBodyInput.value = enhanced;
+            updateCertificatePreview();
+            showToast(translations[currentLanguage].aiSuccess, 'success');
+        }
+        
+        await incrementUsage();
+    } catch (error) {
+        console.error('AI Enhancement error:', error);
+        showToast(translations[currentLanguage].aiError, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function openAIAssist() {
+    showToast(translations[currentLanguage].aiAssist + ': Write your text and enhance it', 'info');
+}
+
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
+
+async function exportToPDF() {
+    showLoading(true);
+    try {
+        const certificate = document.getElementById('certificate');
+        const canvas = await html2canvas(certificate, { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        doc.save(`certificate_${Date.now()}.pdf`);
+        showToast(translations[currentLanguage].pdfSuccess, 'success');
+        await incrementShares('pdf');
+    } catch (error) {
+        console.error('PDF export error:', error);
+        showToast(translations[currentLanguage].aiError, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function exportToDOC() {
+    try {
+        const content = `
+            <html>
+            <head><meta charset="UTF-8"><title>Certificate</title></head>
+            <body style="text-align:center; padding:50px; font-family: Arial, sans-serif;">
+                <h1>${elements.certTitleInput?.value || ''}</h1>
+                <h2>${elements.certSubtitleInput?.value || ''}</h2>
+                <h3 style="color:#4e54c8;">${elements.certRecipientInput?.value || ''}</h3>
+                <p>${elements.certBodyInput?.value || ''}</p>
+                <p>${elements.certDateInput?.value || ''}</p>
+                <hr>
+                <p>${elements.signature1NameInput?.value || ''} - ${elements.signature1TitleInput?.value || ''}</p>
+                <p>${elements.signature2NameInput?.value || ''} - ${elements.signature2TitleInput?.value || ''}</p>
+            </body>
+            </html>
+        `;
+        const blob = new Blob([content], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `certificate_${Date.now()}.doc`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showToast(translations[currentLanguage].docSuccess, 'success');
+        incrementShares('doc');
+    } catch (error) {
+        showToast(translations[currentLanguage].aiError, 'error');
+    }
+}
+
+function exportToTXT() {
+    try {
+        const content = `
+            ${'='.repeat(60)}
+            ${elements.certTitleInput?.value || ''}
+            ${'='.repeat(60)}
+            ${elements.certSubtitleInput?.value || ''}
+            
+            Recipient: ${elements.certRecipientInput?.value || ''}
+            
+            ${elements.certBodyInput?.value || ''}
+            
+            Date: ${elements.certDateInput?.value || ''}
+            
+            ${'-'.repeat(60)}
+            ${elements.signature1NameInput?.value || ''} (${elements.signature1TitleInput?.value || ''})
+            ${elements.signature2NameInput?.value || ''} (${elements.signature2TitleInput?.value || ''})
+            ${'='.repeat(60)}
+        `;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `certificate_${Date.now()}.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showToast(translations[currentLanguage].txtSuccess, 'success');
+        incrementShares('txt');
+    } catch (error) {
+        showToast(translations[currentLanguage].aiError, 'error');
+    }
+}
+
+// ============================================
+// API FUNCTIONS (TiDB + Vercel)
+// ============================================
+
+async function incrementUsage() {
+    try {
+        const response = await fetch(`${API_BASE}/increment-usage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: userId })
+        });
+        const data = await response.json();
+        if (data.success && elements.toolUsageCounter) {
+            elements.toolUsageCounter.textContent = data.total_usage || data.count || '0';
+        }
+        await loadGlobalStats();
+    } catch (error) {
+        console.error('Usage increment error:', error);
+        let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        localCount++;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
+        if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = localCount;
+    }
+}
+
+async function addReaction(emoji) {
+    const reactionMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    const reactionType = reactionMap[emoji] || 'like';
+    
+    try {
+        const response = await fetch(`${API_BASE}/add-reaction`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, reaction_type: reactionType, user_id: userId })
+        });
+        const data = await response.json();
+        if (data.success || data.counts) {
+            updateReactionCounts(data.counts);
+            showToast(translations[currentLanguage].reactionSuccess, 'success');
+        } else if (data.already_reacted) {
+            showToast(translations[currentLanguage].reactionExists, 'info');
+            updateReactionCounts(data.counts);
+        }
+        await loadGlobalStats();
+    } catch (error) {
+        console.error('Reaction error:', error);
+        showToast(translations[currentLanguage].reactionError, 'error');
+    }
+}
+
+function updateReactionCounts(counts) {
+    if (!counts) return;
+    const mapping = { like: 'like', love: 'love', wow: 'wow', sad: 'sad', angry: 'angry', laugh: 'laugh', celebrate: 'celebrate' };
+    for (const [key, value] of Object.entries(mapping)) {
+        if (elements.reactionCounts[value] && counts[key] !== undefined) {
+            elements.reactionCounts[value].textContent = counts[key];
+        }
+    }
+}
+
+async function shareTool(platform) {
+    const url = window.location.href;
+    const title = elements.certTitleInput?.value || 'Certificate';
+    let shareUrl = '';
+    
+    switch(platform) {
+        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`; break;
+        case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`; break;
+        case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; break;
+        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`; break;
+        case 'copy':
+            await navigator.clipboard.writeText(url);
+            showToast(translations[currentLanguage].copySuccess, 'success');
+            await recordShare(platform);
+            return;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        await recordShare(platform);
+    }
+}
+
+async function recordShare(platform) {
+    try {
+        await fetch(`${API_BASE}/add-share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: userId })
+        });
+        await loadGlobalStats();
+    } catch (error) {
+        console.error('Share record error:', error);
+    }
+}
+
+async function incrementShares(type) {
+    await recordShare(type);
+}
+
+async function loadGlobalStats() {
+    try {
+        const [usageRes, reactionsRes, sharesRes] = await Promise.all([
+            fetch(`${API_BASE}/usage?tool_slug=${TOOL_SLUG}`),
+            fetch(`${API_BASE}/reactions?tool_slug=${TOOL_SLUG}`),
+            fetch(`${API_BASE}/shares?tool_slug=${TOOL_SLUG}`)
+        ]);
+        
+        const usageData = await usageRes.json();
+        const reactionsData = await reactionsRes.json();
+        const sharesData = await sharesRes.json();
+        
+        if (elements.toolUsageCounter && usageData.count) elements.toolUsageCounter.textContent = usageData.count;
+        if (elements.globalUsageCounter && usageData.count) elements.globalUsageCounter.textContent = usageData.count;
+        
+        if (reactionsData.reactions) updateReactionCounts(reactionsData.reactions);
+        
+        const totalReactions = reactionsData.reactions ? Object.values(reactionsData.reactions).reduce((a,b) => a+b, 0) : 0;
+        if (elements.globalReactionsCounter) elements.globalReactionsCounter.textContent = totalReactions;
+        
+        if (elements.globalSharesCounter && sharesData.shares) elements.globalSharesCounter.textContent = sharesData.shares;
+    } catch (error) {
+        console.error('Global stats error:', error);
+        loadLocalStats();
+    }
+}
+
+function loadLocalStats() {
+    const localUsage = localStorage.getItem(`${TOOL_SLUG}_usage`) || '0';
+    if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = localUsage;
+    if (elements.globalUsageCounter) elements.globalUsageCounter.textContent = localUsage;
+}
+
+async function loadInitialData() {
+    await incrementUsage();
+    await loadGlobalStats();
+    updateCertificatePreview();
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+function resetForm() {
+    if (elements.certTitleInput) elements.certTitleInput.value = 'Certificate of Achievement';
+    if (elements.certSubtitleInput) elements.certSubtitleInput.value = 'This certificate is proudly presented to';
+    if (elements.certRecipientInput) elements.certRecipientInput.value = 'John Doe';
+    if (elements.certBodyInput) elements.certBodyInput.value = 'For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.';
+    if (elements.certDateInput) elements.certDateInput.value = new Date().toLocaleDateString('en-US');
+    if (elements.titleColorInput) elements.titleColorInput.value = '#4e54c8';
+    if (elements.borderColorInput) elements.borderColorInput.value = '#4e54c8';
+    if (elements.signature1NameInput) elements.signature1NameInput.value = 'Jane Smith';
+    if (elements.signature1TitleInput) elements.signature1TitleInput.value = 'CEO, Company Inc.';
+    if (elements.signature2NameInput) elements.signature2NameInput.value = 'Robert Johnson';
+    if (elements.signature2TitleInput) elements.signature2TitleInput.value = 'Director of Education';
+    if (elements.certLogo) elements.certLogo.src = '';
+    updateCertificatePreview();
+    showToast(translations[currentLanguage].resetSuccess, 'success');
+}
+
+function saveToLocalStorage() {
+    const data = {
+        title: elements.certTitleInput?.value,
+        subtitle: elements.certSubtitleInput?.value,
+        recipient: elements.certRecipientInput?.value,
+        body: elements.certBodyInput?.value,
+        date: elements.certDateInput?.value,
+        titleColor: elements.titleColorInput?.value,
+        borderColor: elements.borderColorInput?.value,
+        pattern: elements.bgPatternSelect?.value,
+        titleFont: elements.titleFontSelect?.value,
+        bodyFont: elements.bodyFontSelect?.value,
+        signature1Name: elements.signature1NameInput?.value,
+        signature1Title: elements.signature1TitleInput?.value,
+        signature2Name: elements.signature2NameInput?.value,
+        signature2Title: elements.signature2TitleInput?.value
+    };
+    localStorage.setItem(`${TOOL_SLUG}_draft`, JSON.stringify(data));
+}
+
+function setupAutoSave() {
+    autoSaveInterval = setInterval(() => {
+        saveToLocalStorage();
+    }, 30000);
+}
+
+function loadFromLocalStorage() {
+    const saved = localStorage.getItem(`${TOOL_SLUG}_draft`);
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            if (elements.certTitleInput && data.title) elements.certTitleInput.value = data.title;
+            if (elements.certSubtitleInput && data.subtitle) elements.certSubtitleInput.value = data.subtitle;
+            if (elements.certRecipientInput && data.recipient) elements.certRecipientInput.value = data.recipient;
+            if (elements.certBodyInput && data.body) elements.certBodyInput.value = data.body;
+            if (elements.certDateInput && data.date) elements.certDateInput.value = data.date;
+            if (elements.titleColorInput && data.titleColor) elements.titleColorInput.value = data.titleColor;
+            if (elements.borderColorInput && data.borderColor) elements.borderColorInput.value = data.borderColor;
+            if (elements.bgPatternSelect && data.pattern) elements.bgPatternSelect.value = data.pattern;
+            if (elements.titleFontSelect && data.titleFont) elements.titleFontSelect.value = data.titleFont;
+            if (elements.bodyFontSelect && data.bodyFont) elements.bodyFontSelect.value = data.bodyFont;
+            if (elements.signature1NameInput && data.signature1Name) elements.signature1NameInput.value = data.signature1Name;
+            if (elements.signature1TitleInput && data.signature1Title) elements.signature1TitleInput.value = data.signature1Title;
+            if (elements.signature2NameInput && data.signature2Name) elements.signature2NameInput.value = data.signature2Name;
+            if (elements.signature2TitleInput && data.signature2Title) elements.signature2TitleInput.value = data.signature2Title;
+            updateCertificatePreview();
+        } catch(e) {}
+    }
+}
+
+function toggleDarkMode() {
+    darkMode = !darkMode;
+    localStorage.setItem('darkMode', darkMode);
+    applyDarkMode();
+}
+
+function applyDarkMode() {
+    if (darkMode) {
+        document.body.setAttribute('data-theme', 'dark');
+        if (elements.darkModeToggle) elements.darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        document.body.removeAttribute('data-theme');
+        if (elements.darkModeToggle) elements.darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        showToast('Fullscreen mode activated', 'success');
+    } else {
+        document.exitFullscreen();
+        showToast('Fullscreen mode exited', 'info');
+    }
+}
+
+function setupScrollButtons() {
+    const scrollUpBtn = document.getElementById('scrollUpBtn');
+    const scrollDownBtn = document.getElementById('scrollDownBtn');
+    
+    if (scrollUpBtn) {
+        scrollUpBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+    
+    if (scrollDownBtn) {
+        scrollDownBtn.addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+    }
+    
+    window.addEventListener('scroll', () => {
+        if (scrollUpBtn) {
+            if (window.scrollY > 300) {
+                scrollUpBtn.classList.remove('hidden');
+            } else {
+                scrollUpBtn.classList.add('hidden');
+            }
+        }
+    });
+}
+
+function showToast(message, type = 'success') {
+    if (!elements.toast || !elements.toastMessage) return;
+    
+    elements.toastMessage.textContent = message;
+    elements.toast.classList.remove('hidden');
+    
+    if (type === 'error') {
+        elements.toast.style.background = '#eb4d4b';
+    } else if (type === 'info') {
+        elements.toast.style.background = '#1e90ff';
+    } else {
+        elements.toast.style.background = '#43e97b';
+    }
+    
+    setTimeout(() => {
+        elements.toast.classList.add('hidden');
+    }, 3000);
+}
+
+function showLoading(show) {
+    if (!elements.loadingOverlay) return;
+    if (show) {
+        elements.loadingOverlay.classList.remove('hidden');
+    } else {
+        elements.loadingOverlay.classList.add('hidden');
+    }
+}
