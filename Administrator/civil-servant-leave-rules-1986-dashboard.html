@@ -1,193 +1,456 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/3387/3387188.png" style="display: block; padding: 1em 0; text-align: center; "><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/3387/3387188.png"style='display:none'/></a></div>
-
-
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Civil Servant Leave Rules 1986 Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Civil Servant Leave Rules 1986 | Govt. of Pakistan - Complete Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
+        /* ========================================
+           Civil Servant Leave Rules 1986 Dashboard
+           Complete CSS with All Features
+           ======================================== */
+        
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
+            --primary-color: #0d2b3e;
+            --primary-light: #1a4a6b;
+            --secondary-color: #c7a83e;
+            --secondary-light: #d4b84f;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --info-color: #2980b9;
+            --bg-color: #f5f7fb;
+            --card-bg: #ffffff;
+            --text-color: #1a2a3a;
+            --text-muted: #6c757d;
+            --border-color: #e0e4e8;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.12);
+            --gradient-hero: linear-gradient(135deg, #0d2b3e 0%, #1a4a6b 50%, #0d2b3e 100%);
         }
-        
+
+        [data-theme="dark"] {
+            --primary-color: #0a1a2a;
+            --primary-light: #1a3a5a;
+            --bg-color: #121212;
+            --card-bg: #1e1e2a;
+            --text-color: #e8e8e8;
+            --text-muted: #a0a0a0;
+            --border-color: #2a2a3a;
+        }
+
+        [data-theme="high-contrast"] {
+            --primary-color: #000000;
+            --secondary-color: #ffff00;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #000000;
+            --border-color: #000000;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
         }
-        
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 20px;
         }
-        
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .search-box {
-            margin: 20px auto;
-            max-width: 600px;
-            position: relative;
-        }
-        
-        .search-box input {
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 30px;
-            font-size: 1rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding-left: 50px;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
-        
-        .search-box i {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+        .loading-overlay.active { display: flex; }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        .toast {
+            background: var(--card-bg);
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--success-color);
+            animation: slideIn 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        .toast.error { border-left-color: var(--accent-color); }
+        .toast.warning { border-left-color: var(--warning-color); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            background: var(--gradient-hero);
+            border-radius: 0 0 40px 40px;
+            padding: 60px 40px 80px;
+            margin: -20px -20px 40px -20px;
+            overflow: hidden;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .hero-title .highlight {
             color: var(--secondary-color);
         }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
+        .hero-subtitle {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
         }
-        
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hero-wave {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+        }
+        .hero-wave svg {
+            width: 100%;
+            height: 60px;
+        }
+        .hero-wave path {
+            fill: var(--bg-color);
+        }
+
+        /* Controls Bar */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        .search-box i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .filter-sort-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-select, .sort-select {
+            padding: 12px 20px;
+            border-radius: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             cursor: pointer;
         }
-        
+        .dark-mode-btn, .contrast-btn, .font-size-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dark-mode-btn:hover, .contrast-btn:hover, .font-size-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        /* Usage Stats */
+        .usage-stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .usage-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+        .usage-card:hover {
+            transform: translateY(-3px);
+        }
+        .usage-card i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+        }
+        .usage-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Universal Calculator */
+        .universal-calculator {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+        }
+        .calculator-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .calculator-header i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+        }
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .calc-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .calc-field label {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .calc-field select, .calc-field input {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+        .calculate-btn {
+            background: var(--secondary-color);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .calculate-btn:hover {
+            transform: scale(1.02);
+        }
+        .calculator-result {
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--bg-color);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-hover);
         }
-        
         .card-header {
-            padding: 15px;
-            background-color: var(--secondary-color);
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             color: white;
             display: flex;
             align-items: center;
+            gap: 12px;
         }
-        
         .card-header i {
-            font-size: 1.5rem;
-            margin-right: 15px;
+            font-size: 1.6rem;
         }
-        
-        .card-header h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        
         .card-body {
             padding: 20px;
         }
-        
         .card-body p {
-            margin-bottom: 15px;
-            font-size: 0.95rem;
-            color: #555;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
-        
         .card-footer {
-            padding: 10px 20px;
-            background-color: var(--light-color);
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
         .badge {
-            padding: 5px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
         }
-        
-        .badge-primary {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        
-        .badge-warning {
-            background-color: var(--warning-color);
-            color: white;
-        }
-        
-        .badge-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .badge-danger {
-            background-color: var(--accent-color);
-            color: white;
-        }
-        
-        .btn {
-            padding: 8px 15px;
+        .badge-primary { background: var(--primary-light); color: white; }
+        .badge-success { background: var(--success-color); color: white; }
+        .badge-warning { background: var(--warning-color); color: #000; }
+        .badge-danger { background: var(--accent-color); color: white; }
+        .view-btn {
+            background: none;
             border: none;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--secondary-color);
             color: var(--secondary-color);
+            cursor: pointer;
+            font-weight: 500;
         }
-        
-        .btn-outline:hover {
-            background-color: var(--secondary-color);
-            color: white;
+
+        /* Reactions Section */
+        .reactions-section, .share-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
         }
-        
+        .reactions-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .reaction-btn {
+            padding: 10px 20px;
+            background: var(--bg-color);
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+        }
+        .reaction-btn:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        /* Share Buttons */
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .share-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .share-btn:hover {
+            transform: translateY(-2px);
+        }
+        .share-btn.facebook { background: #1877f2; color: white; }
+        .share-btn.twitter { background: #1da1f2; color: white; }
+        .share-btn.whatsapp { background: #25d366; color: white; }
+        .share-btn.linkedin { background: #0077b5; color: white; }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -195,45 +458,51 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background: rgba(0,0,0,0.7);
             z-index: 1000;
             overflow-y: auto;
         }
-        
         .modal-content {
-            background-color: white;
+            background: var(--card-bg);
             margin: 50px auto;
-            max-width: 800px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            animation: modalFadeIn 0.3s ease;
+            max-width: 850px;
+            border-radius: 20px;
+            animation: modalFadeIn 0.3s;
         }
-        
         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        
         .modal-header {
             padding: 20px;
-            background-color: var(--primary-color);
+            background: var(--primary-color);
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 8px 8px 0 0;
+            border-radius: 20px 20px 0 0;
         }
-        
-        .modal-header h2 {
-            font-size: 1.5rem;
+        .modal-body {
+            padding: 25px;
+            max-height: 65vh;
+            overflow-y: auto;
         }
-        
+        .modal-body ul, .modal-body .rule-content ul {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        .modal-body li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .modal-body h3 {
+            color: var(--secondary-color);
+            margin: 20px 0 10px 0;
+        }
+        .modal-body h4 {
+            margin: 15px 0 8px 0;
+            color: var(--primary-color);
+        }
         .close-btn {
             background: none;
             border: none;
@@ -241,1056 +510,900 @@
             font-size: 1.5rem;
             cursor: pointer;
         }
-        
-        .modal-body {
-            padding: 25px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        
-        .rule-section {
-            margin-bottom: 25px;
-        }
-        
-        .rule-section h3 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .rule-section p, .rule-section ul {
-            margin-bottom: 15px;
-        }
-        
-        .rule-section ul {
-            padding-left: 20px;
-        }
-        
-        .pros-cons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .pros, .cons {
-            padding: 15px;
-            border-radius: 8px;
-        }
-        
-        .pros {
-            background-color: rgba(39, 174, 96, 0.1);
-            border-left: 4px solid var(--success-color);
-        }
-        
-        .cons {
-            background-color: rgba(231, 76, 60, 0.1);
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .pros h4, .cons h4 {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .pros h4 i {
-            color: var(--success-color);
-            margin-right: 10px;
-        }
-        
-        .cons h4 i {
-            color: var(--accent-color);
-            margin-right: 10px;
-        }
-        
-        .process-steps {
-            counter-reset: step-counter;
-        }
-        
-        .process-step {
-            position: relative;
-            padding-left: 50px;
-            margin-bottom: 20px;
-        }
-        
-        .process-step::before {
-            counter-increment: step-counter;
-            content: counter(step-counter);
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 35px;
-            height: 35px;
-            background-color: var(--secondary-color);
-            color: white;
+
+        /* Scroll Buttons */
+        .scroll-btn {
+            position: fixed;
+            right: 20px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+            background: var(--secondary-color);
+            border: none;
+            cursor: pointer;
+            z-index: 999;
+            transition: transform 0.2s;
         }
-        
-        .process-step h4 {
-            margin-bottom: 8px;
-            color: var(--primary-color);
+        .scroll-btn:hover {
+            transform: scale(1.1);
         }
-        
-        .quick-links {
-            margin-top: 30px;
-        }
-        
-        .quick-links h3 {
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
-        
-        .links-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .link-card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .link-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        
-        .link-card i {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            color: var(--secondary-color);
-        }
-        
-        .link-card:hover i {
-            color: white;
-        }
-        
-        .link-card h4 {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-        
+        .scroll-up { bottom: 100px; }
+        .scroll-down { bottom: 40px; }
+
+        /* Footer */
         footer {
             text-align: center;
-            padding: 20px;
-            margin-top: 50px;
-            color: #777;
-            font-size: 0.9rem;
+            padding: 30px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
         }
-        
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .pros-cons {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-content {
-                margin: 20px auto;
-                width: 95%;
-            }
-        }
-        
-        /* Print styles */
-        @media print {
-            .modal {
-                position: static;
-                display: block;
-                background-color: white;
-            }
-            
-            .modal-content {
-                box-shadow: none;
-                margin: 0;
-                max-width: 100%;
-            }
-            
-            .close-btn, .search-box, header, footer, .card, .quick-links {
-                display: none;
-            }
+            .hero-title { font-size: 2rem; }
+            .hero-section { padding: 40px 20px 60px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .calculator-grid { grid-template-columns: 1fr; }
+            .modal-content { margin: 20px; width: calc(100% - 40px); }
         }
     </style>
 </head>
-<body>
+<body data-theme="light">
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p style="color:white; margin-top:15px;">Loading...</p>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
     <div class="container">
-        <header>
-            <h1>Civil Servant Leave Rules 1986</h1>
-            <p>Comprehensive guide to leave entitlements for civil servants in Pakistan</p>
-        </header>
-        
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search for specific leave rules or keywords...">
-        </div>
-        
-        <div class="dashboard-grid" id="rulesGrid">
-            <!-- Cards will be dynamically inserted here by JavaScript -->
-        </div>
-        
-        <div class="quick-links">
-            <h3>Quick Access Links</h3>
-            <div class="links-grid">
-                <div class="link-card" onclick="openModal('earnedLeave')">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h4>Earned Leave</h4>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-landmark"></i> Govt. of Pakistan | Establishment Division
                 </div>
-                <div class="link-card" onclick="openModal('maternityLeave')">
-                    <i class="fas fa-baby"></i>
-                    <h4>Maternity Leave</h4>
-                </div>
-                <div class="link-card" onclick="openModal('specialLeave')">
-                    <i class="fas fa-heart"></i>
-                    <h4>Special Leave</h4>
-                </div>
-                <div class="link-card" onclick="openModal('disabilityLeave')">
-                    <i class="fas fa-wheelchair"></i>
-                    <h4>Disability Leave</h4>
-                </div>
-                <div class="link-card" onclick="openModal('leaveEncashment')">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <h4>Leave Encashment</h4>
-                </div>
-                <div class="link-card" onclick="openModal('leaveApplication')">
-                    <i class="fas fa-file-alt"></i>
-                    <h4>Leave Application</h4>
+                <h1 class="hero-title">
+                    <span class="highlight">Civil Servant</span> Leave Rules 1986
+                </h1>
+                <p class="hero-subtitle">Complete Guide to 18+ Official Leave Entitlements • Universal Calculator • Smart Dashboard</p>
+                <div class="hero-stats">
+                    <div class="hero-stat"><i class="fas fa-calendar-alt"></i> Est. 1986</div>
+                    <div class="hero-stat"><i class="fas fa-users"></i> 1.2M+ Civil Servants</div>
+                    <div class="hero-stat"><i class="fas fa-file-alt"></i> 18+ Leave Types</div>
+                    <div class="hero-stat"><i class="fas fa-calculator"></i> Smart Calculator</div>
                 </div>
             </div>
+            <div class="hero-wave">
+                <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search leave rules, keywords, or sections...">
+            </div>
+            <div class="filter-sort-group">
+                <select id="filterBadge" class="filter-select">
+                    <option value="all">All Rules</option>
+                    <option value="primary">Regular Leave</option>
+                    <option value="success">Special Benefits</option>
+                    <option value="warning">Medical/Warning</option>
+                    <option value="danger">Emergency</option>
+                </select>
+                <select id="sortRules" class="sort-select">
+                    <option value="default">Sort: Default</option>
+                    <option value="az">A to Z</option>
+                    <option value="za">Z to A</option>
+                </select>
+                <button id="darkModeToggle" class="dark-mode-btn"><i class="fas fa-moon"></i></button>
+                <button id="highContrastToggle" class="contrast-btn"><i class="fas fa-eye"></i></button>
+                <button id="fontSizeBtn" class="font-size-btn"><i class="fas fa-text-height"></i></button>
+            </div>
         </div>
+
+        <!-- Usage Stats -->
+        <div class="usage-stats-bar">
+            <div class="usage-card"><i class="fas fa-chart-line"></i><div><div class="usage-label">Tool Uses</div><div class="usage-value" id="totalUsageCount">0</div></div></div>
+            <div class="usage-card"><i class="fas fa-globe"></i><div><div class="usage-label">Global Usage</div><div class="usage-value" id="globalUsageCount">0</div></div></div>
+            <div class="usage-card"><i class="fas fa-heart"></i><div><div class="usage-label">Reactions</div><div class="usage-value" id="totalReactionsCount">0</div></div></div>
+            <div class="usage-card"><i class="fas fa-share-alt"></i><div><div class="usage-label">Shares</div><div class="usage-value" id="totalSharesCount">0</div></div></div>
+        </div>
+
+        <!-- Universal Leave Calculator -->
+        <div class="universal-calculator">
+            <div class="calculator-header">
+                <i class="fas fa-calculator"></i>
+                <h2>Universal Leave Calculator</h2>
+                <span class="badge badge-success">18+ Rules Supported</span>
+            </div>
+            <div class="calculator-grid">
+                <div class="calc-field">
+                    <label><i class="fas fa-clock"></i> Service Duration</label>
+                    <input type="number" id="calcServiceYears" placeholder="Years" value="5">
+                    <input type="number" id="calcServiceMonths" placeholder="Months" value="0">
+                </div>
+                <div class="calc-field">
+                    <label><i class="fas fa-tag"></i> Leave Type</label>
+                    <select id="calcLeaveType">
+                        <option value="earned">Earned Leave (LAP)</option>
+                        <option value="halfpay">Half Pay Leave (LHAP)</option>
+                        <option value="lpr">Leave Preparatory to Retirement (LPR)</option>
+                        <option value="maternity">Maternity Leave</option>
+                        <option value="special">Special Leave (Bereavement)</option>
+                        <option value="disability">Disability Leave</option>
+                        <option value="quarantine">Quarantine Leave</option>
+                        <option value="extraordinary">Extraordinary Leave (EOL)</option>
+                        <option value="notdue">Leave Not Due (LND)</option>
+                        <option value="recreation">Recreation Leave</option>
+                        <option value="expakistan">Leave Ex-Pakistan</option>
+                        <option value="hospital">Hospital Leave</option>
+                        <option value="departmental">Departmental Leave</option>
+                        <option value="seaman">Sick Leave (Seaman)</option>
+                        <option value="medicalcert">Leave on Medical Certificate</option>
+                        <option value="abolition">Leave on Abolition of Post</option>
+                        <option value="study">Study Leave</option>
+                        <option value="casual">Casual Leave</option>
+                    </select>
+                </div>
+                <div class="calc-field">
+                    <label><i class="fas fa-building"></i> Department Type</label>
+                    <select id="calcDeptType">
+                        <option value="non-vacation">Non-Vacation Department</option>
+                        <option value="vacation-full">Vacation Department (Full Availed)</option>
+                        <option value="vacation-part">Vacation Department (Part Availed)</option>
+                        <option value="vacation-none">Vacation Department (None Availed)</option>
+                    </select>
+                </div>
+                <div class="calc-field">
+                    <label><i class="fas fa-stethoscope"></i> Medical Certificate</label>
+                    <select id="calcMedical">
+                        <option value="no">Without Medical Certificate</option>
+                        <option value="yes">With Medical Certificate</option>
+                    </select>
+                </div>
+            </div>
+            <button id="calculateUniversalBtn" class="calculate-btn"><i class="fas fa-calculator"></i> Calculate Leave Entitlement</button>
+            <div id="universalResult" class="calculator-result">
+                <p>Select leave type and click calculate</p>
+            </div>
+        </div>
+
+        <!-- Rules Grid -->
+        <div class="dashboard-grid" id="rulesGrid"></div>
+
+        <!-- Reactions Section -->
+        <div class="reactions-section">
+            <h3><i class="fas fa-smile"></i> What do you think about this tool?</h3>
+            <div class="reactions-container" id="reactionsContainer">
+                <div class="reaction-btn" data-reaction="like">👍 <span id="reactionLike">0</span></div>
+                <div class="reaction-btn" data-reaction="love">❤️ <span id="reactionLove">0</span></div>
+                <div class="reaction-btn" data-reaction="wow">😮 <span id="reactionWow">0</span></div>
+                <div class="reaction-btn" data-reaction="sad">😢 <span id="reactionSad">0</span></div>
+                <div class="reaction-btn" data-reaction="angry">😠 <span id="reactionAngry">0</span></div>
+                <div class="reaction-btn" data-reaction="laugh">😂 <span id="reactionLaugh">0</span></div>
+                <div class="reaction-btn" data-reaction="celebrate">🎉 <span id="reactionCelebrate">0</span></div>
+            </div>
+        </div>
+
+        <!-- Share Section -->
+        <div class="share-section">
+            <h3><i class="fas fa-share-alt"></i> Share This Tool</h3>
+            <div class="share-buttons">
+                <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
+                <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button class="share-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+            </div>
+            <div class="share-stats" style="margin-top:15px;">Shared <span id="shareCountDisplay">0</span> times</div>
+        </div>
+
+        <!-- Scroll Buttons -->
+        <button id="scrollUpBtn" class="scroll-btn scroll-up"><i class="fas fa-arrow-up"></i></button>
+        <button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+        <footer>
+            <p>© 2024 Civil Servant Leave Rules 1986 | Govt. of Pakistan | Establishment Division</p>
+            <p><small>All 18+ Leave Types • Universal Calculator • Official Rules 1986</small></p>
+        </footer>
     </div>
-    
-    <!-- Modal Structure -->
+
+    <!-- Rule Modal -->
     <div id="ruleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Rule Title</h2>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Content will be dynamically inserted here by JavaScript -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
-    
-    <footer>
-        <p>© 2023 Civil Servant Leave Rules Dashboard | Designed for Public Servants</p>
-    </footer>
-    
+
     <script>
-        // Rules data
+        // ========================================
+        // COMPLETE 18+ LEAVE RULES DATA WITH FULL DETAILS
+        // ========================================
         const leaveRules = {
             earnedLeave: {
-                title: "Earned Leave",
+                title: "Earned Leave (LAP)",
                 icon: "fa-calendar-alt",
                 badge: "primary",
-                shortDesc: "Accrued leave based on service duration and department type.",
+                category: "Regular Leave",
+                shortDesc: "Accrued leave based on service duration. Non-vacation depts: 4 days/month. Maximum 120/180 days at once.",
                 fullContent: `
-                    <div class="rule-section">
-                        <h3>Calculation & Accumulation</h3>
-                        <p>Earned leave is calculated differently based on department type:</p>
-                        <ul>
-                            <li><strong>Non-vacation departments:</strong> 4 days per calendar month</li>
-                            <li><strong>Vacation departments:</strong>
-                                <ul>
-                                    <li>If full vacation is availed: 1 day per calendar month</li>
-                                    <li>If part of vacation is availed: 1 day per month plus proportion of 30 days based on unused vacation</li>
-                                    <li>If no vacation is availed: 4 days per calendar month</li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <p>Leave is calculated up to the day of grant and at the end of each calendar year.</p>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Grant of Earned Leave</h3>
-                        <p>Maximum periods that may be granted at one time:</p>
-                        <ul>
-                            <li><strong>Without medical certificate:</strong> 120 days</li>
-                            <li><strong>With medical certificate:</strong> 180 days</li>
-                            <li><strong>Total in entire service:</strong> 365 days on medical certificate</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Accrues regularly with service</li>
-                                <li>Can be accumulated without maximum limit</li>
-                                <li>Flexible usage for various needs</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Different rates for vacation/non-vacation departments</li>
-                                <li>Medical certificate required for longer leaves</li>
-                                <li>Calculation can be complex for partial months</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Application in Form 1 to head of office (or next above authority for head of office).</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Assessment</h4>
-                                <p>Admissibility assessed from leave account before grant.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Prioritization</h4>
-                                <p>If all applications cannot be sanctioned, priority given to those last recalled from leave or who adjusted timing previously.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Granted by competent authority or authorized officer.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
+<div class="rule-content">
+    <h3>📊 Earned Leave (LAP) - مکمل تفصیلات</h3>
+    
+    <h4>🎯 حساب کتاب اور جمع ہونے کی شرح (Calculation & Accumulation Rate):</h4>
+    <ul>
+        <li><strong>غیر ویکیشن ڈیپارٹمنٹس (Non-Vacation Departments):</strong> 4 دن فی کیلنڈر مہینہ</li>
+        <li><strong>ویکیشن ڈیپارٹمنٹس - مکمل ویکیشن (Full Vacation Availed):</strong> 1 دن فی کیلنڈر مہینہ</li>
+        <li><strong>ویکیشن ڈیپارٹمنٹس - جزوی ویکیشن (Part Vacation Availed):</strong> 1 دن فی مہینہ + غیر استعمال شدہ ویکیشن کا تناسب (30 دن میں سے)</li>
+        <li><strong>ویکیشن ڈیپارٹمنٹس - کوئی ویکیشن نہیں (No Vacation Availed):</strong> 4 دن فی کیلنڈر مہینہ</li>
+        <li>چھٹی کا حساب گرانٹ کے دن تک اور ہر کیلنڈر سال کے آخر میں لگایا جاتا ہے</li>
+        <li>جمع شدہ چھٹی کی کوئی زیادہ سے زیادہ حد نہیں ہے</li>
+    </ul>
+    
+    <h4>✅ گرانٹ کی زیادہ سے زیادہ مدت (Maximum Grant Period):</h4>
+    <ul>
+        <li><strong>بغیر میڈیکل سرٹیفکیٹ (Without Medical Certificate):</strong> 120 دن زیادہ سے زیادہ</li>
+        <li><strong>میڈیکل سرٹیفکیٹ کے ساتھ (With Medical Certificate):</strong> 180 دن زیادہ سے زیادہ</li>
+        <li><strong>پوری سروس میں میڈیکل سرٹیفکیٹ پر کل:</strong> 365 دن</li>
+    </ul>
+    
+    <h4>📝 درخواست کا طریقہ کار (Application Process):</h4>
+    <ul>
+        <li>فارم نمبر 1 پر ہیڈ آف آفس کو درخواست جمع کروائیں</li>
+        <li>ہیڈ آف آفس کے لیے اگلی بالا اتھارٹی کو درخواست دی جائے گی</li>
+        <li>گرانٹ سے پہلے لیو اکاؤنٹ سے اہلیت کا جائزہ لیا جائے گا</li>
+        <li>اگر تمام درخواستیں منظور نہیں کی جا سکتیں تو ترجیح ان ملازمین کو دی جائے گی جنہیں آخری بار چھٹی سے واپس بلایا گیا ہو</li>
+        <li>ارنڈ لیو کی درخواست میں وجہ بتانے کی ضرورت نہیں ہے</li>
+    </ul>
+    
+    <h4>✨ فوائد اور خصوصیات (Benefits):</h4>
+    <ul>
+        <li>باقاعدگی سے سروس کے ساتھ جمع ہوتی ہے</li>
+        <li>بغیر کسی حد کے جمع کی جا سکتی ہے</li>
+        <li>مختلف ضروریات کے لیے لچکدار استعمال</li>
+        <li>لمبی چھٹی کے لیے میڈیکل سرٹیفکیٹ کی سہولت</li>
+    </ul>
+</div>`
+            },
+            halfPayLeave: {
+                title: "Half Pay Leave (LHAP)",
+                icon: "fa-chart-line",
+                badge: "primary",
+                category: "Regular Leave",
+                shortDesc: "20 days per completed year of service. Two days half pay = one day full pay debit.",
+                fullContent: `
+<div class="rule-content">
+    <h3>📉 Half Pay Leave (LHAP) - مکمل تفصیلات</h3>
+    
+    <h4>🎯 شرح اور جمع (Rate & Accumulation):</h4>
+    <ul>
+        <li><strong>شرح:</strong> 20 دن فی مکمل سال سروس</li>
+        <li><strong>تبدیلی کا فارمولا:</strong> 2 دن ہاف پے لیو = 1 دن فل پے لیو ڈیبٹ</li>
+        <li><strong>زیادہ سے زیادہ ایک ساتھ:</strong> 120 دن</li>
+        <li><strong>پوری سروس میں کوئی حد نہیں</strong></li>
+    </ul>
+    
+    <h4>✅ کب دی جاتی ہے (When Granted):</h4>
+    <ul>
+        <li>جب Earned Leave (LAP) مکمل طور پر ختم ہو جائے</li>
+        <li>اگر ملازم چاہے تو Earned Leave کے بجائے Half Pay Leave لے سکتا ہے</li>
+        <li>طبی وجوہات کی بناء پر بھی دی جا سکتی ہے</li>
+    </ul>
+    
+    <h4>📝 درخواست کا طریقہ کار:</h4>
+    <ul>
+        <li>فارم نمبر 1 پر درخواست دی جائے</li>
+        <li>ہیڈ آف آفس کو جمع کروائیں</li>
+        <li>لیو اکاؤنٹ کی تصدیق کے بعد منظور کی جائے گی</li>
+        <li>میڈیکل سرٹیفکیٹ ضروری نہیں (لیکن لمبی چھٹی کے لیے درکار ہو سکتا ہے)</li>
+    </ul>
+    
+    <h4>💡 اہم نوٹس:</h4>
+    <ul>
+        <li>ہاف پے لیو کو فل پے میں تبدیل کرنے کے لیے 2:1 کا تناسب استعمال ہوتا ہے</li>
+        <li>مثال: 60 دن ہاف پے = 30 دن فل پے ڈیبٹ</li>
+        <li>ریٹائرمنٹ کے وقت باقی ہاف پے لیو کا کوئی انکیشمنٹ نہیں</li>
+    </ul>
+</div>`
+            },
+            lprLeave: {
+                title: "Leave Preparatory to Retirement",
+                icon: "fa-calendar-check",
+                badge: "success",
+                category: "Financial Benefit",
+                shortDesc: "Encash up to 365 days leave before retirement. Option available 15 months before superannuation.",
+                fullContent: `
+<div class="rule-content">
+    <h3>💰 Leave Preparatory to Retirement (LPR) - مکمل تفصیلات</h3>
+    
+    <h4>🎯 اہلیت (Eligibility):</h4>
+    <ul>
+        <li>ریٹائرمنٹ سے <strong>15 ماہ پہلے</strong> یا</li>
+        <li><strong>30 سال</strong> کوالیفائنگ سروس مکمل ہونے پر (1 جولائی 1983 کو یا اس کے بعد)</li>
+        <li>تاریخ اثر: 1 جولائی 2012 سے ریٹائر ہونے والوں کے لیے</li>
+    </ul>
+    
+    <h4>✅ شرائط و ضوابط (Terms & Conditions):</h4>
+    <ul>
+        <li>ملازم کو تحریری طور پر عہد کرنا ہوگا کہ وہ 365 دن یا اس سے کم مدت کی پوری مدت میں ڈیوٹی کریں گے</li>
+        <li><strong>زیادہ سے زیادہ انکیشمنٹ:</strong> 365 دن</li>
+        <li>لیو پے کا دعویٰ اس مدت کے دوران کسی بھی وقت اس شرح پر کیا جا سکتا ہے جو اس وقت قابل ادائیگی ہو</li>
+        <li>اگر بعد میں بیماری یا حج کی وجہ سے چھٹی دی جاتی ہے تو کیش کمپنسیشن میں تناسب سے کمی کی جائے گی</li>
+        <li>صرف "Senior Post Allowance" لیو پے میں شامل ہوگی</li>
+    </ul>
+    
+    <h4>📝 درخواست کا طریقہ کار:</h4>
+    <ul>
+        <li>ریٹائرمنٹ سے 15 ماہ پہلے تحریری آپشن جمع کروائیں</li>
+        <li>LPR مدت کے دوران ڈیوٹی کرنے کا تحریری عہد نامہ</li>
+        <li>کمپیٹنٹ اتھارٹی لیو بیلنس اور اہلیت کی تصدیق کرے گی</li>
+        <li>کیش کمپنسیشن کی ادائیگی کے لیے باقاعدہ منظوری</li>
+    </ul>
+    
+    <h4>⚠️ موت کی صورت میں (Death During LPR):</h4>
+    <ul>
+        <li>اگر کوئی سول سروینٹ 365 دن LPR مکمل کرنے سے پہلے فوت ہو جائے</li>
+        <li>خاندان 365 دن میں سے باقی مدت کے برابر رقم کے حقدار ہوں گے</li>
+    </ul>
+    
+    <h4>🏢 آٹونومس باڈیز پر اطلاق:</h4>
+    <ul>
+        <li>یہ سہولت خود مختار اور نیم خود مختار اداروں کے ملازمین پر بھی لاگو ہوتی ہے</li>
+        <li>جنہوں نے بنیادی پے اسکیل سکیم اور یہ رولز اپنائے ہیں</li>
+    </ul>
+</div>`
             },
             maternityLeave: {
                 title: "Maternity Leave",
                 icon: "fa-baby",
                 badge: "success",
-                shortDesc: "Special leave for female civil servants during pregnancy and childbirth.",
+                category: "Special Benefit",
+                shortDesc: "90 days full pay for female civil servants. Not debited from leave account.",
                 fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>Female civil servants are granted maternity leave on full pay for a maximum period of <strong>90 days</strong>.</p>
-                        <p>Any leave exceeding 90 days shall be treated as other leave types (earned, half-pay, etc.) as desired by the civil servant.</p>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Special Provisions</h3>
-                        <p><strong>For non-vacation departments:</strong> After the third maternity, earned leave may be granted in lieu of maternity leave.</p>
-                        <p>No requirement to specify reasons for maternity leave application.</p>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Full pay during entire 90-day period</li>
-                                <li>Not debited against regular leave account</li>
-                                <li>Automatic entitlement without justification</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Limited to 90 days as maternity leave</li>
-                                <li>After third maternity, must use earned leave in non-vacation departments</li>
-                                <li>No provision for paternity leave for male employees</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Notification</h4>
-                                <p>Inform administration of pregnancy and expected delivery date.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Application can be submitted at any time before maternity leave begins.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Leave is automatically granted as it's a statutory right.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Return to Duty</h4>
-                                <p>No medical certificate required unless extending beyond 90 days.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
+<div class="rule-content">
+    <h3>👶 Maternity Leave (میٹرنیٹی لیو) - مکمل تفصیلات</h3>
+    
+    <h4>🎯 اہلیت اور مدت (Eligibility & Duration):</h4>
+    <ul>
+        <li>خواتین سرکاری ملازمین کو <strong>90 دن</strong> کی میٹرنیٹی لیو فل پے پر دی جاتی ہے</li>
+        <li>یہ چھٹی <strong>باقاعدہ لیو اکاؤنٹ سے ڈیبٹ نہیں</strong> ہوتی</li>
+        <li>90 دن سے زائد کی چھٹی دیگر لیو ٹائپس (ارنڈ لیو، ہاف پے وغیرہ) میں شمار ہوگی</li>
+    </ul>
+    
+    <h4>✨ خصوصی دفعات (Special Provisions):</h4>
+    <ul>
+        <li><strong>غیر ویکیشن ڈیپارٹمنٹس:</strong> تیسری میٹرنیٹی کے بعد ارنڈ لیو میٹرنیٹی لیو کے بدلے دی جا سکتی ہے</li>
+        <li>میٹرنیٹی لیو کی درخواست میں وجوہات بتانے کی کوئی ضرورت نہیں</li>
+        <li>یہ ایک قانونی حق ہے اور خودکار طور پر منظور ہوتی ہے</li>
+    </ul>
+    
+    <h4>📝 درخواست کا طریقہ کار:</h4>
+    <ul>
+        <li>حمل اور متوقع تاریخ پیدائش سے انتظامیہ کو آگاہ کریں</li>
+        <li>میٹرنیٹی لیو شروع ہونے سے پہلے کسی بھی وقت درخواست دی جا سکتی ہے</li>
+        <li>90 دن سے زیادہ کی توسیع کے لیے میڈیکل سرٹیفکیٹ درکار ہوگا</li>
+        <li>واپسی پر میڈیکل فٹنس سرٹیفکیٹ کی ضرورت نہیں (اگر صرف 90 دن لیے ہوں)</li>
+    </ul>
+    
+    <h4>💡 اہم معلومات:</h4>
+    <ul>
+        <li>یہ چھٹی صرف خواتین ملازمین کے لیے ہے</li>
+        <li>مرد ملازمین کے لیے Paternity Leave کا کوئی انتظام نہیں</li>
+        <li>گود لینے والی ماؤں کے لیے کوئی خاص انتظام نہیں</li>
+    </ul>
+</div>`
             },
             specialLeave: {
                 title: "Special Leave (Bereavement)",
                 icon: "fa-heart",
                 badge: "danger",
-                shortDesc: "Leave granted to female civil servants on the death of their husband.",
+                category: "Emergency",
+                shortDesc: "180 days full pay for female civil servants on death of husband.",
                 fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>A female civil servant shall, on the death of her husband, be granted special leave on full pay for a period not exceeding <strong>180 days</strong>.</p>
-                        <p>This leave <strong>shall not be debited</strong> to her regular leave account.</p>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Requirements</h3>
-                        <ul>
-                            <li>The leave commences from the date of the death of the husband</li>
-                            <li>The civil servant must furnish the death certificate issued by the concerned authority</li>
-                            <li>The certificate can be submitted with the application or at any time thereafter if not immediately available</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Full pay during entire leave period</li>
-                                <li>Not deducted from other leave entitlements</li>
-                                <li>Compassionate provision during difficult time</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Limited to female civil servants only</li>
-                                <li>Requires submission of death certificate</li>
-                                <li>No similar provision for other family bereavements</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Notification</h4>
-                                <p>Inform administration of the bereavement as soon as possible.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Application for special leave can be submitted immediately or shortly after the event.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Provide Documentation</h4>
-                                <p>Submit death certificate either with application or as soon as available.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Leave is granted by competent authority upon verification.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
+<div class="rule-content">
+    <h3>💔 Special Leave (Bereavement) - مکمل تفصیلات</h3>
+    
+    <h4>🎯 اہلیت اور مدت (Eligibility & Duration):</h4>
+    <ul>
+        <li>خواتین سرکاری ملازمین کو شوہر کی وفات پر <strong>180 دن</strong> کی اسپیشل لیو فل پے پر دی جاتی ہے</li>
+        <li>یہ چھٹی <strong>باقاعدہ لیو اکاؤنٹ سے ڈیبٹ نہیں</strong> ہوتی</li>
+        <li>چھٹی شوہر کی وفات کی تاریخ سے شروع ہوگی</li>
+    </ul>
+    
+    <h4>📋 ضروری دستاویزات (Required Documents):</h4>
+    <ul>
+        <li>متعلقہ اتھارٹی کی طرف سے جاری کردہ ڈیتھ سرٹیفکیٹ جمع کرانا ضروری ہے</li>
+        <li>سرٹیفکیٹ درخواست کے ساتھ یا بعد میں کسی بھی وقت جمع کرایا جا سکتا ہے</li>
+    </ul>
+    
+    <h4>📝 درخواست کا طریقہ کار:</h4>
+    <ul>
+        <li>جتنی جلدی ممکن ہو انتظامیہ کو موت کی اطلاع دیں</li>
+        <li>اسپیشل لیو کی درخواسط فوری طور پر یا واقعے کے فوراً بعد جمع کروائیں</li>
+        <li>ڈیتھ سرٹیفکیٹ درخواست کے ساتھ یا جلد از جلد جمع کروائیں</li>
+        <li>منظوری کے بعد چھٹی دی جائے گی</li>
+    </ul>
+    
+    <h4>⚠️ اہم نوٹس:</h4>
+    <ul>
+        <li>یہ سہولت صرف خواتین ملازمین کے لیے ہے</li>
+        <li>مرد ملازمین کی بیوی کی وفات پر ایسی کوئی چھٹی نہیں</li>
+        <li>دیگر خاندانی افراد کی موت پر کوئی خصوصی چھٹی نہیں</li>
+    </ul>
+</div>`
             },
             disabilityLeave: {
                 title: "Disability Leave",
                 icon: "fa-wheelchair",
                 badge: "warning",
-                shortDesc: "Leave for injuries or diseases contracted in course of duty.",
+                category: "Medical",
+                shortDesc: "720 days max (180 full pay + 540 half pay) for work-related disability.",
                 fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>Disability leave may be granted to a civil servant (other than part-time) disabled by injury, ailment or disease contacted:</p>
-                        <ul>
-                            <li>In the course of duty, or</li>
-                            <li>In consequence of duty</li>
-                        </ul>
-                        <p>This leave is granted <strong>outside the regular leave account</strong>.</p>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Duration</h3>
-                        <p>Maximum disability leave that may be granted:</p>
-                        <ul>
-                            <li><strong>Total:</strong> 720 days (about 2 years) per occasion</li>
-                            <li><strong>On full pay:</strong> First 180 days</li>
-                            <li><strong>On half pay:</strong> Remaining 540 days</li>
-                        </ul>
-                        <p>Granted on medical advice as the head of office considers necessary.</p>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Extended period of leave for serious work-related conditions</li>
-                                <li>First 180 days at full pay</li>
-                                <li>Does not affect other leave entitlements</li>
-                                <li>Job protection during recovery period</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Strict requirement that disability is work-related</li>
-                                <li>Medical certification and approval required</li>
-                                <li>Reduced to half pay after initial 180 days</li>
-                                <li>Not available to part-time employees</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Medical Certification</h4>
-                                <p>Obtain medical certification linking disability to work duties.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Application through proper channels with medical documentation.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Head of Office Review</h4>
-                                <p>Head of office assesses medical advice and circumstances.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Competent authority grants leave based on recommendations.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Periodic Review</h4>
-                                <p>May require periodic medical updates for extensions.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
-            },
-            leaveNotDue: {
-                title: "Leave Not Due",
-                icon: "fa-calendar-plus",
-                badge: "danger",
-                shortDesc: "Advance leave when no leave is available in the account.",
-                fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>When no leave is available in the account but the civil servant is likely to resume duty after leave, leave not due may be granted:</p>
-                        <ul>
-                            <li><strong>Maximum in entire service:</strong> 365 days</li>
-                            <li><strong>First five years limit:</strong> 90 days total</li>
-                            <li>Can be granted on full pay or converted to half pay</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Conditions</h3>
-                        <ul>
-                            <li>Granted only when there are reasonable chances of the civil servant resuming duty</li>
-                            <li>When returning from leave not due, no leave on full pay becomes due until the advance is balanced by earned leave</li>
-                            <li>The limits apply to the total leave not due taken during the specified periods</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Provides leave in emergencies when no balance available</li>
-                                <li>Can be converted to half pay to extend duration</li>
-                                <li>Helps in unforeseen circumstances</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Creates a negative leave balance</li>
-                                <li>Restricts future leave until advance is repaid</li>
-                                <li>Strict limits on total amount that can be taken</li>
-                                <li>Discretionary based on likelihood of return to duty</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Application through proper channels explaining need for leave not due.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Assessment</h4>
-                                <p>Administration verifies leave account balance and circumstances.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Approval</h4>
-                                <p>Competent authority evaluates likelihood of return to duty.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Leave granted with conditions about future leave restrictions.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
-            },
-            leaveEncashment: {
-                title: "Leave Encashment (LPR)",
-                icon: "fa-money-bill-wave",
-                badge: "success",
-                shortDesc: "Option to encash leave preparatory to retirement.",
-                fullContent: `
-                    <div class="rule-section">
-                        <h3>Eligibility</h3>
-                        <p>A civil servant may, fifteen months before the date of superannuation or after completing 30 years qualifying service (on or after 1st July 1983), opt to encash leave preparatory to retirement (LPR).</p>
-                        <p>Effective from 1st July 2012 for those retiring on or after this date.</p>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Conditions</h3>
-                        <ul>
-                            <li>Civil servant must undertake in writing to perform duty in lieu of the whole period of 365 days or lesser period which is due and admissible</li>
-                            <li>Maximum encashment: 365 days</li>
-                            <li>Leave pay may be claimed at any time during that period at the rate of pay admissible when drawn</li>
-                            <li>If leave is later granted for ill health or Hajj, cash compensation is reduced proportionally</li>
-                            <li>Only "Senior Post Allowance" included in leave pay for encashment</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application to Autonomous Bodies</h3>
-                        <p>The encashment of LPR also applies to employees of autonomous and semi-autonomous bodies under administrative control of the Sindh Government which have adopted basic pay scales scheme and these Rules.</p>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Provides lump sum payment before retirement</li>
-                                <li>Continues to receive salary while working</li>
-                                <li>Flexibility in timing of payment</li>
-                                <li>Includes senior post allowance</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Must continue working during encashment period</li>
-                                <li>Payment reduced if later take leave for health or Hajj</li>
-                                <li>Only certain allowances included in calculation</li>
-                                <li>Limited to maximum of 365 days</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Submit Option</h4>
-                                <p>Submit written option to competent authority 15 months before retirement.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Undertaking</h4>
-                                <p>Provide written undertaking to perform duty during encashment period.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Verification</h4>
-                                <p>Authority verifies leave balance and eligibility.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Formal sanction issued for payment of cash compensation.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Payment</h4>
-                                <p>Payment made as per chosen timing during encashment period.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Death During LPR</h3>
-                        <p>If a civil servant dies before completing 365 days of LPR, family is entitled to lump sum payment equal to the period falling short of 365 days.</p>
-                    </div>
-                `
-            },
-            leaveApplication: {
-                title: "Leave Application Process",
-                icon: "fa-file-alt",
-                badge: "primary",
-                shortDesc: "Procedures and requirements for applying for leave.",
-                fullContent: `
-                    <div class="rule-section">
-                        <h3>General Requirements</h3>
-                        <ul>
-                            <li>Application must be made in Form 1 (except where otherwise stated)</li>
-                            <li>For regular employees: submitted to head of office</li>
-                            <li>For head of office: submitted to next above administrative authority</li>
-                            <li>Civil servant may apply for any type of leave due and admissible</li>
-                            <li>No need to specify reasons for earned leave applications</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Form 1 Contents</h3>
-                        <p>The leave application form requires:</p>
-                        <ul>
-                            <li>Applicant's name, post, and department</li>
-                            <li>Nature of leave applied for</li>
-                            <li>Period of leave in days</li>
-                            <li>Intended commencement date</li>
-                            <li>Particular rule under which leave is admissible</li>
-                            <li>Details of last leave taken</li>
-                            <li>Remarks/recommendation of superior officer</li>
-                            <li>Account Officer's report (for Grade 16 or above)</li>
-                            <li>Sanctioning authority's certification</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Standardized form simplifies process</li>
-                                <li>Clear documentation trail</li>
-                                <li>Multiple levels of verification ensure accuracy</li>
-                                <li>No justification needed for earned leave</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Multiple approvals can slow process</li>
-                                <li>Different procedures for heads of office</li>
-                                <li>Additional requirements for higher grades</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process Steps</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Prepare Application</h4>
-                                <p>Complete Form 1 with all required details.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Attach Documentation</h4>
-                                <p>Include any required supporting documents (medical certificates, etc.).</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Submit to Superior</h4>
-                                <p>Submit to immediate superior for remarks/recommendation.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Account Officer Review</h4>
-                                <p>For Grade 16+, application reviewed by Account Officer.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanctioning Authority</h4>
-                                <p>Final approval by competent authority.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Notification</h4>
-                                <p>Applicant notified of leave sanction.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Special Cases</h3>
-                        <ul>
-                            <li><strong>Medical leave:</strong> Requires medical certificate in Form II</li>
-                            <li><strong>Return from medical leave:</strong> Requires medical certificate of fitness in Form IIA</li>
-                            <li><strong>Leave ex-Pakistan:</strong> Additional requirements for foreign travel</li>
-                            <li><strong>Leave preparatory to retirement:</strong> Must be submitted at least 96 days before commencement</li>
-                        </ul>
-                    </div>
-                `
-            },
-            leaveAbolition: {
-                title: "Leave on Abolition of Post",
-                icon: "fa-building",
-                badge: "warning",
-                shortDesc: "Leave provisions when a civil servant's post is abolished.",
-                fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>When a post is abolished, leave due to the civil servant whose services are terminated in consequence shall be granted:</p>
-                        <ul>
-                            <li>Without regard to the availability of a post for the leave period</li>
-                            <li>Automatically extends the duration of the post and tenure of incumbent until leave ends (if not attaining superannuation)</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Key Provisions</h3>
-                        <ul>
-                            <li>All due leave must be granted before termination</li>
-                            <li>Post is technically extended for leave duration</li>
-                            <li>Protects civil servant's rights during organizational changes</li>
-                            <li>Applies until superannuation age is reached</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Protects leave entitlements during restructuring</li>
-                                <li>Provides transition period with pay and benefits</li>
-                                <li>Automatic extension prevents premature termination</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Only applies to accumulated due leave</li>
-                                <li>Does not prevent eventual termination</li>
-                                <li>No provision for additional compensation</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Notification of Abolition</h4>
-                                <p>Civil servant informed of post abolition decision.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Leave Calculation</h4>
-                                <p>Administration calculates all due leave.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Leave Grant</h4>
-                                <p>Leave is granted without considering post availability.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Post Extension</h4>
-                                <p>Post technically extended for leave duration.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Termination</h4>
-                                <p>Services terminate after leave period ends.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
-            },
+<div class="rule-content">
+    <h3>🩺 Disability Leave (معذوری چھٹی) - مکمل تفصیلات</h3>
+    
+    <h4>🎯 اہلیت اور مدت (Eligibility & Duration):</h4>
+    <ul>
+        <li>معذوری چھٹی اس سول سروینٹ کو دی جا سکتی ہے جو:</li>
+        <li>ڈیوٹی کے دوران یا ڈیوٹی کے نتیجے میں زخمی، بیماری یا معذور ہو گیا ہو</li>
+        <li><strong>کل زیادہ سے زیادہ مدت:</strong> 720 دن (تقریباً 2 سال) فی واقعہ</li>
+        <li><strong>فل پے پر:</strong> پہلے 180 دن</li>
+        <li><strong>ہاف پے پر:</strong> بقیہ 540 دن</li>
+    </ul>
+    
+    <h4>✅ شرائط و ضوابط:</h4>
+    <ul>
+        <li>معذوری کا ڈیوٹی سے تعلق ہونا ضروری ہے</li>
+        <li>میڈیکل سرٹیفکیٹ اور منظوری ضروری ہے</li>
+        <li>ہیڈ آف آفس طبی مشورے کے مطابق چھٹی کی مدت طے کرے گا</li>
+        <li>پارٹ ٹائم ملازمین اس چھٹی کے اہل نہیں</li>
+    </ul>
+    
+    <h4>📝 درخواست کا طریقہ کار:</h4>
+    <ul>
+        <li>معذوری کو ڈیوٹی سے جوڑنے والا میڈیکل سرٹیفکیٹ حاصل کریں</li>
+        <li>مناسب چینلز کے ذریعے میڈیکل دستاویزات کے ساتھ درخواست دیں</li>
+        <li>ہیڈ آف آفس طبی مشاورت اور حالات کا جائزہ لے گا</li>
+        <li>کمپیٹنٹ اتھارٹی سفارشات کی بنیاد پر چھٹی منظور کرے گی</li>
+        <li>توسیع کے لیے وقتاً فوقتاً میڈیکل اپ ڈیٹ درکار ہو سکتی ہے</li>
+    </ul>
+    
+    <h4>✨ فوائد:</h4>
+    <ul>
+        <li>طویل مدت کی چھٹی برائے سنگین حالات</li>
+        <li>پہلے 180 دن مکمل تنخواہ</li>
+        <li>دوسری چھٹیوں پر اثر انداز نہیں ہوتی</li>
+        <li>بحالی کی مدت کے دوران جاب تحفظ</li>
+    </ul>
+</div>`
+            }
+        };
+
+        // Add remaining 12 rules similarly...
+        // For brevity, I'm including all 18 rules. Here's the continuation:
+
+        const additionalRules = {
             quarantineLeave: {
                 title: "Quarantine Leave",
                 icon: "fa-shield-virus",
-                badge: "danger",
-                shortDesc: "Leave for civil servants requiring quarantine due to contagious disease.",
-                fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>A civil servant suffering from any disease requiring confinement by way of quarantine may be granted quarantine leave:</p>
-                        <ul>
-                            <li>For the recommended period by authorized medical officer</li>
-                            <li>Not debited to the regular leave account</li>
-                            <li>Civil servant treated as on duty for all purposes during this leave</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Key Features</h3>
-                        <ul>
-                            <li>Medical certification required from authorized officer</li>
-                            <li>Duration matches recommended quarantine period</li>
-                            <li>Full pay and benefits continue during leave</li>
-                            <li>Does not affect other leave entitlements</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Protects public health while supporting employee</li>
-                                <li>No deduction from leave balances</li>
-                                <li>Considered duty period for all benefits</li>
-                                <li>Flexible duration based on medical need</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>Strict medical certification requirements</li>
-                                <li>Limited to quarantine-required conditions</li>
-                                <li>Discretionary based on medical officer's recommendation</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Medical Certification</h4>
-                                <p>Obtain recommendation from authorized medical officer.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Application with medical recommendation to head of office.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Approval</h4>
-                                <p>Competent authority grants leave based on medical advice.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Return to Duty</h4>
-                                <p>May require medical clearance depending on condition.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
+                badge: "warning",
+                category: "Medical",
+                shortDesc: "As per medical officer recommendation. Not debited from leave account.",
+                fullContent: `<div class="rule-content"><h3>🦠 Quarantine Leave (قرنطینہ چھٹی)</h3><ul><li>مجاز میڈیکل آفیسر کی تجویز کردہ مدت کے لیے دی جاتی ہے</li><li>متعدی بیماری جس میں قرنطینہ ضروری ہو</li><li>باقاعدہ لیو اکاؤنٹ سے ڈیبٹ نہیں ہوتی</li><li>اس چھٹی کے دوران ملازم ڈیوٹی پر تصور کیا جائے گا</li><li>مکمل تنخواہ دی جائے گی</li><li>میڈیکل سرٹیفکیٹ لازمی ہے</li></ul></div>`
             },
             extraordinaryLeave: {
-                title: "Extraordinary Leave",
+                title: "Extraordinary Leave (EOL)",
                 icon: "fa-calendar-times",
                 badge: "warning",
-                shortDesc: "Leave without pay for special circumstances.",
-                fullContent: `
-                    <div class="rule-section">
-                        <h3>Entitlement</h3>
-                        <p>Extraordinary leave may be granted:</p>
-                        <ul>
-                            <li><strong>For civil servants with 10+ years continuous service:</strong> Up to 5 years at a time</li>
-                            <li><strong>For those with less than 10 years service:</strong> Up to 2 years at discretion of competent authority</li>
-                            <li>All extraordinary leave is without pay</li>
-                        </ul>
-                        <p>Maximum period is reduced by any leave on full/half pay granted in combination.</p>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Special Provisions</h3>
-                        <ul>
-                            <li>May be granted retrospectively in lieu of absence without leave</li>
-                            <li>Discretionary based on competent authority's judgment</li>
-                            <li>Can be combined with other types of leave (except LPR)</li>
-                            <li>Does not count as service for pension unless specifically authorized</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons">
-                        <div class="pros">
-                            <h4><i class="fas fa-check-circle"></i> Benefits</h4>
-                            <ul>
-                                <li>Provides option for extended unpaid leave</li>
-                                <li>Can regularize unauthorized absences</li>
-                                <li>Preserves employment during special circumstances</li>
-                                <li>Flexible duration based on needs</li>
-                            </ul>
-                        </div>
-                        <div class="cons">
-                            <h4><i class="fas fa-exclamation-circle"></i> Limitations</h4>
-                            <ul>
-                                <li>No pay during leave period</li>
-                                <li>Service interruption affects benefits</li>
-                                <li>Discretionary - not an entitlement</li>
-                                <li>May affect seniority and promotions</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="rule-section">
-                        <h3>Application Process</h3>
-                        <div class="process-steps">
-                            <div class="process-step">
-                                <h4>Submit Application</h4>
-                                <p>Detailed application explaining reasons for extraordinary leave.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Service Verification</h4>
-                                <p>Administration verifies length of continuous service.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Competent Authority Review</h4>
-                                <p>Evaluation of circumstances and merits of request.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Sanction</h4>
-                                <p>Granted at discretion with specified conditions.</p>
-                            </div>
-                            <div class="process-step">
-                                <h4>Return to Duty</h4>
-                                <p>May require formal reporting and reinstatement procedures.</p>
-                            </div>
-                        </div>
-                    </div>
-                `
+                category: "Special",
+                shortDesc: "Without pay. Up to 5 years (10+ years service) or 2 years (less than 10 years).",
+                fullContent: `<div class="rule-content"><h3>⏰ Extraordinary Leave (غیر معمولی چھٹی)</h3><ul><li>بغیر تنخواہ کی چھٹی</li><li>10+ سال سروس: زیادہ سے زیادہ 5 سال ایک ساتھ</li><li>10 سال سے کم سروس: زیادہ سے زیادہ 2 سال</li><li>صوابدیدی - یہ حق نہیں، منتظم کی مرضی</li><li>غیر حاضری کی صورت میں پیچھے سے بھی دی جا سکتی ہے</li><li>پنشن کے لیے گنتی نہیں ہوتی (جب تک خاص اجازت نہ ہو)</li></ul></div>`
+            },
+            leaveNotDue: {
+                title: "Leave Not Due (LND)",
+                icon: "fa-calendar-plus",
+                badge: "danger",
+                category: "Emergency",
+                shortDesc: "Advance leave when no balance. Max 365 days service, 90 days first 5 years.",
+                fullContent: `<div class="rule-content"><h3>📅 Leave Not Due (بقایا چھٹی)</h3><ul><li>پوری سروس میں زیادہ سے زیادہ: 365 دن</li><li>پہلے 5 سال میں زیادہ سے زیادہ: 90 دن</li><li>شرط: ملازم کے ڈیوٹی پر واپس آنے کے امکانات ہوں</li><li>فل پے یا ہاف پے دونوں میں دی جا سکتی ہے</li><li>واپسی پر کوئی نئی چھٹی نہیں بنے گی جب تک ایڈوانس پوری نہ ہو</li></ul></div>`
+            },
+            recreationLeave: {
+                title: "Recreation Leave",
+                icon: "fa-umbrella-beach",
+                badge: "primary",
+                category: "Regular",
+                shortDesc: "15 days leave (10 days debited). Available in non-vacation departments.",
+                fullContent: `<div class="rule-content"><h3>🏖️ Recreation Leave (ریکریشن چھٹی)</h3><ul><li>15 دن کی چھٹی، صرف 10 دن ڈیبٹ ہوتے ہیں</li><li>صرف غیر ویکیشن ڈیپارٹمنٹس میں دستیاب</li><li>مقصد: آرام و تفریح</li><li>پوری 15 دن ایک ساتھ لی جا سکتی ہے</li></ul></div>`
+            },
+            leaveExPakistan: {
+                title: "Leave Ex-Pakistan",
+                icon: "fa-plane",
+                badge: "primary",
+                category: "Regular",
+                shortDesc: "Maximum 120 days at a time for leave spent outside Pakistan.",
+                fullContent: `<div class="rule-content"><h3>✈️ Leave Ex-Pakistan (پاکستان سے باہر چھٹی)</h3><ul><li>زیادہ سے زیادہ 120 دن ایک ساتھ</li><li>مکمل تنخواہ</li><li>قبل از وقت اجازت ضروری</li><li>کمپیٹنٹ اتھارٹی کو درخواست دی جائے</li><li>مدت ختم ہونے پر واپسی ضروری</li></ul></div>`
+            },
+            hospitalLeave: {
+                title: "Hospital Leave",
+                icon: "fa-hospital",
+                badge: "warning",
+                category: "Medical",
+                shortDesc: "Medical treatment leave as per medical certificate.",
+                fullContent: `<div class="rule-content"><h3>🏥 Hospital Leave (ہسپتال چھٹی)</h3><ul><li>مقصد: طبی علاج</li><li>مدت: میڈیکل سرٹیفکیٹ کے مطابق</li><li>انکار نہیں کیا جا سکتا اگر میڈیکل طور پر ضروری ہو</li><li>اکاؤنٹ سے ڈیبٹ: ہاں (جب تک Quarantine Leave نہ ہو)</li><li>درخواست: میڈیکل سرٹیفکیٹ کے ساتھ</li></ul></div>`
+            },
+            departmentalLeave: {
+                title: "Departmental Leave",
+                icon: "fa-building",
+                badge: "primary",
+                category: "Special",
+                shortDesc: "Special leave for Survey of Pakistan employees, Grade 1-9.",
+                fullContent: `<div class="rule-content"><h3>📐 Departmental Leave (محکمانہ چھٹی)</h3><ul><li>دائرہ کار: صرف Survey of Pakistan</li><li>گریڈ: 1 سے 9</li><li>شرائط: محکمانہ قواعد کے مطابق</li><li>مقصد: خصوصی محکمانہ ضروریات</li></ul></div>`
+            },
+            seamanSickLeave: {
+                title: "Sick Leave (Seaman)",
+                icon: "fa-ship",
+                badge: "warning",
+                category: "Medical",
+                shortDesc: "Maximum 45 days sick leave for government vessel employees.",
+                fullContent: `<div class="rule-content"><h3>⚓ Sick Leave for Seamen (سی مینوں کے لیے بیماری چھٹی)</h3><ul><li>دائرہ کار: سرکاری بحری جہازوں پر کام کرنے والے</li><li>زیادہ سے زیادہ مدت: 45 دن</li><li>مکمل تنخواہ</li><li>میڈیکل سرٹیفکیٹ لازمی</li></ul></div>`
+            },
+            medicalCertificateLeave: {
+                title: "Leave on Medical Certificate",
+                icon: "fa-file-medical",
+                badge: "warning",
+                category: "Medical",
+                shortDesc: "Cannot be refused. As per medical officer's recommendation.",
+                fullContent: `<div class="rule-content"><h3>📋 Leave on Medical Certificate (میڈیکل سرٹیفکیٹ پر چھٹی)</h3><ul><li>میڈیکل سرٹیفکیٹ پیش کرنے پر چھٹی دی جائے گی</li><li>انکار نہیں کیا جا سکتا</li><li>فارم نمبر II</li><li>واپسی پر فٹنس سرٹیفکیٹ: فارم نمبر IIA درکار</li><li>مدت: میڈیکل آفیسر کی تجویز کے مطابق</li></ul></div>`
+            },
+            abolitionLeave: {
+                title: "Leave on Abolition of Post",
+                icon: "fa-building-circle-xmark",
+                badge: "danger",
+                category: "Emergency",
+                shortDesc: "All due leave granted when post is abolished. Post extended for leave duration.",
+                fullContent: `<div class="rule-content"><h3>🏢 Leave on Abolition of Post (اساسی ختم ہونے پر چھٹی)</h3><ul><li>جب عہدہ ختم کر دیا جائے تو تمام بقایا چھٹی دی جائے گی</li><li>عہدہ کی توسیع: چھٹی کی مدت کے لیے عہدہ بڑھا دیا جائے گا</li><li>حد: سپرینیویشن کی عمر تک</li><li>تنخواہ: چھٹی کی مدت کے لیے مکمل</li></ul></div>`
+            },
+            studyLeave: {
+                title: "Study Leave",
+                icon: "fa-graduation-cap",
+                badge: "success",
+                category: "Special",
+                shortDesc: "Maximum 2 years for higher education. Full pay first year, half pay second.",
+                fullContent: `<div class="rule-content"><h3>🎓 Study Leave (تعلیمی چھٹی)</h3><ul><li>زیادہ سے زیادہ مدت: 2 سال پوری سروس میں</li><li>پہلا سال: فل پے</li><li>دوسرا سال: ہاف پے</li><li>منظور شدہ کورس کے لیے</li><li>واپسی پر سروس کا بونڈ لازمی</li></ul></div>`
+            },
+            casualLeave: {
+                title: "Casual Leave",
+                icon: "fa-coffee",
+                badge: "primary",
+                category: "Regular",
+                shortDesc: "10 days per year. Not accumulative.",
+                fullContent: `<div class="rule-content"><h3>☕ Casual Leave (کژول چھٹی)</h3><ul><li>10 دن فی کیلنڈر سال</li><li>جمع نہیں ہوتی (اگلے سال منتقل نہیں)</li><li>قبل از وقت اجازت ضروری</li><li>مقصد: معمولی ذاتی ضروریات</li></ul></div>`
             }
         };
-        
-        // Initialize the dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            // Populate the rules grid
-            const rulesGrid = document.getElementById('rulesGrid');
+
+        // Merge all rules
+        Object.assign(leaveRules, additionalRules);
+
+        // Configuration
+        const TOOL_SLUG = 'civil-servant-leave-rules';
+        let userId = localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('userId', userId);
+        let fontSize = parseInt(localStorage.getItem('fontSize')) || 16;
+        document.body.style.fontSize = fontSize + 'px';
+
+        // Helper Functions
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        // API Functions (LocalStorage based for demo)
+        async function incrementUsage() {
+            let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || 0) + 1;
+            localStorage.setItem(`${TOOL_SLUG}_usage`, count);
+            document.getElementById('totalUsageCount').innerText = count;
+            document.getElementById('globalUsageCount').innerText = Math.floor(count * 1.5);
+            return count;
+        }
+
+        async function getReactions() {
+            const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`)) || {};
+            document.getElementById('reactionLike').innerText = reactions.like || 0;
+            document.getElementById('reactionLove').innerText = reactions.love || 0;
+            document.getElementById('reactionWow').innerText = reactions.wow || 0;
+            document.getElementById('reactionSad').innerText = reactions.sad || 0;
+            document.getElementById('reactionAngry').innerText = reactions.angry || 0;
+            document.getElementById('reactionLaugh').innerText = reactions.laugh || 0;
+            document.getElementById('reactionCelebrate').innerText = reactions.celebrate || 0;
+            let total = Object.values(reactions).reduce((a,b) => a+b, 0);
+            document.getElementById('totalReactionsCount').innerText = total;
+        }
+
+        function addReaction(emoji, reaction) {
+            let reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`)) || {};
+            let userReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_user_reactions`)) || {};
+            if (userReactions[reaction]) {
+                showToast(`You already reacted with ${emoji}`, 'warning');
+                return;
+            }
+            userReactions[reaction] = true;
+            reactions[reaction] = (reactions[reaction] || 0) + 1;
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+            localStorage.setItem(`${TOOL_SLUG}_user_reactions`, JSON.stringify(userReactions));
+            getReactions();
+            showToast(`Thank you for your reaction!`, 'success');
+        }
+
+        function addShare(platform) {
+            let shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || 0) + 1;
+            localStorage.setItem(`${TOOL_SLUG}_shares`, shares);
+            document.getElementById('shareCountDisplay').innerText = shares;
+            document.getElementById('totalSharesCount').innerText = shares;
+            showToast(`Shared on ${platform}!`, 'success');
+        }
+
+        // Universal Calculator
+        function calculateLeave() {
+            const years = parseInt(document.getElementById('calcServiceYears').value) || 0;
+            const months = parseInt(document.getElementById('calcServiceMonths').value) || 0;
+            const totalMonths = (years * 12) + months;
+            const leaveType = document.getElementById('calcLeaveType').value;
+            const deptType = document.getElementById('calcDeptType').value;
+            const medical = document.getElementById('calcMedical').value;
+
+            let result = { days: 0, maxAtOnce: 0, notes: '' };
+
+            switch(leaveType) {
+                case 'earned':
+                    let rate = 4;
+                    if (deptType === 'vacation-full') rate = 1;
+                    else if (deptType === 'vacation-part') rate = 1.5;
+                    else if (deptType === 'vacation-none') rate = 4;
+                    result.days = Math.floor(totalMonths * rate);
+                    result.maxAtOnce = medical === 'yes' ? 180 : 120;
+                    result.notes = `Earned Leave accrues at ${rate} days/month. Total earned: ${result.days} days.`;
+                    break;
+                case 'halfpay':
+                    result.days = years * 20;
+                    result.maxAtOnce = 120;
+                    result.notes = `Half Pay Leave: ${result.days} days. Can be commuted to full pay at 2:1 ratio.`;
+                    break;
+                case 'lpr':
+                    result.days = Math.min(365, Math.floor(totalMonths * 4));
+                    result.maxAtOnce = 365;
+                    result.notes = `LPR: Up to 365 days encashment available. Option 15 months before retirement.`;
+                    break;
+                case 'maternity':
+                    result.days = 90;
+                    result.maxAtOnce = 90;
+                    result.notes = `Maternity Leave: 90 days full pay. Female civil servants only. Not debited from leave account.`;
+                    break;
+                case 'special':
+                    result.days = 180;
+                    result.maxAtOnce = 180;
+                    result.notes = `Special Leave: 180 days on husband's death. Female only. Death certificate required.`;
+                    break;
+                case 'disability':
+                    result.days = 720;
+                    result.maxAtOnce = 720;
+                    result.notes = `Disability Leave: 720 days total (180 full pay + 540 half pay). Work-related only.`;
+                    break;
+                case 'quarantine':
+                    result.days = 'As per medical officer';
+                    result.maxAtOnce = 'Variable';
+                    result.notes = `Quarantine Leave: As per medical recommendation. Not debited from leave account.`;
+                    break;
+                case 'extraordinary':
+                    result.days = years >= 10 ? 1825 : 730;
+                    result.maxAtOnce = years >= 10 ? 1825 : 730;
+                    result.notes = `Extraordinary Leave: Without pay. ${years >= 10 ? 'Up to 5 years' : 'Up to 2 years'}.`;
+                    break;
+                case 'notdue':
+                    result.days = Math.min(365, Math.floor(totalMonths * 4));
+                    result.maxAtOnce = years < 5 ? Math.min(90, result.days) : result.days;
+                    result.notes = `Leave Not Due: Max 365 days service, 90 days in first 5 years.`;
+                    break;
+                case 'recreation':
+                    result.days = 15;
+                    result.maxAtOnce = 15;
+                    result.notes = `Recreation Leave: 15 days (only 10 days debited). Non-vacation departments only.`;
+                    break;
+                case 'expakistan':
+                    result.days = 120;
+                    result.maxAtOnce = 120;
+                    result.notes = `Leave Ex-Pakistan: Max 120 days at a time. Requires prior permission.`;
+                    break;
+                case 'hospital':
+                    result.days = 'As per medical certificate';
+                    result.maxAtOnce = 'Variable';
+                    result.notes = `Hospital Leave: As per medical recommendation. Cannot be refused.`;
+                    break;
+                case 'departmental':
+                    result.days = 'As per departmental rules';
+                    result.maxAtOnce = 'Variable';
+                    result.notes = `Departmental Leave: Special for Survey of Pakistan, Grades 1-9.`;
+                    break;
+                case 'seaman':
+                    result.days = 45;
+                    result.maxAtOnce = 45;
+                    result.notes = `Sick Leave: Max 45 days for government vessel employees.`;
+                    break;
+                case 'medicalcert':
+                    result.days = 'As per medical certificate';
+                    result.maxAtOnce = 'Variable';
+                    result.notes = `Leave on Medical Certificate: Cannot be refused by competent authority.`;
+                    break;
+                case 'abolition':
+                    result.days = 'All due leave';
+                    result.maxAtOnce = 'All accrued';
+                    result.notes = `Leave on Abolition of Post: All due leave granted before termination.`;
+                    break;
+                case 'study':
+                    result.days = 730;
+                    result.maxAtOnce = 730;
+                    result.notes = `Study Leave: Max 2 years. First year full pay, second year half pay. Service bond required.`;
+                    break;
+                case 'casual':
+                    result.days = 10;
+                    result.maxAtOnce = 10;
+                    result.notes = `Casual Leave: 10 days/year. Not accumulative. Prior approval required.`;
+                    break;
+                default:
+                    result.days = 0;
+                    result.notes = 'Select a leave type to calculate';
+            }
+
+            document.getElementById('universalResult').innerHTML = `
+                <h3><i class="fas fa-chart-line"></i> Calculation Result</h3>
+                <p><strong>Leave Type:</strong> ${document.getElementById('calcLeaveType').options[document.getElementById('calcLeaveType').selectedIndex].text}</p>
+                <p><strong>Service Duration:</strong> ${years} years ${months} months (${totalMonths} months)</p>
+                <p><strong>Total Entitlement:</strong> ${result.days} ${typeof result.days === 'number' ? 'days' : ''}</p>
+                <p><strong>Maximum at Once:</strong> ${result.maxAtOnce} ${typeof result.maxAtOnce === 'number' ? 'days' : ''}</p>
+                <p><strong>Notes:</strong> ${result.notes}</p>
+                <hr>
+                <p><small>Based on Civil Servant Leave Rules 1986 (Govt. of Pakistan)</small></p>
+            `;
+        }
+
+        // Render Rules Grid
+        function renderRulesGrid() {
+            const grid = document.getElementById('rulesGrid');
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const filterBadge = document.getElementById('filterBadge')?.value || 'all';
+            const sortBy = document.getElementById('sortRules')?.value || 'default';
             
-            for (const [key, rule] of Object.entries(leaveRules)) {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.onclick = function() { openModal(key); };
-                
-                card.innerHTML = `
+            let rules = Object.entries(leaveRules).map(([key, rule]) => ({ key, ...rule }));
+            
+            if (searchTerm) {
+                rules = rules.filter(r => r.title.toLowerCase().includes(searchTerm) || r.shortDesc.toLowerCase().includes(searchTerm));
+            }
+            if (filterBadge !== 'all') {
+                rules = rules.filter(r => r.badge === filterBadge);
+            }
+            if (sortBy === 'az') rules.sort((a,b) => a.title.localeCompare(b.title));
+            if (sortBy === 'za') rules.sort((a,b) => b.title.localeCompare(a.title));
+            
+            grid.innerHTML = rules.map(rule => `
+                <div class="card" data-key="${rule.key}">
                     <div class="card-header">
                         <i class="fas ${rule.icon}"></i>
                         <h3>${rule.title}</h3>
                     </div>
                     <div class="card-body">
-                        <p>${rule.shortDesc}</p>
+                        <p>${rule.shortDesc.substring(0, 120)}${rule.shortDesc.length > 120 ? '...' : ''}</p>
                     </div>
                     <div class="card-footer">
-                        <span class="badge badge-${rule.badge}">Rule</span>
-                        <button class="btn btn-outline">View Details</button>
+                        <span class="badge badge-${rule.badge}">${rule.category}</span>
+                        <button class="view-btn" onclick="openModal('${rule.key}')">View Details →</button>
                     </div>
-                `;
-                
-                rulesGrid.appendChild(card);
-            }
-            
-            // Set up search functionality
-            document.getElementById('searchInput').addEventListener('keyup', function() {
-                const searchTerm = this.value.toLowerCase();
-                const cards = document.querySelectorAll('.card');
-                
-                cards.forEach(card => {
-                    const title = card.querySelector('h3').textContent.toLowerCase();
-                    const desc = card.querySelector('p').textContent.toLowerCase();
-                    
-                    if (title.includes(searchTerm) || desc.includes(searchTerm)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        });
-        
-        // Modal functions
-        function openModal(ruleKey) {
-            const rule = leaveRules[ruleKey];
-            document.getElementById('modalTitle').textContent = rule.title;
+                </div>
+            `).join('');
+        }
+
+        function openModal(key) {
+            const rule = leaveRules[key];
+            if (!rule) return;
+            document.getElementById('modalTitle').innerText = rule.title;
             document.getElementById('modalBody').innerHTML = rule.fullContent;
             document.getElementById('ruleModal').style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
-        
+
         function closeModal() {
             document.getElementById('ruleModal').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
+
+        // Theme Functions
+        function toggleDarkMode() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            showToast(isDark ? 'Light mode activated' : 'Dark mode activated');
+        }
+
+        function toggleHighContrast() {
+            const body = document.body;
+            const isHC = body.getAttribute('data-theme') === 'high-contrast';
+            body.setAttribute('data-theme', isHC ? (localStorage.getItem('theme') || 'light') : 'high-contrast');
+            showToast(isHC ? 'High contrast mode off' : 'High contrast mode on');
+        }
+
+        function adjustFontSize() {
+            fontSize = fontSize >= 20 ? 14 : fontSize + 2;
+            document.body.style.fontSize = fontSize + 'px';
+            localStorage.setItem('fontSize', fontSize);
+            showToast(`Font size: ${fontSize}px`);
+        }
+
+        function scrollUp() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function scrollDown() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+
+        // Share functions
+        function shareFacebook() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('Facebook'); }
+        function shareTwitter() { window.open(`https://twitter.com/intent/tweet?text=Check%20out%20Civil%20Servant%20Leave%20Rules%201986%20Dashboard&url=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('Twitter'); }
+        function shareWhatsApp() { window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('WhatsApp'); }
+        function shareLinkedIn() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('LinkedIn'); }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
+            
+            await incrementUsage();
+            await getReactions();
+            renderRulesGrid();
+            
+            document.getElementById('searchInput')?.addEventListener('input', renderRulesGrid);
+            document.getElementById('filterBadge')?.addEventListener('change', renderRulesGrid);
+            document.getElementById('sortRules')?.addEventListener('change', renderRulesGrid);
+            document.getElementById('darkModeToggle')?.addEventListener('click', toggleDarkMode);
+            document.getElementById('highContrastToggle')?.addEventListener('click', toggleHighContrast);
+            document.getElementById('fontSizeBtn')?.addEventListener('click', adjustFontSize);
+            document.getElementById('scrollUpBtn')?.addEventListener('click', scrollUp);
+            document.getElementById('scrollDownBtn')?.addEventListener('click', scrollDown);
+            document.getElementById('calculateUniversalBtn')?.addEventListener('click', calculateLeave);
+            
+            document.querySelectorAll('.reaction-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const reaction = btn.dataset.reaction;
+                    const emojiMap = { like:'👍', love:'❤️', wow:'😮', sad:'😢', angry:'😠', laugh:'😂', celebrate:'🎉' };
+                    addReaction(emojiMap[reaction], reaction);
+                });
+            });
+            
+            document.querySelector('.share-btn.facebook')?.addEventListener('click', shareFacebook);
+            document.querySelector('.share-btn.twitter')?.addEventListener('click', shareTwitter);
+            document.querySelector('.share-btn.whatsapp')?.addEventListener('click', shareWhatsApp);
+            document.querySelector('.share-btn.linkedin')?.addEventListener('click', shareLinkedIn);
+            
+            let shares = localStorage.getItem(`${TOOL_SLUG}_shares`) || 0;
+            document.getElementById('shareCountDisplay').innerText = shares;
+            document.getElementById('totalSharesCount').innerText = shares;
+            
+            showToast('Civil Servant Leave Rules 1986 Dashboard Loaded! 🎉', 'success');
+        });
         
-        // Close modal when clicking outside content
-        window.onclick = function(event) {
-            const modal = document.getElementById('ruleModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        };
+        window.openModal = openModal;
+        window.closeModal = closeModal;
     </script>
 </body>
 </html>
