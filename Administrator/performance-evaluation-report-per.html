@@ -1,1432 +1,809 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/1055/1055679.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/1055/1055679.png" style="display: none;" width="200" /></a></div>
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"></meta>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
-    <title> <a href="https://essentialmost.com/be3/V-0.PN3WplvsbFmLVpJuZLDy0/2yNOTfE_2/MQDJAc4TLpTYYP1/MpTrYEw/MADnkv">Performance Evaluation Report (PER) Generator</a> | MagicRills.com</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PER Generator | Sindh Education Dept | Official Performance Evaluation Report</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-        }
-        
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            transition: background 0.3s ease, color 0.2s ease;
         }
-        
+
+        :root {
+            --bg-body: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #334155;
+            --border: #e2e8f0;
+            --header-bg: linear-gradient(135deg, #0f2b3d, #1a4a6f);
+            --btn-primary: #2c6e9e;
+            --btn-primary-hover: #1e4a6e;
+            --accent: #e67e22;
+            --table-header: #1e3a5f;
+            --shadow: 0 8px 20px rgba(0,0,0,0.08);
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+        body.dark {
+            --bg-body: #121212;
+            --card-bg: #1e2a32;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --header-bg: linear-gradient(135deg, #0a1a24, #0f2c3b);
+            --shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
         body {
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            background: var(--bg-body);
+            color: var(--text-primary);
         }
-        
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 1rem 1.5rem;
         }
-        
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 20px 0;
+        /* Hero Section */
+        .hero {
+            background: var(--header-bg);
+            border-radius: 2rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
             text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 5px solid var(--secondary-color);
+            color: white;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
-        
-        header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
+        .hero::before {
+            content: "📋";
+            position: absolute;
+            font-size: 8rem;
+            opacity: 0.08;
+            right: -20px;
+            bottom: -30px;
+            transform: rotate(-15deg);
         }
+        .hero h1 { font-size: 2.2rem; font-weight: 700; }
+        .hero p { opacity: 0.9; margin-top: 0.5rem; }
         
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
-        
-        .form-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 30px;
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-left: 5px solid var(--accent);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+            color: var(--text-primary);
         }
+        .section-title:first-of-type { margin-top: 0; }
         
-        .form-section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
         }
-        
-        .form-section:last-child {
-            border-bottom: none;
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
         }
-        
-        .form-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--secondary-color);
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
+        .input-group label {
             font-weight: 600;
-            color: var(--dark-color);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            transition: border 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: var(--secondary-color);
+        input, select, textarea {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.7rem 1rem;
+            border-radius: 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--btn-primary);
+            box-shadow: 0 0 0 2px rgba(44,110,158,0.3);
         }
         
+        /* Rating Table - Proper columns for A,B,C,D */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1rem;
+            margin: 1rem 0;
+        }
         .rating-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            min-width: 800px;
+            font-size: 0.85rem;
         }
-        
         .rating-table th, .rating-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
+            border: 1px solid var(--border);
+            padding: 12px 10px;
+            text-align: center;
+            vertical-align: middle;
         }
-        
         .rating-table th {
-            background-color: var(--primary-color);
+            background: var(--table-header);
             color: white;
-        }
-        
-        .rating-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        
-        .rating-table tr:hover {
-            background-color: #f1f1f1;
-        }
-        
-        .rating-options {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .rating-option {
-            display: flex;
-            align-items: center;
-        }
-        
-        .rating-option input {
-            margin-right: 8px;
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
             font-weight: 600;
-            text-align: center;
-            transition: background-color 0.3s, transform 0.2s;
-            margin-right: 10px;
-            margin-bottom: 10px;
         }
+        .rating-table td:first-child, .rating-table th:first-child { width: 50px; }
+        .rating-table td:nth-child(2) { text-align: left; min-width: 280px; }
+        .rating-table td:nth-child(3) { width: 70px; }
+        .rating-table td:nth-child(4) { width: 70px; }
+        .rating-table td:nth-child(5) { width: 70px; }
+        .rating-table td:nth-child(6) { width: 70px; }
+        .rating-table td:nth-child(7) { min-width: 180px; text-align: left; }
         
-        .btn:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-primary {
-            background-color: var(--secondary-color);
-        }
-        
-        .btn-success {
-            background-color: var(--success-color);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-        }
-        
-        .btn-warning {
-            background-color: var(--warning-color);
-        }
-        
-        .action-buttons {
-            display: flex;
+        .grade-radio {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
+        }
+        .grade-radio input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin: 0;
+        }
+        .grade-label {
+            font-weight: bold;
+            font-size: 1rem;
         }
         
-        .hidden {
-            display: none;
-        }
-        
-        .preview-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        .preview-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .preview-header h2 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-        
-        .preview-table {
+        /* Student Table */
+        .student-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
         }
-        
-        .preview-table th, .preview-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
+        .student-table th, .student-table td {
+            border: 1px solid var(--border);
+            padding: 10px;
             text-align: left;
+            vertical-align: middle;
         }
-        
-        .preview-table th {
-            background-color: var(--primary-color);
+        .student-table th {
+            background: var(--table-header);
             color: white;
         }
-        
-        .grade-A {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .grade-B {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
-        .grade-C {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        .grade-D {
-            background-color: #f8d7da;
-            color: #721c24;
-            font-weight: bold;
-        }
-        
-        .signature-area {
-            margin-top: 50px;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .signature-box {
-            width: 45%;
-            border-top: 1px solid #333;
-            padding-top: 10px;
-            margin-top: 60px;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px;
-            background-color: var(--primary-color);
-            color: white;
+        .student-table input {
+            width: 100%;
+            padding: 6px 8px;
             border-radius: 8px;
         }
-        
-        @media print {
-            .no-print {
-                display: none;
-            }
-            
-            body {
-                background-color: white;
-            }
-            
-            .container {
-                padding: 0;
-            }
-            
-            .form-container, .preview-container {
-                box-shadow: none;
-                border: none;
-                padding: 0;
-            }
+        .percentage-cell { text-align: center; font-weight: bold; }
+        .grade-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 50px;
         }
+        .grade-A { background: #27ae60; color: white; }
+        .grade-B { background: #f39c12; color: white; }
+        .grade-C { background: #e67e22; color: white; }
+        .grade-D { background: #e74c3c; color: white; }
         
-        @media (max-width: 768px) {
-            .rating-options {
-                flex-direction: column;
-            }
-            
-            .rating-option {
-                margin-bottom: 10px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .btn {
-                width: 100%;
-                margin-bottom: 10px;
-                margin-right: 0;
-            }
-            
-            .signature-area {
-                flex-direction: column;
-            }
-            
-            .signature-box {
-                width: 100%;
-                margin-bottom: 30px;
-            }
-        }
-        
-        /* Loading spinner */
-        .spinner {
-            display: none;
-            width: 40px;
-            height: 40px;
-            margin: 0 auto;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid var(--secondary-color);
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Alert messages */
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
+        /* Buttons */
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 2rem;
             font-weight: 600;
+            border: none;
+            cursor: pointer;
+            background: var(--btn-primary);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--btn-primary);
+            color: var(--btn-primary);
+        }
+        .btn-danger { background: var(--danger); }
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0 0;
         }
         
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        /* Stats Panel */
+        .stats-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
+        .reactions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .reaction-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.1s;
+        }
+        .reaction-btn:hover { transform: scale(1.05); background: var(--border);}
+        .share-icons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .share-icon {
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: 0.2s;
+        }
+        .share-icon:hover { color: var(--btn-primary); transform: translateY(-2px);}
         
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 1000;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        .scroll-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 99;
+        }
+        .floating-btn {
+            background: var(--btn-primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .hidden { display: none; }
+        .preview-area {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .remove-row-btn {
+            background: var(--danger);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 0.8rem; }
+            .hero h1 { font-size: 1.5rem; }
+            .rating-table th, .rating-table td { font-size: 0.7rem; padding: 6px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1> Performance Evaluation Report (PER) Generator</h1>
-            <p>Government of Sindh - School Education &amp; Literacy Department</p>
-        </div>
-    </header>
-    
-    <div class="container">
-        <div class="alert hidden" id="alert-message"></div>
-        
-        <div class="form-container no-print">
-            <div class="form-section">
-                <h2>Employee Information</h2>
-                <div class="form-group">
-                    <label for="fullName">Full Name (in block letters)</label>
-                    <input class="form-control" id="fullName" required="" type="text" />
-                </div>
-                
-                <div class="row">
-                    <div class="form-group" style="float: left; width: 48%;">
-                        <label for="cnic">CNIC #</label>
-                        <input class="form-control" id="cnic" placeholder="XXXXX-XXXXXXX-X" required="" type="text" />
-                    </div>
-                    <div class="form-group" style="float: right; width: 48%;">
-                        <label for="persNo">Pers #</label>
-                        <input class="form-control" id="persNo" required="" type="text" />
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="contactNo">Contact Number</label>
-                    <input class="form-control" id="contactNo" required="" type="tel" />
-                </div>
-                
-                <div class="row">
-                    <div class="form-group" style="float: left; width: 32%;">
-                        <label for="dob">Date of Birth</label>
-                        <input class="form-control" id="dob" required="" type="date" />
-                    </div>
-                    <div class="form-group" style="float: left; margin-left: 2%; width: 32%;">
-                        <label for="entryDate">Entry into Service</label>
-                        <input class="form-control" id="entryDate" required="" type="date" />
-                    </div>
-                    <div class="form-group" style="float: right; width: 32%;">
-                        <label for="presentPostDate">Since Present Post</label>
-                        <input class="form-control" id="presentPostDate" required="" type="date" />
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="designation">Designation with BPS</label>
-                    <input class="form-control" id="designation" required="" type="text" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="postHeld">Post held during the period</label>
-                    <input class="form-control" id="postHeld" required="" type="text" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="postingPlace">Place of Posting</label>
-                    <input class="form-control" id="postingPlace" required="" type="text" />
-                </div>
-                
-                <div class="row">
-                    <div class="form-group" style="float: left; width: 48%;">
-                        <label for="semisCode">SEMIS Code</label>
-                        <input class="form-control" id="semisCode" type="text" />
-                    </div>
-                    <div class="form-group" style="float: right; width: 48%;">
-                        <label for="qualification">Qualifications (last degree)</label>
-                        <input class="form-control" id="qualification" required="" type="text" />
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                
-                <div class="row">
-                    <div class="form-group" style="float: left; width: 48%;">
-                        <label for="evaluationPeriodFrom">Evaluation Period (From)</label>
-                        <input class="form-control" id="evaluationPeriodFrom" required="" type="date" />
-                    </div>
-                    <div class="form-group" style="float: right; width: 48%;">
-                        <label for="evaluationPeriodTo">Evaluation Period (To)</label>
-                        <input class="form-control" id="evaluationPeriodTo" required="" type="date" />
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h2>Performance Evaluation</h2>
-                <table class="rating-table">
-                    <thead>
-                        <tr>
-                            <th>S. No.</th>
-                            <th>Indicator</th>
-                            <th>A</th>
-                            <th>B</th>
-                            <th>C</th>
-                            <th>D</th>
-                            <th>Comments</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="7" style="background-color: #f0f0f0; font-weight: bold;">Standard 1: Individual Persona</td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>Abides by Policies and Procedures Follows official policies, and procedures within school and classroom.</td>
-                            <td><input name="rating1" required="" type="radio" value="A" /></td>
-                            <td><input name="rating1" type="radio" value="B" /></td>
-                            <td><input name="rating1" type="radio" value="C" /></td>
-                            <td><input name="rating1" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment1" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Appearance and Conduct Dresses and behaves appropriately in school and classroom.</td>
-                            <td><input name="rating2" required="" type="radio" value="A" /></td>
-                            <td><input name="rating2" type="radio" value="B" /></td>
-                            <td><input name="rating2" type="radio" value="C" /></td>
-                            <td><input name="rating2" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment2" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>Punctuality and Regularity Arrives and leaves school according to official timings. Conducts classes on time.</td>
-                            <td><input name="rating3" required="" type="radio" value="A" /></td>
-                            <td><input name="rating3" type="radio" value="B" /></td>
-                            <td><input name="rating3" type="radio" value="C" /></td>
-                            <td><input name="rating3" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment3" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>Communication and Collaboration Communicates and collaborates respectfully with school staff and students.</td>
-                            <td><input name="rating4" required="" type="radio" value="A" /></td>
-                            <td><input name="rating4" type="radio" value="B" /></td>
-                            <td><input name="rating4" type="radio" value="C" /></td>
-                            <td><input name="rating4" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment4" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td>Healthy Interaction with Parents Promotes cooperation and communication between school and parents.</td>
-                            <td><input name="rating5" required="" type="radio" value="A" /></td>
-                            <td><input name="rating5" type="radio" value="B" /></td>
-                            <td><input name="rating5" type="radio" value="C" /></td>
-                            <td><input name="rating5" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment5" type="text" /></td>
-                        </tr>
-                        
-                        <tr>
-                            <td colspan="7" style="background-color: #f0f0f0; font-weight: bold;">Standard 2: Planning and Instruction</td>
-                        </tr>
-                        <tr>
-                            <td>6</td>
-                            <td>Content Mastery Demonstrates conceptual clarity across grades.</td>
-                            <td><input name="rating6" required="" type="radio" value="A" /></td>
-                            <td><input name="rating6" type="radio" value="B" /></td>
-                            <td><input name="rating6" type="radio" value="C" /></td>
-                            <td><input name="rating6" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment6" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>7</td>
-                            <td>Lesson Planning Prepares daily lesson plans aligned with the given school curriculum.</td>
-                            <td><input name="rating7" required="" type="radio" value="A" /></td>
-                            <td><input name="rating7" type="radio" value="B" /></td>
-                            <td><input name="rating7" type="radio" value="C" /></td>
-                            <td><input name="rating7" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment7" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>8</td>
-                            <td>Execution and Teaching Techniques Executes planned lesson using various teaching strategies.</td>
-                            <td><input name="rating8" required="" type="radio" value="A" /></td>
-                            <td><input name="rating8" type="radio" value="B" /></td>
-                            <td><input name="rating8" type="radio" value="C" /></td>
-                            <td><input name="rating8" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment8" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>9</td>
-                            <td>Student-Centered Teaching Uses child-centered, activity-based learning methodology.</td>
-                            <td><input name="rating9" required="" type="radio" value="A" /></td>
-                            <td><input name="rating9" type="radio" value="B" /></td>
-                            <td><input name="rating9" type="radio" value="C" /></td>
-                            <td><input name="rating9" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment9" type="text" /></td>
-                        </tr>
-                        
-                        <tr>
-                            <td colspan="7" style="background-color: #f0f0f0; font-weight: bold;">Standard 3: Assessment</td>
-                        </tr>
-                        <tr>
-                            <td>10</td>
-                            <td>Conducts Regular and Grade-Appropriate Assessment Designs and conducts assessments at appropriate level.</td>
-                            <td><input name="rating10" required="" type="radio" value="A" /></td>
-                            <td><input name="rating10" type="radio" value="B" /></td>
-                            <td><input name="rating10" type="radio" value="C" /></td>
-                            <td><input name="rating10" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment10" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>11</td>
-                            <td>Checks Note Book/Diary Regularly and accurately checks students' work.</td>
-                            <td><input name="rating11" required="" type="radio" value="A" /></td>
-                            <td><input name="rating11" type="radio" value="B" /></td>
-                            <td><input name="rating11" type="radio" value="C" /></td>
-                            <td><input name="rating11" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment11" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>12</td>
-                            <td>Records Feedback Checks assessments correctly and provides timely feedback.</td>
-                            <td><input name="rating12" required="" type="radio" value="A" /></td>
-                            <td><input name="rating12" type="radio" value="B" /></td>
-                            <td><input name="rating12" type="radio" value="C" /></td>
-                            <td><input name="rating12" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment12" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>13</td>
-                            <td>Improves through Review/Assessment Uses assessment results to improve teaching and learning.</td>
-                            <td><input name="rating13" required="" type="radio" value="A" /></td>
-                            <td><input name="rating13" type="radio" value="B" /></td>
-                            <td><input name="rating13" type="radio" value="C" /></td>
-                            <td><input name="rating13" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment13" type="text" /></td>
-                        </tr>
-                        
-                        <tr>
-                            <td colspan="7" style="background-color: #f0f0f0; font-weight: bold;">Standard 4: Classroom Management</td>
-                        </tr>
-                        <tr>
-                            <td>14</td>
-                            <td>Maintains Classroom Environment Keeps classroom space organized and clean, and manages time efficiently.</td>
-                            <td><input name="rating14" required="" type="radio" value="A" /></td>
-                            <td><input name="rating14" type="radio" value="B" /></td>
-                            <td><input name="rating14" type="radio" value="C" /></td>
-                            <td><input name="rating14" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment14" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>15</td>
-                            <td>Maintains Discipline and Ethical Values Resolves disciplinary issues without hitting, harassment or abuse, and tries to nurture ethical values amongst students.</td>
-                            <td><input name="rating15" required="" type="radio" value="A" /></td>
-                            <td><input name="rating15" type="radio" value="B" /></td>
-                            <td><input name="rating15" type="radio" value="C" /></td>
-                            <td><input name="rating15" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment15" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>16</td>
-                            <td>Maintains Positive Interaction in Class Shows respect and kindness towards all children.</td>
-                            <td><input name="rating16" required="" type="radio" value="A" /></td>
-                            <td><input name="rating16" type="radio" value="B" /></td>
-                            <td><input name="rating16" type="radio" value="C" /></td>
-                            <td><input name="rating16" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment16" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>17</td>
-                            <td>Actively Listens to Students Listens and pays attention to students' needs and responses.</td>
-                            <td><input name="rating17" required="" type="radio" value="A" /></td>
-                            <td><input name="rating17" type="radio" value="B" /></td>
-                            <td><input name="rating17" type="radio" value="C" /></td>
-                            <td><input name="rating17" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment17" type="text" /></td>
-                        </tr>
-                        
-                        <tr>
-                            <td colspan="7" style="background-color: #f0f0f0; font-weight: bold;">Standard 5: Professional Outlook</td>
-                        </tr>
-                        <tr>
-                            <td>18</td>
-                            <td>Self-Development Researches and updates knowledge and improves practice.</td>
-                            <td><input name="rating18" required="" type="radio" value="A" /></td>
-                            <td><input name="rating18" type="radio" value="B" /></td>
-                            <td><input name="rating18" type="radio" value="C" /></td>
-                            <td><input name="rating18" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment18" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>19</td>
-                            <td>Initiative and Drive Takes lead in organizing events, and co-curricular activities.</td>
-                            <td><input name="rating19" required="" type="radio" value="A" /></td>
-                            <td><input name="rating19" type="radio" value="B" /></td>
-                            <td><input name="rating19" type="radio" value="C" /></td>
-                            <td><input name="rating19" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment19" type="text" /></td>
-                        </tr>
-                        <tr>
-                            <td>20</td>
-                            <td>Uses Technology to Enhance Practice Uses available technology to communicate with students, parents and staff; prepare and deliver lessons; improve professional skills; and/or make routine tasks more efficient as relevant.</td>
-                            <td><input name="rating20" required="" type="radio" value="A" /></td>
-                            <td><input name="rating20" type="radio" value="B" /></td>
-                            <td><input name="rating20" type="radio" value="C" /></td>
-                            <td><input name="rating20" type="radio" value="D" /></td>
-                            <td><input class="form-control" name="comment20" type="text" /></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="form-section">
-                <h2>Student Results</h2>
-                <div id="studentResultsContainer">
-                    <div class="student-result-row">
-                        <div class="row">
-                            <div class="form-group" style="float: left; width: 32%;">
-                                <label>Subject Taught</label>
-                                <input class="form-control subject-taught" required="" type="text" />
-                            </div>
-                            <div class="form-group" style="float: left; margin-left: 2%; width: 18%;">
-                                <label>Class</label>
-                                <input class="form-control class" required="" type="text" />
-                            </div>
-                            <div class="form-group" style="float: left; margin-left: 2%; width: 18%;">
-                                <label>Total Students</label>
-                                <input class="form-control total-students" required="" type="number" />
-                            </div>
-                            <div class="form-group" style="float: left; margin-left: 2%; width: 18%;">
-                                <label>Students Passing</label>
-                                <input class="form-control students-passing" required="" type="number" />
-                            </div>
-                            <div class="form-group" style="float: right; text-align: center; width: 8%;">
-                                <label>Action</label>
-                                <button class="btn btn-danger remove-row" style="padding: 5px 10px;" type="button">×</button>
-                            </div>
-                            <div style="clear: both;"></div>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-secondary" id="addStudentResult" type="button"><>Add Another Subject</a></button>
-            </div>
-            
-            <div class="form-section">
-                <h2>Financial and Administrative Evaluation</h2>
-                <div class="form-group">
-                    <label for="financialEvaluation">Evaluation Details</label>
-                    <textarea class="form-control" id="financialEvaluation" rows="4"></textarea>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h2>Overall Grading</h2>
-                <div class="form-group">
-                    <label for="overallGrading">Overall Grading</label>
-                    <select class="form-control" id="overallGrading" required="">
-                        <option value="">Select Grade</option>
-                        <option value="A">A (Excellent)</option>
-                        <option value="B">B (Good)</option>
-                        <option value="C">C (Satisfactory)</option>
-                        <option value="D">D (Needs Improvement)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="overallComments">Overall Comments</label>
-                    <textarea class="form-control" id="overallComments" required="" rows="4"></textarea>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h2>Fitness for Promotion</h2>
-                <div class="form-group">
-                    <div class="rating-options">
-                        <div class="rating-option">
-                            <input id="fitForPromotion" name="fitnessForPromotion" required="" type="radio" value="Fit for promotion" />
-                            <label for="fitForPromotion">Fit for promotion</label>
-                        </div>
-                        <div class="rating-option">
-                            <input id="notFitForPromotion" name="fitnessForPromotion" type="radio" value="Not fit for promotion" />
-                            <label for="notFitForPromotion">Not fit for promotion</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h2>Reporting Officer Details</h2>
-                <div class="form-group">
-                    <label for="reportingOfficerName">Name of Reporting Officer</label>
-                    <input class="form-control" id="reportingOfficerName" required="" type="text" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="reportingOfficerDesignation">Designation</label>
-                    <input class="form-control" id="reportingOfficerDesignation" required="" type="text" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="reportingDate">Date</label>
-                    <input class="form-control" id="reportingDate" required="" type="date" />
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h2>Countersigning Officer Remarks</h2>
-                <div class="form-group">
-                    <label for="assessmentQuality">Assessment Quality</label>
-                    <select class="form-control" id="assessmentQuality">
-                        <option value="">Select Assessment Quality</option>
-                        <option value="very good">Very good</option>
-                        <option value="reasonably good">Reasonably good</option>
-                        <option value="strict">Strict</option>
-                        <option value="lenient">Lenient</option>
-                        <option value="biased">Biased</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="countersigningRemarks">Additional Remarks</label>
-                    <textarea class="form-control" id="countersigningRemarks" rows="4"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="countersigningOfficerName">Name of Countersigning Officer</label>
-                    <input class="form-control" id="countersigningOfficerName" type="text" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="countersigningOfficerDesignation">Designation</label>
-                    <input class="form-control" id="countersigningOfficerDesignation" type="text" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="countersigningDate">Date</label>
-                    <input class="form-control" id="countersigningDate" type="date" />
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="previewBtn" type="button"><a href="">Preview Evaluation</a></button>
-                <button class="btn btn-danger" id="resetBtn" type="button">Reset Form</button>
+
+<div class="container">
+    <div class="hero">
+        <h1><i class="fas fa-chalkboard-user"></i> Performance Evaluation Report (PER)</h1>
+        <p>Government of Sindh | School Education & Literacy Department | Teaching Staff (BPS-09 to BPS-16)</p>
+        <p style="font-size:0.9rem;">Official Proforma as per Notification NO.SO(A&T)SELD/ACR/2-8/2020</p>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="card">
+        <div class="stats-panel">
+            <div><i class="fas fa-chart-line"></i> <strong id="usageDisplay">Loading usage...</strong></div>
+            <div class="reactions" id="reactionsContainer"></div>
+            <div>
+                <button id="darkModeToggle" class="btn-outline btn" style="padding:0.4rem 1rem;"><i class="fas fa-moon"></i> Dark/Light</button>
             </div>
         </div>
-        
-        <div class="preview-container hidden" id="previewSection">
-            <div class="preview-header">
-                <h2>GOVERNMENT OF SINDH</h2>
-                <h3>SCHOOL EDUCATION &amp; LITERACY DEPARTMENT</h3>
-                <p>PERFORMANCE EVALUATION REPORT (PER)</p>
-                <p id="previewPeriod">FOR THE PERIOD ______ TO ______</p>
-            </div>
-            
-            <h3>PART I</h3>
-            <table class="preview-table">
-                <tr>
-                    <td width="30%">1. Full Name (in block letters)</td>
-                    <td id="previewFullName" width="70%">______</td>
-                </tr>
-                <tr>
-                    <td>2. CNIC#</td>
-                    <td id="previewCnic">______</td>
-                </tr>
-                <tr>
-                    <td>3. Pers#</td>
-                    <td id="previewPersNo">______</td>
-                </tr>
-                <tr>
-                    <td>4. Contact no.</td>
-                    <td id="previewContactNo">______</td>
-                </tr>
-                <tr>
-                    <td>5. Date of:</td>
-                    <td>
-                        <div>(a) Birth: <span id="previewDob">______</span></div>
-                        <div>(b) Entry into Service: <span id="previewEntryDate">______</span></div>
-                        <div>(c) Since present post: <span id="previewPresentPostDate">______</span></div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>6. Designation with BPS</td>
-                    <td id="previewDesignation">______</td>
-                </tr>
-                <tr>
-                    <td>7. Post held during the period</td>
-                    <td id="previewPostHeld">______</td>
-                </tr>
-                <tr>
-                    <td>8. Place of Posting</td>
-                    <td id="previewPostingPlace">______</td>
-                </tr>
-                <tr>
-                    <td>9. SEMIS Code</td>
-                    <td id="previewSemisCode">______</td>
-                </tr>
-                <tr>
-                    <td>10. Qualifications (last degree)</td>
-                    <td id="previewQualification">______</td>
-                </tr>
-            </table>
-            
-            <h3>PART II</h3>
-            <table class="preview-table">
-                <thead>
-                    <tr>
-                        <th>S. No.</th>
-                        <th>Indicator</th>
-                        <th>Grade</th>
-                        <th>Comments</th>
-                    </tr>
-                </thead>
-                <tbody id="previewRatingsTable">
-                    <!-- Ratings will be inserted here by JavaScript -->
-                </tbody>
-            </table>
-            
-            <h3>Student Results</h3>
-            <table class="preview-table" id="previewStudentResults">
-                <thead>
-                    <tr>
-                        <th>Subject Taught</th>
-                        <th>Class</th>
-                        <th>Total Number Of Students</th>
-                        <th>No. Of Students Passing</th>
-                        <th>Percentage Of Students Passing</th>
-                        <th>Grade</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Student results will be inserted here by JavaScript -->
-                </tbody>
-            </table>
-            
-            <h3>Financial and Administrative Evaluation</h3>
-            <div id="previewFinancialEvaluation" style="margin-bottom: 20px;">
-                ______
-            </div>
-            
-            <h3>Overall Grading</h3>
-            <div id="previewOverallGrading" style="margin-bottom: 20px;">
-                ______
-            </div>
-            
-            <div id="previewOverallComments" style="margin-bottom: 20px;">
-                ______
-            </div>
-            
-            <h3>FITNESS FOR PROMOTION</h3>
-            <div id="previewFitnessForPromotion" style="margin-bottom: 20px;">
-                ______
-            </div>
-            
-            <div class="signature-area">
-                <div class="signature-box">
-                    <div>Signature</div>
-                    <div id="previewReportingOfficerName" style="margin-top: 20px;">______</div>
-                    <div id="previewReportingDate">Date: ______</div>
-                    <div id="previewReportingOfficerDesignation">Designation: ______</div>
-                </div>
-            </div>
-            
-            <h3>PART III - REMARKS OF THE COUNTERSIGNING OFFICER</h3>
-            <div id="previewAssessmentQuality" style="margin-bottom: 10px;">
-                I consider that the assessment made by the Reporting Officer is ______.
-            </div>
-            <div id="previewCountersigningRemarks" style="margin-bottom: 20px;">
-                ______
-            </div>
-            
-            <div class="signature-area">
-                <div class="signature-box">
-                    <div>Dated: <span id="previewCountersigningDate">______</span></div>
-                    <div>Signature: <span id="previewCountersigningOfficerName">______</span></div>
-                    <div>Designation: <span id="previewCountersigningOfficerDesignation">______</span></div>
-                </div>
-            </div>
-            
-            <div class="action-buttons no-print">
-                <button class="btn btn-warning" id="backToFormBtn" type="button"><a href="">Back to Form</a></button>
-                <button class="btn btn-primary" id="printBtn" type="button"><a href="">Print Evaluation</a></button>
-                <button class="btn btn-success" id="pdfBtn" type="button"><a href="">Download PDF</a></button>
-                <button class="btn btn-secondary" id="docBtn" type="button"><a href="">Download DOC</a></button>
-                <div class="spinner hidden" id="spinner"></div>
-            </div>
-        </div>
-        
-        <div class="footer no-print">
-            <p>Performance Evaluation Generator for Teaching Staff (BPS-09 to BPS-16)</p>
-            <p>© 2023 MagicRills.com - All Rights Reserved</p>
+        <div class="share-icons" id="sharePanel">
+            <i class="fab fa-facebook share-icon" data-platform="facebook"></i>
+            <i class="fab fa-twitter share-icon" data-platform="twitter"></i>
+            <i class="fab fa-whatsapp share-icon" data-platform="whatsapp"></i>
+            <i class="fab fa-linkedin share-icon" data-platform="linkedin"></i>
+            <i class="fas fa-envelope share-icon" data-platform="email"></i>
+            <i class="fas fa-link share-icon" data-platform="copy"></i>
         </div>
     </div>
 
-    <!-- Load jsPDF and html2canvas from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- MAIN FORM -->
+    <div class="card" id="formSection">
+        <div class="section-title"><i class="fas fa-user-graduate"></i> PART I: Employee Information</div>
+        <div class="form-grid">
+            <div class="input-group"><label>Full Name (block letters)</label><input type="text" id="fullName" placeholder="MUHAMMAD ALI"></div>
+            <div class="input-group"><label>CNIC (XXXXX-XXXXXXX-X)</label><input id="cnic" placeholder="42301-1234567-1"></div>
+            <div class="input-group"><label>Pers #</label><input id="persNo"></div>
+            <div class="input-group"><label>Contact Number</label><input id="contactNo"></div>
+            <div class="input-group"><label>Date of Birth</label><input type="date" id="dob"></div>
+            <div class="input-group"><label>Entry into Service</label><input type="date" id="entryDate"></div>
+            <div class="input-group"><label>Since Present Post</label><input type="date" id="presentPostDate"></div>
+            <div class="input-group"><label>Designation with BPS</label><input id="designation" placeholder="SST (BPS-16)"></div>
+            <div class="input-group"><label>Post held during period</label><input id="postHeld"></div>
+            <div class="input-group"><label>Place of Posting</label><input id="postingPlace"></div>
+            <div class="input-group"><label>SEMIS Code</label><input id="semisCode"></div>
+            <div class="input-group"><label>Qualifications (last degree)</label><input id="qualification"></div>
+            <div class="input-group"><label>Evaluation Period From</label><input type="date" id="evalFrom"></div>
+            <div class="input-group"><label>Evaluation Period To</label><input type="date" id="evalTo"></div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-clipboard-list"></i> PART II: Performance Indicators (20)</div>
+        <div class="table-wrapper">
+            <table class="rating-table" id="indicatorsTable">
+                <thead>
+                    <tr style="background: var(--table-header);">
+                        <th>S.No</th>
+                        <th>Indicator</th>
+                        <th>A</th>
+                        <th>B</th>
+                        <th>C</th>
+                        <th>D</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody id="indicatorsBody"></tbody>
+            </table>
+        </div>
+
+        <div class="section-title"><i class="fas fa-chart-simple"></i> Student Results (Auto Percentage & Grade)</div>
+        <div class="table-wrapper">
+            <table class="student-table" id="studentResultsTable">
+                <thead>
+                    <tr>
+                        <th>Subject Taught</th><th>Class</th><th>Total Students</th><th>Students Passing</th><th>Percentage (%)</th><th>Grade</th><th style="width:60px">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTbody"></tbody>
+            </table>
+        </div>
+        <button id="addSubjectBtn" class="btn-outline btn" style="margin-top:0.5rem;"><i class="fas fa-plus"></i> Add Subject</button>
+
+        <div class="section-title"><i class="fas fa-coins"></i> Financial & Administrative Evaluation</div>
+        <textarea id="financialEval" rows="3" placeholder="Any financial/admn remarks..."></textarea>
+
+        <div class="section-title"><i class="fas fa-star"></i> Overall Grading & Comments</div>
+        <div class="form-grid">
+            <select id="overallGrade"><option value="">Select Overall Grade</option><option value="A">A (Excellent)</option><option value="B">B (Good)</option><option value="C">C (Satisfactory)</option><option value="D">D (Needs Improvement)</option></select>
+            <textarea id="overallComments" placeholder="Overall comments" rows="2"></textarea>
+        </div>
+        
+        <div class="section-title">Fitness for Promotion</div>
+        <div style="display:flex; gap:1.5rem;">
+            <label><input type="radio" name="fitness" value="Fit for promotion"> Fit for promotion</label>
+            <label><input type="radio" name="fitness" value="Not fit for promotion"> Not fit for promotion</label>
+        </div>
+
+        <div class="section-title">Reporting Officer Details</div>
+        <div class="form-grid">
+            <input id="reportingName" placeholder="Name of Reporting Officer">
+            <input id="reportingDesig" placeholder="Designation">
+            <input type="date" id="reportingDate">
+        </div>
+
+        <div class="section-title">Countersigning Officer Remarks</div>
+        <select id="assessmentQuality">
+            <option value="">Select Assessment Quality</option>
+            <option value="very good">Very good</option>
+            <option value="reasonably good">Reasonably good</option>
+            <option value="strict">Strict</option>
+            <option value="lenient">Lenient</option>
+            <option value="biased">Biased</option>
+        </select>
+        <textarea id="countersignRemarks" placeholder="Additional Remarks" rows="3" style="margin-top:1rem;"></textarea>
+        <div class="form-grid" style="margin-top:1rem;">
+            <input id="counterName" placeholder="Name of Countersigning Officer">
+            <input id="counterDesig" placeholder="Designation">
+            <input type="date" id="counterDate">
+        </div>
+
+        <div class="action-bar">
+            <button id="previewGenBtn" class="btn"><i class="fas fa-eye"></i> Preview Report</button>
+            <button id="resetFormBtn" class="btn-outline btn"><i class="fas fa-undo-alt"></i> Reset Form</button>
+        </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="previewSection" class="hidden preview-area"></div>
+    <footer>© 2025 PER Generator | Sindh Education Dept | Official Performance Evaluation Tool</footer>
+</div>
+
+<div class="scroll-buttons">
+    <div class="floating-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></div>
+    <div class="floating-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></div>
+</div>
+<div id="toastMsg" class="toast"></div>
+
+<script>
+    // ==================== INDICATORS (20 items as per official notification) ====================
+    const indicatorsList = [
+        "Abides by Policies and Procedures: Follows official policies, and procedures within school and classroom.",
+        "Appearance and Conduct: Dresses and behaves appropriately in school and classroom.",
+        "Punctuality and Regularity: Arrives and leaves school according to official timings. Conducts classes on time.",
+        "Communication and Collaboration: Communicates and collaborates respectfully with school staff and students.",
+        "Healthy Interaction with Parents: Promotes cooperation and communication between school and parents.",
+        "Content Mastery: Demonstrates conceptual clarity across grades.",
+        "Lesson Planning: Prepares daily lesson plans aligned with the given school curriculum.",
+        "Execution and Teaching Techniques: Executes planned lesson using various teaching strategies.",
+        "Student-Centered Teaching: Uses child-centered, activity-based learning methodology.",
+        "Conducts Regular and Grade-Appropriate Assessment: Designs and conducts assessments at appropriate level.",
+        "Checks Note Book/Diary: Regularly and accurately checks students' work.",
+        "Records Feedback: Checks assessments correctly and provides timely feedback.",
+        "Improves through Review/Assessment: Uses assessment results to improve teaching and learning.",
+        "Maintains Classroom Environment: Keeps classroom space organized and clean, and manages time efficiently.",
+        "Maintains Discipline and Ethical Values: Resolves disciplinary issues without hitting, harassment or abuse.",
+        "Maintains Positive Interaction in Class: Shows respect and kindness towards all children.",
+        "Actively Listens to Students: Listens and pays attention to students' needs and responses.",
+        "Self-Development: Researches and updates knowledge and improves practice.",
+        "Initiative and Drive: Takes lead in organizing events, and co-curricular activities.",
+        "Uses Technology to Enhance Practice: Uses available technology to communicate, prepare lessons, improve skills."
+    ];
     
-    <script>
-        // Wait for all scripts to load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize jsPDF
-            const { jsPDF } = window.jspdf;
+    let ratingsData = Array(20).fill(null);
+    let commentsData = Array(20).fill("");
+    const TOOL_SLUG = "performance-evaluation-report";
+    let userId = localStorage.getItem("per_userId") || "user_" + Math.random().toString(36).substr(2, 8);
+    localStorage.setItem("per_userId", userId);
+
+    function showToast(msg) {
+        const toast = document.getElementById("toastMsg");
+        toast.textContent = msg;
+        toast.style.opacity = "1";
+        setTimeout(() => toast.style.opacity = "0", 3000);
+    }
+
+    // API Calls (TiDB endpoints)
+    async function apiCall(endpoint, method, body = null) {
+        try {
+            const options = { method, headers: { "Content-Type": "application/json" } };
+            if (body) options.body = JSON.stringify(body);
+            const res = await fetch(endpoint, options);
+            return await res.json();
+        } catch(e) { console.error(e); return { success: false }; }
+    }
+    async function incrementUsage() {
+        await apiCall("/api/increment-usage", "POST", { tool_slug: TOOL_SLUG, user_id: userId });
+        await fetchUsageCount();
+    }
+    async function fetchUsageCount() {
+        const data = await apiCall(`/api/usage?tool_slug=${TOOL_SLUG}`, "GET");
+        if (data && data.count !== undefined) document.getElementById("usageDisplay").innerText = `📊 Used ${data.count} times`;
+        else document.getElementById("usageDisplay").innerText = "📊 Used -- times";
+    }
+
+    // Reactions
+    const reactionEmojis = ["👍","❤️","😮","😢","😠","😂","🎉"];
+    const reactionMap = {"👍":"like","❤️":"love","😮":"wow","😢":"sad","😠":"angry","😂":"laugh","🎉":"celebrate"};
+    async function loadReactions() {
+        const data = await apiCall(`/api/reactions?tool_slug=${TOOL_SLUG}`, "GET");
+        const counts = data.reactions || {};
+        const container = document.getElementById("reactionsContainer");
+        container.innerHTML = "";
+        for(let emoji of reactionEmojis) {
+            const type = reactionMap[emoji];
+            const count = counts[type] || 0;
+            const btn = document.createElement("div");
+            btn.className = "reaction-btn";
+            btn.innerHTML = `${emoji} <span>${count}</span>`;
+            btn.onclick = async () => {
+                const res = await apiCall("/api/add-reaction", "POST", { tool_slug: TOOL_SLUG, emoji: emoji, user_id: userId });
+                if(res.success) showToast(`Reacted ${emoji}`);
+                else if(res.already_reacted) showToast(`Already reacted with ${emoji}`);
+                loadReactions();
+            };
+            container.appendChild(btn);
+        }
+    }
+    async function recordShare(platform) {
+        await apiCall("/api/add-share", "POST", { tool_slug: TOOL_SLUG, platform, user_id: userId });
+        showToast(`Shared on ${platform}`);
+    }
+    function shareOn(platform) {
+        const url = encodeURIComponent(window.location.href);
+        const text = encodeURIComponent("PER Generator - Sindh Education Dept Performance Evaluation Report");
+        if(platform === "copy") { navigator.clipboard.writeText(window.location.href); showToast("Link copied!"); recordShare("copy"); return; }
+        let shareUrl = "";
+        if(platform === "facebook") shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        if(platform === "twitter") shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        if(platform === "whatsapp") shareUrl = `https://api.whatsapp.com/send?text=${text} ${url}`;
+        if(platform === "linkedin") shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        if(platform === "email") shareUrl = `mailto:?subject=PER Tool&body=${text} ${url}`;
+        if(shareUrl) { window.open(shareUrl, "_blank"); recordShare(platform); }
+    }
+
+    // Build Rating Table with proper separate columns for A,B,C,D
+    function buildRatingTable() {
+        const tbody = document.getElementById("indicatorsBody");
+        tbody.innerHTML = "";
+        for(let i=0; i<indicatorsList.length; i++) {
+            const row = tbody.insertRow();
+            // S.No
+            const snoCell = row.insertCell(0);
+            snoCell.innerText = i+1;
+            // Indicator
+            const indicatorCell = row.insertCell(1);
+            indicatorCell.innerText = indicatorsList[i];
+            indicatorCell.style.textAlign = "left";
             
-            // Form elements
-            const formContainer = document.querySelector('.form-container');
-            const previewSection = document.getElementById('previewSection');
-            const previewBtn = document.getElementById('previewBtn');
-            const backToFormBtn = document.getElementById('backToFormBtn');
-            const resetBtn = document.getElementById('resetBtn');
-            const printBtn = document.getElementById('printBtn');
-            const pdfBtn = document.getElementById('pdfBtn');
-            const docBtn = document.getElementById('docBtn');
-            const spinner = document.getElementById('spinner');
-            const alertMessage = document.getElementById('alert-message');
+            // Grade A column
+            const cellA = row.insertCell(2);
+            const radioA = document.createElement("input");
+            radioA.type = "radio";
+            radioA.name = `rating_${i}`;
+            radioA.value = "A";
+            if(ratingsData[i] === "A") radioA.checked = true;
+            radioA.onchange = () => { ratingsData[i] = "A"; saveDraft(); };
+            cellA.appendChild(radioA);
+            cellA.style.textAlign = "center";
             
-            // Student results
-            const studentResultsContainer = document.getElementById('studentResultsContainer');
-            const addStudentResultBtn = document.getElementById('addStudentResult');
+            // Grade B column
+            const cellB = row.insertCell(3);
+            const radioB = document.createElement("input");
+            radioB.type = "radio";
+            radioB.name = `rating_${i}`;
+            radioB.value = "B";
+            if(ratingsData[i] === "B") radioB.checked = true;
+            radioB.onchange = () => { ratingsData[i] = "B"; saveDraft(); };
+            cellB.appendChild(radioB);
+            cellB.style.textAlign = "center";
             
-            // Add student result row
-            addStudentResultBtn.addEventListener('click', function() {
-                const newRow = document.createElement('div');
-                newRow.className = 'student-result-row';
-                newRow.innerHTML = `
-                    <div class="row">
-                        <div class="form-group" style="width: 32%; float: left;">
-                            <label>Subject Taught</label>
-                            <input type="text" class="form-control subject-taught" required>
-                        </div>
-                        <div class="form-group" style="width: 18%; float: left; margin-left: 2%;">
-                            <label>Class</label>
-                            <input type="text" class="form-control class" required>
-                        </div>
-                        <div class="form-group" style="width: 18%; float: left; margin-left: 2%;">
-                            <label>Total Students</label>
-                            <input type="number" class="form-control total-students" required>
-                        </div>
-                        <div class="form-group" style="width: 18%; float: left; margin-left: 2%;">
-                            <label>Students Passing</label>
-                            <input type="number" class="form-control students-passing" required>
-                        </div>
-                        <div class="form-group" style="width: 8%; float: right; text-align: center;">
-                            <label>Action</label>
-                            <button type="button" class="btn btn-danger remove-row" style="padding: 5px 10px;">×</button>
-                        </div>
-                        <div style="clear: both;"></div>
-                    </div>
-                `;
-                studentResultsContainer.appendChild(newRow);
-                
-                // Add event listener to remove button
-                newRow.querySelector('.remove-row').addEventListener('click', function() {
-                    if (document.querySelectorAll('.student-result-row').length > 1) {
-                        studentResultsContainer.removeChild(newRow);
-                    } else {
-                        showAlert('You must have at least one subject result.', 'danger');
-                    }
-                });
-            });
+            // Grade C column
+            const cellC = row.insertCell(4);
+            const radioC = document.createElement("input");
+            radioC.type = "radio";
+            radioC.name = `rating_${i}`;
+            radioC.value = "C";
+            if(ratingsData[i] === "C") radioC.checked = true;
+            radioC.onchange = () => { ratingsData[i] = "C"; saveDraft(); };
+            cellC.appendChild(radioC);
+            cellC.style.textAlign = "center";
             
-            // Remove student result row (for initial row)
-            document.querySelector('.remove-row')?.addEventListener('click', function() {
-                if (document.querySelectorAll('.student-result-row').length > 1) {
-                    studentResultsContainer.removeChild(this.closest('.student-result-row'));
-                } else {
-                    showAlert('You must have at least one subject result.', 'danger');
-                }
-            });
+            // Grade D column
+            const cellD = row.insertCell(5);
+            const radioD = document.createElement("input");
+            radioD.type = "radio";
+            radioD.name = `rating_${i}`;
+            radioD.value = "D";
+            if(ratingsData[i] === "D") radioD.checked = true;
+            radioD.onchange = () => { ratingsData[i] = "D"; saveDraft(); };
+            cellD.appendChild(radioD);
+            cellD.style.textAlign = "center";
             
-            // Preview button click handler
-            previewBtn.addEventListener('click', function() {
-                if (validateForm()) {
-                    updatePreview();
-                    formContainer.classList.add('hidden');
-                    previewSection.classList.remove('hidden');
-                    window.scrollTo(0, 0);
-                }
-            });
-            
-            // Back to form button click handler
-            backToFormBtn.addEventListener('click', function() {
-                formContainer.classList.remove('hidden');
-                previewSection.classList.add('hidden');
-                window.scrollTo(0, 0);
-            });
-            
-            // Reset button click handler
-            resetBtn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
-                    document.querySelector('.form-container').reset();
-                    
-                    // Remove additional student result rows
-                    const rows = document.querySelectorAll('.student-result-row');
-                    for (let i = 1; i < rows.length; i++) {
-                        studentResultsContainer.removeChild(rows[i]);
-                    }
-                    
-                    // Reset the first row
-                    const firstRow = rows[0];
-                    firstRow.querySelector('.subject-taught').value = '';
-                    firstRow.querySelector('.class').value = '';
-                    firstRow.querySelector('.total-students').value = '';
-                    firstRow.querySelector('.students-passing').value = '';
-                    
-                    showAlert('Form has been reset successfully.', 'success');
-                }
-            });
-            
-            // Print button click handler
-            printBtn.addEventListener('click', function() {
-                window.print();
-            });
-            
-            // PDF button click handler
-            pdfBtn.addEventListener('click', function() {
-                generatePDF();
-            });
-            
-            // DOC button click handler - Fixed version
-            docBtn.addEventListener('click', function() {
-                generateDOC();
-            });
-            
-            // Validate form function
-            function validateForm() {
-                // Basic information validation
-                const requiredFields = [
-                    'fullName', 'cnic', 'persNo', 'contactNo', 'dob', 'entryDate', 
-                    'presentPostDate', 'designation', 'postHeld', 'postingPlace', 
-                    'qualification', 'evaluationPeriodFrom', 'evaluationPeriodTo',
-                    'overallGrading', 'overallComments', 'reportingOfficerName',
-                    'reportingOfficerDesignation', 'reportingDate'
-                ];
-                
-                for (const fieldId of requiredFields) {
-                    const field = document.getElementById(fieldId);
-                    if (!field.value.trim()) {
-                        showAlert(`Please fill in the ${field.labels ? field.labels[0].textContent : fieldId} field.`, 'danger');
-                        field.focus();
-                        return false;
-                    }
-                }
-                
-                // CNIC format validation (basic)
-                const cnic = document.getElementById('cnic').value;
-                if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
-                    showAlert('Please enter CNIC in correct format (XXXXX-XXXXXXX-X)', 'danger');
-                    document.getElementById('cnic').focus();
-                    return false;
-                }
-                
-                // Rating validation
-                for (let i = 1; i <= 20; i++) {
-                    if (!document.querySelector(`input[name="rating${i}"]:checked`)) {
-                        showAlert(`Please select a rating for indicator ${i}`, 'danger');
-                        return false;
-                    }
-                }
-                
-                // Fitness for promotion validation
-                if (!document.querySelector('input[name="fitnessForPromotion"]:checked')) {
-                    showAlert('Please select fitness for promotion', 'danger');
-                    return false;
-                }
-                
-                // Student results validation
-                const studentRows = document.querySelectorAll('.student-result-row');
-                for (const row of studentRows) {
-                    const subject = row.querySelector('.subject-taught').value;
-                    const className = row.querySelector('.class').value;
-                    const totalStudents = parseInt(row.querySelector('.total-students').value);
-                    const studentsPassing = parseInt(row.querySelector('.students-passing').value);
-                    
-                    if (!subject || !className || !totalStudents || !studentsPassing) {
-                        showAlert('Please fill in all student result fields for each subject', 'danger');
-                        return false;
-                    }
-                    
-                    if (parseInt(studentsPassing) > parseInt(totalStudents)) {
-                        showAlert('Number of students passing cannot be greater than total students', 'danger');
-                        return false;
-                    }
-                }
-                
-                return true;
-            }
-            
-            // Update preview function
-            function updatePreview() {
-                // Part I: Employee Information
-                document.getElementById('previewFullName').textContent = document.getElementById('fullName').value.toUpperCase();
-                document.getElementById('previewCnic').textContent = document.getElementById('cnic').value;
-                document.getElementById('previewPersNo').textContent = document.getElementById('persNo').value;
-                document.getElementById('previewContactNo').textContent = document.getElementById('contactNo').value;
-                document.getElementById('previewDob').textContent = formatDate(document.getElementById('dob').value);
-                document.getElementById('previewEntryDate').textContent = formatDate(document.getElementById('entryDate').value);
-                document.getElementById('previewPresentPostDate').textContent = formatDate(document.getElementById('presentPostDate').value);
-                document.getElementById('previewDesignation').textContent = document.getElementById('designation').value;
-                document.getElementById('previewPostHeld').textContent = document.getElementById('postHeld').value;
-                document.getElementById('previewPostingPlace').textContent = document.getElementById('postingPlace').value;
-                document.getElementById('previewSemisCode').textContent = document.getElementById('semisCode').value || '______';
-                document.getElementById('previewQualification').textContent = document.getElementById('qualification').value;
-                document.getElementById('previewPeriod').textContent = `FOR THE PERIOD ${formatDate(document.getElementById('evaluationPeriodFrom').value)} TO ${formatDate(document.getElementById('evaluationPeriodTo').value)}`;
-                
-                // Part II: Performance Evaluation
-                const ratingsTable = document.getElementById('previewRatingsTable');
-                ratingsTable.innerHTML = '';
-                
-                // Add standard headers and ratings
-                const standards = [
-                    { title: 'Standard 1: Individual Persona', start: 1, end: 5 },
-                    { title: 'Standard 2: Planning and Instruction', start: 6, end: 9 },
-                    { title: 'Standard 3: Assessment', start: 10, end: 13 },
-                    { title: 'Standard 4: Classroom Management', start: 14, end: 17 },
-                    { title: 'Standard 5: Professional Outlook', start: 18, end: 20 }
-                ];
-                
-                for (const standard of standards) {
-                    // Add standard header row
-                    const headerRow = document.createElement('tr');
-                    headerRow.innerHTML = `<td colspan="4" style="font-weight: bold; background-color: #f0f0f0;">${standard.title}</td>`;
-                    ratingsTable.appendChild(headerRow);
-                    
-                    // Add rating rows for this standard
-                    for (let i = standard.start; i <= standard.end; i++) {
-                        const rating = document.querySelector(`input[name="rating${i}"]:checked`).value;
-                        const comment = document.querySelector(`input[name="comment${i}"]`).value;
-                        
-                        const indicatorText = [
-                            "Abides by Policies and Procedures Follows official policies, and procedures within school and classroom.",
-                            "Appearance and Conduct Dresses and behaves appropriately in school and classroom.",
-                            "Punctuality and Regularity Arrives and leaves school according to official timings. Conducts classes on time.",
-                            "Communication and Collaboration Communicates and collaborates respectfully with school staff and students.",
-                            "Healthy Interaction with Parents Promotes cooperation and communication between school and parents.",
-                            "Content Mastery Demonstrates conceptual clarity across grades.",
-                            "Lesson Planning Prepares daily lesson plans aligned with the given school curriculum.",
-                            "Execution and Teaching Techniques Executes planned lesson using various teaching strategies.",
-                            "Student-Centered Teaching Uses child-centered, activity-based learning methodology.",
-                            "Conducts Regular and Grade-Appropriate Assessment Designs and conducts assessments at appropriate level.",
-                            "Checks Note Book/Diary Regularly and accurately checks students' work.",
-                            "Records Feedback Checks assessments correctly and provides timely feedback.",
-                            "Improves through Review/Assessment Uses assessment results to improve teaching and learning.",
-                            "Maintains Classroom Environment Keeps classroom space organized and clean, and manages time efficiently.",
-                            "Maintains Discipline and Ethical Values Resolves disciplinary issues without hitting, harassment or abuse, and tries to nurture ethical values amongst students.",
-                            "Maintains Positive Interaction in Class Shows respect and kindness towards all children.",
-                            "Actively Listens to Students Listens and pays attention to students' needs and responses.",
-                            "Self-Development Researches and updates knowledge and improves practice.",
-                            "Initiative and Drive Takes lead in organizing events, and co-curricular activities.",
-                            "Uses Technology to Enhance Practice Uses available technology to communicate with students, parents and staff; prepare and deliver lessons; improve professional skills; and/or make routine tasks more efficient as relevant."
-                        ][i-1];
-                        
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${i}</td>
-                            <td>${indicatorText}</td>
-                            <td>${rating}</td>
-                            <td>${comment || '______'}</td>
-                        `;
-                        ratingsTable.appendChild(row);
-                    }
-                }
-                
-                // Student Results
-                const studentResultsTable = document.querySelector('#previewStudentResults tbody');
-                studentResultsTable.innerHTML = '';
-                
-                const studentRows = document.querySelectorAll('.student-result-row');
-                for (const row of studentRows) {
-                    const subject = row.querySelector('.subject-taught').value;
-                    const className = row.querySelector('.class').value;
-                    const totalStudents = parseInt(row.querySelector('.total-students').value);
-                    const studentsPassing = parseInt(row.querySelector('.students-passing').value);
-                    const percentage = Math.round((studentsPassing / totalStudents) * 100);
-                    
-                    let grade = '';
-                    if (percentage > 70) grade = 'A';
-                    else if (percentage >= 60) grade = 'B';
-                    else if (percentage >= 50) grade = 'C';
-                    else grade = 'D';
-                    
-                    const gradeClass = `grade-${grade}`;
-                    
-                    const resultRow = document.createElement('tr');
-                    resultRow.innerHTML = `
-                        <td>${subject}</td>
-                        <td>${className}</td>
-                        <td>${totalStudents}</td>
-                        <td>${studentsPassing}</td>
-                        <td>${percentage}%</td>
-                        <td class="${gradeClass}">${grade}</td>
-                    `;
-                    studentResultsTable.appendChild(resultRow);
-                }
-                
-                // Financial and Administrative Evaluation
-                document.getElementById('previewFinancialEvaluation').textContent = 
-                    document.getElementById('financialEvaluation').value || '______';
-                
-                // Overall Grading
-                const overallGrade = document.getElementById('overallGrading').value;
-                document.getElementById('previewOverallGrading').innerHTML = `
-                    Overall Grading: <strong>${overallGrade}</strong>
-                `;
-                
-                document.getElementById('previewOverallComments').textContent = 
-                    document.getElementById('overallComments').value || '______';
-                
-                // Fitness for Promotion
-                const fitness = document.querySelector('input[name="fitnessForPromotion"]:checked').value;
-                document.getElementById('previewFitnessForPromotion').textContent = fitness;
-                
-                // Reporting Officer
-                document.getElementById('previewReportingOfficerName').textContent = 
-                    document.getElementById('reportingOfficerName').value;
-                document.getElementById('previewReportingDate').textContent = 
-                    `Date: ${formatDate(document.getElementById('reportingDate').value)}`;
-                document.getElementById('previewReportingOfficerDesignation').textContent = 
-                    `Designation: ${document.getElementById('reportingOfficerDesignation').value}`;
-                
-                // Countersigning Officer
-                const assessmentQuality = document.getElementById('assessmentQuality').value;
-                if (assessmentQuality) {
-                    document.getElementById('previewAssessmentQuality').textContent = 
-                        `I consider that the assessment made by the Reporting Officer is ${assessmentQuality}.`;
-                } else {
-                    document.getElementById('previewAssessmentQuality').textContent = 
-                        'I consider that the assessment made by the Reporting Officer is ______.';
-                }
-                
-                document.getElementById('previewCountersigningRemarks').textContent = 
-                    document.getElementById('countersigningRemarks').value || '______';
-                
-                document.getElementById('previewCountersigningOfficerName').textContent = 
-                    document.getElementById('countersigningOfficerName').value || '______';
-                document.getElementById('previewCountersigningOfficerDesignation').textContent = 
-                    document.getElementById('countersigningOfficerDesignation').value || '______';
-                document.getElementById('previewCountersigningDate').textContent = 
-                    document.getElementById('countersigningDate').value ? formatDate(document.getElementById('countersigningDate').value) : '______';
-            }
-            
-            // Format date function
-            function formatDate(dateString) {
-                if (!dateString) return '______';
-                
-                const date = new Date(dateString);
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const year = date.getFullYear();
-                
-                return `${day}/${month}/${year}`;
-            }
-            
-            // Show alert function
-            function showAlert(message, type) {
-                alertMessage.textContent = message;
-                alertMessage.className = `alert alert-${type}`;
-                alertMessage.classList.remove('hidden');
-                
-                // Hide alert after 5 seconds
-                setTimeout(() => {
-                    alertMessage.classList.add('hidden');
-                }, 5000);
-            }
-            
-            // Generate PDF function
-            function generatePDF() {
-                spinner.classList.remove('hidden');
-                
-                // Use html2canvas to capture the preview section
-                html2canvas(previewSection, {
-                    scale: 2,
-                    logging: false,
-                    useCORS: true,
-                    allowTaint: true
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdf = new jsPDF({
-                        orientation: 'portrait',
-                        unit: 'mm'
-                    });
-                    
-                    // Calculate the PDF dimensions to maintain aspect ratio
-                    const imgWidth = 210; // A4 width in mm
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    
-                    // Add the image to the PDF
-                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-                    
-                    // Save the PDF
-                    pdf.save(`Performance_Evaluation_${document.getElementById('fullName').value.replace(/\s+/g, '_')}.pdf`);
-                    
-                    spinner.classList.add('hidden');
-                }).catch(error => {
-                    console.error('Error generating PDF:', error);
-                    showAlert('Error generating PDF. Please try again.', 'danger');
-                    spinner.classList.add('hidden');
-                });
-            }
-            
-            // Generate DOC function - Fixed version
-            function generateDOC() {
-                spinner.classList.remove('hidden');
-                
-                try {
-                    // Create a clone of the preview section to avoid modifying the original
-                    const previewClone = previewSection.cloneNode(true);
-                    
-                    // Remove action buttons from the clone
-                    const actionButtons = previewClone.querySelector('.action-buttons');
-                    if (actionButtons) {
-                        actionButtons.remove();
-                    }
-                    
-                    // Get the HTML content
-                    const htmlContent = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>Performance Evaluation Report</title>
-                            <style>
-                                body { font-family: Arial, sans-serif; margin: 20px; }
-                                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                                th { background-color: #2c3e50; color: white; }
-                                .grade-A { background-color: #d4edda; color: #155724; }
-                                .grade-B { background-color: #fff3cd; color: #856404; }
-                                .grade-C, .grade-D { background-color: #f8d7da; color: #721c24; }
-                                .signature-box { width: 45%; border-top: 1px solid #333; padding-top: 10px; margin-top: 60px; }
-                                h2, h3 { color: #2c3e50; }
-                                .preview-header { text-align: center; margin-bottom: 30px; }
-                            </style>
-                        </head>
-                        <body>
-                            ${previewClone.innerHTML}
-                        </body>
-                        </html>
-                    `;
-                    
-                    // Create a Blob with the HTML content
-                    const blob = new Blob([htmlContent], { type: 'application/msword' });
-                    
-                    // Create a download link
-                    const link = document.createElement('a');
-                    const url = URL.createObjectURL(blob);
-                    link.href = url;
-                    link.download = `Performance_Evaluation_${document.getElementById('fullName').value.replace(/\s+/g, '_')}.doc`;
-                    
-                    // Append the link to the body and trigger the download
-                    document.body.appendChild(link);
-                    link.click();
-                    
-                    // Clean up
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-                        spinner.classList.add('hidden');
-                    }, 100);
-                    
-                } catch (error) {
-                    console.error('Error generating DOC:', error);
-                    showAlert('Error generating DOC. Please try again.', 'danger');
-                    spinner.classList.add('hidden');
-                }
-            }
+            // Comments column
+            const commentCell = row.insertCell(6);
+            const commentInput = document.createElement("input");
+            commentInput.type = "text";
+            commentInput.placeholder = "Comments";
+            commentInput.style.width = "100%";
+            commentInput.value = commentsData[i] || "";
+            commentInput.onchange = (e) => { commentsData[i] = e.target.value; saveDraft(); };
+            commentCell.appendChild(commentInput);
+            commentCell.style.textAlign = "left";
+        }
+    }
+
+    // Student Results Management
+    function calculatePercentageAndGrade(total, passing) {
+        if(!total || total<=0) return { percent: 0, grade: "D", gradeClass: "grade-D" };
+        let percent = Math.round((passing / total) * 100);
+        let grade = "";
+        if(percent >= 70) grade = "A";
+        else if(percent >= 60) grade = "B";
+        else if(percent >= 50) grade = "C";
+        else grade = "D";
+        let gradeClass = `grade-${grade}`;
+        return { percent, grade, gradeClass };
+    }
+    function updateStudentRow(rowElement) {
+        const totalInput = rowElement.querySelector(".total-students");
+        const passingInput = rowElement.querySelector(".passing-students");
+        const percentSpan = rowElement.querySelector(".percent-display");
+        const gradeSpan = rowElement.querySelector(".grade-display");
+        let total = parseInt(totalInput.value) || 0;
+        let passing = parseInt(passingInput.value) || 0;
+        if(passing > total && total>0) {
+            showToast("Passing students cannot exceed total");
+            passingInput.value = total;
+            passing = total;
+        }
+        const { percent, grade, gradeClass } = calculatePercentageAndGrade(total, passing);
+        percentSpan.innerText = percent + "%";
+        gradeSpan.innerText = grade;
+        gradeSpan.className = `grade-badge ${gradeClass}`;
+        saveDraft();
+    }
+    function addStudentRow(subject="", className="", total="", passing="") {
+        const tbody = document.getElementById("studentTbody");
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td><input type="text" class="subject-taught" value="${escapeHtml(subject)}" placeholder="e.g., Mathematics"></td>
+            <td><input type="text" class="class-level" value="${escapeHtml(className)}" placeholder="e.g., Grade 5"></td>
+            <td><input type="number" class="total-students" value="${total}" placeholder="Total"></td>
+            <td><input type="number" class="passing-students" value="${passing}" placeholder="Passing"></td>
+            <td class="percentage-cell"><span class="percent-display">0%</span></td>
+            <td><span class="grade-badge grade-D">D</span></td>
+            <td><button class="remove-row-btn"><i class="fas fa-trash"></i></button></td>
+        `;
+        const totalInput = row.querySelector(".total-students");
+        const passingInput = row.querySelector(".passing-students");
+        const removeBtn = row.querySelector(".remove-row-btn");
+        const updateFunc = () => updateStudentRow(row);
+        totalInput.addEventListener("input", updateFunc);
+        passingInput.addEventListener("input", updateFunc);
+        removeBtn.onclick = () => { row.remove(); saveDraft(); };
+        if(total || passing) updateStudentRow(row);
+        return row;
+    }
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    function getAllStudentData() {
+        const rows = document.querySelectorAll("#studentTbody tr");
+        let data = [];
+        rows.forEach(row => {
+            const subject = row.querySelector(".subject-taught")?.value || "";
+            const classLevel = row.querySelector(".class-level")?.value || "";
+            const total = parseInt(row.querySelector(".total-students")?.value) || 0;
+            const passing = parseInt(row.querySelector(".passing-students")?.value) || 0;
+            if(subject) data.push({ subject, classLevel, total, passing });
         });
-    </script>
+        return data;
+    }
+
+    // Save/Load Draft
+    function saveDraft() {
+        const studentRows = getAllStudentData();
+        const draft = {
+            fullName: document.getElementById("fullName").value, cnic: document.getElementById("cnic").value,
+            persNo: document.getElementById("persNo").value, contactNo: document.getElementById("contactNo").value,
+            dob: document.getElementById("dob").value, entryDate: document.getElementById("entryDate").value,
+            presentPostDate: document.getElementById("presentPostDate").value, designation: document.getElementById("designation").value,
+            postHeld: document.getElementById("postHeld").value, postingPlace: document.getElementById("postingPlace").value,
+            semisCode: document.getElementById("semisCode").value, qualification: document.getElementById("qualification").value,
+            evalFrom: document.getElementById("evalFrom").value, evalTo: document.getElementById("evalTo").value,
+            financialEval: document.getElementById("financialEval").value, overallGrade: document.getElementById("overallGrade").value,
+            overallComments: document.getElementById("overallComments").value, fitness: document.querySelector('input[name="fitness"]:checked')?.value || "",
+            reportingName: document.getElementById("reportingName").value, reportingDesig: document.getElementById("reportingDesig").value,
+            reportingDate: document.getElementById("reportingDate").value, assessmentQuality: document.getElementById("assessmentQuality").value,
+            countersignRemarks: document.getElementById("countersignRemarks").value, counterName: document.getElementById("counterName").value,
+            counterDesig: document.getElementById("counterDesig").value, counterDate: document.getElementById("counterDate").value,
+            ratings: ratingsData, comments: commentsData, students: studentRows
+        };
+        localStorage.setItem("per_draft", JSON.stringify(draft));
+    }
+    function loadDraft() {
+        const draft = localStorage.getItem("per_draft");
+        if(draft) {
+            const d = JSON.parse(draft);
+            const fields = ["fullName","cnic","persNo","contactNo","dob","entryDate","presentPostDate","designation","postHeld","postingPlace","semisCode","qualification","evalFrom","evalTo","financialEval","overallGrade","overallComments","reportingName","reportingDesig","reportingDate","assessmentQuality","countersignRemarks","counterName","counterDesig","counterDate"];
+            fields.forEach(f => { if(d[f]) document.getElementById(f).value = d[f]; });
+            if(d.fitness) document.querySelector(`input[name="fitness"][value="${d.fitness}"]`).checked = true;
+            if(d.ratings) { d.ratings.forEach((val,idx)=> { if(val) ratingsData[idx]=val; }); }
+            if(d.comments) { d.comments.forEach((val,idx)=> { if(val) commentsData[idx]=val; }); }
+            buildRatingTable();
+            const tbody = document.getElementById("studentTbody");
+            tbody.innerHTML = "";
+            if(d.students && d.students.length) d.students.forEach(s => addStudentRow(s.subject, s.classLevel, s.total, s.passing));
+            else addStudentRow("", "", "", "");
+        } else { addStudentRow("", "", "", ""); }
+    }
+
+    // Preview & Export
+    function generatePreviewHTML() {
+        const studentData = getAllStudentData();
+        let studentHtml = "<table border='1' cellpadding='8' style='width:100%;border-collapse:collapse;'><thead><tr><th>Subject</th><th>Class</th><th>Total Students</th><th>Passing</th><th>Percentage</th><th>Grade</th></tr></thead><tbody>";
+        studentData.forEach(s => {
+            let percent = s.total ? ((s.passing/s.total)*100).toFixed(1) : 0;
+            let grade = percent>=70?"A":percent>=60?"B":percent>=50?"C":"D";
+            studentHtml += `<tr><td>${escapeHtml(s.subject)}</td><td>${escapeHtml(s.classLevel)}</td><td>${s.total}</td><td>${s.passing}</td><td>${percent}%</td><td><strong>${grade}</strong></td></tr>`;
+        });
+        studentHtml += "</tbody></table>";
+        
+        let ratingsHtml = "<table border='1' style='width:100%;border-collapse:collapse;'><thead><tr><th>#</th><th>Indicator</th><th>Grade</th><th>Comments</th></tr></thead><tbody>";
+        for(let i=0;i<indicatorsList.length;i++) ratingsHtml += `<tr><td>${i+1}</td><td>${indicatorsList[i]}</td><td>${ratingsData[i] || "—"}</td><td>${commentsData[i] || ""}</td></tr>`;
+        ratingsHtml += "</tbody></table>";
+        
+        return `<div style="font-family: Arial;">
+            <div style="text-align:center;"><h2>GOVERNMENT OF SINDH</h2><h3>SCHOOL EDUCATION & LITERACY DEPARTMENT</h3><h4>PERFORMANCE EVALUATION REPORT</h4><p>Period: ${document.getElementById("evalFrom").value || "____"} to ${document.getElementById("evalTo").value || "____"}</p></div>
+            <h3>PART I: EMPLOYEE INFO</h3><p><strong>Name:</strong> ${document.getElementById("fullName").value} | <strong>CNIC:</strong> ${document.getElementById("cnic").value}<br><strong>Designation:</strong> ${document.getElementById("designation").value} | <strong>Posting:</strong> ${document.getElementById("postingPlace").value}</p>
+            <h3>PART II: PERFORMANCE EVALUATION</h3>${ratingsHtml}
+            <h3>STUDENT RESULTS</h3>${studentHtml}
+            <h3>FINANCIAL EVAL:</h3><p>${document.getElementById("financialEval").value || "—"}</p>
+            <h3>OVERALL: ${document.getElementById("overallGrade").value}</h3><p>${document.getElementById("overallComments").value}</p>
+            <h3>FITNESS: ${document.querySelector('input[name="fitness"]:checked')?.value || "Not Specified"}</h3>
+            <div><strong>Reporting Officer:</strong> ${document.getElementById("reportingName").value} (${document.getElementById("reportingDesig").value}) | ${document.getElementById("reportingDate").value}</div>
+            <div><strong>Countersigning Remarks:</strong> ${document.getElementById("assessmentQuality").value} - ${document.getElementById("countersignRemarks").value}<br>${document.getElementById("counterName").value} | ${document.getElementById("counterDesig").value}</div>
+        </div>`;
+    }
+    async function exportPDF() {
+        const content = generatePreviewHTML();
+        const elem = document.createElement('div'); elem.innerHTML = content;
+        document.body.appendChild(elem);
+        html2pdf().set({ margin: 0.5, filename: `PER_${Date.now()}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: "in", format: "a4" } }).from(elem).save().then(() => { document.body.removeChild(elem); showToast("PDF Downloaded"); });
+    }
+    function exportDOC() { const blob = new Blob([`<html><head><meta charset="UTF-8"></head><body>${generatePreviewHTML()}</body></html>`], { type: "application/msword" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `PER_${Date.now()}.doc`; a.click(); showToast("DOC Exported"); }
+    function exportTXT() { const txt = generatePreviewHTML().replace(/<[^>]*>/g, ' '); const blob = new Blob([txt], { type: "text/plain" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `PER_${Date.now()}.txt`; a.click(); showToast("TXT Exported"); }
+
+    // Event Listeners
+    document.getElementById("previewGenBtn").onclick = async () => {
+        const previewDiv = document.getElementById("previewSection");
+        previewDiv.innerHTML = generatePreviewHTML() + `<div class="action-bar"><button id="pdfExportBtn" class="btn">PDF</button><button id="docExportBtn" class="btn">DOC</button><button id="txtExportBtn" class="btn">TXT</button><button id="closePreviewBtn" class="btn-outline btn">Close</button></div>`;
+        previewDiv.classList.remove("hidden");
+        document.getElementById("formSection").classList.add("hidden");
+        document.getElementById("pdfExportBtn").onclick = exportPDF;
+        document.getElementById("docExportBtn").onclick = exportDOC;
+        document.getElementById("txtExportBtn").onclick = exportTXT;
+        document.getElementById("closePreviewBtn").onclick = () => { previewDiv.classList.add("hidden"); document.getElementById("formSection").classList.remove("hidden"); };
+        await incrementUsage();
+    };
+    document.getElementById("resetFormBtn").onclick = () => { localStorage.removeItem("per_draft"); location.reload(); };
+    document.getElementById("addSubjectBtn").onclick = () => addStudentRow("", "", "", "");
+    document.getElementById("darkModeToggle").onclick = () => { document.body.classList.toggle("dark"); localStorage.setItem("darkMode", document.body.classList.contains("dark")); };
+    if(localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
+    document.querySelectorAll(".share-icon").forEach(icon => icon.addEventListener("click", (e) => shareOn(e.currentTarget.dataset.platform)));
+    document.getElementById("scrollUpBtn").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("scrollDownBtn").onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    
+    // Initialize
+    buildRatingTable();
+    loadDraft();
+    fetchUsageCount();
+    loadReactions();
+    setInterval(saveDraft, 30000);
+    window.addEventListener("beforeunload", () => saveDraft());
+</script>
 </body>
 </html>
