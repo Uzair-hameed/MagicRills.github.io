@@ -1,6 +1,562 @@
- <div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/2007/2007297.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/2007/2007297.png" style="display: none;" sytle="display:none" width="320" /></a></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Multigrades Time Table | Group-Based Teaching System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --border: #E5E7EB;
+            --card-bg: #FFFFFF;
+            --text: #111827;
+            --text-light: #6B7280;
+            --shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02);
+            --radius: 16px;
+            --radius-sm: 8px;
+        }
 
+        body.dark {
+            --card-bg: #1F2937;
+            --text: #F9FAFB;
+            --text-light: #9CA3AF;
+            --border: #374151;
+            --light: #111827;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text);
+            transition: all 0.3s;
+        }
 
-<html lang="en"><head><meta charset="UTF-8"></meta><meta content="width=device-width,initial-scale=1.0" name="viewport"></meta><title>Multigrades Time Table Generator</title><style>.dashboard{display:flex;flex-wrap:wrap;gap:20px;font-family:Arial,sans-serif;max-width:1200px;margin:0 auto;padding:20px}.timetable-container,.strategies-container{flex:1;min-width:300px;background:#f5f5f5;border-radius:8px;padding:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}h1{color:#2c3e50;text-align:center;width:100%;margin-bottom:20px}h2{color:#3498db;border-bottom:2px solid #3498db;padding-bottom:5px}.form-group{margin-bottom:15px}label{display:block;margin-bottom:5px;font-weight:bold}select,input{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box}button{background:#3498db;color:white;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;font-size:16px;margin-top:10px;margin-right:10px}button:hover{background:#2980b9}.timetable{width:100%;border-collapse:collapse;margin-top:15px}.timetable th,.timetable td{border:1px solid #ddd;padding:8px;text-align:center}.timetable th{background:#3498db;color:white}.time-col{background:#ecf0f1;font-weight:bold}.strategy-card{background:white;border-radius:5px;padding:10px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}.strategy-card h3{color:#2c3e50;margin-top:0}.strategy-card p{margin-bottom:5px}.print-btn{background:#27ae60}.print-btn:hover{background:#219653}.doc-btn{background:#9b59b6}.doc-btn:hover{background:#8e44ad}.subject-checkbox{display:flex;flex-wrap:wrap;gap:10px;margin-top:5px}.checkbox-option{display:flex;align-items:center;white-space:nowrap}.checkbox-option input{margin-right:5px;width:auto}@media print{button{display:none}.dashboard{flex-direction:column;gap:10px}}</style></head><body><div class="dashboard"><h1>Multigrades Time Table Generator</h1><div class="timetable-container"><h2>Time Table Generator</h2><div class="form-group"><label for="teacherCount">Number of Teachers:</label><select id="teacherCount"><option value="2">2 Teachers</option><option value="3">3 Teachers</option><option value="4">4 Teachers</option></select></div><div id="teacherForms"></div><button id="generateBtn">Generate Time Table</button><button class="print-btn" onclick="window.print()">Print Time Table</button><button class="doc-btn" id="downloadDoc">Download as DOC</button><div id="timetableResult"></div></div><div class="strategies-container"><h2>Teaching Strategies</h2><div id="strategiesContent"><div class="strategy-card"><h3>ECCE (Early Childhood Care and Education)</h3><p><strong>Key Strategies:</strong> Play-based learning, storytelling, songs and rhymes, hands-on activities, sensory play.</p><p><strong>Teacher Help:</strong> Use local materials for teaching aids, involve community elders for stories, pair older students as helpers.</p></div><div class="strategy-card"><h3>Grades 1-2</h3><p><strong>Key Strategies:</strong> Phonics-based reading, number games, picture charts, group reading, flash cards.</p><p><strong>Teacher Help:</strong> Peer teaching within class, use of local environment for examples, simple worksheets.</p></div><div class="strategy-card"><h3>Grades 2-3</h3><p><strong>Key Strategies:</strong> Guided reading, math manipulatives, simple projects, role plays, picture composition.</p><p><strong>Teacher Help:</strong> Group leaders can assist, use of educational posters, simple science experiments with local materials.</p></div><div class="strategy-card"><h3>Grades 4-5</h3><p><strong>Key Strategies:</strong> Independent reading, problem-solving exercises, group discussions, written assignments, concept mapping.</p><p><strong>Teacher Help:</strong> Student monitors, library corners, project-based learning, peer correction of work.</p></div><div class="strategy-card"><h3>Multigrade Classroom Management</h3><p><strong>Key Strategies:</strong> Station teaching, learning centers, peer tutoring, flexible grouping, independent work folders.</p><p><strong>Teacher Help:</strong> Train student leaders, create self-checking materials, use visual schedules, implement routine procedures.</p></div></div></div></div><script>const subjects=['English','Sindhi','Urdu','Math','Science','Social Studies','Islamiat','Art/PE'];const timeSlots=['8:00-8:30','8:30-9:00','9:00-9:30','9:30-10:00','10:00-10:30','10:30-11:00','11:00-11:30','11:30-12:00'];const gradeGroups=['ECCE-1','2-3','4-5','ECCE-1 & 2-3','2-3 & 4-5','ECCE-1 & 4-5'];document.getElementById('teacherCount').addEventListener('change',function(){generateTeacherForms()});document.getElementById('generateBtn').addEventListener('click',generateTimetable);document.getElementById('downloadDoc').addEventListener('click',downloadAsDoc);function generateTeacherForms(){const teacherCount=parseInt(document.getElementById('teacherCount').value);let formsHTML='';for(let i=1;i<=teacherCount;i++){formsHTML+=`<div class="form-group"><label for="teacher${i}">Teacher ${i} Name:</label><input type="text" id="teacher${i}" placeholder="Enter teacher name"></div><div class="form-group"><label for="teacher${i}Grades">Teacher ${i} Grades:</label><select id="teacher${i}Grades">${gradeGroups.map(g=>`<option value="${g}">${g}</option>`).join('')}</select></div><div class="form-group"><label>Teacher ${i} Subjects:</label><div class="subject-checkbox" id="teacher${i}Subjects">${subjects.map(s=>`<label class="checkbox-option"><input type="checkbox" value="${s}">${s}</label>`).join('')}</div></div>`;}document.getElementById('teacherForms').innerHTML=formsHTML;}function getSelectedSubjects(teacherId){const checkboxes=document.querySelectorAll(`#teacher${teacherId}Subjects input[type="checkbox"]:checked`);return Array.from(checkboxes).map(cb=>cb.value);}function generateTimetable(){const teacherCount=parseInt(document.getElementById('teacherCount').value);const teachers=[];for(let i=1;i<=teacherCount;i++){const name=document.getElementById(`teacher${i}`).value||`Teacher ${i}`;const grades=document.getElementById(`teacher${i}Grades`).value;const selectedSubjects=getSelectedSubjects(i);teachers.push({name,grades,subjects:selectedSubjects.length>0?selectedSubjects:getDefaultSubjects(grades)})}let timetableHTML='<h3>Weekly Time Table</h3><table class="timetable"><tr><th>Time</th>';for(let i=0;i<teacherCount;i++){timetableHTML+=`<th>${teachers[i].name}<br>(${teachers[i].grades})</th>`}timetableHTML+='</tr>';for(let i=0;i<timeSlots.length;i++){timetableHTML+=`<tr><td class="time-col">${timeSlots[i]}</td>`;for(let j=0;j<teacherCount;j++){const randomSubject=teachers[j].subjects[Math.floor(Math.random()*teachers[j].subjects.length)]||'-';timetableHTML+=`<td>${randomSubject}</td>`}timetableHTML+='</tr>'}timetableHTML+='</table><h4>Teaching Assignments Summary</h4><ul>';teachers.forEach(t=>{timetableHTML+=`<li><strong>${t.name}</strong>: Teaches grades ${t.grades}. Subjects: ${t.subjects.join(', ')}</li>`});timetableHTML+='</ul>';document.getElementById('timetableResult').innerHTML=timetableHTML;}function getDefaultSubjects(grades){if(grades.includes('ECCE'))return['English','Sindhi','Math','Art/PE'];if(grades.includes('2-3'))return['English','Sindhi','Math','Science'];return['English','Math','Science','Social Studies'];}function downloadAsDoc(){const teacherCount=parseInt(document.getElementById('teacherCount').value);const teachers=[];for(let i=1;i<=teacherCount;i++){const name=document.getElementById(`teacher${i}`).value||`Teacher ${i}`;const grades=document.getElementById(`teacher${i}Grades`).value;const selectedSubjects=getSelectedSubjects(i);teachers.push({name,grades,subjects:selectedSubjects.length>0?selectedSubjects:getDefaultSubjects(grades)})}let docContent=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>Multigrades Time Table</title><style>body{font-family:Arial,sans-serif}h1{color:#2c3e50}h2{color:#3498db}table{border-collapse:collapse;width:100%}th,td{border:1px solid #000;padding:8px;text-align:center}th{background:#3498db;color:#fff}.time-col{background:#eee;font-weight:bold}</style></head><body>`;docContent+=`<h1>Multigrades Time Table</h1><h2>Weekly Time Table</h2><table><tr><th>Time</th>`;for(let i=0;i<teacherCount;i++){docContent+=`<th>${teachers[i].name}<br>(${teachers[i].grades})</th>`}docContent+='</tr>';for(let i=0;i<timeSlots.length;i++){docContent+=`<tr><td class="time-col">${timeSlots[i]}</td>`;for(let j=0;j<teacherCount;j++){const randomSubject=teachers[j].subjects[Math.floor(Math.random()*teachers[j].subjects.length)]||'-';docContent+=`<td>${randomSubject}</td>`}docContent+='</tr>'}docContent+='</table><h2>Teaching Assignments Summary</h2><ul>';teachers.forEach(t=>{docContent+=`<li><strong>${t.name}</strong>: Teaches grades ${t.grades}. Subjects: ${t.subjects.join(', ')}</li>`});docContent+='</ul><h2>Teaching Strategies</h2>';const strategies=document.getElementById('strategiesContent').cloneNode(true);strategies.querySelectorAll('button').forEach(btn=>btn.remove());docContent+=strategies.innerHTML;docContent+='</body></html>';const blob=new Blob(['\ufeff',docContent],{type:'application/msword'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Multigrades_Time_Table.doc';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}generateTeacherForms();</script></body></html>
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Scroll Buttons */
+        .scroll-btn {
+            position: fixed;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scroll-btn:hover { transform: scale(1.05); }
+        .scroll-up { bottom: 80px; }
+        .scroll-down { bottom: 20px; }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            border-right: 4px solid var(--primary);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Stats */
+        .global-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px 25px;
+            background: var(--light);
+            border-radius: var(--radius-sm);
+        }
+
+        .stat-card i { font-size: 1.5rem; color: var(--primary); }
+        .stat-card span { font-size: 1.5rem; font-weight: bold; display: block; }
+        .stat-card small { color: var(--text-light); font-size: 0.75rem; }
+
+        /* Dashboard */
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .timetable-container, .strategies-container {
+            flex: 1;
+            min-width: 350px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .form-row .form-group { flex: 1; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--light);
+            color: var(--text);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .subject-checkbox {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: var(--light);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-option input { width: auto; margin: 0; }
+
+        .teacher-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-export { background: var(--secondary); color: white; }
+        .btn-print { background: var(--gray); color: white; }
+
+        /* Timetable */
+        .timetable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .timetable th, .timetable td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .timetable th {
+            background: var(--primary);
+            color: white;
+        }
+
+        .time-col { background: var(--light); font-weight: 600; }
+
+        .group-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin: 2px;
+        }
+
+        .group-A { background: #D1FAE5; color: #065F46; }
+        .group-B { background: #FEF3C7; color: #92400E; }
+
+        .warning-badge {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        /* Strategy Cards */
+        .strategy-card {
+            background: var(--light);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .strategy-card h3 { margin-bottom: 10px; font-size: 1rem; }
+        .strategy-card p { margin-bottom: 8px; font-size: 0.85rem; color: var(--text-light); }
+
+        .difficulty-easy { color: #10B981; }
+        .difficulty-medium { color: #F59E0B; }
+        .difficulty-hard { color: #EF4444; }
+
+        /* Reactions & Share */
+        .interaction-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .reactions-container, .share-container {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .reactions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .reaction-btn {
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .reaction-btn:hover { transform: scale(1.05); background: var(--primary); color: white; }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .share-btn:hover { transform: translateY(-3px); }
+        .share-btn.facebook { background: #1877F2; }
+        .share-btn.twitter { background: #1DA1F2; }
+        .share-btn.whatsapp { background: #25D366; }
+        .share-btn.linkedin { background: #0077B5; }
+        .share-btn.email { background: #EA4335; }
+        .share-btn.copy { background: var(--gray); }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: var(--card-bg);
+            color: var(--text);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+        @media print {
+            .scroll-btn, .dark-mode-toggle, .interaction-section, .nav-buttons, .button-group, .form-group, .hero-badge { display: none !important; }
+            body { background: white; padding: 0; }
+            .timetable { font-size: 10pt; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 1.5rem; }
+            .timetable-container, .strategies-container { min-width: 100%; }
+            .timetable { font-size: 0.7rem; }
+            .timetable th, .timetable td { padding: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-chevron-up"></i></button>
+    <button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-chevron-down"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+    <button class="dark-mode-toggle" id="darkModeToggle"><i class="fas fa-moon"></i></button>
+
+    <div class="container">
+        <div class="hero-section">
+            <div class="hero-badge">🏫 Group-Based Multigrade System</div>
+            <h1 class="hero-title"><i class="fas fa-chalkboard-user"></i> Multigrades Time Table Generator</h1>
+            <p class="hero-subtitle">One teacher handles TWO grade groups simultaneously with weekly subject rotation.</p>
+            
+            <div class="global-stats">
+                <div class="stat-card"><i class="fas fa-chart-line"></i><span id="globalUsageCount">0</span><small>Total Uses</small></div>
+                <div class="stat-card"><i class="fas fa-heart"></i><span id="globalReactionCount">0</span><small>Reactions</small></div>
+                <div class="stat-card"><i class="fas fa-share-alt"></i><span id="globalShareCount">0</span><small>Shares</small></div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="timetable-container">
+                <h2><i class="fas fa-calendar-alt"></i> Group-Based Timetable</h2>
+                
+                <div class="form-group">
+                    <label for="schoolName">🏫 School Name:</label>
+                    <input type="text" id="schoolName" placeholder="Enter school name" value="Government Primary School">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="teacherCount">👩‍🏫 Number of Teachers:</label>
+                        <select id="teacherCount">
+                            <option value="2">2 Teachers</option>
+                            <option value="3" selected>3 Teachers</option>
+                            <option value="4">4 Teachers</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="workingDays">📅 Working Days:</label>
+                        <select id="workingDays">
+                            <option value="5">Monday - Friday</option>
+                            <option value="6">Monday - Saturday</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="teacherForms"></div>
+
+                <div class="button-group">
+                    <button id="generateBtn" class="btn btn-primary"><i class="fas fa-magic"></i> Generate Timetable</button>
+                    <button id="exportPDFBtn" class="btn btn-export"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button id="exportDOCBtn" class="btn btn-export"><i class="fas fa-file-word"></i> DOC</button>
+                    <button id="exportTXTBtn" class="btn btn-export"><i class="fas fa-file-alt"></i> TXT</button>
+                    <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+                </div>
+
+                <div id="timetableResult"></div>
+            </div>
+
+            <div class="strategies-container">
+                <h2><i class="fas fa-lightbulb"></i> Group Management Guide</h2>
+                <div id="strategiesContent">
+                    <div class="strategy-card">
+                        <h3>📌 How to Manage Two Groups Simultaneously</h3>
+                        <p><strong>Step 1:</strong> Divide class into Group A (left side) and Group B (right side).</p>
+                        <p><strong>Step 2:</strong> Teach Group A for 15 min, give them independent work, then switch to Group B.</p>
+                        <p><strong>Step 3:</strong> Use peer tutoring - Group A helps Group B.</p>
+                        <p><strong>Step 4:</strong> Keep 5-minute buffer for transitions.</p>
+                    </div>
+                    <div class="strategy-card">
+                        <h3>📅 Weekly Subject Rotation System</h3>
+                        <p><strong>Monday:</strong> English + Math | <strong>Tuesday:</strong> Urdu + Science</p>
+                        <p><strong>Wednesday:</strong> Islamiat + Social Studies | <strong>Thursday:</strong> Art + Revision</p>
+                        <p><strong>Friday:</strong> Assessment + Group Discussion</p>
+                    </div>
+                    <div class="strategy-card">
+                        <h3>⚠️ Difficulty Warning System</h3>
+                        <p>🔴 Hard subjects (Math, Science) should NOT be in last period</p>
+                        <p>🟡 Medium subjects (English, Urdu) are flexible</p>
+                        <p>🟢 Easy subjects (Art, Islamiat) are good for end of day</p>
+                    </div>
+                    <div class="strategy-card">
+                        <h3>🎯 Quick Tips for Teachers</h3>
+                        <p>• Use visual timers for each activity</p>
+                        <p>• Prepare independent work folders for each group</p>
+                        <p>• Train group leaders to help manage</p>
+                        <p>• Use local materials (stones, seeds, cardboard)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interaction-section">
+            <div class="reactions-container">
+                <h3><i class="fas fa-smile"></i> Rate this Tool</h3>
+                <div class="reactions" id="reactions">
+                    <button class="reaction-btn" data-emoji="👍" data-reaction="like">👍 <span class="reaction-count" id="reaction-like">0</span></button>
+                    <button class="reaction-btn" data-emoji="❤️" data-reaction="love">❤️ <span class="reaction-count" id="reaction-love">0</span></button>
+                    <button class="reaction-btn" data-emoji="😮" data-reaction="wow">😮 <span class="reaction-count" id="reaction-wow">0</span></button>
+                    <button class="reaction-btn" data-emoji="😢" data-reaction="sad">😢 <span class="reaction-count" id="reaction-sad">0</span></button>
+                    <button class="reaction-btn" data-emoji="😠" data-reaction="angry">😠 <span class="reaction-count" id="reaction-angry">0</span></button>
+                    <button class="reaction-btn" data-emoji="😂" data-reaction="laugh">😂 <span class="reaction-count" id="reaction-laugh">0</span></button>
+                    <button class="reaction-btn" data-emoji="🎉" data-reaction="celebrate">🎉 <span class="reaction-count" id="reaction-celebrate">0</span></button>
+                </div>
+            </div>
+            <div class="share-container">
+                <h3><i class="fas fa-share-alt"></i> Share This Tool</h3>
+                <div class="share-buttons">
+                    <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                    <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                    <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                    <button class="share-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                    <button class="share-btn email" data-platform="email"><i class="fas fa-envelope"></i></button>
+                    <button class="share-btn copy" data-platform="copy"><i class="fas fa-link"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="https://magicrills.com" class="nav-btn home"><i class="fas fa-home"></i> Home</a>
+            <a href="https://magicrills.com/category-pages/administrator.html" class="nav-btn back"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <script src="multigrades-time-table-generator.js"></script>
+</body>
+</html>
