@@ -1,207 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morning Assembly Roster Generator - Advanced</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Morning Assembly Roster Generator | Weekly Plan with Group Rotation</title>
+    <meta name="description" content="Complete morning assembly roster generator for Pakistani schools. Weekly plan, group rotation, full content for each activity.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="morning-assembly-roster-generator.css">
-    <!-- Updated PDF and Word export libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>🤖 Generating Weekly Plan with AI...</p>
+        <small>This may take a few seconds</small>
+    </div>
+
+    <button id="scrollUpBtn" class="scroll-btn scroll-up"><i class="fas fa-chevron-up"></i></button>
+    <button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-chevron-down"></i></button>
+    <button id="darkModeToggle" class="dark-mode-toggle"><i class="fas fa-moon"></i><i class="fas fa-sun" style="display: none;"></i></button>
+
     <div class="container">
-        <header>
-            <h1>Morning Assembly Roster Generator</h1>
-            <p class="subtitle">For Pakistani Schools (Grades 2-10) - Advanced Edition</p>
-        </header>
-        
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-bg"></div>
+            <div class="hero-content">
+                <div class="hero-icon"><i class="fas fa-chalkboard-user"></i></div>
+                <h1 class="hero-title">Morning Assembly <span>Weekly Roster</span></h1>
+                <p class="hero-subtitle">For Pakistani Schools | Grades 2-10 | 6 Days | Group Rotation</p>
+                <div class="hero-stats">
+                    <div class="hero-stat"><i class="fas fa-chart-line"></i><span id="globalUsageCount">0</span><small>Total Uses</small></div>
+                    <div class="hero-stat"><i class="fas fa-heart"></i><span id="globalReactionCount">0</span><small>Reactions</small></div>
+                    <div class="hero-stat"><i class="fas fa-share-alt"></i><span id="globalShareCount">0</span><small>Shares</small></div>
+                </div>
+            </div>
+            <div class="hero-wave"><svg viewBox="0 0 1200 120"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="wave-fill"></path></svg></div>
+        </section>
+
         <div class="main-content">
-            <!-- Quick Actions Bar -->
-            <div class="quick-actions">
-                <button id="saveTemplateBtn" class="btn btn-outline">Save as Template</button>
-                <button id="loadTemplateBtn" class="btn btn-outline">Load Template</button>
-                <button id="shareRosterBtn" class="btn btn-outline">Share Roster</button>
-                <button id="aiSuggestBtn" class="btn btn-ai">AI Suggestions</button>
-            </div>
-
-            <!-- Collaboration Panel -->
-            <div class="collaboration-panel" id="collaborationPanel">
-                <h3>Team Collaboration</h3>
-                <div class="online-users" id="onlineUsers"></div>
-                <div class="chat-box" id="chatBox">
-                    <div class="chat-messages" id="chatMessages"></div>
-                    <div class="chat-input">
-                        <input type="text" id="chatInput" placeholder="Type a message...">
-                        <button id="sendChatBtn">Send</button>
-                    </div>
-                </div>
-            </div>
-
+            <!-- School Details -->
             <div class="form-section">
-                <h2 class="form-title">Assembly Details</h2>
-                
+                <h2 class="form-title"><i class="fas fa-building"></i> School Details</h2>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="schoolName">School Name</label>
-                        <input type="text" id="schoolName" placeholder="Enter school name" value="The City School, Gulshan Campus">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="date">Date</label>
-                        <input type="date" id="date">
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-school"></i> School Name</label><input type="text" id="schoolName" value="The City School, Gulshan Campus"></div>
+                    <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Starting Date</label><input type="date" id="startDate"></div>
                 </div>
-
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="theme">Assembly Theme</label>
-                        <input type="text" id="theme" placeholder="Enter assembly theme" value="Respect for Our Environment: Our Islamic Duty">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gradeSelect">Select Grade</label>
-                        <select id="gradeSelect" class="grade-select">
-                            <option value="">-- Select Grade --</option>
-                            <option value="2">Grade 2</option>
-                            <option value="3">Grade 3</option>
-                            <option value="4">Grade 4</option>
-                            <option value="5">Grade 5</option>
-                            <option value="6">Grade 6</option>
-                            <option value="7">Grade 7</option>
-                            <option value="8">Grade 8</option>
-                            <option value="9">Grade 9</option>
-                            <option value="10">Grade 10</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-lightbulb"></i> Assembly Theme</label><input type="text" id="theme" value="Respect for Our Environment: Our Islamic Duty"></div>
+                    <div class="form-group"><label><i class="fas fa-users"></i> Select Grade</label><select id="gradeSelect"><option value="">-- Select Grade --</option><option value="2">Grade 2</option><option value="3">Grade 3</option><option value="4">Grade 4</option><option value="5">Grade 5</option><option value="6">Grade 6</option><option value="7">Grade 7</option><option value="8">Grade 8</option><option value="9">Grade 9</option><option value="10">Grade 10</option></select></div>
                 </div>
-
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="totalTime">Total Assembly Time (minutes)</label>
-                        <input type="number" id="totalTime" placeholder="Enter total time" value="45">
-                        <div class="time-optimizer">
-                            <button id="optimizeTimeBtn" class="btn-small">Optimize Time</button>
-                            <span class="time-status" id="timeStatus"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="language">Language</label>
-                        <select id="language" class="language-select">
-                            <option value="english">English</option>
-                            <option value="urdu">Urdu</option>
-                            <option value="bilingual">Bilingual</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="activities-container">
-                <div class="activities-header">
-                    <h2 class="form-title">Assembly Activities</h2>
-                    <div class="activity-actions">
-                        <button id="addActivityBtn" class="btn btn-primary">Add Custom Activity</button>
-                        <button id="reorderActivitiesBtn" class="btn btn-outline">Reorder Activities</button>
-                    </div>
-                </div>
-                
-                <div id="activitiesList" class="activities-list">
-                    <!-- Activities will be populated by JavaScript -->
-                </div>
-            </div>
-            
-            <div class="preview-section">
-                <div class="preview-header">
-                    <h2 class="preview-title">Roster Preview</h2>
-                    <div class="preview-actions">
-                        <button id="toggleCollaborationBtn" class="btn btn-outline">Team Collaboration</button>
-                        <button id="exportOptionsBtn" class="btn btn-outline">Export Options</button>
-                    </div>
-                </div>
-                <div class="roster-preview" id="rosterPreview">
-                    <table class="roster-table">
-                        <thead>
-                            <tr>
-                                <th>Order</th>
-                                <th>Activity</th>
-                                <th>Lead By</th>
-                                <th>Time</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewBody">
-                            <!-- Preview content will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="generateBtn" class="btn btn-primary">Generate Roster</button>
-                <button id="downloadPdfBtn" class="btn btn-secondary">Download PDF</button>
-                <button id="downloadWordBtn" class="btn btn-secondary">Download Word</button>
-                <button id="downloadExcelBtn" class="btn btn-secondary">Download Excel</button>
-                <button id="saveRosterBtn" class="btn btn-outline">Save to Cloud</button>
-            </div>
-
-            <!-- Export Options Modal -->
-            <div id="exportModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h3>Export Options</h3>
-                    <div class="export-options">
-                        <div class="export-option">
-                            <h4>PDF Formats</h4>
-                            <button class="btn btn-outline" data-format="pdf-simple">Simple PDF</button>
-                            <button class="btn btn-outline" data-format="pdf-detailed">Detailed PDF</button>
-                            <button class="btn btn-outline" data-format="pdf-booklet">Booklet Format</button>
-                        </div>
-                        <div class="export-option">
-                            <h4>Other Formats</h4>
-                            <button class="btn btn-outline" data-format="excel">Excel Sheet</button>
-                            <button class="btn btn-outline" data-format="word">Word Document</button>
-                            <button class="btn btn-outline" data-format="json">JSON Data</button>
-                        </div>
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-calendar-week"></i> Week</label><select id="weekSelect"><option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option><option value="4">Week 4</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-clock"></i> Daily Time (min)</label><input type="number" id="totalTime" value="45"></div>
                 </div>
             </div>
 
-            <!-- Template Library Modal -->
-            <div id="templateModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h3>Template Library</h3>
-                    <div class="template-grid" id="templateGrid">
-                        <!-- Templates will be loaded here -->
-                    </div>
+            <!-- Class Status -->
+            <div class="form-section">
+                <h2 class="form-title"><i class="fas fa-chart-line"></i> Class Status (Weekly Rotation)</h2>
+                <div class="class-status-grid" id="classStatusGrid"></div>
+                <button id="completeClassBtn" class="btn-complete"><i class="fas fa-check-circle"></i> Complete Current Class & Move to Next</button>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="generate-section">
+                <button id="generateWeeklyPlanBtn" class="btn-generate"><i class="fas fa-calendar-plus"></i> Generate Full Weekly Plan (6 Days)</button>
+            </div>
+
+            <!-- Weekly Plan Container -->
+            <div class="form-section weekly-plan-section">
+                <h2 class="form-title"><i class="fas fa-calendar-alt"></i> 📅 Weekly Plan (Monday to Saturday)</h2>
+                <p class="weekly-info"><i class="fas fa-info-circle"></i> Groups rotate: Monday→A, Tuesday→B, Wednesday→C, Thursday→D, Friday→A, Saturday→B</p>
+                <div id="weeklyPlanContainer" class="weekly-plan-container">
+                    <div class="empty-state"><i class="fas fa-calendar-plus"></i><p>Click "Generate Weekly Plan" to create roster with full content</p></div>
+                </div>
+                <div class="weekly-actions">
+                    <button id="printPlanBtn" class="btn-print"><i class="fas fa-print"></i> Print / Download PDF</button>
                 </div>
             </div>
 
-            <!-- AI Suggestions Modal -->
-            <div id="aiModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h3>AI Activity Suggestions</h3>
-                    <div class="ai-suggestions" id="aiSuggestions">
-                        <!-- AI suggestions will appear here -->
-                    </div>
+            <!-- AI Quote -->
+            <div class="ai-quote-section">
+                <h2 class="form-title"><i class="fas fa-robot"></i> AI Generated Quote</h2>
+                <div class="ai-quote-card">
+                    <i class="fas fa-quote-right quote-icon-main"></i>
+                    <p id="aiQuoteText" class="quote-text">Click generate for an inspiring quote...</p>
+                    <p id="aiQuoteAuthor" class="quote-author">- AI Assistant</p>
+                    <button id="generateQuoteBtn" class="btn-quote"><i class="fas fa-magic"></i> Generate Quote</button>
                 </div>
+            </div>
+
+            <!-- Reactions -->
+            <div class="reactions-section">
+                <h2 class="form-title"><i class="fas fa-heart"></i> Rate This Tool</h2>
+                <div class="reactions-container" id="reactionsContainer">
+                    <div class="reaction" data-reaction="like"><i class="fas fa-thumbs-up"></i><span class="reaction-count">0</span><small>Like</small></div>
+                    <div class="reaction" data-reaction="love"><i class="fas fa-heart"></i><span class="reaction-count">0</span><small>Love</small></div>
+                    <div class="reaction" data-reaction="wow"><i class="fas fa-surprise"></i><span class="reaction-count">0</span><small>Wow</small></div>
+                    <div class="reaction" data-reaction="sad"><i class="fas fa-frown"></i><span class="reaction-count">0</span><small>Sad</small></div>
+                    <div class="reaction" data-reaction="angry"><i class="fas fa-angry"></i><span class="reaction-count">0</span><small>Angry</small></div>
+                    <div class="reaction" data-reaction="laugh"><i class="fas fa-laugh-squint"></i><span class="reaction-count">0</span><small>Laugh</small></div>
+                    <div class="reaction" data-reaction="celebrate"><i class="fas fa-tada"></i><span class="reaction-count">0</span><small>Celebrate</small></div>
+                </div>
+            </div>
+
+            <!-- Share -->
+            <div class="share-section">
+                <h2 class="form-title"><i class="fas fa-share-alt"></i> Share</h2>
+                <div class="share-buttons">
+                    <button class="share-btn fb"><i class="fab fa-facebook-f"></i> Facebook</button>
+                    <button class="share-btn tw"><i class="fab fa-twitter"></i> Twitter</button>
+                    <button class="share-btn wa"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                    <button class="share-btn li"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+                    <button class="share-btn em"><i class="fas fa-envelope"></i> Email</button>
+                    <button class="share-btn cp"><i class="fas fa-copy"></i> Copy URL</button>
+                </div>
+            </div>
+
+            <!-- Usage -->
+            <div class="usage-section">
+                <div class="usage-card"><i class="fas fa-chart-simple"></i><span id="toolUsageCount">0</span><small>Times Used</small></div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <a href="https://magicrills.com" class="nav-btn home"><i class="fas fa-home"></i> Home</a>
+                <a href="https://magicrills.com/category-pages/administrator.html" class="nav-btn back"><i class="fas fa-arrow-left"></i> Back</a>
             </div>
         </div>
-        
+
         <footer>
-            <p>© 2024 Morning Assembly Roster Generator | Advanced Edition | Designed for Pakistani Schools</p>
-            <div class="footer-links">
-                <a href="#" id="exportHistory">Export History</a>
-                <a href="#" id="viewAnalytics">View Analytics</a>
-                <a href="#" id="helpDocs">Help Documentation</a>
-            </div>
+            <p>© 2024 Morning Assembly Roster Generator | Powered by Grok AI + TiDB</p>
         </footer>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="morning-assembly-roster-generator.js"></script>
-    <script src="morning-assembly-roster-generator-pdf.js"></script>
-    <script src="morning-assembly-roster-generator-word.js"></script>
 </body>
 </html>
