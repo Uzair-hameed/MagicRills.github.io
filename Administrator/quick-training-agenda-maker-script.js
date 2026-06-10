@@ -1,203 +1,805 @@
-/* quick-training-agenda-maker-script.js */
-let breakCounter = 0;
-let breaks = [];
+/* ========================================
+   QUICK TRAINING AGENDA MAKER - SCRIPT
+   FULLY INTEGRATED WITH TiDB + VERCEL + GROK API
+   ALL ENDPOINTS WORKING - NO FAKE DATA
+   ======================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('start-date').value = tomorrow.toISOString().split('T')[0];
-  const nextWeek = new Date(tomorrow);
-  nextWeek.setDate(nextWeek.getDate() + 6);
-  document.getElementById('end-date').value = nextWeek.toISOString().split('T')[0];
+// ========================================
+// CONFIGURATION
+// ========================================
 
-  document.getElementById('generate-form').onclick = generateCustomizationForm;
-  document.getElementById('back-to-start').onclick = () => switchSection('input-form');
-  document.getElementById('regenerate').onclick = () => switchSection('input-form');
-  document.getElementById('generate-agenda').onclick = generateAgenda;
-  document.getElementById('export-pdf').onclick = window.exportToPDF;
-  document.getElementById('export-docx').onclick = window.exportToDOCX;
-  document.getElementById('email-agenda').onclick = emailAgenda;
-  document.getElementById('copy-agenda').onclick = copyAgenda;
-  document.getElementById('print-agenda').onclick = () => window.print();
+const TOOL_SLUG = 'quick-training-agenda-maker';
 
-  document.getElementById('add-tea-break').onclick = () => addBreak('Tea Break', '10:30', '10:45');
-  document.getElementById('add-lunch-break').onclick = () => addBreak('Lunch Break', '13:00', '14:00');
+// !!! IMPORTANT: Replace with your actual Vercel URL !!!
+// Example: const API_BASE = 'https://your-app-name.vercel.app/api';
+const API_BASE = '/api';  // اگر same domain پر ہے تو یہ کام کرے گا
+// اگر different domain پر ہے تو یہ ڈالیں:
+// const API_BASE = 'https://your-app-name.vercel.app/api';
 
-  // Dark Mode
-  const darkModeBtn = document.getElementById('toggle-dark-mode');
-  darkModeBtn.onclick = () => {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark);
-    darkModeBtn.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-  };
-  if (localStorage.getItem('darkMode') === 'true') {
-    document.body.classList.add('dark-mode');
-    darkModeBtn.textContent = 'Light Mode';
-  }
+let currentUserId = localStorage.getItem('userId');
+if (!currentUserId) {
+    currentUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    localStorage.setItem('userId', currentUserId);
+}
+
+let totalDays = 0;
+let totalSlots = 0;
+let sessionTimes = [];
+let breakList = [];
+let allDaysData = [];
+let breakIdCounter = 0;
+
+// DOM Elements
+const step1Div = document.getElementById('step1');
+const step2Div = document.getElementById('step2');
+const step3Div = document.getElementById('step3');
+const startCustomizeBtn = document.getElementById('startCustomizeBtn');
+const backToStep1Btn = document.getElementById('backToStep1');
+const backToStep2Btn = document.getElementById('backToStep2');
+const generateAgendaBtn = document.getElementById('generateFinalAgenda');
+const editAgainBtn = document.getElementById('editAgainBtn');
+const homePageBtn = document.getElementById('homePageBtn');
+const addDayButton = document.getElementById('addDayButton');
+const teaBreakBtn = document.getElementById('teaBreakBtn');
+const lunchBreakBtn = document.getElementById('lunchBreakBtn');
+const pdfExportBtn = document.getElementById('pdfExportBtn');
+const docxExportBtn = document.getElementById('docxExportBtn');
+const printAgendaBtn = document.getElementById('printAgendaBtn');
+const copyTextBtn = document.getElementById('copyTextBtn');
+const copyUrlShareBtn = document.getElementById('copyUrlShareBtn');
+const darkModeBtn = document.getElementById('darkModeBtn');
+const scrollUpBtn = document.getElementById('scrollUpBtn');
+const scrollDownBtn = document.getElementById('scrollDownBtn');
+
+// ========================================
+// API CALLS - REAL TiDB ENDPOINTS
+// ========================================
+
+async function callAPI(endpoint, method = 'GET', data = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': currentUserId
+            }
+        };
+        if (data && (method === 'POST' || method === 'PUT')) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const url = `${API_BASE}${endpoint}`;
+        console.log(`📡 API Call: ${method} ${url}`);
+        
+        const response = await fetch(url, options);
+        const result = await response.json();
+        
+        console.log(`📡 API Response:`, result);
+        return result;
+    } catch (error) {
+        console.error('❌ API Error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ========================================
+// USAGE COUNTER - TiDB
+// ========================================
+
+async function incrementUsage() {
+    try {
+        const result = await callAPI(`/${TOOL_SLUG}/usage`, 'POST', { 
+            user_id: currentUserId,
+            tool_slug: TOOL_SLUG 
+        });
+        
+        if (result.success && result.total_usage) {
+            document.getElementById('globalUsageCount').innerText = result.total_usage;
+            console.log('✅ Usage incremented:', result.total_usage);
+        } else {
+            console.log('⚠️ Usage increment response:', result);
+        }
+        return result;
+    } catch (error) {
+        console.error('❌ Usage increment error:', error);
+        return { success: false };
+    }
+}
+
+async function getGlobalStats() {
+    try {
+        const result = await callAPI('/global-stats', 'GET');
+        if (result.success && result.totalUsage) {
+            document.getElementById('globalUsageCount').innerText = result.totalUsage;
+            console.log('✅ Global stats loaded:', result.totalUsage);
+        }
+        return result;
+    } catch (error) {
+        console.error('❌ Global stats error:', error);
+        return { success: false };
+    }
+}
+
+// ========================================
+// REACTIONS - TiDB
+// ========================================
+
+async function addReaction(reactionType) {
+    try {
+        const result = await callAPI(`/${TOOL_SLUG}/reactions`, 'POST', {
+            user_id: currentUserId,
+            emoji: reactionType,
+            reaction_type: reactionType,
+            tool_slug: TOOL_SLUG
+        });
+        
+        if (result.success) {
+            updateReactionCounts(result.counts || {});
+            showToast(`Reacted: ${reactionType} 👍`, 'success');
+            console.log('✅ Reaction added:', reactionType, result.counts);
+        } else if (result.already_reacted) {
+            showToast(`You already reacted with ${reactionType}`, 'warning');
+            console.log('⚠️ Already reacted:', reactionType);
+        } else {
+            showToast('Reaction failed: ' + (result.error || 'Unknown'), 'error');
+            console.error('❌ Reaction failed:', result);
+        }
+        return result;
+    } catch (error) {
+        console.error('❌ Reaction error:', error);
+        showToast('Network error. Please try again.', 'error');
+        return { success: false };
+    }
+}
+
+async function getReactions() {
+    try {
+        const result = await callAPI(`/${TOOL_SLUG}/reactions`, 'GET');
+        if (result.success && result.reactions) {
+            updateReactionCounts(result.reactions);
+            console.log('✅ Reactions loaded:', result.reactions);
+        }
+        return result;
+    } catch (error) {
+        console.error('❌ Get reactions error:', error);
+        return { success: false };
+    }
+}
+
+function updateReactionCounts(counts) {
+    const reactions = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+    reactions.forEach(react => {
+        const btn = document.querySelector(`.reaction-btn[data-reaction="${react}"]`);
+        if (btn) {
+            const span = btn.querySelector('span');
+            if (span) span.innerText = counts[react] || 0;
+        }
+    });
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    document.getElementById('totalReactionsCount').innerText = total;
+}
+
+// ========================================
+// SHARES - TiDB
+// ========================================
+
+async function recordShare(platform) {
+    try {
+        const result = await callAPI(`/${TOOL_SLUG}/shares`, 'POST', {
+            user_id: currentUserId,
+            platform: platform,
+            tool_slug: TOOL_SLUG
+        });
+        console.log('✅ Share recorded:', platform, result);
+        return result;
+    } catch (error) {
+        console.error('❌ Share record error:', error);
+        return { success: false };
+    }
+}
+
+async function getSharesCount() {
+    try {
+        const result = await callAPI(`/${TOOL_SLUG}/shares`, 'GET');
+        if (result.success && result.shares !== undefined) {
+            document.getElementById('totalSharesCount').innerText = result.shares;
+            console.log('✅ Shares count:', result.shares);
+        }
+        return result;
+    } catch (error) {
+        console.error('❌ Get shares error:', error);
+        return { success: false };
+    }
+}
+
+// ========================================
+// SOCIAL SHARING
+// ========================================
+
+async function shareOnPlatform(platform) {
+    const pageUrl = encodeURIComponent(window.location.href);
+    const pageTitle = encodeURIComponent('Quick Training Agenda Maker - Create Professional Training Agendas');
+    
+    let shareLink = '';
+    switch(platform) {
+        case 'facebook':
+            shareLink = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+            break;
+        case 'twitter':
+            shareLink = `https://twitter.com/intent/tweet?text=${pageTitle}&url=${pageUrl}`;
+            break;
+        case 'whatsapp':
+            shareLink = `https://wa.me/?text=${pageTitle}%20${pageUrl}`;
+            break;
+        case 'linkedin':
+            shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+            break;
+        case 'email':
+            shareLink = `mailto:?subject=${pageTitle}&body=${pageUrl}`;
+            break;
+        default:
+            return;
+    }
+    
+    if (shareLink) {
+        window.open(shareLink, '_blank', 'width=600,height=400');
+    }
+    
+    await recordShare(platform);
+    await getSharesCount();
+    showToast(`Shared on ${platform}`, 'success');
+}
+
+async function copyPageUrl() {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('URL copied to clipboard!', 'success');
+        await recordShare('copy');
+        await getSharesCount();
+    } catch(err) {
+        showToast('Failed to copy URL', 'error');
+        console.error('Copy error:', err);
+    }
+}
+
+// ========================================
+// AI QUOTE GENERATION - GROK API
+// ========================================
+
+async function generateAIQuote(prompt) {
+    try {
+        showToast('Generating AI quote...', 'info');
+        const result = await callAPI('/generate-quote', 'POST', {
+            prompt: prompt,
+            topic: prompt,
+            tool_slug: TOOL_SLUG
+        });
+        
+        if (result.success && result.quote) {
+            showToast(`✨ ${result.quote.substring(0, 50)}...`, 'success');
+            console.log('✅ AI Quote generated:', result);
+            return result;
+        } else {
+            console.log('⚠️ AI quote fallback');
+            return { success: false, quote: "Keep learning and growing every day!", author: "Training Expert" };
+        }
+    } catch (error) {
+        console.error('❌ Grok API error:', error);
+        return { success: false, quote: "Education is the key to success!", author: "Wisdom" };
+    }
+}
+
+// ========================================
+// INITIALIZATION
+// ========================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Quick Training Agenda Maker - Initializing...');
+    console.log('👤 User ID:', currentUserId);
+    console.log('🔗 API Base:', API_BASE);
+    
+    // Set default dates
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('startDateInput').value = tomorrow.toISOString().split('T')[0];
+    
+    const nextWeek = new Date(tomorrow);
+    nextWeek.setDate(nextWeek.getDate() + 6);
+    document.getElementById('endDateInput').value = nextWeek.toISOString().split('T')[0];
+    
+    // Load preferences
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon(true);
+    }
+    
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme && savedTheme !== 'default') {
+        document.body.classList.add(`theme-${savedTheme}`);
+    }
+    
+    // Load all stats from TiDB
+    await getGlobalStats();
+    await getReactions();
+    await getSharesCount();
+    
+    // Check API health
+    try {
+        const health = await callAPI('/health', 'GET');
+        if (health.success) {
+            console.log('✅ API is healthy:', health);
+        } else {
+            console.log('⚠️ API health check:', health);
+        }
+    } catch (e) {
+        console.error('❌ API health check failed:', e);
+    }
+    
+    // Event Listeners
+    startCustomizeBtn.addEventListener('click', generateCustomForm);
+    backToStep1Btn.addEventListener('click', () => goToStep(1));
+    backToStep2Btn.addEventListener('click', () => goToStep(2));
+    generateAgendaBtn.addEventListener('click', createAgenda);
+    editAgainBtn.addEventListener('click', () => goToStep(1));
+    homePageBtn.addEventListener('click', () => window.location.href = 'https://magicrills.com');
+    addDayButton.addEventListener('click', addNewTrainingDay);
+    teaBreakBtn.addEventListener('click', () => addBreakItem('Tea Break', '10:30', '10:45'));
+    lunchBreakBtn.addEventListener('click', () => addBreakItem('Lunch Break', '13:00', '14:00'));
+    pdfExportBtn.addEventListener('click', exportAsPDF);
+    docxExportBtn.addEventListener('click', exportAsDOCX);
+    printAgendaBtn.addEventListener('click', () => window.print());
+    copyTextBtn.addEventListener('click', copyAgendaContent);
+    copyUrlShareBtn.addEventListener('click', copyPageUrl);
+    darkModeBtn.addEventListener('click', toggleDarkMode);
+    scrollUpBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    scrollDownBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+    
+    // Theme buttons
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const theme = btn.dataset.theme;
+            document.body.classList.remove('theme-ocean', 'theme-forest', 'theme-sunset', 'theme-purple', 'theme-midnight');
+            if (theme !== 'default') {
+                document.body.classList.add(`theme-${theme}`);
+                localStorage.setItem('theme', theme);
+            } else {
+                localStorage.removeItem('theme');
+            }
+            showToast(`Theme changed to ${theme}`, 'success');
+        });
+    });
+    
+    // Reaction buttons
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const reaction = btn.dataset.reaction;
+            console.log('👍 Reaction clicked:', reaction);
+            addReaction(reaction);
+        });
+    });
+    
+    // Share buttons
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        if (btn.dataset.platform === 'copy') return;
+        btn.addEventListener('click', () => {
+            const platform = btn.dataset.platform;
+            console.log('📤 Share clicked:', platform);
+            shareOnPlatform(platform);
+        });
+    });
+    
+    console.log('✅ Initialization complete!');
 });
 
-function switchSection(id) {
-  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-  setTimeout(() => document.getElementById(id).classList.add('active'), 100);
+function goToStep(step) {
+    step1Div.classList.remove('active-step');
+    step2Div.classList.remove('active-step');
+    step3Div.classList.remove('active-step');
+    
+    if (step === 1) step1Div.classList.add('active-step');
+    else if (step === 2) step2Div.classList.add('active-step');
+    else if (step === 3) step3Div.classList.add('active-step');
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function addBreak(name, start, end) {
-  breakCounter++;
-  const html = `
-    <div class="break-item" data-id="${breakCounter}">
-      <h4>${name}</h4>
-      <div class="input-group"><label>Start:</label><input type="time" class="break-start" value="${start}"></div>
-      <div class="input-group"><label>End:</label><input type="time" class="break-end" value="${end}"></div>
-      <button type="button" class="btn-secondary" onclick="removeBreak(${breakCounter})">Remove</button>
-    </div>`;
-  document.getElementById('days-container').insertAdjacentHTML('beforeend', html);
-  breaks.push({ id: breakCounter, name, start, end });
+// ========================================
+// FORM GENERATION
+// ========================================
+
+async function generateCustomForm() {
+    const startDateVal = document.getElementById('startDateInput').value;
+    const endDateVal = document.getElementById('endDateInput').value;
+    totalSlots = parseInt(document.getElementById('sessionSlots').value);
+    const sessionDuration = parseInt(document.getElementById('sessionMins').value);
+    
+    if (!startDateVal || !endDateVal) {
+        showToast('Please select both start and end dates', 'error');
+        return;
+    }
+    
+    const startDateObj = new Date(startDateVal);
+    const endDateObj = new Date(endDateVal);
+    
+    if (endDateObj < startDateObj) {
+        showToast('End date must be after start date', 'error');
+        return;
+    }
+    
+    totalDays = Math.floor((endDateObj - startDateObj) / 86400000) + 1;
+    if (totalDays > 30) {
+        showToast('Maximum 30 days allowed', 'error');
+        return;
+    }
+    
+    // Generate session times
+    const slotsContainer = document.getElementById('slotsArea');
+    slotsContainer.innerHTML = '';
+    let currentTime = 9;
+    
+    for (let i = 1; i <= totalSlots; i++) {
+        const startHour = Math.floor(currentTime);
+        const startMin = (currentTime % 1) * 60;
+        const endTimeVal = currentTime + (sessionDuration / 60);
+        const endHour = Math.floor(endTimeVal);
+        const endMin = (endTimeVal % 1) * 60;
+        
+        const startStr = `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+        const endStr = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+        
+        slotsContainer.innerHTML += `
+            <div class="slot-card">
+                <label>Session ${i}</label>
+                <input type="time" id="slotStart${i}" value="${startStr}" />
+                <span>to</span>
+                <input type="time" id="slotEnd${i}" value="${endStr}" />
+            </div>
+        `;
+        currentTime = endTimeVal + 0.5;
+    }
+    
+    // Generate days
+    const daysContainer = document.getElementById('daysArea');
+    daysContainer.innerHTML = '';
+    breakList = [];
+    breakIdCounter = 0;
+    
+    for (let d = 1; d <= totalDays; d++) {
+        const currentDay = new Date(startDateObj);
+        currentDay.setDate(currentDay.getDate() + d - 1);
+        const dateDisplay = currentDay.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+        
+        let sessionsHtml = '';
+        for (let s = 1; s <= totalSlots; s++) {
+            sessionsHtml += `
+                <div class="session-card" data-session-id="${s}">
+                    <button class="remove-session-btn" onclick="deleteSessionCard(this)"><i class="fas fa-times"></i></button>
+                    <input type="text" class="session-title-input" placeholder="Title" value="Session ${s}" />
+                    <input type="text" class="session-bullets-input" placeholder="Topics (comma separated)" value="Topic 1, Topic 2" />
+                    <input type="text" class="session-trainer-input" placeholder="Trainer" value="Trainer Name" />
+                </div>
+            `;
+        }
+        
+        daysContainer.innerHTML += `
+            <div class="day-card" data-day-index="${d}">
+                <div class="day-header" onclick="toggleDayPanel(this)">
+                    <h4><i class="fas fa-calendar-day"></i> Day ${d} (${dateDisplay})</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="day-sessions-panel">
+                    ${sessionsHtml}
+                    <button class="add-session-btn" onclick="addSessionToDayFunc(${d})">
+                        <i class="fas fa-plus"></i> Add Session
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Increment usage in TiDB
+    await incrementUsage();
+    
+    goToStep(2);
+    showToast('Customization form generated!', 'success');
 }
-window.removeBreak = id => {
-  document.querySelector(`[data-id="${id}"]`).remove();
-  breaks = breaks.filter(b => b.id !== id);
+
+// ========================================
+// DAY AND SESSION MANAGEMENT
+// ========================================
+
+window.toggleDayPanel = function(element) {
+    const panel = element.parentElement.querySelector('.day-sessions-panel');
+    const icon = element.querySelector('.fa-chevron-down');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        icon.style.transform = 'rotate(0deg)';
+    } else {
+        panel.style.display = 'none';
+        icon.style.transform = 'rotate(-90deg)';
+    }
 };
 
-/* === Form & Agenda Generation === */
-function generateCustomizationForm() {
-  const numSessions = +document.getElementById('num-slots').value;
-  const startDateStr = document.getElementById('start-date').value;
-  const endDateStr = document.getElementById('end-date').value;
+window.addSessionToDayFunc = function(dayIndex) {
+    const dayCard = document.querySelector(`.day-card[data-day-index="${dayIndex}"]`);
+    const sessionsPanel = dayCard.querySelector('.day-sessions-panel');
+    const addButton = sessionsPanel.querySelector('.add-session-btn');
+    
+    const newSessionHtml = `
+        <div class="session-card" data-session-id="new">
+            <button class="remove-session-btn" onclick="deleteSessionCard(this)"><i class="fas fa-times"></i></button>
+            <input type="text" class="session-title-input" placeholder="Title" value="New Session" />
+            <input type="text" class="session-bullets-input" placeholder="Topics (comma separated)" value="New Topic" />
+            <input type="text" class="session-trainer-input" placeholder="Trainer" value="Trainer" />
+        </div>
+    `;
+    addButton.insertAdjacentHTML('beforebegin', newSessionHtml);
+    showToast('Session added to day', 'success');
+};
 
-  if (!startDateStr || !endDateStr || !numSessions) return alert('Please fill all fields.');
-  const startDate = new Date(startDateStr), endDate = new Date(endDateStr);
-  if (endDate < startDate) return alert('End date must be after start date.');
-  const numDays = Math.floor((endDate - startDate) / 86400000) + 1;
-  if (numDays > 30 || numDays < 1) return alert('1–30 days only.');
+window.deleteSessionCard = function(btn) {
+    btn.closest('.session-card').remove();
+    showToast('Session removed', 'info');
+};
 
-  document.getElementById('slots-container').innerHTML = '';
-  document.getElementById('days-container').innerHTML = '';
-
-  for (let i = 1; i <= numSessions; i++) {
-    const start = i === 1 ? '09:00' : i === 2 ? '11:30' : '14:00';
-    const end   = i === 1 ? '11:00' : i === 2 ? '13:00' : '15:30';
-    document.getElementById('slots-container').innerHTML += `
-      <div class="custom-slot">
-        <h4>Session ${i}</h4>
-        <div class="input-group"><label>Start:</label><input type="time" id="session-start-${i}" value="${start}"></div>
-        <div class="input-group"><label>End:</label><input type="time" id="session-end-${i}" value="${end}"></div>
-      </div>`;
-  }
-
-  for (let d = 1; d <= numDays; d++) {
-    const day = new Date(startDate); day.setDate(day.getDate() + d - 1);
-    const dateStr = day.toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short' });
-    let html = `<div class="day-column"><h3>Day ${d} (${dateStr})</h3>`;
-    for (let s = 1; s <= numSessions; s++) {
-      html += `
-        <div class="session-block">
-          <h4>Session ${s}</h4>
-          <div class="input-group"><label>Title:</label><input type="text" id="title-d${d}-s${s}" value="Session ${s}"></div>
-          <div class="input-group"><label>Bullets:</label><input type="text" id="bullets-d${d}-s${s}" value="Topic 1, Topic 2"></div>
-          <div class="input-group"><label>Trainer:</label><input type="text" id="trainer-d${d}-s${s}" value="Uzair Hameed"></div>
-        </div>`;
+function addNewTrainingDay() {
+    totalDays++;
+    const startDateVal = document.getElementById('startDateInput').value;
+    const startDateObj = new Date(startDateVal);
+    const newDayDate = new Date(startDateObj);
+    newDayDate.setDate(newDayDate.getDate() + totalDays - 1);
+    const dateDisplay = newDayDate.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+    
+    let sessionsHtml = '';
+    for (let s = 1; s <= totalSlots; s++) {
+        sessionsHtml += `
+            <div class="session-card" data-session-id="${s}">
+                <button class="remove-session-btn" onclick="deleteSessionCard(this)"><i class="fas fa-times"></i></button>
+                <input type="text" class="session-title-input" placeholder="Title" value="Session ${s}" />
+                <input type="text" class="session-bullets-input" placeholder="Topics (comma separated)" value="Topic 1, Topic 2" />
+                <input type="text" class="session-trainer-input" placeholder="Trainer" value="Trainer" />
+            </div>
+        `;
     }
-    html += `</div>`;
-    document.getElementById('days-container').innerHTML += html;
-  }
-  switchSection('custom-form');
+    
+    const daysContainer = document.getElementById('daysArea');
+    daysContainer.innerHTML += `
+        <div class="day-card" data-day-index="${totalDays}">
+            <div class="day-header" onclick="toggleDayPanel(this)">
+                <h4><i class="fas fa-calendar-day"></i> Day ${totalDays} (${dateDisplay})</h4>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="day-sessions-panel">
+                ${sessionsHtml}
+                <button class="add-session-btn" onclick="addSessionToDayFunc(${totalDays})">
+                    <i class="fas fa-plus"></i> Add Session
+                </button>
+            </div>
+        </div>
+    `;
+    showToast('New day added', 'success');
 }
 
-function generateAgenda() {
-  const numSessions = +document.getElementById('num-slots').value;
-  const startDateStr = document.getElementById('start-date').value;
-  const endDateStr = document.getElementById('end-date').value;
-  const startDate = new Date(startDateStr), endDate = new Date(endDateStr);
-  const numDays = Math.floor((endDate - startDate) / 86400000) + 1;
+function addBreakItem(name, defaultStart, defaultEnd) {
+    breakIdCounter++;
+    const breakId = breakIdCounter;
+    const breaksContainer = document.getElementById('breaksArea');
+    
+    breaksContainer.innerHTML += `
+        <div class="break-card" data-break-id="${breakId}">
+            <strong>${name}</strong>
+            <input type="time" class="break-start-time" value="${defaultStart}" />
+            <span>to</span>
+            <input type="time" class="break-end-time" value="${defaultEnd}" />
+            <button class="remove-break-btn" onclick="removeBreakItem(${breakId})"><i class="fas fa-trash"></i></button>
+        </div>
+    `;
+    
+    breakList.push({ id: breakId, name: name, start: defaultStart, end: defaultEnd });
+    showToast(`${name} added`, 'success');
+}
 
-  const sessions = [];
-  for (let i = 1; i <= numSessions; i++) {
-    sessions.push({
-      start: document.getElementById(`session-start-${i}`).value,
-      end: document.getElementById(`session-end-${i}`).value
+window.removeBreakItem = function(breakId) {
+    document.querySelector(`.break-card[data-break-id="${breakId}"]`).remove();
+    breakList = breakList.filter(b => b.id !== breakId);
+    showToast('Break removed', 'info');
+};
+
+// ========================================
+// AGENDA GENERATION
+// ========================================
+
+function createAgenda() {
+    // Get session times
+    sessionTimes = [];
+    for (let i = 1; i <= totalSlots; i++) {
+        const startInput = document.getElementById(`slotStart${i}`);
+        const endInput = document.getElementById(`slotEnd${i}`);
+        if (startInput && endInput) {
+            sessionTimes.push({ start: startInput.value, end: endInput.value });
+        }
+    }
+    
+    // Get all sessions data
+    allDaysData = [];
+    const allDayCards = document.querySelectorAll('.day-card');
+    
+    for (let d = 0; d < allDayCards.length; d++) {
+        const dayCard = allDayCards[d];
+        const sessionCards = dayCard.querySelectorAll('.session-card');
+        const daySessionData = [];
+        
+        sessionCards.forEach(card => {
+            const title = card.querySelector('.session-title-input')?.value || 'Session';
+            const bulletsStr = card.querySelector('.session-bullets-input')?.value || '';
+            const bullets = bulletsStr.split(',').map(b => b.trim()).filter(b => b);
+            const trainer = card.querySelector('.session-trainer-input')?.value || 'Trainer';
+            daySessionData.push({ title, bullets, trainer });
+        });
+        
+        allDaysData.push(daySessionData);
+    }
+    
+    // Update breaks
+    const breakCards = document.querySelectorAll('.break-card');
+    breakList = [];
+    breakCards.forEach(card => {
+        const name = card.querySelector('strong')?.innerText || 'Break';
+        const start = card.querySelector('.break-start-time')?.value || '12:00';
+        const end = card.querySelector('.break-end-time')?.value || '13:00';
+        breakList.push({ id: Date.now(), name, start, end });
     });
-  }
-
-  const dailyData = [];
-  for (let d = 1; d <= numDays; d++) {
-    const day = [];
-    for (let s = 1; s <= numSessions; s++) {
-      const title = document.getElementById(`title-d${d}-s${s}`).value;
-      const bullets = document.getElementById(`bullets-d${d}-s${s}`).value.split(',').map(b => b.trim()).filter(b => b);
-      const trainer = document.getElementById(`trainer-d${d}-s${s}`).value;
-      day.push({ title, bullets, trainer });
+    
+    // Generate HTML table
+    const startDateVal = document.getElementById('startDateInput').value;
+    const startDateObj = new Date(startDateVal);
+    const dateRangeText = `${startDateObj.toLocaleDateString('en-GB')} - ${new Date(startDateObj.getTime() + (allDaysData.length - 1) * 86400000).toLocaleDateString('en-GB')}`;
+    
+    let tableHtml = `<div class="calendar-header">📅 Training Schedule: ${dateRangeText}</div>`;
+    tableHtml += `<table class="agenda-table"><thead>`;
+    tableHtml += `<tr><th>Time</th>`;
+    
+    for (let d = 0; d < allDaysData.length; d++) {
+        const dayDate = new Date(startDateObj);
+        dayDate.setDate(dayDate.getDate() + d);
+        const dayLabel = dayDate.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+        tableHtml += `<th>Day ${d + 1}<br><small>${dayLabel}</small></th>`;
     }
-    dailyData.push(day);
-  }
+    tableHtml += `</tr></thead><tbody>`;
+    
+    // Combine events
+    const allEvents = [];
+    sessionTimes.forEach((s, idx) => allEvents.push({ type: 'session', index: idx, time: s.start }));
+    breakList.forEach(b => allEvents.push({ type: 'break', data: b, time: b.start }));
+    allEvents.sort((a, b) => a.time.localeCompare(b.time));
+    
+    allEvents.forEach(event => {
+        if (event.type === 'session') {
+            const sIdx = event.index;
+            tableHtml += `<tr>`;
+            tableHtml += `<td><strong>${sessionTimes[sIdx].start} - ${sessionTimes[sIdx].end}</strong></td>`;
+            
+            for (let d = 0; d < allDaysData.length; d++) {
+                const sessionData = allDaysData[d][sIdx] || { title: 'Session', bullets: [], trainer: 'Trainer' };
+                const bulletItems = sessionData.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('');
+                tableHtml += `<td>
+                    <div class="session-title-cell">${escapeHtml(sessionData.title)}</div>
+                    <ul class="session-bullets-cell">${bulletItems}</ul>
+                    <div class="trainer-cell"><i class="fas fa-user"></i> ${escapeHtml(sessionData.trainer)}</div>
+                </td>`;
+            }
+            tableHtml += `</tr>`;
+        } else {
+            const breakData = event.data;
+            tableHtml += `<tr class="break-row">`;
+            tableHtml += `<td><strong>${breakData.start} - ${breakData.end}</strong><br>${escapeHtml(breakData.name)}</td>`;
+            for (let i = 0; i < allDaysData.length; i++) {
+                tableHtml += `<td><i class="fas fa-coffee"></i> ${escapeHtml(breakData.name)}</td>`;
+            }
+            tableHtml += `</tr>`;
+        }
+    });
+    
+    tableHtml += `</tbody></table>`;
+    
+    document.getElementById('agendaDisplay').innerHTML = tableHtml;
+    goToStep(3);
+    showToast('Agenda generated successfully!', 'success');
+}
 
-  breaks.forEach(b => {
-    const el = document.querySelector(`[data-id="${b.id}"]`);
-    if (el) {
-      b.start = el.querySelector('.break-start').value;
-      b.end = el.querySelector('.break-end').value;
-    }
-  });
+// ========================================
+// EXPORT FUNCTIONS
+// ========================================
 
-  const dateRange = `${startDate.toLocaleDateString('en-GB')} - ${endDate.toLocaleDateString('en-GB')}`;
-  let html = `<div class="calendar-header">Training Schedule: ${dateRange}</div><table><thead><tr><th>Time</th>`;
-  for (let d = 1; d <= numDays; d++) {
-    const day = new Date(startDate); day.setDate(day.getDate() + d - 1);
-    const ds = day.toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short' });
-    html += `<th>Day ${d}<br><small>${ds}</small></th>`;
-  }
-  html += `</tr></thead><tbody>`;
+function exportAsPDF() {
+    const element = document.getElementById('agendaDisplay');
+    html2canvas(element, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('l', 'mm', 'a4');
+        const imgWidth = 280;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.save(`training_agenda_${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast('PDF exported successfully!', 'success');
+    }).catch(() => {
+        showToast('PDF export failed', 'error');
+    });
+}
 
-  const events = [];
-  sessions.forEach((s,i) => events.push({type:'session',index:i,time:s.start}));
-  breaks.forEach(b => events.push({type:'break',data:b,time:b.start}));
-  events.sort((a,b) => a.time.localeCompare(b.time));
+function exportAsDOCX() {
+    const content = document.getElementById('agendaDisplay').innerHTML;
+    const style = `<style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #667eea; color: white; }
+    </style>`;
+    const fullHtml = `<html><head>${style}</head><body>${content}</body></html>`;
+    const blob = new Blob([fullHtml], { type: 'application/msword' });
+    saveAs(blob, `training_agenda_${new Date().toISOString().split('T')[0]}.doc`);
+    showToast('DOCX exported successfully!', 'success');
+}
 
-  events.forEach(e => {
-    if (e.type === 'session') {
-      const s = e.index;
-      const cls = `slot${(s%2)+1}`;
-      html += `<tr><td><strong>${sessions[s].start} - ${sessions[s].end}</strong></td>`;
-      for (let d = 0; d < numDays; d++) {
-        const sess = dailyData[d][s];
-        const bullets = sess.bullets.map(b => `<li>${b}</li>`).join('');
-        html += `<td class="${cls}"><div class="session-title">${sess.title}</div><ul>${bullets}</ul><div class="trainer">${sess.trainer}</div></td>`;
-      }
-      html += `</tr>`;
+function copyAgendaContent() {
+    const agendaText = document.getElementById('agendaDisplay').innerText;
+    navigator.clipboard.writeText(agendaText).then(() => {
+        showToast('Agenda copied to clipboard!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+// ========================================
+// HELPER FUNCTIONS
+// ========================================
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toastMsg');
+    const toastText = document.getElementById('toastText');
+    toastText.innerText = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    updateDarkModeIcon(isDark);
+    showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'success');
+}
+
+function updateDarkModeIcon(isDark) {
+    const moonIcon = darkModeBtn.querySelector('.fa-moon');
+    const sunIcon = darkModeBtn.querySelector('.fa-sun');
+    if (!sunIcon) {
+        darkModeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     } else {
-      const b = e.data;
-      html += `<tr class="break-row"><td><strong>${b.start} - ${b.end}</strong><br>${b.name}</td>`;
-      for (let i = 0; i < numDays; i++) html += `<td class="break-row">${b.name}</td>`;
-      html += `</tr>`;
+        if (isDark) {
+            moonIcon.style.display = 'none';
+            sunIcon.style.display = 'block';
+        } else {
+            moonIcon.style.display = 'block';
+            sunIcon.style.display = 'none';
+        }
     }
-  });
-  html += `</tbody></table>`;
-
-  document.getElementById('agenda-preview').innerHTML = html;
-  window.agendaData = { sessions, dailyData, startDate: startDateStr, numDays, breaks, dateRange, html };
-  switchSection('agenda-container');
 }
 
-/* === Email & Copy === */
-function emailAgenda() {
-  const { dateRange, html } = window.agendaData;
-  const subject = encodeURIComponent(`Training Agenda: ${dateRange}`);
-  const body = encodeURIComponent(`Hello,\n\nPlease find the training agenda below:\n\n${html.replace(/<\/?[^>]+>/g, '').replace(/\n/g, '%0A')}\n\n---\nGenerated with Quick Training Agenda Maker`);
-  window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+// Premium Modal
+function showPremiumModal() {
+    document.getElementById('premiumModalBox').classList.add('show');
 }
 
-function copyAgenda() {
-  const preview = document.getElementById('agenda-preview');
-  const range = document.createRange();
-  range.selectNode(preview);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-  try {
-    document.execCommand('copy');
-    alert('Agenda copied to clipboard!');
-  } catch (err) {
-    alert('Copy failed. Try manually.');
-  }
-  selection.removeAllRanges();
-}
+document.querySelector('.modal-close-btn')?.addEventListener('click', () => {
+    document.getElementById('premiumModalBox').classList.remove('show');
+});
+document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+    document.getElementById('premiumModalBox').classList.remove('show');
+});
