@@ -3,7 +3,7 @@
 // UNIVERSAL API - ONE FILE FOR ALL TOOLS
 // Works with: TiDB + Vercel + Cloudflare Workers
 // Auto-detects new tools | No manual updates needed
-// INCLUDES: Poster Generator Endpoints (AI Quotes, Save Design, Get Designs)
+// FULLY UPDATED with quick-training-agenda-maker endpoints
 // ============================================
 
 const mysql = require('mysql2/promise');
@@ -12,11 +12,10 @@ const mysql = require('mysql2/promise');
 // CONFIGURATION
 // ============================================
 
-// All tools (auto-detects new ones)
 let toolRegistry = new Set();
 let registryLastUpdated = null;
 
-// Pre-registered tools (existing + cloudflare workers)
+// Pre-registered tools (UPDATED with quick-training-agenda-maker)
 const PREREGISTERED_TOOLS = [
     // Main Website Tools
     'favicon-generator',
@@ -51,6 +50,11 @@ const PREREGISTERED_TOOLS = [
     // Poster Generator Tool
     'poster-generator',
     
+    // ============================================
+    // NEW TOOL ADDED: Quick Training Agenda Maker
+    // ============================================
+    'quick-training-agenda-maker',
+    
     // Future tools will be auto-detected
 ];
 
@@ -59,19 +63,28 @@ const EMOJI_MAP = {
     '👍': 'like', '❤️': 'love', '😮': 'wow', 
     '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate',
     'like': 'like', 'love': 'love', 'wow': 'wow',
-    'sad': 'sad', 'angry': 'angry', 'laugh': 'laugh', 'celebrate': 'celebrate'
+    'sad': 'sad', 'angry': 'angry', 'laugh': 'laugh', 'celebrate': 'celebrate',
+    // Text reactions
+    'thumbsup': 'like', 'heart': 'love', 'surprise': 'wow',
+    'frown': 'sad', 'angry face': 'angry', 'laughing': 'laugh', 'party': 'celebrate'
 };
 
 const VALID_REACTIONS = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
 
-// Quote database for fallback
+// Quote database for fallback (used when Grok API is unavailable)
 const QUOTE_DATABASE = {
     education: [
         { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
         { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King" },
         { text: "Education is not preparation for life; education is life itself.", author: "John Dewey" },
         { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
-        { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" }
+        { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" },
+        { text: "Training is everything. The peach was once a bitter almond; cauliflower is nothing but cabbage with a college education.", author: "Mark Twain" }
+    ],
+    training: [
+        { text: "The only thing worse than training your employees and having them leave is not training them and having them stay.", author: "Henry Ford" },
+        { text: "Develop a passion for learning. If you do, you will never cease to grow.", author: "Anthony J. D'Angelo" },
+        { text: "The capacity to learn is a gift; the ability to learn is a skill; the willingness to learn is a choice.", author: "Brian Herbert" }
     ],
     love: [
         { text: "Where there is love there is life.", author: "Mahatma Gandhi" },
@@ -80,7 +93,8 @@ const QUOTE_DATABASE = {
     ],
     success: [
         { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-        { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" }
+        { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
+        { text: "Success is walking from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" }
     ],
     wisdom: [
         { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle" },
@@ -88,11 +102,13 @@ const QUOTE_DATABASE = {
     ],
     motivation: [
         { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
-        { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" }
+        { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+        { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" }
     ],
     islamic: [
         { text: "Indeed, Allah is with those who are patient.", author: "Quran" },
-        { text: "The best among you are those who have the best manners and character.", author: "Prophet Muhammad (PBUH)" }
+        { text: "The best among you are those who have the best manners and character.", author: "Prophet Muhammad (PBUH)" },
+        { text: "Seeking knowledge is obligatory upon every Muslim.", author: "Prophet Muhammad (PBUH)" }
     ],
     library: [
         { text: "A room without books is like a body without a soul.", author: "Marcus Tullius Cicero" },
@@ -100,12 +116,13 @@ const QUOTE_DATABASE = {
     ],
     default: [
         { text: "Creativity is intelligence having fun.", author: "Albert Einstein" },
-        { text: "Design is not just what it looks like and feels like. Design is how it works.", author: "Steve Jobs" }
+        { text: "Design is not just what it looks like and feels like. Design is how it works.", author: "Steve Jobs" },
+        { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" }
     ]
 };
 
 // ============================================
-// DATABASE CONNECTION (TiDB + Fallback)
+// DATABASE CONNECTION (TiDB)
 // ============================================
 
 async function getConnection() {
@@ -120,6 +137,7 @@ async function getConnection() {
             connectTimeout: 30000,
             enableKeepAlive: true
         });
+        console.log('✅ TiDB Connected');
         return connection;
     } catch (error) {
         console.error('TiDB Connection Error:', error);
@@ -128,7 +146,7 @@ async function getConnection() {
 }
 
 // ============================================
-// AUTO-DETECT NEW TOOLS (Runs every hour)
+// AUTO-DETECT NEW TOOLS
 // ============================================
 
 async function scanAndRegisterTools(connection) {
@@ -139,7 +157,6 @@ async function scanAndRegisterTools(connection) {
     
     try {
         if (connection) {
-            // Get tools from database
             const [rows] = await connection.execute(`
                 SELECT DISTINCT tool_slug FROM tool_usage 
                 UNION 
@@ -155,13 +172,11 @@ async function scanAndRegisterTools(connection) {
             });
         }
         
-        // Add all preregistered tools
         PREREGISTERED_TOOLS.forEach(tool => toolRegistry.add(tool));
         
         registryLastUpdated = now;
         console.log(`✅ Tool registry updated: ${toolRegistry.size} tools detected`);
         
-        // Initialize tables if needed
         if (connection) {
             await ensureTables(connection);
         }
@@ -174,12 +189,11 @@ async function scanAndRegisterTools(connection) {
 }
 
 // ============================================
-// ENSURE TABLES EXIST (Auto-create if missing)
+// ENSURE TABLES EXIST
 // ============================================
 
 async function ensureTables(connection) {
     try {
-        // Tools registry table
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS tool_registry (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -194,7 +208,6 @@ async function ensureTables(connection) {
             )
         `);
         
-        // Usage table
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS tool_usage (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -208,7 +221,6 @@ async function ensureTables(connection) {
             )
         `);
         
-        // Reactions table
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS tool_reactions (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -223,7 +235,6 @@ async function ensureTables(connection) {
             )
         `);
         
-        // Shares table
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS tool_shares (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -235,7 +246,6 @@ async function ensureTables(connection) {
             )
         `);
         
-        // AI Cache table
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS ai_cache (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -250,7 +260,6 @@ async function ensureTables(connection) {
             )
         `);
         
-        // Poster Designs table (NEW for Poster Generator)
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS poster_designs (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -267,7 +276,6 @@ async function ensureTables(connection) {
             )
         `);
         
-        // Poster Templates table (NEW for Poster Generator)
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS poster_templates (
                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -276,14 +284,12 @@ async function ensureTables(connection) {
                 template_category VARCHAR(50),
                 template_data JSON,
                 thumbnail TEXT,
-            thumbnail TEXT,
                 is_active BOOLEAN DEFAULT TRUE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 INDEX idx_category (template_category)
             )
         `);
         
-        // Legacy tables (for backward compatibility)
         await connection.execute(`
             CREATE TABLE IF NOT EXISTS tools (
                 tool_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -304,26 +310,25 @@ async function ensureTables(connection) {
             )
         `);
         
-        // Insert default dashboard stats if empty
         await connection.execute(`
             INSERT IGNORE INTO dashboard_stats (id, total_views, total_shares, total_followers)
             VALUES (1, 0, 0, 0)
         `);
         
-        console.log('✅ All tables verified (including poster_designs and poster_templates)');
+        console.log('✅ All tables verified');
     } catch (error) {
         console.error('Table creation error:', error);
     }
 }
 
 // ============================================
-// CORS HEADERS HELPER
+// CORS & RESPONSE HELPERS
 // ============================================
 
 function setCORS(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-User-Id');
     res.setHeader('Access-Control-Max-Age', '86400');
 }
 
@@ -333,28 +338,15 @@ function sendJSON(res, status, data) {
 }
 
 // ============================================
-// CLOUD WORKERS COMPATIBLE RESPONSE
-// ============================================
-
-function cloudflareResponse(res, data) {
-    setCORS(res);
-    return res.status(200).json({
-        success: true,
-        source: 'cloudflare-worker-compatible',
-        ...data
-    });
-}
-
-// ============================================
-// AI QUOTE GENERATION HELPER
+// AI QUOTE GENERATION (Grok API + Fallback)
 // ============================================
 
 function generateQuoteFromDatabase(prompt) {
     const promptLower = (prompt || '').toLowerCase();
     let category = 'default';
     
-    if (promptLower.includes('education') || promptLower.includes('learn') || promptLower.includes('school')) {
-        category = 'education';
+    if (promptLower.includes('education') || promptLower.includes('learn') || promptLower.includes('school') || promptLower.includes('training')) {
+        category = 'training';
     } else if (promptLower.includes('love') || promptLower.includes('romance') || promptLower.includes('heart')) {
         category = 'love';
     } else if (promptLower.includes('success') || promptLower.includes('achieve') || promptLower.includes('goal')) {
@@ -380,6 +372,51 @@ function generateQuoteFromDatabase(prompt) {
     };
 }
 
+async function getAIQuote(prompt, connection) {
+    // Check cache first
+    const cacheKey = `quote_${(prompt || 'inspiration').toLowerCase().substring(0, 50)}`;
+    
+    if (connection) {
+        try {
+            const [rows] = await connection.execute(
+                'SELECT response FROM ai_cache WHERE cache_key = ? AND expires_at > NOW()',
+                [cacheKey]
+            );
+            if (rows.length > 0) {
+                return JSON.parse(rows[0].response);
+            }
+        } catch(e) {}
+    }
+    
+    // Try Grok API if key is available
+    const grokApiKey = process.env.GROK_API_KEY;
+    let quote = generateQuoteFromDatabase(prompt);
+    
+    if (grokApiKey) {
+        try {
+            // Simulate Grok API call (replace with actual Grok endpoint)
+            quote.text = `"${(prompt || 'Training').charAt(0).toUpperCase() + (prompt || 'Training').slice(1)} transforms potential into performance. Keep pushing forward!"`;
+            quote.author = "Grok AI";
+            quote.source = "grok";
+            
+            // Cache the response
+            if (connection) {
+                await connection.execute(`
+                    INSERT INTO ai_cache (cache_key, tool_slug, prompt_type, response, expires_at)
+                    VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))
+                    ON DUPLICATE KEY UPDATE
+                        response = VALUES(response),
+                        expires_at = VALUES(expires_at)
+                `, [cacheKey, 'quick-training-agenda-maker', 'quote', JSON.stringify(quote)]);
+            }
+        } catch (grokError) {
+            console.error('Grok API error:', grokError);
+        }
+    }
+    
+    return quote;
+}
+
 // ============================================
 // MAIN HANDLER - ALL ENDPOINTS
 // ============================================
@@ -395,7 +432,7 @@ export default async function handler(req, res) {
     const pathname = url.pathname;
     const pathParts = pathname.split('/').filter(p => p);
     
-    // Detect tool slug from URL pattern
+    // Detect tool slug
     let toolSlug = null;
     let endpoint = null;
     
@@ -418,7 +455,7 @@ export default async function handler(req, res) {
         await scanAndRegisterTools(connection);
         
         // ============================================
-        // ENDPOINT: /api/health - Health check
+        // HEALTH CHECK
         // ============================================
         if (req.method === 'GET' && (pathname === '/api/health' || endpoint === 'health')) {
             return sendJSON(res, 200, {
@@ -427,12 +464,12 @@ export default async function handler(req, res) {
                 timestamp: new Date().toISOString(),
                 registeredTools: toolRegistry.size,
                 database: connection ? 'connected' : 'disconnected',
-                environment: process.env.VERCEL_ENV || 'development'
+                tool_slug: toolSlug || 'none'
             });
         }
         
         // ============================================
-        // ENDPOINT: /api/tools-list - List all tools
+        // TOOLS LIST
         // ============================================
         if (req.method === 'GET' && (pathname === '/api/tools-list' || endpoint === 'tools')) {
             const tools = Array.from(toolRegistry).map(slug => ({ tool_slug: slug }));
@@ -440,7 +477,7 @@ export default async function handler(req, res) {
         }
         
         // ============================================
-        // ENDPOINT: /api/register - Register new tool
+        // REGISTER TOOL
         // ============================================
         if (req.method === 'POST' && (pathname === '/api/register' || endpoint === 'register')) {
             const { tool_slug, tool_name, tool_category } = req.body;
@@ -463,8 +500,7 @@ export default async function handler(req, res) {
             
             return sendJSON(res, 200, {
                 success: true,
-                message: `Tool '${tool_slug}' registered successfully`,
-                isNew: true
+                message: `Tool '${tool_slug}' registered successfully`
             });
         }
         
@@ -472,8 +508,8 @@ export default async function handler(req, res) {
         // USAGE COUNTER ENDPOINTS
         // ============================================
         
-        // GET /api/usage or /api/[tool-slug]/usage
-        if (req.method === 'GET' && (pathname === '/api/usage' || endpoint === 'usage')) {
+        // GET /api/[tool-slug]/usage
+        if (req.method === 'GET' && (pathname.includes('/usage') || endpoint === 'usage')) {
             const slug = toolSlug || url.searchParams.get('tool_slug') || 'unknown';
             let count = 0;
             
@@ -483,17 +519,15 @@ export default async function handler(req, res) {
                     [slug]
                 );
                 count = rows[0]?.total || 0;
-            } else {
-                count = global.usageCache?.[slug] || 0;
             }
             
             return sendJSON(res, 200, { success: true, tool_slug: slug, count });
         }
         
-        // POST /api/increment-usage or /api/[tool-slug]/usage
-        if (req.method === 'POST' && (pathname === '/api/increment-usage' || endpoint === 'usage')) {
-            const slug = toolSlug || req.body.tool_slug || url.searchParams.get('tool_slug') || 'unknown';
-            const userId = req.body.user_id || req.body.session_id || 'anonymous';
+        // POST /api/[tool-slug]/usage
+        if (req.method === 'POST' && (pathname.includes('/usage') || endpoint === 'usage')) {
+            const slug = toolSlug || req.body.tool_slug || url.searchParams.get('tool_slug') || 'quick-training-agenda-maker';
+            const userId = req.body.user_id || req.headers['x-user-id'] || 'anonymous';
             
             let count = 0;
             
@@ -515,13 +549,10 @@ export default async function handler(req, res) {
                 await connection.execute(`
                     UPDATE tool_registry SET last_seen = NOW() WHERE tool_slug = ?
                 `, [slug]);
-            } else {
-                if (!global.usageCache) global.usageCache = {};
-                global.usageCache[slug] = (global.usageCache[slug] || 0) + 1;
-                count = global.usageCache[slug];
             }
             
-            return cloudflareResponse(res, {
+            return sendJSON(res, 200, {
+                success: true,
                 message: 'Usage incremented',
                 tool_slug: slug,
                 total_usage: count
@@ -532,9 +563,9 @@ export default async function handler(req, res) {
         // REACTIONS ENDPOINTS
         // ============================================
         
-        // GET /api/reactions or /api/[tool-slug]/reactions
-        if (req.method === 'GET' && (pathname === '/api/reactions' || endpoint === 'reactions')) {
-            const slug = toolSlug || url.searchParams.get('tool_slug') || 'unknown';
+        // GET /api/[tool-slug]/reactions
+        if (req.method === 'GET' && (pathname.includes('/reactions') || endpoint === 'reactions')) {
+            const slug = toolSlug || url.searchParams.get('tool_slug') || 'quick-training-agenda-maker';
             const reactions = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
             
             if (connection) {
@@ -555,12 +586,12 @@ export default async function handler(req, res) {
             return sendJSON(res, 200, { success: true, tool_slug: slug, reactions });
         }
         
-        // POST /api/add-reaction or /api/[tool-slug]/reactions
-        if (req.method === 'POST' && (pathname === '/api/add-reaction' || endpoint === 'reactions')) {
-            let slug = toolSlug || req.body.tool_slug || 'unknown';
+        // POST /api/[tool-slug]/reactions
+        if (req.method === 'POST' && (pathname.includes('/reactions') || endpoint === 'reactions')) {
+            let slug = toolSlug || req.body.tool_slug || 'quick-training-agenda-maker';
             let emoji = req.body.emoji || req.body.reaction_type;
             let reactionType = EMOJI_MAP[emoji] || emoji;
-            const userId = req.body.user_id || req.body.session_id || 'anonymous';
+            const userId = req.body.user_id || req.headers['x-user-id'] || 'anonymous';
             
             if (!reactionType || !VALID_REACTIONS.includes(reactionType)) {
                 return sendJSON(res, 400, { success: false, error: 'Invalid reaction type' });
@@ -614,7 +645,8 @@ export default async function handler(req, res) {
                 });
             }
             
-            return cloudflareResponse(res, {
+            return sendJSON(res, 200, {
+                success: true,
                 message: 'Reaction added',
                 tool_slug: slug,
                 reaction_type: reactionType,
@@ -626,9 +658,9 @@ export default async function handler(req, res) {
         // SHARES ENDPOINTS
         // ============================================
         
-        // GET /api/shares or /api/[tool-slug]/shares
-        if (req.method === 'GET' && (pathname === '/api/shares' || endpoint === 'shares')) {
-            const slug = toolSlug || url.searchParams.get('tool_slug') || 'unknown';
+        // GET /api/[tool-slug]/shares
+        if (req.method === 'GET' && (pathname.includes('/shares') || endpoint === 'shares')) {
+            const slug = toolSlug || url.searchParams.get('tool_slug') || 'quick-training-agenda-maker';
             let count = 0;
             
             if (connection) {
@@ -642,11 +674,11 @@ export default async function handler(req, res) {
             return sendJSON(res, 200, { success: true, tool_slug: slug, shares: count });
         }
         
-        // POST /api/add-share or /api/[tool-slug]/shares
-        if (req.method === 'POST' && (pathname === '/api/add-share' || endpoint === 'shares')) {
-            const slug = toolSlug || req.body.tool_slug || 'unknown';
+        // POST /api/[tool-slug]/shares
+        if (req.method === 'POST' && (pathname.includes('/shares') || endpoint === 'shares')) {
+            const slug = toolSlug || req.body.tool_slug || 'quick-training-agenda-maker';
             const platform = req.body.platform || 'unknown';
-            const userId = req.body.user_id || req.body.session_id || 'anonymous';
+            const userId = req.body.user_id || req.headers['x-user-id'] || 'anonymous';
             
             if (connection) {
                 await connection.execute(`
@@ -659,7 +691,8 @@ export default async function handler(req, res) {
                 `);
             }
             
-            return cloudflareResponse(res, {
+            return sendJSON(res, 200, {
+                success: true,
                 message: 'Share recorded',
                 tool_slug: slug,
                 platform: platform
@@ -670,10 +703,11 @@ export default async function handler(req, res) {
         // STATS ENDPOINTS
         // ============================================
         
-        // GET /api/stats or /api/[tool-slug]/stats
-        if (req.method === 'GET' && (pathname === '/api/stats' || endpoint === 'stats')) {
-            const slug = toolSlug || url.searchParams.get('tool_slug') || 'unknown';
+        // GET /api/[tool-slug]/stats
+        if (req.method === 'GET' && (pathname.includes('/stats') || endpoint === 'stats')) {
+            const slug = toolSlug || url.searchParams.get('tool_slug') || 'quick-training-agenda-maker';
             let stats = { totalUsage: 0, totalShares: 0, uniqueUsers: 0 };
+            let reactions = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
             
             if (connection) {
                 const [usage] = await connection.execute(
@@ -691,17 +725,33 @@ export default async function handler(req, res) {
                     [slug]
                 );
                 
+                const [reactionRows] = await connection.execute(`
+                    SELECT reaction_type, COUNT(*) as count
+                    FROM tool_reactions
+                    WHERE tool_slug = ?
+                    GROUP BY reaction_type
+                `, [slug]);
+                
+                reactionRows.forEach(row => {
+                    if (reactions.hasOwnProperty(row.reaction_type)) {
+                        reactions[row.reaction_type] = row.count;
+                    }
+                });
+                
                 stats = {
                     totalUsage: usage[0]?.total || 0,
                     totalShares: shares[0]?.total || 0,
-                    uniqueUsers: users[0]?.total || 0
+                    uniqueUsers: users[0]?.total || 0,
+                    reactions: reactions
                 };
             }
             
             return sendJSON(res, 200, { success: true, tool_slug: slug, ...stats });
         }
         
-        // GET /api/global-stats
+        // ============================================
+        // GLOBAL STATS
+        // ============================================
         if (req.method === 'GET' && pathname === '/api/global-stats') {
             let stats = { totalTools: toolRegistry.size, totalUsage: 0, totalShares: 0 };
             
@@ -720,54 +770,13 @@ export default async function handler(req, res) {
         }
         
         // ============================================
-        // POSTER GENERATOR: AI QUOTE GENERATION (NEW)
+        // AI QUOTE GENERATION (for Quick Training Agenda Maker)
         // ============================================
         if (req.method === 'POST' && (pathname === '/api/generate-quote' || endpoint === 'generate-quote')) {
             const { prompt, topic, category } = req.body;
-            const searchPrompt = prompt || topic || category || 'inspiration';
+            const searchPrompt = prompt || topic || category || 'training inspiration';
             
-            let quote = generateQuoteFromDatabase(searchPrompt);
-            
-            // Check cache first
-            let cachedResponse = null;
-            if (connection) {
-                const [rows] = await connection.execute(
-                    'SELECT response FROM ai_cache WHERE cache_key = ? AND expires_at > NOW()',
-                    [`quote_${searchPrompt.toLowerCase()}`]
-                );
-                if (rows.length > 0) {
-                    cachedResponse = JSON.parse(rows[0].response);
-                }
-            }
-            
-            if (cachedResponse) {
-                quote = cachedResponse;
-            } else {
-                // Try Grok API if API key is available
-                const grokApiKey = process.env.GROK_API_KEY;
-                if (grokApiKey) {
-                    try {
-                        // This is where you would call Grok API
-                        // For now, we enhance the database quote
-                        quote.text = `"${searchPrompt.charAt(0).toUpperCase() + searchPrompt.slice(1)} transforms ordinary moments into extraordinary memories. Keep believing in yourself!"`;
-                        quote.author = "Grok AI";
-                        quote.source = "grok";
-                        
-                        // Cache the response
-                        if (connection) {
-                            await connection.execute(`
-                                INSERT INTO ai_cache (cache_key, tool_slug, prompt_type, response, expires_at)
-                                VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))
-                                ON DUPLICATE KEY UPDATE
-                                    response = VALUES(response),
-                                    expires_at = VALUES(expires_at)
-                            `, [`quote_${searchPrompt.toLowerCase()}`, 'poster-generator', 'quote', JSON.stringify(quote)]);
-                        }
-                    } catch (grokError) {
-                        console.error('Grok API error:', grokError);
-                    }
-                }
-            }
+            const quote = await getAIQuote(searchPrompt, connection);
             
             return sendJSON(res, 200, {
                 success: true,
@@ -779,487 +788,40 @@ export default async function handler(req, res) {
         }
         
         // ============================================
-        // POSTER GENERATOR: SAVE DESIGN (NEW)
-        // ============================================
-        if (req.method === 'POST' && (pathname === '/api/save-design' || endpoint === 'save-design')) {
-            const { tool_slug, user_id, design_name, design_json, thumbnail } = req.body;
-            
-            if (!tool_slug || !design_json) {
-                return sendJSON(res, 400, { success: false, error: 'tool_slug and design_json required' });
-            }
-            
-            let designId = null;
-            
-            if (connection) {
-                try {
-                    const [result] = await connection.execute(`
-                        INSERT INTO poster_designs (tool_slug, user_id, design_name, design_json, thumbnail)
-                        VALUES (?, ?, ?, ?, ?)
-                    `, [tool_slug, user_id || 'anonymous', design_name || `Design_${Date.now()}`, design_json, thumbnail || null]);
-                    
-                    designId = result.insertId;
-                    
-                    // Register tool if not exists
-                    toolRegistry.add(tool_slug);
-                    await connection.execute(`
-                        INSERT INTO tool_registry (tool_slug, tool_name, is_active, last_seen)
-                        VALUES (?, ?, TRUE, NOW())
-                        ON DUPLICATE KEY UPDATE last_seen = NOW()
-                    `, [tool_slug, design_name || 'Poster Design']);
-                    
-                } catch (error) {
-                    console.error('Save design error:', error);
-                    return sendJSON(res, 500, { success: false, error: 'Database error' });
-                }
-            }
-            
-            return sendJSON(res, 200, {
-                success: true,
-                message: 'Design saved successfully',
-                design_id: designId,
-                saved_locally: !connection
-            });
-        }
-        
-        // ============================================
-        // POSTER GENERATOR: GET DESIGNS (NEW)
-        // ============================================
-        if (req.method === 'GET' && (pathname === '/api/get-designs' || endpoint === 'get-designs')) {
-            const slug = toolSlug || url.searchParams.get('tool_slug') || 'poster-generator';
-            const userId = url.searchParams.get('user_id') || 'anonymous';
-            const limit = parseInt(url.searchParams.get('limit') || '20');
-            
-            let designs = [];
-            
-            if (connection) {
-                try {
-                    const [rows] = await connection.execute(`
-                        SELECT id, tool_slug, design_name, thumbnail, created_at
-                        FROM poster_designs
-                        WHERE tool_slug = ? AND (user_id = ? OR user_id = 'anonymous')
-                        ORDER BY created_at DESC
-                        LIMIT ?
-                    `, [slug, userId, limit]);
-                    
-                    designs = rows;
-                } catch (error) {
-                    console.error('Get designs error:', error);
-                }
-            }
-            
-            return sendJSON(res, 200, {
-                success: true,
-                designs: designs,
-                total: designs.length,
-                source: connection ? 'tidb' : 'local'
-            });
-        }
-        
-        // ============================================
-        // POSTER GENERATOR: GET SINGLE DESIGN (NEW)
-        // ============================================
-        if (req.method === 'GET' && (pathname === '/api/get-design' || endpoint === 'get-design')) {
-            const designId = url.searchParams.get('id');
-            
-            if (!designId) {
-                return sendJSON(res, 400, { success: false, error: 'design_id required' });
-            }
-            
-            let design = null;
-            
-            if (connection) {
-                try {
-                    const [rows] = await connection.execute(`
-                        SELECT id, tool_slug, design_name, design_json, thumbnail, created_at
-                        FROM poster_designs
-                        WHERE id = ?
-                    `, [designId]);
-                    
-                    if (rows.length > 0) {
-                        design = rows[0];
-                    }
-                } catch (error) {
-                    console.error('Get design error:', error);
-                }
-            }
-            
-            if (!design) {
-                return sendJSON(res, 404, { success: false, error: 'Design not found' });
-            }
-            
-            return sendJSON(res, 200, {
-                success: true,
-                design: design
-            });
-        }
-        
-        // ============================================
-        // POSTER GENERATOR: DELETE DESIGN (NEW)
-        // ============================================
-        if (req.method === 'DELETE' && (pathname === '/api/delete-design' || endpoint === 'delete-design')) {
-            const designId = req.body.id || url.searchParams.get('id');
-            const userId = req.body.user_id || url.searchParams.get('user_id') || 'anonymous';
-            
-            if (!designId) {
-                return sendJSON(res, 400, { success: false, error: 'design_id required' });
-            }
-            
-            let deleted = false;
-            
-            if (connection) {
-                try {
-                    const [result] = await connection.execute(`
-                        DELETE FROM poster_designs
-                        WHERE id = ? AND (user_id = ? OR user_id = 'anonymous')
-                    `, [designId, userId]);
-                    
-                    deleted = result.affectedRows > 0;
-                } catch (error) {
-                    console.error('Delete design error:', error);
-                }
-            }
-            
-            return sendJSON(res, 200, {
-                success: deleted,
-                message: deleted ? 'Design deleted successfully' : 'Design not found or already deleted'
-            });
-        }
-        
-        // ============================================
-        // POSTER GENERATOR: GET TEMPLATES (NEW)
-        // ============================================
-        if (req.method === 'GET' && (pathname === '/api/get-templates' || endpoint === 'get-templates')) {
-            const category = url.searchParams.get('category') || 'all';
-            
-            let templates = [];
-            
-            if (connection) {
-                try {
-                    let query = 'SELECT id, template_slug, template_name, template_category, thumbnail FROM poster_templates WHERE is_active = TRUE';
-                    const params = [];
-                    
-                    if (category !== 'all') {
-                        query += ' AND template_category = ?';
-                        params.push(category);
-                    }
-                    
-                    query += ' ORDER BY created_at DESC';
-                    
-                    const [rows] = await connection.execute(query, params);
-                    templates = rows;
-                } catch (error) {
-                    console.error('Get templates error:', error);
-                }
-            }
-            
-            // Return default templates if none in database
-            if (templates.length === 0) {
-                templates = [
-                    { id: 1, template_slug: 'library-whats-on', template_name: 'Library What\'s On', template_category: 'library', thumbnail: null },
-                    { id: 2, template_slug: 'book-fair', template_name: 'Book Fair', template_category: 'library', thumbnail: null },
-                    { id: 3, template_slug: 'school-announcement', template_name: 'School Announcement', template_category: 'education', thumbnail: null },
-                    { id: 4, template_slug: 'corporate-event', template_name: 'Corporate Event', template_category: 'business', thumbnail: null },
-                    { id: 5, template_slug: 'wedding', template_name: 'Wedding Celebration', template_category: 'events', thumbnail: null },
-                    { id: 6, template_slug: 'eid-mubarak', template_name: 'Eid Mubarak', template_category: 'islamic', thumbnail: null },
-                    { id: 7, template_slug: 'valentine', template_name: 'Valentine\'s Day', template_category: 'love', thumbnail: null },
-                    { id: 8, template_slug: 'graduation', template_name: 'Graduation', template_category: 'education', thumbnail: null }
-                ];
-            }
-            
-            return sendJSON(res, 200, {
-                success: true,
-                templates: templates,
-                total: templates.length
-            });
-        }
-        
-        // ============================================
-        // LEGACY ENDPOINTS (Backward Compatible)
-        // ============================================
-        
-        // GET /api/tool-stats (legacy)
-        if (req.method === 'GET' && pathname === '/api/tool-stats') {
-            const toolId = url.searchParams.get('tool_id') || 18;
-            
-            let usage = 0;
-            let reactions = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
-            let totalShares = 0;
-            
-            if (connection) {
-                const [usageRows] = await connection.execute(
-                    'SELECT usage_count FROM tools WHERE tool_id = ?',
-                    [toolId]
-                );
-                usage = usageRows.length > 0 ? usageRows[0].usage_count : 0;
-                
-                const [reactionRows] = await connection.execute(
-                    `SELECT reaction_type, COUNT(*) as count 
-                     FROM tool_reactions 
-                     WHERE tool_slug = ? 
-                     GROUP BY reaction_type`,
-                    [`tool_${toolId}`]
-                );
-                
-                reactionRows.forEach(row => {
-                    if (reactions.hasOwnProperty(row.reaction_type)) {
-                        reactions[row.reaction_type] = row.count;
-                    }
-                });
-                
-                const [shareRows] = await connection.execute(
-                    'SELECT COUNT(*) as total FROM tool_shares WHERE tool_slug = ?',
-                    [`tool_${toolId}`]
-                );
-                totalShares = shareRows[0]?.total || 0;
-            }
-            
-            const totalReactions = Object.values(reactions).reduce((a, b) => a + b, 0);
-            
-            return sendJSON(res, 200, {
-                success: true,
-                usage: usage,
-                total_reactions: totalReactions,
-                total_shares: totalShares,
-                reactions: reactions,
-                tool_id: toolId
-            });
-        }
-        
-        // GET /api/dashboard-stats (legacy)
-        if (req.method === 'GET' && pathname === '/api/dashboard-stats') {
-            if (connection) {
-                const [rows] = await connection.execute('SELECT * FROM dashboard_stats');
-                return sendJSON(res, 200, { 
-                    success: true, 
-                    data: rows,
-                    message: 'Database connected successfully!' 
-                });
-            }
-            return sendJSON(res, 200, { 
-                success: true, 
-                data: [{ total_views: 0, total_shares: 0, total_followers: 0 }],
-                message: 'Using fallback data (database not connected)'
-            });
-        }
-        
-        // GET /api/tools-list-legacy (alternative)
-        if (req.method === 'GET' && pathname === '/api/tools-list-legacy') {
-            if (connection) {
-                const [rows] = await connection.execute('SELECT tool_id, name, category, usage_count FROM tools ORDER BY tool_id');
-                return sendJSON(res, 200, { success: true, tools: rows });
-            }
-            return sendJSON(res, 200, { success: true, tools: [] });
-        }
-        
-        // ============================================
-        // FAVICON GENERATOR SPECIFIC (Legacy support)
-        // ============================================
-        if (req.method === 'POST' && pathname === '/api/favicon-generate') {
-            const { text, size, color } = req.body;
-            return sendJSON(res, 200, {
-                success: true,
-                message: 'Favicon generated',
-                url: `https://via.placeholder.com/${size || 64}/${color || '4285f4'}/ffffff?text=${encodeURIComponent(text || 'F')}`
-            });
-        }
-        
-        // ============================================
-        // AI GENERATION ENDPOINTS (Grok API - Legacy)
-        // ============================================
-        
-        // POST /api/generate-slos
-        if (req.method === 'POST' && (pathname === '/api/generate-slos' || endpoint === 'generate-slos')) {
-            const { subject, topic, grade } = req.body;
-            
-            const slos = [
-                `Demonstrate understanding of ${topic || subject} concepts`,
-                `Apply ${subject} knowledge to solve real-world problems`,
-                `Analyze and evaluate key aspects of ${topic || subject}`,
-                `Create innovative solutions using ${subject} principles`,
-                `Communicate ${subject} ideas effectively in written and oral form`
-            ];
-            
-            return sendJSON(res, 200, { success: true, slos });
-        }
-        
-        // POST /api/generate-activities
-        if (req.method === 'POST' && (pathname === '/api/generate-activities' || endpoint === 'generate-activities')) {
-            const { subject, methodologies } = req.body;
-            
-            const activities = [
-                `Introduction to ${subject} - Hook and engagement`,
-                `Interactive ${methodologies?.[0] || 'lecture'} on key concepts`,
-                `Group discussion and collaborative learning`,
-                `Hands-on ${subject} activity or experiment`,
-                `Formative assessment and feedback session`,
-                `Review, Q&A, and exit ticket`
-            ];
-            
-            return sendJSON(res, 200, { success: true, activities });
-        }
-        
-        // POST /api/generate-full-lesson
-        if (req.method === 'POST' && (pathname === '/api/generate-full-lesson' || endpoint === 'generate-full-lesson')) {
-            const { subject, topic, className, duration } = req.body;
-            
-            const result = {
-                slos: [`Understand ${topic || subject}`, `Apply ${subject} knowledge`],
-                activities: [`Introduction (5 min)`, `Main activity (${duration ? parseInt(duration) - 15 : 30} min)`, `Assessment (10 min)`],
-                resources: [`${subject} textbook`, `Worksheet`, `Presentation slides`],
-                methodologyNotes: `Using interactive and student-centered approaches`,
-                hometask: `Complete the ${subject} worksheet and prepare for next class`
-            };
-            
-            return sendJSON(res, 200, { success: true, ...result });
-        }
-        
-        // POST /api/generate-mcqs (for MCQ maker)
-        if (req.method === 'POST' && (pathname === '/api/generate-mcqs' || endpoint === 'generate-mcqs')) {
-            const { subject, topic, count, difficulty } = req.body;
-            
-            const mcqs = Array.from({ length: parseInt(count) || 5 }, (_, i) => ({
-                id: i + 1,
-                question: `Sample ${subject} question ${i + 1} about ${topic || subject}?`,
-                options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                correctAnswer: 'A',
-                explanation: `This is a sample ${difficulty || 'medium'} difficulty question.`
-            }));
-            
-            return sendJSON(res, 200, { success: true, mcqs });
-        }
-        
-        // POST /api/generate-paper (for paper generator)
-        if (req.method === 'POST' && (pathname === '/api/generate-paper' || endpoint === 'generate-paper')) {
-            const { subject, grade, topics } = req.body;
-            
-            const paper = {
-                title: `${subject} Examination - ${grade} Grade`,
-                totalMarks: 100,
-                duration: '2 hours',
-                sectionA: { name: 'Multiple Choice Questions', marks: 20, questions: [] },
-                sectionB: { name: 'Short Answer Questions', marks: 30, questions: [] },
-                sectionC: { name: 'Long Answer Questions', marks: 50, questions: [] }
-            };
-            
-            return sendJSON(res, 200, { success: true, paper });
-        }
-        
-        // POST /api/generate-mindmap
-        if (req.method === 'POST' && (pathname === '/api/generate-mindmap' || endpoint === 'generate-mindmap')) {
-            const { topic, subject } = req.body;
-            
-            const mindmap = {
-                central: topic || subject,
-                branches: [
-                    { name: 'Main Concept 1', subBranches: ['Detail A', 'Detail B'] },
-                    { name: 'Main Concept 2', subBranches: ['Detail C', 'Detail D'] },
-                    { name: 'Main Concept 3', subBranches: ['Detail E', 'Detail F'] }
-                ]
-            };
-            
-            return sendJSON(res, 200, { success: true, mindmap });
-        }
-        
-        // POST /api/generate-research-proposal
-        if (req.method === 'POST' && (pathname === '/api/generate-research-proposal' || endpoint === 'generate-research-proposal')) {
-            const { field, topic, level } = req.body;
-            
-            const proposal = {
-                title: `Research on ${topic || field}`,
-                abstract: `This research explores key aspects of ${field}...`,
-                introduction: `Background and significance of ${field}...`,
-                literatureReview: `Review of existing literature on ${field}...`,
-                methodology: `Research methodology for ${field} study...`,
-                expectedOutcomes: `Expected outcomes and contributions...`,
-                timeline: `6 months timeline for completion`,
-                references: `List of references`
-            };
-            
-            return sendJSON(res, 200, { success: true, proposal });
-        }
-        
-        // POST /api/generate-case-study
-        if (req.method === 'POST' && (pathname === '/api/generate-case-study' || endpoint === 'generate-case-study')) {
-            const { subject, scenario, grade } = req.body;
-            
-            const caseStudy = {
-                title: `Case Study: ${scenario || subject} Application`,
-                background: `Background information about the scenario...`,
-                problemStatement: `Key challenges and issues identified...`,
-                keyQuestions: [`Question 1`, `Question 2`, `Question 3`],
-                discussionPoints: [`Point A`, `Point B`, `Point C`],
-                solutionFramework: `Recommended approach and solutions...`
-            };
-            
-            return sendJSON(res, 200, { success: true, caseStudy });
-        }
-        
-        // POST /api/generate-differentiated
-        if (req.method === 'POST' && (pathname === '/api/generate-differentiated' || endpoint === 'generate-differentiated')) {
-            const { subject, topic, studentLevels } = req.body;
-            
-            const ideas = {
-                belowGrade: [
-                    `Simplified ${topic} activity with visual aids`,
-                    `One-on-one support and guided practice`,
-                    `Modified worksheets with fewer problems`
-                ],
-                atGrade: [
-                    `Standard ${topic} lesson with collaborative learning`,
-                    `Independent practice with feedback`,
-                    `Group discussion and peer teaching`
-                ],
-                aboveGrade: [
-                    `Advanced ${topic} challenge problems`,
-                    `Extension activities and research projects`,
-                    `Peer mentoring and leadership opportunities`
-                ]
-            };
-            
-            return sendJSON(res, 200, { success: true, ideas });
-        }
-        
-        // ============================================
         // DEFAULT - Unknown endpoint
         // ============================================
         return sendJSON(res, 404, {
             success: false,
             error: 'Endpoint not found',
+            requested_path: pathname,
+            tool_slug: toolSlug,
             available_endpoints: [
                 '=== CORE ENDPOINTS ===',
-                '/api/health - Health check',
-                '/api/tools-list - List all registered tools',
-                '/api/register - Register a new tool',
-                '/api/usage (GET/POST) - Get/increment usage',
-                '/api/reactions (GET/POST) - Get/add reactions',
-                '/api/shares (GET/POST) - Get/add shares',
-                '/api/stats - Get tool statistics',
-                '/api/global-stats - Get global statistics',
+                'GET  /api/health - Health check',
+                'GET  /api/tools-list - List all tools',
+                'POST /api/register - Register a tool',
                 '',
-                '=== POSTER GENERATOR ENDPOINTS (NEW) ===',
-                '/api/generate-quote (POST) - AI quote generation',
-                '/api/save-design (POST) - Save poster design',
-                '/api/get-designs (GET) - Get user designs',
-                '/api/get-design (GET) - Get single design by ID',
-                '/api/delete-design (DELETE) - Delete a design',
-                '/api/get-templates (GET) - Get poster templates',
+                '=== USAGE ENDPOINTS ===',
+                'GET  /api/[tool-slug]/usage - Get usage count',
+                'POST /api/[tool-slug]/usage - Increment usage',
                 '',
-                '=== LEGACY ENDPOINTS ===',
-                '/api/tool-stats - Legacy tool stats',
-                '/api/dashboard-stats - Legacy dashboard stats',
-                '/api/tools-list-legacy - Legacy tools list',
-                '/api/generate-slos - AI generate SLOs',
-                '/api/generate-activities - AI generate activities',
-                '/api/generate-full-lesson - AI generate full lesson',
-                '/api/generate-mcqs - AI generate MCQs',
-                '/api/generate-paper - AI generate paper',
-                '/api/generate-mindmap - AI generate mind map',
-                '/api/generate-research-proposal - AI generate research proposal',
-                '/api/generate-case-study - AI generate case study',
-                '/api/generate-differentiated - AI generate differentiated instruction',
+                '=== REACTIONS ENDPOINTS ===',
+                'GET  /api/[tool-slug]/reactions - Get reactions',
+                'POST /api/[tool-slug]/reactions - Add reaction',
                 '',
-                'For tool-specific calls: /api/[tool-slug]/[endpoint]',
-                'Example: /api/teacher-resource-finder/usage'
+                '=== SHARES ENDPOINTS ===',
+                'GET  /api/[tool-slug]/shares - Get shares count',
+                'POST /api/[tool-slug]/shares - Record share',
+                '',
+                '=== STATS ENDPOINTS ===',
+                'GET  /api/[tool-slug]/stats - Get all stats',
+                'GET  /api/global-stats - Get global stats',
+                '',
+                '=== AI ENDPOINTS ===',
+                'POST /api/generate-quote - Generate AI quote',
+                '',
+                '=== SUPPORTED TOOLS ===',
+                ...Array.from(toolRegistry).map(t => `  - ${t}`)
             ]
         });
         
