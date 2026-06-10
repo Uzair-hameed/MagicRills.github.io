@@ -1,79 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quick Training Agenda Maker</title>
-  <link rel="stylesheet" href="quick-training-agenda-maker-styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Quick Training Agenda Maker - Create professional training agendas with AI assistance. Generate, customize, and share your training schedules instantly." />
+    <title>Quick Training Agenda Maker | Professional Training Scheduler</title>
+    <link rel="stylesheet" href="quick-training-agenda-maker-styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Quick Training Agenda Maker</h1>
-    <button id="toggle-dark-mode">Dark Mode</button>
 
-    <!-- Step 1 -->
-    <div id="input-form" class="form-section active">
-      <div class="input-group">
-        <label>Start Date:</label>
-        <input type="date" id="start-date" required />
-      </div>
-      <div class="input-group">
-        <label>End Date:</label>
-        <input type="date" id="end-date" required />
-      </div>
-      <div class="input-group">
-        <label>Time Sessions per Day:</label>
-        <input type="number" id="num-slots" min="1" max="5" value="2" required />
-      </div>
-      <button id="generate-form" class="btn-primary">Generate Form</button>
+    <div class="scroll-buttons">
+        <button class="scroll-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
+        <button class="scroll-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
     </div>
 
-    <!-- Step 2 -->
-    <div id="custom-form" class="form-section">
-      <h2>Customize Session Times</h2>
-      <div id="slots-container" class="slots-grid"></div>
+    <button class="dark-mode-toggle" id="darkModeBtn">
+        <i class="fas fa-moon"></i>
+    </button>
 
-      <h2>Add Breaks</h2>
-      <div class="break-controls">
-        <button id="add-tea-break" class="btn-success">+ Tea Break</button>
-        <button id="add-lunch-break" class="btn-success">+ Lunch Break</button>
-      </div>
+    <div class="container">
+        
+        <section class="hero-section">
+            <div class="hero-badge">
+                <span><i class="fas fa-calendar-alt"></i> Professional Tool</span>
+            </div>
+            <h1 class="hero-title">Quick Training <span class="gradient-text">Agenda Maker</span></h1>
+            <p class="hero-description">Create, customize, and share professional training agendas in minutes.</p>
+            
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="globalUsageCount">0</span>
+                    <label>Total Uses</label>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-heart"></i>
+                    <span id="totalReactionsCount">0</span>
+                    <label>Reactions</label>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-share-alt"></i>
+                    <span id="totalSharesCount">0</span>
+                    <label>Shares</label>
+                </div>
+            </div>
+        </section>
 
-      <h2>Customize Sessions</h2>
-      <div id="days-container" class="days-grid"></div>
+        <div class="theme-selector">
+            <span><i class="fas fa-palette"></i> Theme:</span>
+            <button class="theme-btn" data-theme="default" style="background: linear-gradient(135deg, #667eea, #764ba2);"></button>
+            <button class="theme-btn" data-theme="ocean" style="background: linear-gradient(135deg, #1e3c72, #2a5298);"></button>
+            <button class="theme-btn" data-theme="forest" style="background: linear-gradient(135deg, #134e5e, #71b280);"></button>
+            <button class="theme-btn" data-theme="sunset" style="background: linear-gradient(135deg, #f12711, #f5af19);"></button>
+            <button class="theme-btn" data-theme="purple" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);"></button>
+            <button class="theme-btn" data-theme="midnight" style="background: linear-gradient(135deg, #232526, #414345);"></button>
+        </div>
 
-      <div class="form-actions">
-        <button id="generate-agenda" class="btn-primary">Generate Agenda</button>
-        <button id="back-to-start" class="btn-secondary">Back</button>
-      </div>
+        <!-- Step 1 -->
+        <div id="step1" class="form-step active-step">
+            <div class="step-header">
+                <div class="step-number">01</div>
+                <h2>Training Details</h2>
+                <p>Set your training program basic information</p>
+            </div>
+            <div class="form-card">
+                <div class="input-group">
+                    <label><i class="fas fa-calendar"></i> Start Date</label>
+                    <input type="date" id="startDateInput" class="modern-input" />
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-calendar-check"></i> End Date</label>
+                    <input type="date" id="endDateInput" class="modern-input" />
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-clock"></i> Sessions Per Day</label>
+                    <input type="number" id="sessionSlots" min="1" max="6" value="3" class="modern-input" />
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-hourglass-half"></i> Session Duration (minutes)</label>
+                    <input type="number" id="sessionMins" min="30" max="180" value="90" class="modern-input" />
+                </div>
+                <button id="startCustomizeBtn" class="btn-primary btn-large">
+                    <i class="fas fa-arrow-right"></i> Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="step2" class="form-step">
+            <div class="step-header">
+                <div class="step-number">02</div>
+                <h2>Customize Agenda</h2>
+                <p>Set session times, breaks, and daily content</p>
+            </div>
+            
+            <div class="section-card">
+                <h3><i class="fas fa-clock"></i> Session Times</h3>
+                <div id="slotsArea" class="slots-grid"></div>
+            </div>
+
+            <div class="section-card">
+                <h3><i class="fas fa-mug-hot"></i> Breaks</h3>
+                <div class="break-buttons">
+                    <button id="teaBreakBtn" class="btn-outline"><i class="fas fa-coffee"></i> Tea Break</button>
+                    <button id="lunchBreakBtn" class="btn-outline"><i class="fas fa-utensils"></i> Lunch Break</button>
+                </div>
+                <div id="breaksArea" class="breaks-container"></div>
+            </div>
+
+            <div class="section-card">
+                <h3><i class="fas fa-calendar-week"></i> Training Days</h3>
+                <div class="days-actions">
+                    <button id="addDayButton" class="btn-outline"><i class="fas fa-plus-circle"></i> Add Day</button>
+                </div>
+                <div id="daysArea" class="days-grid"></div>
+            </div>
+
+            <div class="form-actions">
+                <button id="backToStep1" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back</button>
+                <button id="generateFinalAgenda" class="btn-primary"><i class="fas fa-magic"></i> Generate</button>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div id="step3" class="form-step">
+            <div class="step-header">
+                <div class="step-number">03</div>
+                <h2>Your Agenda</h2>
+                <p>Review, export and share</p>
+            </div>
+            
+            <div id="agendaDisplay" class="agenda-preview"></div>
+            
+            <div class="export-section">
+                <h3><i class="fas fa-download"></i> Export</h3>
+                <div class="export-buttons">
+                    <button id="pdfExportBtn" class="btn-export pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button id="docxExportBtn" class="btn-export docx"><i class="fas fa-file-word"></i> DOCX</button>
+                    <button id="printAgendaBtn" class="btn-export print"><i class="fas fa-print"></i> Print</button>
+                    <button id="copyTextBtn" class="btn-export copy"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+            </div>
+
+            <div class="reactions-section">
+                <h3><i class="fas fa-smile"></i> Rate This Tool</h3>
+                <div class="reactions-container" id="reactionsArea">
+                    <button class="reaction-btn like" data-reaction="like">👍 Like <span>0</span></button>
+                    <button class="reaction-btn love" data-reaction="love">❤️ Love <span>0</span></button>
+                    <button class="reaction-btn wow" data-reaction="wow">😮 Wow <span>0</span></button>
+                    <button class="reaction-btn sad" data-reaction="sad">😢 Sad <span>0</span></button>
+                    <button class="reaction-btn angry" data-reaction="angry">😠 Angry <span>0</span></button>
+                    <button class="reaction-btn laugh" data-reaction="laugh">😂 Laugh <span>0</span></button>
+                    <button class="reaction-btn celebrate" data-reaction="celebrate">🎉 Celebrate <span>0</span></button>
+                </div>
+            </div>
+
+            <div class="share-section">
+                <h3><i class="fas fa-share-alt"></i> Share</h3>
+                <div class="share-buttons">
+                    <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                    <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
+                    <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                    <button class="share-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+                    <button class="share-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+                    <button class="share-btn copy" data-platform="copy" id="copyUrlShareBtn"><i class="fas fa-link"></i> Copy URL</button>
+                </div>
+            </div>
+
+            <div class="nav-actions">
+                <button id="editAgainBtn" class="btn-secondary"><i class="fas fa-edit"></i> Edit</button>
+                <button id="homePageBtn" class="btn-home"><i class="fas fa-home"></i> Home</button>
+                <button id="backToStep2" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Step 3 -->
-    <div id="agenda-container" class="form-section">
-      <div id="agenda-preview"></div>
-      <div class="export-buttons">
-        <button id="export-pdf" class="btn-success">Export PDF</button>
-        <button id="export-docx" class="btn-success">Export to MS Word</button>
-        <button id="email-agenda" class="btn-primary">Email Agenda</button>
-        <button id="copy-agenda" class="btn-secondary">Copy to Clipboard</button>
-        <button id="print-agenda" class="btn-secondary">Print</button>
-        <button id="regenerate" class="btn-secondary">Regenerate</button>
-      </div>
+    <div id="toastMsg" class="toast">
+        <span id="toastText"></span>
     </div>
-  </div>
 
-  <!-- CDN Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  
-  <!-- FIXED: Use this specific docx version that works reliably -->
-  <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.min.js"></script>
+    <div id="premiumModalBox" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-btn">&times;</span>
+            <i class="fas fa-crown premium-crown"></i>
+            <h2>Premium Feature</h2>
+            <p>Upgrade to unlock AI-powered agenda suggestions!</p>
+            <button class="btn-primary" id="closeModalBtn">Close</button>
+        </div>
+    </div>
 
-  <!-- Core + Export -->
-  <script src="quick-training-agenda-maker-script.js"></script>
-  <script src="quick-training-agenda-maker-export-pdf.js"></script>
-  <script src="quick-training-agenda-maker-export-docx.js"></script>
+    <script src="quick-training-agenda-maker-script.js"></script>
 </body>
 </html>
