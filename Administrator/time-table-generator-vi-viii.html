@@ -1,60 +1,308 @@
-<div class="separator" style="clear: both;"><a href="https://cdn-icons-png.flaticon.com/128/16502/16502876.png" style="display: block; padding: 1em 0px; text-align: center;"><img alt="" border="0" data-original-height="128" data-original-width="128" src="https://cdn-icons-png.flaticon.com/128/16502/16502876.png" style="display: none;" width="200" /></a></div>
-
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Time Table Generator VI-VIII</title><style>body{font-family:sans-serif;background:#f4f4f4;margin:0;padding:20px}h1{text-align:center;color:#333}table{width:100%;border-collapse:collapse;margin:20px 0;background:#fff}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eaeaea}select,button{padding:5px;margin:5px}#controls{text-align:center;margin-bottom:10px}#timetable-container{overflow-x:auto}@media(max-width:600px){table{font-size:12px}}</style></head><body>
-<h1><a>Auto Time Table Generator (Grade VI–VIII)</a></h1>
-<div id="controls">
-  <label>Grade:
-    <select id="grade"><option>VI</option><option>VII</option><option>VIII</option></select>
-  </label>
-  <label>Medium:
-    <select id="medium"><option>Urdu</option><option>Sindhi</option><option>English</option></select>
-  </label>
-  <button onclick="generateTimeTable()">Generate Timetable</button>
-  <button onclick="exportPDF()"><a href="">Export PDF</a></button>
-  <button onclick="exportDOC()"><a href="">Export DOC</a></button>
-</div>
-<div id="timetable-container"></div>
-<script>
-const subjects=[{name:'Mathematics',periods:6},{name:'Urdu/Sindhi (L/S/R/W)',periods:6},{name:'English (L/S/R/W)',periods:6},{name:'Islamiat/Religious Studies',periods:4},{name:'General Science',periods:4},{name:'Social Studies',periods:4},{name:'Sales Urdu/Asan Sindhi (NMT)',periods:2},{name:'Computer Education',periods:2},{name:'Drawing/Home Eco/Agriculture',periods:2},{name:'Physical Education',periods:1},{name:'Library/Reading/Speaking',periods:1}];
-const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const periods=['8:20-9:00','9:00-9:40','9:40-10:20','10:20-11:00','11:30-12:10','12:10-12:50','12:50-1:30'];
-function generateTimeTable(){
-  let table='<table><tr><th>Days</th>';
-  periods.forEach(p=>table+='<th>'+p+'</th>');
-  table+='</tr>';
-  let subAlloc={};subjects.forEach(s=>subAlloc[s.name]=s.periods);
-  days.forEach(day=>{
-    table+='<tr><th>'+day+'</th>';
-    for(let i=0;i<7;i++){
-      if(day==='Wednesday'&&i===3){table+='<td style="background:#fffae6">Break</td>';continue;}
-      let available=Object.keys(subAlloc).filter(k=>subAlloc[k]>0);
-      if(available.length===0){table+='<td>-</td>';continue;}
-      let choice=available[Math.floor(Math.random()*available.length)];
-      subAlloc[choice]--;table+='<td>'+choice+'</td>';
-    }
-    table+='</tr>';
-  });
-  table+='</table>';
-  document.getElementById('timetable-container').innerHTML=table;
-}
-function exportPDF(){
-  let printWin=window.open('','_blank');
-  printWin.document.write('<html><head><title>Timetable</title></head><body>');
-  printWin.document.write(document.getElementById('timetable-container').innerHTML);
-  printWin.document.write('</body></html>');
-  printWin.document.close();printWin.print();
-}
-function exportDOC(){
-  const htmlContent=document.getElementById("timetable-container").innerHTML;
-  const header="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Timetable</title></head><body>";
-  const footer="</body></html>";
-  const source=header+htmlContent+footer;
-  const blob=new Blob(['\ufeff',source],{type:'application/msword'});
-  const url='data:application/vnd.ms-word;charset=utf-8,'+encodeURIComponent(source);
-  const link=document.createElement('a');
-  link.href=url;link.download='TimeTable.doc';
-  document.body.appendChild(link);link.click();document.body.removeChild(link);
-}
-</script>
-</body></html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Time Table Generator | Grades VI-VIII | Sindh, Punjab, Balochistan, Khyber Pakhtunkhwa</title>
+    <link rel="stylesheet" href="time-table-generator-vi-viii.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- Premium Modal (PRO Features) -->
+    <div id="premiumModal" class="premium-modal">
+        <div class="premium-modal-content">
+            <span class="premium-modal-close">&times;</span>
+            <i class="fas fa-crown premium-crown-icon"></i>
+            <h2>Premium Features</h2>
+            <p>Upgrade for advanced timetable planning, AI assistant, and more features.</p>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Unlimited Timetable Generation</li>
+                <li><i class="fas fa-check-circle"></i> AI-Powered Teacher Assignment</li>
+                <li><i class="fas fa-check-circle"></i> Export to Excel & Google Sheets</li>
+                <li><i class="fas fa-check-circle"></i> Print Ready Format</li>
+            </ul>
+            <button class="premium-close-btn">Back</button>
+        </div>
+    </div>
+
+    <!-- Floating Notification Toast -->
+    <div id="toastNotification" class="toast-notification">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Scroll Buttons -->
+    <button id="scrollUpBtn" class="scroll-btn scroll-up" title="Scroll Up">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button id="scrollDownBtn" class="scroll-btn scroll-down" title="Scroll Down">
+        <i class="fas fa-arrow-down"></i>
+    </button>
+
+    <!-- Dark/Light Mode Toggle -->
+    <button id="darkModeToggle" class="dark-mode-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Hero Section with Animation -->
+    <section class="hero-section">
+        <div class="hero-bg-animation">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+            <div class="floating-shape shape-4"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h1 class="hero-title">
+                <span class="gradient-text">Time Table Generator</span>
+            </h1>
+            <p class="hero-subtitle">Grades VI, VII, VIII | Based on Official Curricula of All Provinces</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="stat-number" id="globalUsageCount">0</span>
+                    <span class="stat-label">Total Uses</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-number" id="globalReactionCount">0</span>
+                    <span class="stat-label">Reactions</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-number" id="globalShareCount">0</span>
+                    <span class="stat-label">Shares</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Controls Section -->
+        <div class="controls-card">
+            <div class="controls-header">
+                <i class="fas fa-sliders-h"></i>
+                <h3>Settings</h3>
+            </div>
+            <div class="controls-group">
+                <div class="control-item">
+                    <label><i class="fas fa-building"></i> Province</label>
+                    <select id="provinceSelect" class="styled-select">
+                        <option value="sindh">Sindh</option>
+                        <option value="punjab">Punjab</option>
+                        <option value="khyber">Khyber Pakhtunkhwa</option>
+                        <option value="balochistan">Balochistan</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label><i class="fas fa-graduation-cap"></i> Grade</label>
+                    <select id="classSelect" class="styled-select">
+                        <option value="VI">Grade VI</option>
+                        <option value="VII">Grade VII</option>
+                        <option value="VIII">Grade VIII</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label><i class="fas fa-language"></i> Medium</label>
+                    <select id="mediumSelect" class="styled-select">
+                        <option value="urdu">Urdu</option>
+                        <option value="english">English</option>
+                        <option value="sindhi">Sindhi</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label><i class="fas fa-chalkboard-teacher"></i> Teacher Assignment</label>
+                    <select id="teacherAssignment" class="styled-select">
+                        <option value="auto">Automatic (Recommended)</option>
+                        <option value="balanced">Balanced (Equal Load)</option>
+                        <option value="subject_expert">Subject Expert</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-actions">
+                <button id="generateBtn" class="btn btn-primary">
+                    <i class="fas fa-magic"></i> Generate Timetable
+                </button>
+                <button id="resetBtn" class="btn btn-secondary">
+                    <i class="fas fa-undo-alt"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="master">
+                <i class="fas fa-table"></i> Master Timetable
+            </button>
+            <button class="tab-btn" data-tab="classwise">
+                <i class="fas fa-users"></i> Class-wise
+            </button>
+            <button class="tab-btn" data-tab="teacherwise">
+                <i class="fas fa-chalkboard-user"></i> Teacher-wise
+            </button>
+            <button class="tab-btn" data-tab="subjectwise">
+                <i class="fas fa-book"></i> Subject-wise
+            </button>
+            <button class="tab-btn" data-tab="freetime">
+                <i class="fas fa-coffee"></i> Free Time
+            </button>
+        </div>
+
+        <!-- Timetable Display Area -->
+        <div class="timetable-container">
+            <div id="masterTab" class="tab-content active">
+                <div class="section-header">
+                    <i class="fas fa-calendar-week"></i>
+                    <h2>Master Timetable</h2>
+                    <div class="export-buttons">
+                        <button class="export-btn pdf-export" data-export="pdf">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="export-btn doc-export" data-export="doc">
+                            <i class="fas fa-file-word"></i> DOC
+                        </button>
+                        <button class="export-btn txt-export" data-export="txt">
+                            <i class="fas fa-file-alt"></i> TXT
+                        </button>
+                    </div>
+                </div>
+                <div id="masterTimetable" class="timetable-wrapper"></div>
+            </div>
+            <div id="classwiseTab" class="tab-content">
+                <div class="section-header">
+                    <i class="fas fa-users"></i>
+                    <h2>Class-wise Timetable</h2>
+                    <select id="classwiseSelect" class="small-select">
+                        <option value="VI">Grade VI</option>
+                        <option value="VII">Grade VII</option>
+                        <option value="VIII">Grade VIII</option>
+                    </select>
+                </div>
+                <div id="classwiseTimetable" class="timetable-wrapper"></div>
+            </div>
+            <div id="teacherwiseTab" class="tab-content">
+                <div class="section-header">
+                    <i class="fas fa-chalkboard-user"></i>
+                    <h2>Teacher-wise Timetable</h2>
+                    <select id="teacherwiseSelect" class="small-select">
+                        <option value="">Select Teacher</option>
+                    </select>
+                </div>
+                <div id="teacherwiseTimetable" class="timetable-wrapper"></div>
+            </div>
+            <div id="subjectwiseTab" class="tab-content">
+                <div class="section-header">
+                    <i class="fas fa-book"></i>
+                    <h2>Subject-wise Timetable</h2>
+                    <select id="subjectwiseSelect" class="small-select">
+                        <option value="">Select Subject</option>
+                    </select>
+                </div>
+                <div id="subjectwiseTimetable" class="timetable-wrapper"></div>
+            </div>
+            <div id="freetimeTab" class="tab-content">
+                <div class="section-header">
+                    <i class="fas fa-coffee"></i>
+                    <h2>Free Time - Teachers' Free Periods</h2>
+                </div>
+                <div id="freetimeTimetable" class="timetable-wrapper"></div>
+            </div>
+        </div>
+
+        <!-- Reactions Section (Main Page) -->
+        <div class="reactions-card">
+            <div class="reactions-header">
+                <i class="fas fa-heart"></i>
+                <h3>How do you like this tool?</h3>
+            </div>
+            <div class="reactions-container" id="reactionsContainer">
+                <div class="reaction" data-reaction="like">
+                    <span class="reaction-emoji">👍</span>
+                    <span class="reaction-count" id="likeCount">0</span>
+                </div>
+                <div class="reaction" data-reaction="love">
+                    <span class="reaction-emoji">❤️</span>
+                    <span class="reaction-count" id="loveCount">0</span>
+                </div>
+                <div class="reaction" data-reaction="wow">
+                    <span class="reaction-emoji">😮</span>
+                    <span class="reaction-count" id="wowCount">0</span>
+                </div>
+                <div class="reaction" data-reaction="sad">
+                    <span class="reaction-emoji">😢</span>
+                    <span class="reaction-count" id="sadCount">0</span>
+                </div>
+                <div class="reaction" data-reaction="angry">
+                    <span class="reaction-emoji">😠</span>
+                    <span class="reaction-count" id="angryCount">0</span>
+                </div>
+                <div class="reaction" data-reaction="laugh">
+                    <span class="reaction-emoji">😂</span>
+                    <span class="reaction-count" id="laughCount">0</span>
+                </div>
+                <div class="reaction" data-reaction="celebrate">
+                    <span class="reaction-emoji">🎉</span>
+                    <span class="reaction-count" id="celebrateCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share Section -->
+        <div class="share-card">
+            <div class="share-header">
+                <i class="fas fa-share-alt"></i>
+                <h3>Share this tool</h3>
+            </div>
+            <div class="share-buttons">
+                <button class="share-btn facebook" data-platform="facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </button>
+                <button class="share-btn twitter" data-platform="twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <button class="share-btn whatsapp" data-platform="whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button class="share-btn linkedin" data-platform="linkedin">
+                    <i class="fab fa-linkedin-in"></i> LinkedIn
+                </button>
+                <button class="share-btn email" data-platform="email">
+                    <i class="fas fa-envelope"></i> Email
+                </button>
+                <button class="share-btn copy-url" data-platform="copy">
+                    <i class="fas fa-copy"></i> Copy URL
+                </button>
+            </div>
+            <div class="usage-counter">
+                <i class="fas fa-chart-line"></i>
+                <span id="toolUsageCount">0</span> times used
+            </div>
+        </div>
+
+        <!-- Home & Back Buttons -->
+        <div class="nav-buttons">
+            <a href="https://magicrills.com" class="nav-btn home-btn">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="https://magicrills.com/category-pages/administrator.html" class="nav-btn back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <script src="time-table-generator-vi-viii.js"></script>
+</body>
+</html>
