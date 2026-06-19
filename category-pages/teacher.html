@@ -4,13 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>MagicRills | Teacher Tools Hub — Live Analytics (TiDB Powered)</title>
-  <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.8) 100%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-bg-hover: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-border-hover: rgba(255, 255, 255, 0.2);
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -18,191 +23,328 @@
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #eef5ff 0%, #fff3e8 100%);
-      color: #1a2c3e;
-      scroll-behavior: smooth;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #060913;
+      color: #f8fafc;
+      overflow-x: hidden;
+      position: relative;
+      min-height: 100vh;
     }
 
+    /* Ambient Smooth Blurred Dynamic Background Animations */
     .bg-blob {
       position: fixed;
-      width: 70%;
-      height: 70%;
-      background: radial-gradient(circle, rgba(135,206,250,0.2), rgba(255,180,100,0.1), rgba(170,109,201,0.1));
+      width: 550px;
+      height: 550px;
       border-radius: 50%;
-      filter: blur(80px);
+      filter: blur(150px);
       z-index: -1;
-      animation: floatBlob 20s infinite alternate;
+      opacity: 0.35;
+      pointer-events: none;
     }
-    @keyframes floatBlob {
-      0% { transform: translate(0,0) scale(1); opacity: 0.5; }
-      100% { transform: translate(3%, 3%) scale(1.05); opacity: 0.8; }
+    .blob-1 {
+      background: #4f46e5;
+      top: -10%;
+      left: -5%;
+      animation: morphAndFloat 20s infinite alternate ease-in-out;
+    }
+    .blob-2 {
+      background: #db2777;
+      bottom: -10%;
+      right: -5%;
+      animation: morphAndFloat 25s infinite alternate-reverse ease-in-out;
+    }
+    .blob-3 {
+      background: #0891b2;
+      top: 45%;
+      left: 40%;
+      width: 450px;
+      height: 450px;
+      animation: morphAndFloat 18s infinite alternate ease-in-out;
+    }
+
+    @keyframes morphAndFloat {
+      0% { transform: translate(0, 0) scale(1); border-radius: 50%; }
+      50% { transform: translate(80px, -60px) scale(1.2); border-radius: 40% 60% 70% 30%; }
+      100% { transform: translate(-40px, 40px) scale(0.9); border-radius: 60% 40% 30% 70%; }
     }
 
     .container {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 1.5rem 2rem;
+      padding: 2.5rem 1.5rem;
     }
 
+    /* Smart Transparent Glass Hero Section */
     .hero {
       text-align: center;
-      margin-bottom: 2rem;
-      padding: 1.8rem 1rem;
-      background: rgba(255,255,245,0.85);
-      backdrop-filter: blur(10px);
-      border-radius: 2rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-      border: 1px solid #ffcd9a;
+      margin-bottom: 3rem;
+      padding: 4rem 2rem;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 2.5rem;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .hero h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      background: linear-gradient(125deg, #1e88e5, #ff8c42);
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+    .hero h1 i {
+      background: linear-gradient(135deg, #818cf8 0%, #f472b6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: pulseGlow 3s infinite alternate;
     }
     .hero p {
-      margin-top: 0.5rem;
-      font-size: 1rem;
-      color: #4a627a;
+      margin-top: 1.2rem;
+      font-size: 1.2rem;
+      color: #94a3b8;
+      font-weight: 400;
+      letter-spacing: 0.5px;
     }
 
+    @keyframes pulseGlow {
+      0% { filter: drop-shadow(0 0 2px rgba(129,140,248,0.2)); }
+      100% { filter: drop-shadow(0 0 12px rgba(244,114,182,0.6)); }
+    }
+
+    /* Transparent Analytics Dashboard Grid */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 1.2rem;
-      margin-bottom: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
     }
     .stat-card {
-      background: white;
-      border-radius: 1.5rem;
-      padding: 1rem 0.8rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 2rem;
+      padding: 1.8rem 1.2rem;
       text-align: center;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.05);
-      transition: all 0.2s;
-      border-bottom: 3px solid #ffaa66;
+      border: 1px solid var(--glass-border);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    
+    /* Smart Multi-coloring Neon Highlights for Statistics */
+    .dashboard-grid .stat-card:nth-child(1):hover { border-color: #6366f1; box-shadow: 0 0 25px rgba(99,102,241,0.2); }
+    .dashboard-grid .stat-card:nth-child(2):hover { border-color: #ec4899; box-shadow: 0 0 25px rgba(236,72,153,0.2); }
+    .dashboard-grid .stat-card:nth-child(3):hover { border-color: #10b981; box-shadow: 0 0 25px rgba(16,185,129,0.2); }
+    .dashboard-grid .stat-card:nth-child(4):hover { border-color: #f59e0b; box-shadow: 0 0 25px rgba(245,158,11,0.2); }
+    .dashboard-grid .stat-card:nth-child(5):hover { border-color: #06b6d4; box-shadow: 0 0 25px rgba(6,182,212,0.2); }
+
     .stat-card i {
-      font-size: 1.8rem;
-      color: #ff8c42;
+      font-size: 2.2rem;
+      margin-bottom: 0.8rem;
+      transition: transform 0.3s ease;
     }
+    .dashboard-grid .stat-card:nth-child(1) i { color: #6366f1; }
+    .dashboard-grid .stat-card:nth-child(2) i { color: #ec4899; }
+    .dashboard-grid .stat-card:nth-child(3) i { color: #10b981; }
+    .dashboard-grid .stat-card:nth-child(4) i { color: #f59e0b; }
+    .dashboard-grid .stat-card:nth-child(5) i { color: #06b6d4; }
+
     .stat-card h3 {
       font-size: 0.85rem;
-      font-weight: 600;
-      margin: 0.4rem 0;
-      color: #2c3e66;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
     }
     .stat-number {
-      font-size: 1.8rem;
+      font-size: 2.4rem;
       font-weight: 800;
-      color: #e0682a;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
     }
-    .stat-card:hover { transform: translateY(-3px); border-bottom-color: #aa6dc9; }
+    .stat-card:hover {
+      transform: translateY(-8px);
+      background: var(--glass-bg-hover);
+    }
+    .stat-card:hover i {
+      transform: scale(1.15);
+    }
 
+    /* Glassmorphic Live Analytics Graph Container */
     .graph-container {
-      background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(4px);
-      border-radius: 1.6rem;
-      padding: 1rem 1rem 1.2rem;
-      margin-bottom: 2rem;
-      border: 1px solid #ffe0bd;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+      background: rgba(15, 23, 42, 0.3);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 2.2rem;
+      padding: 2.2rem;
+      margin-bottom: 3.5rem;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
     }
     .graph-container h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.8rem;
-      padding-left: 0.5rem;
-      color: #c2571a;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    canvas { max-height: 260px; width: 100%; }
+    .graph-container h3 i {
+      color: #c084fc;
+    }
+    canvas { max-height: 280px; width: 100%; }
 
+    /* Modern Tools Header Layout */
     .tools-header {
       display: flex;
-      align-items: baseline;
-      gap: 12px;
-      margin: 1.5rem 0 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin: 3.5rem 0 2rem;
       flex-wrap: wrap;
+      gap: 15px;
     }
     .tools-header h2 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #2c5282;
-      border-left: 5px solid #ff8c42;
-      padding-left: 1rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
+    .tools-header h2 i {
+      color: #818cf8;
+    }
+
+    /* Ultra-Clean Transparent Grid Cards */
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 1.3rem;
-      margin-bottom: 2rem;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 4rem;
     }
     .tool-card {
-      background: white;
-      border-radius: 1.3rem;
-      padding: 1.2rem;
-      transition: 0.2s;
-      border: 1px solid #ffd6b0;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 2rem;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
     }
+    
+    /* Dynamic Multicolour Glow Trails via CSS selectors */
+    .tools-grid .tool-card:nth-child(3n+1):hover { border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.15); }
+    .tools-grid .tool-card:nth-child(3n+2):hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 20px 40px -10px rgba(236, 72, 153, 0.15); }
+    .tools-grid .tool-card:nth-child(3n+3):hover { border-color: rgba(6, 182, 212, 0.5); box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.15); }
+
     .tool-card:hover {
-      transform: translateY(-4px);
-      border-color: #ffaa77;
-      box-shadow: 0 15px 25px -10px rgba(0,0,0,0.1);
+      transform: translateY(-8px) scale(1.01);
+      background: rgba(255, 255, 255, 0.05);
     }
+    
     .tool-card h4 {
       font-weight: 700;
-      font-size: 1rem;
-      margin-bottom: 8px;
-      color: #1e3a5f;
+      font-size: 1.25rem;
+      margin-bottom: 15px;
+      color: #ffffff;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: color 0.3s;
     }
+    .tool-card h4 i {
+      margin-top: 5px;
+      font-size: 1.1rem;
+    }
+    .tools-grid .tool-card:nth-child(3n+1) h4 i { color: #818cf8; }
+    .tools-grid .tool-card:nth-child(3n+2) h4 i { color: #f472b6; }
+    .tools-grid .tool-card:nth-child(3n+3) h4 i { color: #22d3ee; }
+
+    /* Glass Badges */
     .usage-badge {
-      background: #fff0e5;
-      border-radius: 40px;
-      padding: 0.2rem 0.8rem;
-      font-size: 0.7rem;
-      font-weight: 700;
-      display: inline-block;
-      margin: 8px 0;
-      color: #bf5e2c;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 50px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 18px;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      width: fit-content;
     }
+    
     .tool-link-btn {
-      display: inline-block;
-      background: none;
-      color: #1e88e5;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #cbd5e1;
       font-weight: 600;
       text-decoration: none;
-      font-size: 0.85rem;
-      margin-top: 6px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
     }
-    .tool-link-btn:hover { color: #aa6dc9; text-decoration: underline; }
+    .tools-grid .tool-card:nth-child(3n+1) .tool-link-btn { color: #a5b4fc; }
+    .tools-grid .tool-card:nth-child(3n+2) .tool-link-btn { color: #fbcfe8; }
+    .tools-grid .tool-card:nth-child(3n+3) .tool-link-btn { color: #c5f2fa; }
 
+    .tool-card:hover .tool-link-btn {
+      color: #ffffff;
+      gap: 12px;
+    }
+
+    /* Glassmorphic Insight Lists Row */
     .insight-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 1.5rem;
-      margin: 2rem 0 1.5rem;
+      gap: 2rem;
+      margin: 4rem 0;
     }
     .insight-col {
       flex: 1;
-      min-width: 220px;
-      background: rgba(255,255,245,0.9);
-      border-radius: 1.5rem;
-      padding: 1.2rem;
-      backdrop-filter: blur(4px);
-      border: 1px solid #ffdaad;
+      min-width: 300px;
+      background: rgba(15, 23, 42, 0.3);
+      border-radius: 2.2rem;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      transition: transform 0.3s ease;
+    }
+    .insight-col:hover {
+      transform: translateY(-4px);
     }
     .insight-col h3 {
-      font-size: 1.2rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
-      gap: 8px;
-      border-left: 4px solid #ff8c42;
-      padding-left: 10px;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
     .insight-list {
       list-style: none;
@@ -211,93 +353,134 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.6rem 0;
-      border-bottom: 1px dashed #ffe0c0;
-      flex-wrap: wrap;
+      padding: 1rem 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+      gap: 15px;
+    }
+    .insight-list li:last-child {
+      border-bottom: none;
     }
     .tool-name-link {
       font-weight: 500;
-      color: #2c5282;
+      color: #cbd5e1;
       text-decoration: none;
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: 0.1s;
+      font-size: 0.95rem;
+      transition: all 0.2s;
     }
     .tool-name-link:hover {
-      color: #ff8c42;
-      text-decoration: underline;
+      color: #ffffff;
+      padding-left: 4px;
     }
     .tool-count {
-      background: #f2e4d4;
-      border-radius: 20px;
-      padding: 2px 8px;
-      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 30px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
       font-weight: 700;
-      color: #b4521a;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
+
+    /* Actions Blur Bar & Glass Buttons */
     .action-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 16px;
-      margin: 2rem 0 1rem;
+      margin: 4rem 0 2rem;
     }
     .action-btn {
-      background: linear-gradient(95deg, #1e88e5, #6a4e9b);
-      border: none;
-      padding: 8px 24px;
-      border-radius: 40px;
+      background: var(--primary-gradient);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px 32px;
+      border-radius: 50px;
       font-weight: 600;
       color: white;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
+      gap: 10px;
+      font-size: 0.95rem;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
+    }
+    .action-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.45);
+      border-color: rgba(255,255,255,0.25);
     }
     .action-btn.light {
-      background: white;
-      color: #ff7a2f;
-      border: 1px solid #ffaa66;
+      background: rgba(255, 255, 255, 0.03);
+      color: #ffffff;
+      border: 1px solid var(--glass-border);
+      box-shadow: none;
     }
+    .action-btn.light:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--glass-border-hover);
+    }
+
+    /* Floating Social Control Deck */
     .social-center {
       display: flex;
       justify-content: center;
-      margin: 1rem 0;
+      margin: 2rem 0;
     }
     .social-icons {
-      background: rgba(255,255,245,0.8);
-      padding: 0.5rem 1.5rem;
-      border-radius: 60px;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
       display: flex;
-      gap: 20px;
+      gap: 30px;
+      border: 1px solid var(--glass-border);
     }
     .social-icons a {
-      color: #ff8c42;
-      font-size: 1.3rem;
-      transition: 0.2s;
+      color: #94a3b8;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
     }
-    .social-icons a:hover { color: #aa6dc9; transform: scale(1.1); }
+    .social-icons a:hover { 
+      color: #ffffff; 
+      transform: translateY(-4px) scale(1.2); 
+    }
+    
     footer {
       text-align: center;
-      font-size: 0.7rem;
-      margin-top: 2rem;
-      color: #6c7e9e;
+      font-size: 0.85rem;
+      margin-top: 4rem;
+      color: #475569;
+      letter-spacing: 0.8px;
     }
-    @media (max-width: 700px) {
+
+    /* Keyframe Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
       .container { padding: 1rem; }
-      .tools-grid { gap: 1rem; }
+      .hero { padding: 2.5rem 1rem; }
+      .hero h1 { font-size: 2.4rem; }
+      .tools-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .action-bar { flex-direction: column; width: 100%; max-width: 340px; margin: 2rem auto; }
+      .action-btn { width: 100%; justify-content: center; }
     }
     .loading {
       text-align: center;
-      padding: 2rem;
-      color: #ff8c42;
+      padding: 4rem;
+      color: #818cf8;
+      font-size: 1.3rem;
+      grid-column: 1 / -1;
     }
   </style>
 </head>
 <body>
-<div class="bg-blob" style="top:-10%; left:-10%;"></div>
-<div class="bg-blob" style="bottom:-5%; right:-5%; width:60%;"></div>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+<div class="bg-blob blob-3"></div>
 
 <div class="container">
   <div class="hero">
@@ -315,28 +498,28 @@
 
   <div class="graph-container">
     <h3><i class="fas fa-chart-line"></i> Weekly Tool Activity (Real Data from TiDB)</h3>
-    <canvas id="usageTrendChart" width="400" height="160" style="max-height:210px; width:100%"></canvas>
+    <canvas id="usageTrendChart" width="400" height="160"></canvas>
   </div>
 
   <div class="tools-header">
     <h2><i class="fas fa-toolbox"></i> All Teaching Tools</h2>
-    <span style="font-size:0.8rem;">👇 click any tool to open</span>
+    <span style="font-size:0.85rem; color:#94a3b8;"><i class="fas fa-mouse-pointer"></i> click any tool to open</span>
   </div>
   <div class="tools-grid" id="toolsGrid">
     <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading tools...</div>
   </div>
 
   <div class="insight-row">
-    <div class="insight-col">
-      <h3><i class="fas fa-clock" style="color:#1e88e5;"></i> 🆕 Latest Tools</h3>
+    <div class="insight-col" style="border-top: 4px solid #6366f1;">
+      <h3 style="color:#818cf8;"><i class="fas fa-clock"></i> 🆕 Latest Tools</h3>
       <ul class="insight-list" id="latestList"><li>Loading...</li></ul>
     </div>
-    <div class="insight-col">
-      <h3><i class="fas fa-fire" style="color:#ff8c42;"></i> 🔥 Popular Tools</h3>
+    <div class="insight-col" style="border-top: 4px solid #ec4899;">
+      <h3 style="color:#f472b6;"><i class="fas fa-fire"></i> 🔥 Popular Tools</h3>
       <ul class="insight-list" id="popularList"><li>Loading...</li></ul>
     </div>
-    <div class="insight-col">
-      <h3><i class="fas fa-chart-line" style="color:#aa6dc9;"></i> 📈 Trending Now</h3>
+    <div class="insight-col" style="border-top: 4px solid #06b6d4;">
+      <h3 style="color:#22d3ee;"><i class="fas fa-chart-line"></i> 📈 Trending Now</h3>
       <ul class="insight-list" id="trendingList"><li>Loading...</li></ul>
     </div>
   </div>
@@ -345,8 +528,8 @@
     <button class="action-btn" id="followBtn"><i class="fas fa-heart"></i> Follow Hub</button>
     <a href="https://magicrills.com" class="action-btn light" id="backHomeLink"><i class="fas fa-home"></i> Back to Home</a>
     <button class="action-btn light" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share Page</button>
-    <button class="action-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Top</button>
-    <button class="action-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Bottom</button>
+    <button class="action-btn light" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Top</button>
+    <button class="action-btn light" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Bottom</button>
   </div>
 
   <div class="social-center">
@@ -595,6 +778,12 @@
   // ========== CHART INITIALIZATION ==========
   function initChart() {
     const ctx = document.getElementById('usageTrendChart').getContext('2d');
+    
+    // Custom neon gradient for Chart line
+    const chartGradient = ctx.createLinearGradient(0, 0, 0, 250);
+    chartGradient.addColorStop(0, 'rgba(129, 140, 248, 0.25)');
+    chartGradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
+
     trendChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -602,18 +791,28 @@
         datasets: [{
           label: 'Daily Tool Usage',
           data: [0, 0, 0, 0, 0, 0, 0],
-          borderColor: '#ff8c42',
-          backgroundColor: 'rgba(255,140,66,0.1)',
-          tension: 0.3,
+          borderColor: '#6366f1',
+          borderWidth: 3,
+          backgroundColor: chartGradient,
+          tension: 0.4,
           fill: true,
-          pointBackgroundColor: '#aa6dc9',
-          pointBorderColor: '#fff'
+          pointBackgroundColor: '#ec4899',
+          pointBorderColor: '#fff',
+          pointHoverRadius: 7
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
-        plugins: { legend: { position: 'top' } }
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { 
+            labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } } 
+          } 
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
+          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } }
+        }
       }
     });
   }
