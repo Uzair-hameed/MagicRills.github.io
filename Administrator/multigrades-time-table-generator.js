@@ -1,10 +1,28 @@
 // ============================================
 // MULTIGRADES TIME TABLE GENERATOR
 // Group-Based System with Weekly Subject Rotation
+// Updated: Cloudflare Workers API
 // ============================================
 
 const TOOL_SLUG = 'multigrades-time-table-generator';
-const API_BASE = '/api';
+const TOOL_NAME = 'Multigrades Time Table Generator';
+const CATEGORY = 'Teacher';
+
+// ============================================
+// NEW: Cloudflare Workers API Configuration
+// ============================================
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
+
+// ============================================
+// LOCAL STORAGE FALLBACK KEYS
+// ============================================
+const LS_KEYS = {
+    USAGE: 'multigrades_usage_count',
+    REACTIONS: 'multigrades_reactions',
+    SHARES: 'multigrades_shares',
+    USER_ID: 'multigrades_user_id'
+};
 
 // Subject rotation for each day of week (Monday=0, Tuesday=1, etc.)
 const DAILY_SUBJECTS = [
@@ -37,10 +55,276 @@ document.addEventListener('DOMContentLoaded', () => {
     initDarkMode();
     initScrollButtons();
     generateTeacherForms();
-    loadGlobalStats();
+    loadToolStats();
     loadReactions();
     incrementUsage();
+    initTypewriter();
 });
+
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const phrases = [
+        '🏫 One Teacher, Two Groups!',
+        '📚 Multigrade Made Easy!',
+        '👩‍🏫 Smart Classroom Management!',
+        '🎯 Weekly Subject Rotation!',
+        '🌟 Group-Based Teaching System!'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterElement = document.getElementById('typewriter-text');
+    
+    if (!typewriterElement) return;
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            // Deleting text
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            // Typing text
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        // Speed control
+        let speed = isDeleting ? 50 : 100;
+        
+        // Check if complete
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            speed = 2000; // Pause at end
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            speed = 500; // Pause before next
+        }
+        
+        setTimeout(typeEffect, speed);
+    }
+    
+    // Start typewriter
+    setTimeout(typeEffect, 1000);
+}
+
+// ============================================
+// CLOUDFLARE API FUNCTIONS
+// ============================================
+
+// 1. Increment Usage Counter
+async function incrementUsage() {
+    try {
+        const response = await fetch(`${API_BASE}/api/usage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                tool_name: TOOL_NAME,
+                category: CATEGORY,
+                user_id: getUserId()
+            })
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        updateUsageDisplay(data.count || 0);
+        
+    } catch (error) {
+        console.warn('API fallback: Using localStorage');
+        // Fallback to localStorage
+        let count = parseInt(localStorage.getItem(LS_KEYS.USAGE) || '0');
+        count++;
+        localStorage.setItem(LS_KEYS.USAGE, count.toString());
+        updateUsageDisplay(count);
+    }
+}
+
+// 2. Load Tool Stats
+async function loadToolStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': API_KEY
+            }
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        
+        // Update stats display
+        document.getElementById('globalUsageCount').textContent = data.usage || 0;
+        document.getElementById('globalReactionCount').textContent = data.reactions || 0;
+        document.getElementById('globalShareCount').textContent = data.shares || 0;
+        
+    } catch (error) {
+        console.warn('API fallback: Using localStorage for stats');
+        // Fallback to localStorage
+        const usage = localStorage.getItem(LS_KEYS.USAGE) || '0';
+        document.getElementById('globalUsageCount').textContent = usage;
+        
+        // Load reactions from localStorage
+        const reactions = JSON.parse(localStorage.getItem(LS_KEYS.REACTIONS) || '{}');
+        const totalReactions = Object.values(reactions).reduce((a, b) => a + b, 0);
+        document.getElementById('globalReactionCount').textContent = totalReactions;
+        
+        const shares = parseInt(localStorage.getItem(LS_KEYS.SHARES) || '0');
+        document.getElementById('globalShareCount').textContent = shares;
+    }
+}
+
+// 3. Load Reactions
+async function loadReactions() {
+    try {
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': API_KEY
+            }
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        
+        // Update reaction counts
+        if (data.reactions) {
+            for (const [type, count] of Object.entries(data.reactions)) {
+                const el = document.getElementById(`reaction-${type}`);
+                if (el) el.textContent = count;
+            }
+        }
+        
+    } catch (error) {
+        console.warn('API fallback: Using localStorage for reactions');
+        // Fallback to localStorage
+        const reactions = JSON.parse(localStorage.getItem(LS_KEYS.REACTIONS) || '{}');
+        for (const [type, count] of Object.entries(reactions)) {
+            const el = document.getElementById(`reaction-${type}`);
+            if (el) el.textContent = count;
+        }
+    }
+}
+
+// 4. Add Reaction
+async function addReaction(emoji, type) {
+    try {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                emoji: emoji,
+                reaction_type: type,
+                user_id: getUserId()
+            })
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        
+        // Update count
+        const el = document.getElementById(`reaction-${type}`);
+        if (el && data.count !== undefined) {
+            el.textContent = data.count;
+        }
+        
+        showToast(`Thanks for your ${emoji} reaction!`, 'success');
+        
+    } catch (error) {
+        console.warn('API fallback: Using localStorage for reaction');
+        // Fallback to localStorage
+        const reactions = JSON.parse(localStorage.getItem(LS_KEYS.REACTIONS) || '{}');
+        reactions[type] = (reactions[type] || 0) + 1;
+        localStorage.setItem(LS_KEYS.REACTIONS, JSON.stringify(reactions));
+        
+        // Update display
+        const el = document.getElementById(`reaction-${type}`);
+        if (el) el.textContent = reactions[type];
+        
+        showToast(`Thanks for your ${emoji} reaction! (Saved locally)`, 'success');
+    }
+}
+
+// 5. Record Share
+async function recordShare(platform) {
+    try {
+        const response = await fetch(`${API_BASE}/api/shares`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                platform: platform,
+                user_id: getUserId()
+            })
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        
+        // Update share count
+        document.getElementById('globalShareCount').textContent = data.total_shares || 0;
+        
+    } catch (error) {
+        console.warn('API fallback: Using localStorage for share');
+        // Fallback to localStorage
+        let shares = parseInt(localStorage.getItem(LS_KEYS.SHARES) || '0');
+        shares++;
+        localStorage.setItem(LS_KEYS.SHARES, shares.toString());
+        document.getElementById('globalShareCount').textContent = shares;
+    }
+}
+
+// 6. Get User ID
+function getUserId() {
+    let id = localStorage.getItem(LS_KEYS.USER_ID);
+    if (!id) {
+        id = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem(LS_KEYS.USER_ID, id);
+    }
+    return id;
+}
+
+// 7. Update Usage Display
+function updateUsageDisplay(count) {
+    const el = document.getElementById('globalUsageCount');
+    if (el) el.textContent = count;
+}
+
+// ============================================
+// UI HELPERS
+// ============================================
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+    const color = type === 'success' ? 'var(--secondary)' : 'var(--primary)';
+    toast.style.borderRightColor = color;
+    toast.innerHTML = `<i class="fas ${icon}" style="color:${color}"></i> ${message}`;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 
 function initializeEventListeners() {
     document.getElementById('teacherCount').addEventListener('change', generateTeacherForms);
@@ -50,11 +334,22 @@ function initializeEventListeners() {
     document.getElementById('exportTXTBtn').addEventListener('click', () => exportTimetable('txt'));
     
     document.querySelectorAll('.reaction-btn').forEach(btn => {
-        btn.addEventListener('click', () => addReaction(btn.dataset.emoji, btn.dataset.reaction));
+        btn.addEventListener('click', () => {
+            const emoji = btn.dataset.emoji;
+            const type = btn.dataset.reaction;
+            if (emoji && type) {
+                addReaction(emoji, type);
+            }
+        });
     });
     
     document.querySelectorAll('.share-btn').forEach(btn => {
-        btn.addEventListener('click', () => shareTool(btn.dataset.platform));
+        btn.addEventListener('click', () => {
+            const platform = btn.dataset.platform;
+            if (platform) {
+                shareTool(platform);
+            }
+        });
     });
 }
 
@@ -75,15 +370,6 @@ function initDarkMode() {
 function initScrollButtons() {
     document.getElementById('scrollUpBtn').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
     document.getElementById('scrollDownBtn').onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
 function generateTeacherForms() {
@@ -315,54 +601,10 @@ function exportTimetable(format) {
     }
 }
 
-// API Functions (same as before)
-async function incrementUsage() {
-    try {
-        await fetch(`${API_BASE}/increment-usage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: getUserId() }) });
-        loadUsageCount();
-    } catch(e) {}
-}
-
-async function loadUsageCount() {
-    try {
-        const res = await fetch(`${API_BASE}/usage?tool_slug=${TOOL_SLUG}`);
-        const data = await res.json();
-        if (data.count) document.getElementById('globalUsageCount').innerText = data.count;
-    } catch(e) { document.getElementById('globalUsageCount').innerText = '1,234'; }
-}
-
-async function loadGlobalStats() {
-    try {
-        const res = await fetch(`${API_BASE}/global-stats`);
-        const data = await res.json();
-        if (data.totalUsage) document.getElementById('globalUsageCount').innerText = data.totalUsage.toLocaleString();
-    } catch(e) {}
-}
-
-async function loadReactions() {
-    try {
-        const res = await fetch(`${API_BASE}/reactions?tool_slug=${TOOL_SLUG}`);
-        const data = await res.json();
-        if (data.reactions) {
-            for (const [type, count] of Object.entries(data.reactions)) {
-                const el = document.getElementById(`reaction-${type}`);
-                if (el) el.innerText = count;
-            }
-        }
-    } catch(e) {}
-}
-
-async function addReaction(emoji, type) {
-    try {
-        await fetch(`${API_BASE}/add-reaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji, reaction_type: type, user_id: getUserId() }) });
-        showToast(`Thanks for your reaction!`, 'success');
-        loadReactions();
-    } catch(e) { showToast('Reaction saved!', 'success'); }
-}
-
+// Share Tool Function
 async function shareTool(platform) {
     const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent('Multigrades Time Table Generator');
+    const title = encodeURIComponent('Multigrades Time Table Generator - Group-Based Teaching System');
     const shareUrls = {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
         twitter: `https://twitter.com/intent/tweet?url=${url}&text=${title}`,
@@ -372,22 +614,23 @@ async function shareTool(platform) {
     };
     
     if (platform === 'copy') {
-        navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied!', 'success');
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            showToast('Link copied to clipboard!', 'success');
+        } catch (err) {
+            // Fallback
+            const textarea = document.createElement('textarea');
+            textarea.value = window.location.href;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Link copied!', 'success');
+        }
     } else if (shareUrls[platform]) {
         window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
     
-    try {
-        await fetch(`${API_BASE}/add-share`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool_slug: TOOL_SLUG, platform, user_id: getUserId() }) });
-    } catch(e) {}
-}
-
-function getUserId() {
-    let id = localStorage.getItem('userId');
-    if (!id) {
-        id = 'user_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('userId', id);
-    }
-    return id;
+    // Record share
+    await recordShare(platform);
 }
