@@ -1,17 +1,16 @@
 // ========================================
 // Civil Servant Leave Rules 1986 Dashboard
-// Complete JavaScript with 116 Features
-// Fully Integrated with TiDB, Vercel, Grok API
+// Complete JavaScript with Cloudflare Workers API
 // ========================================
 
 // ========================================
 // CONFIGURATION
 // ========================================
 const TOOL_SLUG = 'civil-servant-leave-rules';
-const API_BASE_URL = '/api'; // Will be replaced with actual Vercel endpoint
-const GROK_API_KEY = typeof process !== 'undefined' && process.env ? process.env.GROK_API_KEY : null;
+const TOOL_NAME = 'Civil Servant Leave Rules 1986';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
 
-// User ID for tracking (using localStorage or generate new)
+// User ID for tracking
 let userId = localStorage.getItem('userId');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -29,258 +28,43 @@ let fontSize = parseInt(localStorage.getItem('fontSize')) || 16;
 document.body.style.fontSize = fontSize + 'px';
 
 // ========================================
-// LEAVE RULES DATA (12 Complete Rules)
+// TOAST & LOADING FUNCTIONS
 // ========================================
-const leaveRules = {
-    earnedLeave: {
-        title: "Earned Leave",
-        icon: "fa-calendar-alt",
-        badge: "primary",
-        category: "regular",
-        popularity: 95,
-        shortDesc: "Accrued leave based on service duration and department type. Non-vacation depts: 4 days/month.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>📊 Calculation & Accumulation</h3>
-                <p><strong>Non-vacation departments:</strong> 4 days per calendar month</p>
-                <p><strong>Vacation departments:</strong></p>
-                <ul>
-                    <li>Full vacation availed: 1 day per calendar month</li>
-                    <li>Part vacation availed: 1 day per month + proportion of 30 days based on unused vacation</li>
-                    <li>No vacation availed: 4 days per calendar month</li>
-                </ul>
-                <h3>✅ Grant of Earned Leave</h3>
-                <ul>
-                    <li>Without medical certificate: 120 days maximum</li>
-                    <li>With medical certificate: 180 days maximum</li>
-                    <li>Total in entire service: 365 days on medical certificate</li>
-                </ul>
-                <h3>📝 Application Process</h3>
-                <p>Submit Form 1 to head of office. Priority given to those last recalled from leave.</p>
-            </div>
-        `
-    },
-    maternityLeave: {
-        title: "Maternity Leave",
-        icon: "fa-baby",
-        badge: "success",
-        category: "special",
-        popularity: 88,
-        shortDesc: "90 days full pay leave for female civil servants during pregnancy and childbirth.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>👶 Entitlement</h3>
-                <p>Female civil servants are granted maternity leave on full pay for a maximum period of <strong>90 days</strong>.</p>
-                <p>Any leave exceeding 90 days shall be treated as other leave types (earned, half-pay, etc.).</p>
-                <h3>✨ Special Provisions</h3>
-                <ul>
-                    <li>For non-vacation departments: After third maternity, earned leave may be granted in lieu</li>
-                    <li>No requirement to specify reasons for maternity leave application</li>
-                </ul>
-            </div>
-        `
-    },
-    specialLeave: {
-        title: "Special Leave (Bereavement)",
-        icon: "fa-heart",
-        badge: "danger",
-        category: "emergency",
-        popularity: 82,
-        shortDesc: "180 days full pay leave for female civil servants on the death of their husband.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>💔 Entitlement</h3>
-                <p>Female civil servant shall, on the death of her husband, be granted special leave on full pay for a period not exceeding <strong>180 days</strong>.</p>
-                <p>This leave <strong>shall not be debited</strong> to her regular leave account.</p>
-                <h3>📋 Requirements</h3>
-                <ul>
-                    <li>Leave commences from the date of death of husband</li>
-                    <li>Must furnish death certificate issued by concerned authority</li>
-                </ul>
-            </div>
-        `
-    },
-    disabilityLeave: {
-        title: "Disability Leave",
-        icon: "fa-wheelchair",
-        badge: "warning",
-        category: "medical",
-        popularity: 76,
-        shortDesc: "Up to 720 days leave for injuries/diseases contracted in course of duty.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>🩺 Entitlement</h3>
-                <p>Maximum disability leave: <strong>720 days</strong> per occasion</p>
-                <ul>
-                    <li>First 180 days: Full pay</li>
-                    <li>Remaining 540 days: Half pay</li>
-                </ul>
-                <h3>⚠️ Conditions</h3>
-                <p>Disability must be contracted in the course of duty or in consequence of duty.</p>
-            </div>
-        `
-    },
-    leaveNotDue: {
-        title: "Leave Not Due",
-        icon: "fa-calendar-plus",
-        badge: "danger",
-        category: "emergency",
-        popularity: 68,
-        shortDesc: "Advance leave when no leave balance is available in the account.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>📅 Entitlement</h3>
-                <ul>
-                    <li>Maximum in entire service: 365 days</li>
-                    <li>First five years limit: 90 days total</li>
-                    <li>Can be granted on full pay or converted to half pay</li>
-                </ul>
-                <h3>📝 Conditions</h3>
-                <p>Granted only when there are reasonable chances of the civil servant resuming duty.</p>
-            </div>
-        `
-    },
-    leaveEncashment: {
-        title: "Leave Encashment (LPR)",
-        icon: "fa-money-bill-wave",
-        badge: "success",
-        category: "financial",
-        popularity: 91,
-        shortDesc: "Option to encash up to 365 days leave preparatory to retirement.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>💰 Eligibility</h3>
-                <p>Civil servant may, fifteen months before superannuation or after completing 30 years qualifying service, opt to encash leave preparatory to retirement.</p>
-                <ul>
-                    <li>Maximum encashment: 365 days</li>
-                    <li>Includes Senior Post Allowance</li>
-                </ul>
-                <h3>📋 Death During LPR</h3>
-                <p>Family entitled to lump sum payment equal to the period falling short of 365 days.</p>
-            </div>
-        `
-    },
-    leaveApplication: {
-        title: "Leave Application Process",
-        icon: "fa-file-alt",
-        badge: "primary",
-        category: "procedural",
-        popularity: 85,
-        shortDesc: "Complete procedures and requirements for applying for leave.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>📋 Form 1 Requirements</h3>
-                <ul>
-                    <li>Applicant's name, post, and department</li>
-                    <li>Nature of leave applied for</li>
-                    <li>Period of leave in days</li>
-                    <li>Intended commencement date</li>
-                    <li>Details of last leave taken</li>
-                    <li>Account Officer's report (for Grade 16 or above)</li>
-                </ul>
-            </div>
-        `
-    },
-    leaveAbolition: {
-        title: "Leave on Abolition of Post",
-        icon: "fa-building",
-        badge: "warning",
-        category: "special",
-        popularity: 62,
-        shortDesc: "Leave provisions when a civil servant's post is abolished.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>🏢 Entitlement</h3>
-                <p>When a post is abolished, leave due to the civil servant whose services are terminated shall be granted without regard to availability of a post.</p>
-                <p>Post is technically extended for leave duration.</p>
-            </div>
-        `
-    },
-    quarantineLeave: {
-        title: "Quarantine Leave",
-        icon: "fa-shield-virus",
-        badge: "danger",
-        category: "medical",
-        popularity: 70,
-        shortDesc: "Leave for civil servants requiring quarantine due to contagious disease.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>🦠 Entitlement</h3>
-                <p>Civil servant suffering from any disease requiring confinement by way of quarantine may be granted quarantine leave for the recommended period.</p>
-                <ul>
-                    <li>Not debited to regular leave account</li>
-                    <li>Treated as on duty for all purposes</li>
-                </ul>
-            </div>
-        `
-    },
-    extraordinaryLeave: {
-        title: "Extraordinary Leave",
-        icon: "fa-calendar-times",
-        badge: "warning",
-        category: "special",
-        popularity: 58,
-        shortDesc: "Leave without pay for special circumstances, up to 5 years.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>⏰ Entitlement</h3>
-                <ul>
-                    <li>10+ years service: Up to 5 years at a time</li>
-                    <li>Less than 10 years: Up to 2 years</li>
-                    <li>All extraordinary leave is without pay</li>
-                </ul>
-            </div>
-        `
-    },
-    halfPayLeave: {
-        title: "Half Pay Leave",
-        icon: "fa-chart-line",
-        badge: "primary",
-        category: "regular",
-        popularity: 73,
-        shortDesc: "Leave on half pay when earned leave is exhausted.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>📉 Half Pay Leave</h3>
-                <p>When earned leave is exhausted, civil servants may be granted half pay leave.</p>
-                <ul>
-                    <li>20 days per completed year of service</li>
-                    <li>Can be commuted to full pay at 2:1 ratio</li>
-                </ul>
-            </div>
-        `
-    },
-    studyLeave: {
-        title: "Study Leave",
-        icon: "fa-graduation-cap",
-        badge: "success",
-        category: "special",
-        popularity: 77,
-        shortDesc: "Leave for higher education and professional development.",
-        fullContent: `
-            <div class="rule-section">
-                <h3>🎓 Study Leave</h3>
-                <p>Granted to civil servants for approved courses of study.</p>
-                <ul>
-                    <li>Maximum 2 years in entire service</li>
-                    <li>Full pay for first year, half pay for second</li>
-                    <li>Requires service bond upon return</li>
-                </ul>
-            </div>
-        `
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+function showLoading(show) {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.toggle('active', show);
     }
-};
+}
 
 // ========================================
-// API FUNCTIONS (TiDB + Vercel)
+// CLOUDFLARE WORKERS API FUNCTIONS
 // ========================================
 
 async function apiCall(endpoint, method = 'GET', data = null) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_BASE}${endpoint}`;
     const options = {
         method: method,
         headers: {
             'Content-Type': 'application/json',
+            'X-User-ID': userId,
         }
     };
     if (data) {
@@ -290,228 +74,365 @@ async function apiCall(endpoint, method = 'GET', data = null) {
     try {
         const response = await fetch(url, options);
         const result = await response.json();
-        return result;
+        return { success: true, data: result };
     } catch (error) {
         console.error('API Error:', error);
         return { success: false, error: error.message };
     }
 }
 
-// Increment usage
+// 1. POST /api/usage - Usage Counter Increment
 async function incrementUsage() {
     try {
-        const response = await apiCall(`/${TOOL_SLUG}/usage`, 'POST', {
+        const response = await apiCall('/api/usage', 'POST', {
             tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME,
             user_id: userId
         });
-        if (response.success || response.total_usage) {
-            const count = response.total_usage || 0;
+        
+        if (response.success && response.data) {
+            const count = response.data.total_usage || 0;
             document.getElementById('totalUsageCount').innerText = count;
+            document.getElementById('globalUsageCount').innerText = response.data.total_global || count;
+            localStorage.setItem(`${TOOL_SLUG}_usage`, count);
             return count;
         }
     } catch (e) {
-        console.log('Usage increment offline');
+        console.log('API usage increment failed, using localStorage fallback');
     }
-    // Fallback local
-    let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || 0);
-    localCount++;
+    
+    // Fallback: LocalStorage
+    let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || 0) + 1;
     localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
     document.getElementById('totalUsageCount').innerText = localCount;
     return localCount;
 }
 
-// Get usage
-async function getUsage() {
-    try {
-        const response = await apiCall(`/${TOOL_SLUG}/usage`, 'GET');
-        if (response.success) {
-            document.getElementById('totalUsageCount').innerText = response.count || 0;
-        }
-    } catch (e) {
-        let localCount = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-        document.getElementById('totalUsageCount').innerText = localCount;
-    }
-}
-
-// Get global stats
-async function getGlobalStats() {
-    try {
-        const response = await apiCall('/global-stats', 'GET');
-        if (response.success) {
-            document.getElementById('globalUsageCount').innerText = response.totalUsage || 0;
-        }
-    } catch (e) {
-        document.getElementById('globalUsageCount').innerText = 'N/A';
-    }
-}
-
-// Get reactions
+// 2. POST /api/reactions - Add/Get Reactions
 async function getReactions() {
     try {
-        const response = await apiCall(`/${TOOL_SLUG}/reactions`, 'GET');
-        if (response.success && response.reactions) {
-            document.getElementById('reactionLike').innerText = response.reactions.like || 0;
-            document.getElementById('reactionLove').innerText = response.reactions.love || 0;
-            document.getElementById('reactionWow').innerText = response.reactions.wow || 0;
-            document.getElementById('reactionSad').innerText = response.reactions.sad || 0;
-            document.getElementById('reactionAngry').innerText = response.reactions.angry || 0;
-            document.getElementById('reactionLaugh').innerText = response.reactions.laugh || 0;
-            document.getElementById('reactionCelebrate').innerText = response.reactions.celebrate || 0;
+        const response = await apiCall('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            action: 'get'
+        });
+        
+        if (response.success && response.data) {
+            const reactions = response.data.reactions || {};
+            document.getElementById('reactionLike').innerText = reactions.like || 0;
+            document.getElementById('reactionLove').innerText = reactions.love || 0;
+            document.getElementById('reactionWow').innerText = reactions.wow || 0;
+            document.getElementById('reactionSad').innerText = reactions.sad || 0;
+            document.getElementById('reactionAngry').innerText = reactions.angry || 0;
+            document.getElementById('reactionLaugh').innerText = reactions.laugh || 0;
+            document.getElementById('reactionCelebrate').innerText = reactions.celebrate || 0;
             
-            const total = Object.values(response.reactions).reduce((a,b) => a + b, 0);
+            const total = Object.values(reactions).reduce((a, b) => a + b, 0);
             document.getElementById('totalReactionsCount').innerText = total;
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+            return reactions;
         }
     } catch (e) {
-        console.log('Get reactions failed');
+        console.log('Get reactions failed, using localStorage fallback');
     }
+    
+    // Fallback: LocalStorage
+    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`)) || {};
+    document.getElementById('reactionLike').innerText = reactions.like || 0;
+    document.getElementById('reactionLove').innerText = reactions.love || 0;
+    document.getElementById('reactionWow').innerText = reactions.wow || 0;
+    document.getElementById('reactionSad').innerText = reactions.sad || 0;
+    document.getElementById('reactionAngry').innerText = reactions.angry || 0;
+    document.getElementById('reactionLaugh').innerText = reactions.laugh || 0;
+    document.getElementById('reactionCelebrate').innerText = reactions.celebrate || 0;
+    const total = Object.values(reactions).reduce((a, b) => a + b, 0);
+    document.getElementById('totalReactionsCount').innerText = total;
+    return reactions;
 }
 
-// Add reaction
 async function addReaction(emoji, reactionType) {
     showLoading(true);
     try {
-        const response = await apiCall(`/${TOOL_SLUG}/reactions`, 'POST', {
+        const response = await apiCall('/api/reactions', 'POST', {
             tool_slug: TOOL_SLUG,
-            emoji: emoji,
+            tool_name: TOOL_NAME,
             reaction_type: reactionType,
-            user_id: userId
+            emoji: emoji,
+            user_id: userId,
+            action: 'add'
         });
-        if (response.success || response.counts) {
-            if (response.counts) {
-                document.getElementById(`reaction${reactionType.charAt(0).toUpperCase() + reactionType.slice(1)}`).innerText = response.counts[reactionType] || 0;
-            }
-            getReactions();
-            showToast(`Thanks for your reaction!`, 'success');
-        } else if (response.already_reacted) {
+        
+        if (response.success) {
+            await getReactions();
+            showToast(`Thanks for your ${reactionType} reaction! ❤️`, 'success');
+            showLoading(false);
+            return true;
+        } else if (response.data && response.data.already_reacted) {
             showToast(`You already reacted with ${emoji}`, 'warning');
+            showLoading(false);
+            return false;
         }
     } catch (e) {
-        showToast('Failed to save reaction', 'error');
+        console.log('Add reaction failed, using localStorage fallback');
     }
+    
+    // Fallback: LocalStorage
+    let reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`)) || {};
+    let userReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_user_reactions`)) || {};
+    
+    if (userReactions[reactionType]) {
+        showToast(`You already reacted with ${emoji}`, 'warning');
+        showLoading(false);
+        return false;
+    }
+    
+    userReactions[reactionType] = true;
+    reactions[reactionType] = (reactions[reactionType] || 0) + 1;
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+    localStorage.setItem(`${TOOL_SLUG}_user_reactions`, JSON.stringify(userReactions));
+    await getReactions();
+    showToast(`Thanks for your ${reactionType} reaction! ❤️`, 'success');
     showLoading(false);
+    return true;
 }
 
-// Add share
+// 3. POST /api/shares - Record Shares
 async function addShare(platform) {
     try {
-        const response = await apiCall(`/${TOOL_SLUG}/shares`, 'POST', {
+        const response = await apiCall('/api/shares', 'POST', {
             tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME,
             platform: platform,
             user_id: userId
         });
+        
         if (response.success) {
-            let shareCount = parseInt(document.getElementById('shareCountDisplay').innerText) || 0;
-            shareCount++;
-            document.getElementById('shareCountDisplay').innerText = shareCount;
-            document.getElementById('totalSharesCount').innerText = shareCount;
+            const count = response.data.total_shares || 0;
+            document.getElementById('shareCountDisplay').innerText = count;
+            document.getElementById('totalSharesCount').innerText = count;
+            localStorage.setItem(`${TOOL_SLUG}_shares`, count);
+            showToast(`Shared on ${platform}! 🎉`, 'success');
+            return count;
         }
     } catch (e) {
-        let shareCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || 0);
-        shareCount++;
-        localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
-        document.getElementById('shareCountDisplay').innerText = shareCount;
-        document.getElementById('totalSharesCount').innerText = shareCount;
+        console.log('Add share failed, using localStorage fallback');
     }
+    
+    // Fallback: LocalStorage
+    let shareCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || 0) + 1;
+    localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
+    document.getElementById('shareCountDisplay').innerText = shareCount;
+    document.getElementById('totalSharesCount').innerText = shareCount;
+    showToast(`Shared on ${platform}! 🎉`, 'success');
+    return shareCount;
 }
 
-// AI Quote Generation (Grok API)
-async function generateAIQuote(prompt) {
-    showLoading(true);
+// 4. GET /api/stats?tool_slug=:slug - Get Tool Stats
+async function getToolStats() {
     try {
-        const response = await apiCall('/generate-quote', 'POST', {
-            prompt: prompt,
-            tool_slug: TOOL_SLUG
-        });
-        if (response.success && response.quote) {
-            return response;
+        const response = await apiCall(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        
+        if (response.success && response.data) {
+            const stats = response.data;
+            document.getElementById('totalUsageCount').innerText = stats.usage || 0;
+            document.getElementById('globalUsageCount').innerText = stats.views || 0;
+            document.getElementById('totalReactionsCount').innerText = stats.reactions || 0;
+            document.getElementById('totalSharesCount').innerText = stats.shares || 0;
+            
+            // Save to localStorage as fallback
+            localStorage.setItem(`${TOOL_SLUG}_stats`, JSON.stringify(stats));
+            return stats;
         }
     } catch (e) {
-        console.log('AI quote fallback');
+        console.log('Get stats failed, using localStorage fallback');
     }
-    showLoading(false);
-    return null;
-}
-
-// Health check
-async function healthCheck() {
-    try {
-        const response = await apiCall('/health', 'GET');
-        console.log('API Health:', response);
-    } catch (e) {
-        console.log('Health check failed');
-    }
+    
+    // Fallback: LocalStorage
+    const stats = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_stats`)) || {};
+    document.getElementById('totalUsageCount').innerText = stats.usage || localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
+    document.getElementById('globalUsageCount').innerText = stats.views || 0;
+    document.getElementById('totalReactionsCount').innerText = stats.reactions || 0;
+    document.getElementById('totalSharesCount').innerText = stats.shares || localStorage.getItem(`${TOOL_SLUG}_shares`) || 0;
+    return stats;
 }
 
 // ========================================
-// UI FUNCTIONS
+// LEAVE RULES DATA (18+ Complete Rules)
+// ========================================
+const leaveRules = {
+    earnedLeave: {
+        title: "Earned Leave (LAP)",
+        icon: "fa-calendar-alt",
+        badge: "primary",
+        category: "Regular Leave",
+        shortDesc: "Accrued leave based on service duration. 4 days/month for non-vacation depts. Max 120/180 days at once.",
+        fullContent: `<div class="rule-content"><h3>📊 Earned Leave (LAP) - مکمل تفصیلات</h3><h4>🎯 حساب کتاب اور جمع ہونے کی شرح:</h4><ul><li><strong>غیر ویکیشن ڈیپارٹمنٹس:</strong> 4 دن فی کیلنڈر مہینہ</li><li><strong>ویکیشن ڈیپارٹمنٹس - مکمل ویکیشن:</strong> 1 دن فی کیلنڈر مہینہ</li><li><strong>ویکیشن ڈیپارٹمنٹس - جزوی ویکیشن:</strong> 1 دن فی مہینہ + غیر استعمال شدہ ویکیشن کا تناسب</li><li>جمع شدہ چھٹی کی کوئی زیادہ سے زیادہ حد نہیں</li></ul><h4>✅ گرانٹ کی زیادہ سے زیادہ مدت:</h4><ul><li><strong>بغیر میڈیکل سرٹیفکیٹ:</strong> 120 دن</li><li><strong>میڈیکل سرٹیفکیٹ کے ساتھ:</strong> 180 دن</li><li><strong>پوری سروس میں میڈیکل سرٹیفکیٹ پر کل:</strong> 365 دن</li></ul></div>`
+    },
+    halfPayLeave: {
+        title: "Half Pay Leave (LHAP)",
+        icon: "fa-chart-line",
+        badge: "primary",
+        category: "Regular Leave",
+        shortDesc: "20 days per completed year of service. Two days half pay = one day full pay debit.",
+        fullContent: `<div class="rule-content"><h3>📉 Half Pay Leave (LHAP)</h3><ul><li><strong>شرح:</strong> 20 دن فی مکمل سال سروس</li><li><strong>تبدیلی کا فارمولا:</strong> 2 دن ہاف پے = 1 دن فل پے ڈیبٹ</li><li><strong>زیادہ سے زیادہ ایک ساتھ:</strong> 120 دن</li><li>جب Earned Leave ختم ہو جائے تو دی جاتی ہے</li></ul></div>`
+    },
+    lprLeave: {
+        title: "Leave Preparatory to Retirement",
+        icon: "fa-calendar-check",
+        badge: "success",
+        category: "Financial Benefit",
+        shortDesc: "Encash up to 365 days leave before retirement. Option available 15 months before superannuation.",
+        fullContent: `<div class="rule-content"><h3>💰 Leave Preparatory to Retirement (LPR)</h3><ul><li><strong>اہلیت:</strong> ریٹائرمنٹ سے 15 ماہ پہلے یا 30 سال سروس مکمل ہونے پر</li><li><strong>زیادہ سے زیادہ انکیشمنٹ:</strong> 365 دن</li><li>صرف Senior Post Allowance شامل ہوگی</li><li>موت کی صورت میں خاندان کو باقی رقم ملے گی</li></ul></div>`
+    },
+    maternityLeave: {
+        title: "Maternity Leave",
+        icon: "fa-baby",
+        badge: "success",
+        category: "Special Benefit",
+        shortDesc: "90 days full pay for female civil servants. Not debited from leave account.",
+        fullContent: `<div class="rule-content"><h3>👶 Maternity Leave</h3><ul><li>خواتین سرکاری ملازمین کو <strong>90 دن</strong> کی میٹرنیٹی لیو فل پے پر</li><li>باقاعدہ لیو اکاؤنٹ سے ڈیبٹ نہیں ہوتی</li><li>90 دن سے زائد کی چھٹی دیگر لیو ٹائپس میں شمار ہوگی</li><li>میٹرنیٹی لیو کی درخواست میں وجوہات بتانے کی ضرورت نہیں</li></ul></div>`
+    },
+    specialLeave: {
+        title: "Special Leave (Bereavement)",
+        icon: "fa-heart",
+        badge: "danger",
+        category: "Emergency",
+        shortDesc: "180 days full pay for female civil servants on death of husband.",
+        fullContent: `<div class="rule-content"><h3>💔 Special Leave (Bereavement)</h3><ul><li>خواتین ملازمین کو شوہر کی وفات پر <strong>180 دن</strong> کی اسپیشل لیو فل پے پر</li><li>باقاعدہ لیو اکاؤنٹ سے ڈیبٹ نہیں ہوتی</li><li>ڈیتھ سرٹیفکیٹ جمع کرانا ضروری ہے</li></ul></div>`
+    },
+    disabilityLeave: {
+        title: "Disability Leave",
+        icon: "fa-wheelchair",
+        badge: "warning",
+        category: "Medical",
+        shortDesc: "720 days max (180 full pay + 540 half pay) for work-related disability.",
+        fullContent: `<div class="rule-content"><h3>🩺 Disability Leave</h3><ul><li><strong>کل زیادہ سے زیادہ مدت:</strong> 720 دن فی واقعہ</li><li><strong>فل پے پر:</strong> پہلے 180 دن</li><li><strong>ہاف پے پر:</strong> بقیہ 540 دن</li><li>معذوری کا ڈیوٹی سے تعلق ہونا ضروری ہے</li></ul></div>`
+    },
+    quarantineLeave: {
+        title: "Quarantine Leave",
+        icon: "fa-shield-virus",
+        badge: "warning",
+        category: "Medical",
+        shortDesc: "As per medical officer recommendation. Not debited from leave account.",
+        fullContent: `<div class="rule-content"><h3>🦠 Quarantine Leave</h3><ul><li>مجاز میڈیکل آفیسر کی تجویز کردہ مدت کے لیے</li><li>باقاعدہ لیو اکاؤنٹ سے ڈیبٹ نہیں ہوتی</li><li>اس چھٹی کے دوران ملازم ڈیوٹی پر تصور کیا جائے گا</li><li>مکمل تنخواہ دی جائے گی</li></ul></div>`
+    },
+    extraordinaryLeave: {
+        title: "Extraordinary Leave (EOL)",
+        icon: "fa-calendar-times",
+        badge: "warning",
+        category: "Special",
+        shortDesc: "Without pay. Up to 5 years (10+ years service) or 2 years (less than 10 years).",
+        fullContent: `<div class="rule-content"><h3>⏰ Extraordinary Leave</h3><ul><li>بغیر تنخواہ کی چھٹی</li><li>10+ سال سروس: زیادہ سے زیادہ 5 سال ایک ساتھ</li><li>10 سال سے کم سروس: زیادہ سے زیادہ 2 سال</li><li>صوابدیدی - منتظم کی مرضی</li></ul></div>`
+    },
+    leaveNotDue: {
+        title: "Leave Not Due (LND)",
+        icon: "fa-calendar-plus",
+        badge: "danger",
+        category: "Emergency",
+        shortDesc: "Advance leave when no balance. Max 365 days service, 90 days first 5 years.",
+        fullContent: `<div class="rule-content"><h3>📅 Leave Not Due</h3><ul><li>پوری سروس میں زیادہ سے زیادہ: 365 دن</li><li>پہلے 5 سال میں زیادہ سے زیادہ: 90 دن</li><li>شرط: ملازم کے ڈیوٹی پر واپس آنے کے امکانات ہوں</li></ul></div>`
+    },
+    recreationLeave: {
+        title: "Recreation Leave",
+        icon: "fa-umbrella-beach",
+        badge: "primary",
+        category: "Regular",
+        shortDesc: "15 days leave (10 days debited). Available in non-vacation departments.",
+        fullContent: `<div class="rule-content"><h3>🏖️ Recreation Leave</h3><ul><li>15 دن کی چھٹی، صرف 10 دن ڈیبٹ ہوتے ہیں</li><li>صرف غیر ویکیشن ڈیپارٹمنٹس میں دستیاب</li><li>پوری 15 دن ایک ساتھ لی جا سکتی ہے</li></ul></div>`
+    },
+    leaveExPakistan: {
+        title: "Leave Ex-Pakistan",
+        icon: "fa-plane",
+        badge: "primary",
+        category: "Regular",
+        shortDesc: "Maximum 120 days at a time for leave spent outside Pakistan.",
+        fullContent: `<div class="rule-content"><h3>✈️ Leave Ex-Pakistan</h3><ul><li>زیادہ سے زیادہ 120 دن ایک ساتھ</li><li>مکمل تنخواہ</li><li>قبل از وقت اجازت ضروری</li></ul></div>`
+    },
+    hospitalLeave: {
+        title: "Hospital Leave",
+        icon: "fa-hospital",
+        badge: "warning",
+        category: "Medical",
+        shortDesc: "Medical treatment leave as per medical certificate.",
+        fullContent: `<div class="rule-content"><h3>🏥 Hospital Leave</h3><ul><li>مقصد: طبی علاج</li><li>مدت: میڈیکل سرٹیفکیٹ کے مطابق</li><li>انکار نہیں کیا جا سکتا اگر میڈیکل طور پر ضروری ہو</li></ul></div>`
+    },
+    departmentalLeave: {
+        title: "Departmental Leave",
+        icon: "fa-building",
+        badge: "primary",
+        category: "Special",
+        shortDesc: "Special leave for Survey of Pakistan employees, Grade 1-9.",
+        fullContent: `<div class="rule-content"><h3>📐 Departmental Leave</h3><ul><li>دائرہ کار: صرف Survey of Pakistan</li><li>گریڈ: 1 سے 9</li><li>شرائط: محکمانہ قواعد کے مطابق</li></ul></div>`
+    },
+    seamanSickLeave: {
+        title: "Sick Leave (Seaman)",
+        icon: "fa-ship",
+        badge: "warning",
+        category: "Medical",
+        shortDesc: "Maximum 45 days sick leave for government vessel employees.",
+        fullContent: `<div class="rule-content"><h3>⚓ Sick Leave for Seamen</h3><ul><li>دائرہ کار: سرکاری بحری جہازوں پر کام کرنے والے</li><li>زیادہ سے زیادہ مدت: 45 دن</li><li>مکمل تنخواہ</li></ul></div>`
+    },
+    medicalCertificateLeave: {
+        title: "Leave on Medical Certificate",
+        icon: "fa-file-medical",
+        badge: "warning",
+        category: "Medical",
+        shortDesc: "Cannot be refused. As per medical officer's recommendation.",
+        fullContent: `<div class="rule-content"><h3>📋 Leave on Medical Certificate</h3><ul><li>میڈیکل سرٹیفکیٹ پیش کرنے پر چھٹی دی جائے گی</li><li>انکار نہیں کیا جا سکتا</li><li>واپسی پر فٹنس سرٹیفکیٹ درکار</li></ul></div>`
+    },
+    abolitionLeave: {
+        title: "Leave on Abolition of Post",
+        icon: "fa-building-circle-xmark",
+        badge: "danger",
+        category: "Emergency",
+        shortDesc: "All due leave granted when post is abolished. Post extended for leave duration.",
+        fullContent: `<div class="rule-content"><h3>🏢 Leave on Abolition of Post</h3><ul><li>جب عہدہ ختم کر دیا جائے تو تمام بقایا چھٹی دی جائے گی</li><li>عہدہ کی توسیع: چھٹی کی مدت کے لیے</li><li>حد: سپرینیویشن کی عمر تک</li></ul></div>`
+    },
+    studyLeave: {
+        title: "Study Leave",
+        icon: "fa-graduation-cap",
+        badge: "success",
+        category: "Special",
+        shortDesc: "Maximum 2 years for higher education. Full pay first year, half pay second.",
+        fullContent: `<div class="rule-content"><h3>🎓 Study Leave</h3><ul><li>زیادہ سے زیادہ مدت: 2 سال پوری سروس میں</li><li>پہلا سال: فل پے</li><li>دوسرا سال: ہاف پے</li><li>واپسی پر سروس کا بونڈ لازمی</li></ul></div>`
+    },
+    casualLeave: {
+        title: "Casual Leave",
+        icon: "fa-coffee",
+        badge: "primary",
+        category: "Regular",
+        shortDesc: "10 days per year. Not accumulative.",
+        fullContent: `<div class="rule-content"><h3>☕ Casual Leave</h3><ul><li>10 دن فی کیلنڈر سال</li><li>جمع نہیں ہوتی (اگلے سال منتقل نہیں)</li><li>قبل از وقت اجازت ضروری</li></ul></div>`
+    }
+};
+
+// ========================================
+// RENDER RULES GRID
 // ========================================
 
-function showLoading(show) {
-    const overlay = document.getElementById('loadingOverlay');
-    if (show) {
-        overlay.classList.add('active');
-    } else {
-        overlay.classList.remove('active');
-    }
-}
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    let icon = 'info-circle';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'error') icon = 'exclamation-circle';
-    if (type === 'warning') icon = 'exclamation-triangle';
-    toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
-
-function showFloatingNotification(message) {
-    const notification = document.getElementById('floatingNotification');
-    document.getElementById('floatingMsg').innerText = message;
-    notification.classList.add('show');
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 4000);
-}
-
-// Render rules grid
 function renderRulesGrid() {
     const grid = document.getElementById('rulesGrid');
+    if (!grid) return;
+    
     const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const filterBadge = document.getElementById('filterBadge')?.value || 'all';
     const sortBy = document.getElementById('sortRules')?.value || 'default';
     
     let rules = Object.entries(leaveRules).map(([key, rule]) => ({ key, ...rule }));
     
-    // Filter by search
     if (searchTerm) {
-        rules = rules.filter(rule => 
-            rule.title.toLowerCase().includes(searchTerm) || 
-            rule.shortDesc.toLowerCase().includes(searchTerm)
+        rules = rules.filter(r => 
+            r.title.toLowerCase().includes(searchTerm) || 
+            r.shortDesc.toLowerCase().includes(searchTerm)
         );
     }
-    
-    // Filter by badge
     if (filterBadge !== 'all') {
-        rules = rules.filter(rule => rule.badge === filterBadge);
+        rules = rules.filter(r => r.badge === filterBadge);
     }
-    
-    // Sort
-    if (sortBy === 'az') {
-        rules.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'za') {
-        rules.sort((a, b) => b.title.localeCompare(a.title));
-    } else if (sortBy === 'popular') {
-        rules.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-    }
+    if (sortBy === 'az') rules.sort((a, b) => a.title.localeCompare(b.title));
+    if (sortBy === 'za') rules.sort((a, b) => b.title.localeCompare(a.title));
     
     grid.innerHTML = rules.map(rule => `
-        <div class="card" data-rule-key="${rule.key}" data-badge="${rule.badge}">
+        <div class="card" data-key="${rule.key}">
             <div class="card-header">
                 <i class="fas ${rule.icon}"></i>
                 <h3>${rule.title}</h3>
@@ -520,348 +441,96 @@ function renderRulesGrid() {
                 <p>${rule.shortDesc}</p>
             </div>
             <div class="card-footer">
-                <span class="badge badge-${rule.badge}">${rule.category || 'Rule'}</span>
-                <div class="favorite-star ${favorites.includes(rule.key) ? 'active' : ''}" data-key="${rule.key}">
-                    <i class="fas ${favorites.includes(rule.key) ? 'fa-star' : 'fa-star-o'}"></i>
-                </div>
-                <button class="btn-view" data-key="${rule.key}">View Details →</button>
+                <span class="badge badge-${rule.badge}">${rule.category}</span>
+                <button class="view-btn" onclick="openModal('${rule.key}')">View Details →</button>
             </div>
         </div>
     `).join('');
-    
-    // Attach event listeners
-    document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', (e) => {
-            if (e.target.classList.contains('btn-view') || e.target.classList.contains('favorite-star')) {
-                const key = e.target.closest('.card').dataset.ruleKey;
-                if (e.target.classList.contains('favorite-star') || e.target.closest('.favorite-star')) {
-                    toggleFavorite(key);
-                    e.stopPropagation();
-                } else if (e.target.classList.contains('btn-view') || e.target.closest('.btn-view')) {
-                    openModal(key);
-                }
-            } else {
-                const key = card.dataset.ruleKey;
-                openModal(key);
-            }
-        });
-    });
 }
 
-// Toggle favorite
-function toggleFavorite(ruleKey) {
-    if (favorites.includes(ruleKey)) {
-        favorites = favorites.filter(f => f !== ruleKey);
-        showToast(`${leaveRules[ruleKey]?.title} removed from favorites`, 'warning');
-    } else {
-        favorites.push(ruleKey);
-        showToast(`${leaveRules[ruleKey]?.title} added to favorites`, 'success');
-    }
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    renderRulesGrid();
-}
+// ========================================
+// MODAL FUNCTIONS
+// ========================================
 
-// Open modal
-function openModal(ruleKey) {
-    const rule = leaveRules[ruleKey];
+function openModal(key) {
+    const rule = leaveRules[key];
     if (!rule) return;
     
     document.getElementById('modalTitle').innerText = rule.title;
     document.getElementById('modalBody').innerHTML = rule.fullContent;
     document.getElementById('ruleModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
-    
-    // Set favorite button state
-    const favBtn = document.getElementById('favoriteRuleBtn');
-    if (favBtn) {
-        favBtn.innerHTML = favorites.includes(ruleKey) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
-        favBtn.onclick = () => {
-            toggleFavorite(ruleKey);
-            favBtn.innerHTML = favorites.includes(ruleKey) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
-        };
-    }
-    
-    // Print button
-    document.getElementById('printRuleBtn').onclick = () => {
-        window.print();
-    };
-    
-    // Download TXT
-    document.getElementById('downloadTxtBtn').onclick = () => {
-        const content = `${rule.title}\n\n${rule.fullContent.replace(/<[^>]*>/g, '')}`;
-        const blob = new Blob([content], { type: 'text/plain' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${rule.title.toLowerCase().replace(/ /g, '_')}.txt`;
-        link.click();
-        showToast('Downloaded as TXT', 'success');
-    };
-    
-    // Text to speech
-    document.getElementById('speechRuleBtn').onclick = () => {
-        const text = `${rule.title}. ${rule.shortDesc}`;
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
-            showToast('Reading aloud...', 'info');
-        }
-    };
-    
-    // PDF Export
-    document.getElementById('pdfExportBtn').onclick = () => {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-            <head><title>${rule.title}</title>
-            <style>body{font-family:Arial;padding:20px} h1{color:#2c3e50}</style></head>
-            <body><h1>${rule.title}</h1>${rule.fullContent}</body>
-            </html>
-        `);
-        printWindow.print();
-        showToast('PDF ready for printing', 'success');
-    };
-    
-    // DOC Export
-    document.getElementById('docExportBtn').onclick = () => {
-        const content = `<html><head><meta charset="UTF-8"><title>${rule.title}</title></head><body><h1>${rule.title}</h1>${rule.fullContent}</body></html>`;
-        const blob = new Blob([content], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${rule.title.toLowerCase().replace(/ /g, '_')}.doc`;
-        link.click();
-        showToast('Downloaded as DOC', 'success');
-    };
 }
 
 function closeModal() {
     document.getElementById('ruleModal').style.display = 'none';
-    document.getElementById('ruleModal').style.display = 'none';
     document.body.style.overflow = 'auto';
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-    }
 }
 
-// Leave Calculator
-function calculateLeave() {
-    const deptType = document.getElementById('deptType').value;
-    const months = parseInt(document.getElementById('serviceMonths').value) || 0;
-    const availed = parseInt(document.getElementById('leaveAvailed').value) || 0;
-    
-    let rate = 0;
-    switch(deptType) {
-        case 'non-vacation':
-            rate = 4;
-            break;
-        case 'vacation-full':
-            rate = 1;
-            break;
-        case 'vacation-part':
-            rate = 1.5;
-            break;
-        case 'vacation-none':
-            rate = 4;
-            break;
-        default:
-            rate = 2;
-    }
-    
-    const totalEarned = Math.floor(months * rate);
-    const available = Math.max(0, totalEarned - availed);
-    
-    document.getElementById('calculatorResult').innerHTML = `
-        <strong>Total Leave Earned:</strong> ${totalEarned} days<br>
-        <strong>Leave Availed:</strong> ${availed} days<br>
-        <strong>Available Leave:</strong> ${available} days<br>
-        <small>Maximum allowed at once: 120 days (without medical certificate)</small>
-    `;
+// ========================================
+// SHARE FUNCTIONS
+// ========================================
+
+function shareFacebook() {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('Facebook');
 }
 
-// Set reminder
-function setReminder() {
-    const message = document.getElementById('reminderMsg').value;
-    const date = document.getElementById('reminderDate').value;
-    
-    if (!message || !date) {
-        showToast('Please enter reminder message and date', 'warning');
-        return;
-    }
-    
-    const reminder = {
-        id: Date.now(),
-        message: message,
-        date: new Date(date).getTime(),
-        created: new Date().toISOString()
-    };
-    
-    reminders.push(reminder);
-    localStorage.setItem('reminders', JSON.stringify(reminders));
-    showToast('Reminder set successfully!', 'success');
-    document.getElementById('reminderMsg').value = '';
-    document.getElementById('reminderDate').value = '';
-    displayReminders();
-    
-    // Check reminder time
-    checkReminders();
+function shareTwitter() {
+    window.open(`https://twitter.com/intent/tweet?text=Check%20out%20Civil%20Servant%20Leave%20Rules%201986%20Dashboard&url=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('Twitter');
 }
 
-function displayReminders() {
-    const container = document.getElementById('activeReminders');
-    if (!container) return;
-    
-    const activeReminders = reminders.filter(r => r.date > Date.now());
-    if (activeReminders.length === 0) {
-        container.innerHTML = '<p>No active reminders.</p>';
-        return;
-    }
-    
-    container.innerHTML = activeReminders.map(r => `
-        <div class="reminder-item">
-            <strong>${r.message}</strong><br>
-            <small>${new Date(r.date).toLocaleString()}</small>
-            <button onclick="deleteReminder(${r.id})">Delete</button>
-        </div>
-    `).join('');
+function shareWhatsApp() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('WhatsApp');
 }
 
-function deleteReminder(id) {
-    reminders = reminders.filter(r => r.id !== id);
-    localStorage.setItem('reminders', JSON.stringify(reminders));
-    displayReminders();
-    showToast('Reminder deleted', 'info');
-}
-
-function checkReminders() {
-    setInterval(() => {
-        const now = Date.now();
-        reminders.forEach(reminder => {
-            if (reminder.date <= now && !reminder.notified) {
-                reminder.notified = true;
-                showFloatingNotification(`Reminder: ${reminder.message}`);
-                showToast(`🔔 ${reminder.message}`, 'warning');
-            }
-        });
-        localStorage.setItem('reminders', JSON.stringify(reminders));
-    }, 60000);
-}
-
-// Social Share functions
-function shareOnFacebook() {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, 'facebook-share', 'width=600,height=400');
-    addShare('facebook');
-}
-
-function shareOnTwitter() {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('Check out Civil Servant Leave Rules 1986 Dashboard!');
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, 'twitter-share', 'width=600,height=400');
-    addShare('twitter');
-}
-
-function shareOnWhatsApp() {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://wa.me/?text=${url}`, 'whatsapp-share', 'width=600,height=400');
-    addShare('whatsapp');
-}
-
-function shareOnLinkedIn() {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, 'linkedin-share', 'width=600,height=400');
-    addShare('linkedin');
-}
-
-function shareByEmail() {
-    const subject = encodeURIComponent('Civil Servant Leave Rules 1986');
-    const body = encodeURIComponent(`Check out this useful tool: ${window.location.href}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    addShare('email');
+function shareLinkedIn() {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('LinkedIn');
 }
 
 async function copyPageUrl() {
     try {
         await navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard!', 'success');
-        addShare('copy');
+        showToast('URL copied to clipboard! 📋', 'success');
+        addShare('Copy');
     } catch (err) {
         showToast('Failed to copy URL', 'error');
     }
 }
 
-// Dark Mode Toggle
+// ========================================
+// THEME FUNCTIONS
+// ========================================
+
 function toggleDarkMode() {
     const body = document.body;
     const isDark = body.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-        body.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-        showToast('Light mode activated', 'info');
-    } else {
-        body.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-        showToast('Dark mode activated', 'info');
-    }
+    body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    showToast(isDark ? 'Light mode activated ☀️' : 'Dark mode activated 🌙');
 }
 
-// High Contrast Toggle
 function toggleHighContrast() {
     const body = document.body;
     const isHC = body.getAttribute('data-theme') === 'high-contrast';
-    if (isHC) {
-        body.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
-        localStorage.setItem('highContrast', 'false');
-        showToast('High contrast mode off', 'info');
-    } else {
-        body.setAttribute('data-theme', 'high-contrast');
-        localStorage.setItem('highContrast', 'true');
-        showToast('High contrast mode on', 'info');
-    }
+    body.setAttribute('data-theme', isHC ? (localStorage.getItem('theme') || 'light') : 'high-contrast');
+    showToast(isHC ? 'High contrast mode off' : 'High contrast mode on 🔍');
 }
 
-// Font size adjustment
 function adjustFontSize() {
-    let newSize = fontSize;
-    if (newSize >= 20) {
-        newSize = 14;
-    } else {
-        newSize = newSize + 2;
-    }
-    fontSize = newSize;
+    fontSize = fontSize >= 20 ? 14 : fontSize + 2;
     document.body.style.fontSize = fontSize + 'px';
     localStorage.setItem('fontSize', fontSize);
-    showToast(`Font size: ${fontSize}px`, 'info');
+    showToast(`Font size: ${fontSize}px 🔤`);
 }
 
-// Voice Search
-function startVoiceSearch() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showToast('Voice search not supported in this browser', 'warning');
-        return;
-    }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    
-    recognition.start();
-    showToast('Listening... Speak now', 'info');
-    
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById('searchInput').value = transcript;
-        renderRulesGrid();
-        showToast(`Searched: "${transcript}"`, 'success');
-    };
-    
-    recognition.onerror = () => {
-        showToast('Voice recognition failed', 'error');
-    };
-}
+// ========================================
+// SCROLL FUNCTIONS
+// ========================================
 
-// Scroll functions
 function scrollUp() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -870,203 +539,261 @@ function scrollDown() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
-// PWA / Offline Support
-function installApp() {
-    showToast('App installation feature available in supported browsers', 'info');
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then(() => {
-            showToast('Ready for offline use!', 'success');
-        }).catch(() => {
-            showToast('Offline support available', 'info');
-        });
+// ========================================
+// CALCULATOR FUNCTION
+// ========================================
+
+function calculateLeave() {
+    const years = parseInt(document.getElementById('calcServiceYears')?.value) || 0;
+    const months = parseInt(document.getElementById('calcServiceMonths')?.value) || 0;
+    const totalMonths = (years * 12) + months;
+    const leaveType = document.getElementById('calcLeaveType')?.value || 'earned';
+    const deptType = document.getElementById('calcDeptType')?.value || 'non-vacation';
+    const medical = document.getElementById('calcMedical')?.value || 'no';
+
+    let result = { days: 0, maxAtOnce: 0, notes: '' };
+
+    switch(leaveType) {
+        case 'earned':
+            let rate = 4;
+            if (deptType === 'vacation-full') rate = 1;
+            else if (deptType === 'vacation-part') rate = 1.5;
+            else if (deptType === 'vacation-none') rate = 4;
+            result.days = Math.floor(totalMonths * rate);
+            result.maxAtOnce = medical === 'yes' ? 180 : 120;
+            result.notes = `Earned Leave accrues at ${rate} days/month. Total: ${result.days} days.`;
+            break;
+        case 'halfpay':
+            result.days = years * 20;
+            result.maxAtOnce = 120;
+            result.notes = `Half Pay Leave: ${result.days} days. 2:1 commutation ratio.`;
+            break;
+        case 'lpr':
+            result.days = Math.min(365, Math.floor(totalMonths * 4));
+            result.maxAtOnce = 365;
+            result.notes = `LPR: Up to 365 days encashment available.`;
+            break;
+        case 'maternity':
+            result.days = 90;
+            result.maxAtOnce = 90;
+            result.notes = `Maternity Leave: 90 days full pay. Female civil servants only.`;
+            break;
+        case 'special':
+            result.days = 180;
+            result.maxAtOnce = 180;
+            result.notes = `Special Leave: 180 days on husband's death. Female only.`;
+            break;
+        case 'disability':
+            result.days = 720;
+            result.maxAtOnce = 720;
+            result.notes = `Disability Leave: 720 days total (180 full + 540 half pay).`;
+            break;
+        case 'quarantine':
+            result.days = 'As per medical officer';
+            result.maxAtOnce = 'Variable';
+            result.notes = `Quarantine Leave: As per medical recommendation. Not debited.`;
+            break;
+        case 'extraordinary':
+            result.days = years >= 10 ? 1825 : 730;
+            result.maxAtOnce = years >= 10 ? 1825 : 730;
+            result.notes = `Extraordinary Leave: Without pay. ${years >= 10 ? 'Up to 5 years' : 'Up to 2 years'}.`;
+            break;
+        case 'notdue':
+            result.days = Math.min(365, Math.floor(totalMonths * 4));
+            result.maxAtOnce = years < 5 ? Math.min(90, result.days) : result.days;
+            result.notes = `Leave Not Due: Max 365 days service, 90 days in first 5 years.`;
+            break;
+        case 'recreation':
+            result.days = 15;
+            result.maxAtOnce = 15;
+            result.notes = `Recreation Leave: 15 days (only 10 days debited).`;
+            break;
+        case 'expakistan':
+            result.days = 120;
+            result.maxAtOnce = 120;
+            result.notes = `Leave Ex-Pakistan: Max 120 days at a time.`;
+            break;
+        case 'hospital':
+            result.days = 'As per medical certificate';
+            result.maxAtOnce = 'Variable';
+            result.notes = `Hospital Leave: As per medical recommendation. Cannot be refused.`;
+            break;
+        case 'departmental':
+            result.days = 'As per departmental rules';
+            result.maxAtOnce = 'Variable';
+            result.notes = `Departmental Leave: Special for Survey of Pakistan.`;
+            break;
+        case 'seaman':
+            result.days = 45;
+            result.maxAtOnce = 45;
+            result.notes = `Sick Leave: Max 45 days for government vessel employees.`;
+            break;
+        case 'medicalcert':
+            result.days = 'As per medical certificate';
+            result.maxAtOnce = 'Variable';
+            result.notes = `Leave on Medical Certificate: Cannot be refused.`;
+            break;
+        case 'abolition':
+            result.days = 'All due leave';
+            result.maxAtOnce = 'All accrued';
+            result.notes = `Leave on Abolition of Post: All due leave granted.`;
+            break;
+        case 'study':
+            result.days = 730;
+            result.maxAtOnce = 730;
+            result.notes = `Study Leave: Max 2 years. First year full pay, second half.`;
+            break;
+        case 'casual':
+            result.days = 10;
+            result.maxAtOnce = 10;
+            result.notes = `Casual Leave: 10 days/year. Not accumulative.`;
+            break;
+        default:
+            result.days = 0;
+            result.notes = 'Select a leave type to calculate';
+    }
+
+    const resultDiv = document.getElementById('universalResult');
+    if (resultDiv) {
+        resultDiv.innerHTML = `
+            <h3><i class="fas fa-chart-line"></i> Calculation Result</h3>
+            <p><strong>Leave Type:</strong> ${document.getElementById('calcLeaveType')?.options[document.getElementById('calcLeaveType')?.selectedIndex]?.text || 'N/A'}</p>
+            <p><strong>Service:</strong> ${years} years ${months} months (${totalMonths} months)</p>
+            <p><strong>Total Entitlement:</strong> ${result.days} ${typeof result.days === 'number' ? 'days' : ''}</p>
+            <p><strong>Maximum at Once:</strong> ${result.maxAtOnce} ${typeof result.maxAtOnce === 'number' ? 'days' : ''}</p>
+            <p><strong>Notes:</strong> ${result.notes}</p>
+            <hr><p><small>Based on Civil Servant Leave Rules 1986 (Govt. of Pakistan)</small></p>
+        `;
     }
 }
 
-// Show favorites
-function showFavorites() {
-    const modal = document.getElementById('favoritesModal');
-    const list = document.getElementById('favoritesList');
-    
-    if (favorites.length === 0) {
-        list.innerHTML = '<p>No favorites yet. Click the ★ icon on any rule card to add.</p>';
-    } else {
-        list.innerHTML = favorites.map(key => {
-            const rule = leaveRules[key];
-            return rule ? `
-                <div class="favorite-item">
-                    <i class="fas ${rule.icon}"></i>
-                    <strong>${rule.title}</strong>
-                    <button onclick="openModal('${key}'); document.getElementById('favoritesModal').style.display='none'">View</button>
-                    <button onclick="toggleFavorite('${key}'); showFavorites()">Remove</button>
-                </div>
-            ` : '';
-        }).join('');
-    }
-    modal.style.display = 'block';
-}
+// ========================================
+// TYPEWRITER ANIMATION
+// ========================================
 
-// Compare rules
-function showCompare() {
-    const modal = document.getElementById('compareModal');
-    const select1 = document.getElementById('compareRule1');
-    const select2 = document.getElementById('compareRule2');
+function initTypewriter() {
+    const element = document.getElementById('typewriterText');
+    if (!element) return;
     
-    select1.innerHTML = '<option value="">Select First Rule</option>';
-    select2.innerHTML = '<option value="">Select Second Rule</option>';
+    const words = [
+        '📋 18+ Leave Types',
+        '📊 Smart Calculator',
+        '📈 Live Dashboard',
+        '🎯 Complete Guide',
+        '🇵🇰 Govt. of Pakistan',
+        '📅 Est. 1986'
+    ];
     
-    Object.entries(leaveRules).forEach(([key, rule]) => {
-        select1.innerHTML += `<option value="${key}">${rule.title}</option>`;
-        select2.innerHTML += `<option value="${key}">${rule.title}</option>`;
-    });
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let isWaiting = false;
     
-    modal.style.display = 'block';
-}
-
-function updateCompare() {
-    const key1 = document.getElementById('compareRule1').value;
-    const key2 = document.getElementById('compareRule2').value;
-    const resultDiv = document.getElementById('compareResult');
-    
-    if (!key1 || !key2) {
-        resultDiv.innerHTML = '<p>Please select both rules to compare</p>';
-        return;
+    function type() {
+        if (isWaiting) return;
+        
+        const currentWord = words[wordIndex];
+        const currentText = currentWord.substring(0, charIndex);
+        element.textContent = currentText;
+        
+        if (!isDeleting && charIndex < currentWord.length) {
+            charIndex++;
+            setTimeout(type, 80 + Math.random() * 40);
+        } else if (isDeleting && charIndex > 0) {
+            charIndex--;
+            setTimeout(type, 40 + Math.random() * 30);
+        } else if (!isDeleting && charIndex === currentWord.length) {
+            isWaiting = true;
+            setTimeout(() => {
+                isWaiting = false;
+                isDeleting = true;
+                type();
+            }, 2000);
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            setTimeout(type, 500);
+        }
     }
     
-    const rule1 = leaveRules[key1];
-    const rule2 = leaveRules[key2];
-    
-    resultDiv.innerHTML = `
-        <div class="compare-item">
-            <h3><i class="fas ${rule1.icon}"></i> ${rule1.title}</h3>
-            <p><strong>Category:</strong> ${rule1.category}</p>
-            <p><strong>Badge:</strong> ${rule1.badge}</p>
-            <p><strong>Popularity:</strong> ${rule1.popularity}%</p>
-            <p>${rule1.shortDesc}</p>
-        </div>
-        <div class="compare-item">
-            <h3><i class="fas ${rule2.icon}"></i> ${rule2.title}</h3>
-            <p><strong>Category:</strong> ${rule2.category}</p>
-            <p><strong>Badge:</strong> ${rule2.badge}</p>
-            <p><strong>Popularity:</strong> ${rule2.popularity}%</p>
-            <p>${rule2.shortDesc}</p>
-        </div>
-    `;
+    type();
 }
 
 // ========================================
 // INITIALIZATION
 // ========================================
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load theme preference
+    // Load theme
     const savedTheme = localStorage.getItem('theme');
-    const savedHC = localStorage.getItem('highContrast');
-    if (savedHC === 'true') {
-        document.body.setAttribute('data-theme', 'high-contrast');
-    } else if (savedTheme) {
-        document.body.setAttribute('data-theme', savedTheme);
-    }
+    if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
     
-    // Load usage and stats
-    await getUsage();
-    await getGlobalStats();
+    // Load stats from API
+    await getToolStats();
     await getReactions();
     await incrementUsage();
-    await healthCheck();
     
-    // Check for reminders
-    checkReminders();
-    displayReminders();
-    
-    // Render grid
+    // Render rules
     renderRulesGrid();
     
-    // Setup event listeners
+    // Initialize typewriter animation
+    initTypewriter();
+    
+    // Set share count
+    const shares = localStorage.getItem(`${TOOL_SLUG}_shares`) || 0;
+    document.getElementById('shareCountDisplay').innerText = shares;
+    document.getElementById('totalSharesCount').innerText = shares;
+    
+    // ========================================
+    // EVENT LISTENERS
+    // ========================================
+    
+    // Search and filter
     document.getElementById('searchInput')?.addEventListener('input', renderRulesGrid);
     document.getElementById('filterBadge')?.addEventListener('change', renderRulesGrid);
     document.getElementById('sortRules')?.addEventListener('change', renderRulesGrid);
+    
+    // Theme buttons
     document.getElementById('darkModeToggle')?.addEventListener('click', toggleDarkMode);
     document.getElementById('highContrastToggle')?.addEventListener('click', toggleHighContrast);
     document.getElementById('fontSizeBtn')?.addEventListener('click', adjustFontSize);
-    document.getElementById('voiceSearchBtn')?.addEventListener('click', startVoiceSearch);
+    
+    // Scroll buttons
     document.getElementById('scrollUpBtn')?.addEventListener('click', scrollUp);
     document.getElementById('scrollDownBtn')?.addEventListener('click', scrollDown);
-    document.getElementById('calcLauncherBtn')?.addEventListener('click', () => {
-        document.getElementById('calculatorModal').style.display = 'block';
-    });
-    document.getElementById('reminderLauncherBtn')?.addEventListener('click', () => {
-        document.getElementById('reminderModal').style.display = 'block';
-    });
-    document.getElementById('premiumLauncherBtn')?.addEventListener('click', () => {
-        document.getElementById('premiumModal').classList.add('active');
-    });
-    document.getElementById('offlineSupportBtn')?.addEventListener('click', installApp);
-    document.getElementById('favoritesBtn')?.addEventListener('click', showFavorites);
-    document.getElementById('compareBtn')?.addEventListener('click', showCompare);
-    document.getElementById('calculateLeaveBtn')?.addEventListener('click', calculateLeave);
-    document.getElementById('setReminderBtn')?.addEventListener('click', setReminder);
     
-    // Share buttons
-    document.querySelector('.share-btn.facebook')?.addEventListener('click', shareOnFacebook);
-    document.querySelector('.share-btn.twitter')?.addEventListener('click', shareOnTwitter);
-    document.querySelector('.share-btn.whatsapp')?.addEventListener('click', shareOnWhatsApp);
-    document.querySelector('.share-btn.linkedin')?.addEventListener('click', shareOnLinkedIn);
-    document.querySelector('.share-btn.email')?.addEventListener('click', shareByEmail);
-    document.querySelector('.share-btn.copy-url')?.addEventListener('click', copyPageUrl);
+    // Calculator
+    document.getElementById('calculateUniversalBtn')?.addEventListener('click', calculateLeave);
     
-    // Reaction buttons
+    // Reactions
     document.querySelectorAll('.reaction-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const reaction = btn.dataset.reaction;
             const emojiMap = {
-                'like': '👍', 'love': '❤️', 'wow': '😮', 
-                'sad': '😢', 'angry': '😠', 'laugh': '😂', 'celebrate': '🎉'
+                like: '👍', love: '❤️', wow: '😮',
+                sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉'
             };
             addReaction(emojiMap[reaction], reaction);
         });
     });
     
-    // Quick links
-    document.querySelectorAll('.link-card[data-rule]').forEach(link => {
-        link.addEventListener('click', () => {
-            const ruleKey = link.dataset.rule;
-            if (ruleKey && leaveRules[ruleKey]) {
-                openModal(ruleKey);
-            }
-        });
+    // Share buttons
+    document.querySelector('.share-btn.facebook')?.addEventListener('click', shareFacebook);
+    document.querySelector('.share-btn.twitter')?.addEventListener('click', shareTwitter);
+    document.querySelector('.share-btn.whatsapp')?.addEventListener('click', shareWhatsApp);
+    document.querySelector('.share-btn.linkedin')?.addEventListener('click', shareLinkedIn);
+    document.querySelector('.share-btn.copy-url')?.addEventListener('click', copyPageUrl);
+    
+    // Modal close
+    document.querySelector('.close-btn')?.addEventListener('click', closeModal);
+    document.getElementById('ruleModal')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeModal();
     });
     
-    // Close modals
-    document.querySelectorAll('.close-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.style.display = 'none';
-            });
-            document.getElementById('premiumModal')?.classList.remove('active');
-        });
-    });
-    
-    window.onclick = (event) => {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-        if (event.target.classList.contains('premium-modal')) {
-            event.target.classList.remove('active');
-        }
-    };
-    
-    // Floating notification click
-    document.getElementById('floatingNotification')?.addEventListener('click', () => {
-        document.getElementById('reminderModal').style.display = 'block';
-        document.getElementById('floatingNotification').classList.remove('show');
-    });
-    
-    showToast('Dashboard loaded successfully! 🎉', 'success');
+    showToast('Civil Servant Leave Rules 1986 Dashboard Loaded! 🎉', 'success');
 });
 
-// Global exports for inline callbacks
+// Global exports
 window.openModal = openModal;
 window.closeModal = closeModal;
-window.toggleFavorite = toggleFavorite;
-window.deleteReminder = deleteReminder;
-window.showFavorites = showFavorites;
-window.updateCompare = updateCompare;
+window.calculateLeave = calculateLeave;
