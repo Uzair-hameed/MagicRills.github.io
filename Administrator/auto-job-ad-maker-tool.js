@@ -1,9 +1,8 @@
 // auto-job-ad-maker-tool.js
-
 // ============================================
-// API CONFIGURATION
+// CLOUDFLARE WORKERS API CONFIGURATION
 // ============================================
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'auto-job-ad-maker-tool';
 
 // User ID (generated once per session)
@@ -18,9 +17,9 @@ let selectedStickers = [];
 let selectedTheme = 'modern';
 
 // ============================================
-// DOM Elements
+// DOM ELEMENTS
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     initializeTool();
     loadGlobalStats();
     loadToolUsage();
@@ -29,50 +28,52 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTypewriter();
     setupParticles();
     setDefaultDeadline();
+    // Track usage on load
+    trackUsage();
 });
 
 function initializeTool() {
     // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    const savedTheme = localStorage.getItem('theme');
+    var themeToggle = document.getElementById('themeToggle');
+    var savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         themeToggle.checked = true;
     }
-    themeToggle.addEventListener('change', () => {
+    themeToggle.addEventListener('change', function() {
         document.body.classList.toggle('dark-mode');
         localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         showToast('Theme changed successfully!', 'success');
     });
     
     // Logo upload
-    const uploadArea = document.getElementById('uploadArea');
-    const logoInput = document.getElementById('logoInput');
-    uploadArea.addEventListener('click', () => logoInput.click());
-    uploadArea.addEventListener('dragover', (e) => {
+    var uploadArea = document.getElementById('uploadArea');
+    var logoInput = document.getElementById('logoInput');
+    uploadArea.addEventListener('click', function() { logoInput.click(); });
+    uploadArea.addEventListener('dragover', function(e) {
         e.preventDefault();
         uploadArea.style.borderColor = 'var(--success)';
     });
-    uploadArea.addEventListener('dragleave', () => {
+    uploadArea.addEventListener('dragleave', function() {
         uploadArea.style.borderColor = 'var(--primary)';
     });
-    uploadArea.addEventListener('drop', (e) => {
+    uploadArea.addEventListener('drop', function(e) {
         e.preventDefault();
-        const file = e.dataTransfer.files[0];
+        var file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
             handleLogoUpload(file);
         }
     });
-    logoInput.addEventListener('change', (e) => {
+    logoInput.addEventListener('change', function(e) {
         if (e.target.files[0]) handleLogoUpload(e.target.files[0]);
     });
     
     // Stickers selection
-    document.querySelectorAll('.sticker-item').forEach(sticker => {
-        sticker.addEventListener('click', () => {
-            const stickerValue = sticker.dataset.sticker;
+    document.querySelectorAll('.sticker-item').forEach(function(sticker) {
+        sticker.addEventListener('click', function() {
+            var stickerValue = sticker.dataset.sticker;
             if (selectedStickers.includes(stickerValue)) {
-                selectedStickers = selectedStickers.filter(s => s !== stickerValue);
+                selectedStickers = selectedStickers.filter(function(s) { return s !== stickerValue; });
                 sticker.classList.remove('active');
             } else {
                 selectedStickers.push(stickerValue);
@@ -84,12 +85,12 @@ function initializeTool() {
     });
     
     // Theme selection
-    document.querySelectorAll('.theme-item').forEach(theme => {
-        theme.addEventListener('click', () => {
-            document.querySelectorAll('.theme-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.theme-item').forEach(function(theme) {
+        theme.addEventListener('click', function() {
+            document.querySelectorAll('.theme-item').forEach(function(t) { t.classList.remove('active'); });
             theme.classList.add('active');
             selectedTheme = theme.dataset.theme;
-            const preview = document.getElementById('adPreview');
+            var preview = document.getElementById('adPreview');
             preview.setAttribute('data-theme', selectedTheme);
             generateAd();
         });
@@ -99,7 +100,7 @@ function initializeTool() {
     document.getElementById('aiGenerateBtn').addEventListener('click', aiGenerateDescription);
     
     // Auto-save draft
-    setInterval(() => {
+    setInterval(function() {
         saveDraft();
     }, 30000);
     
@@ -108,9 +109,9 @@ function initializeTool() {
 }
 
 function handleLogoUpload(file) {
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = function(e) {
-        const logoPreview = document.getElementById('logoPreview');
+        var logoPreview = document.getElementById('logoPreview');
         logoPreview.src = e.target.result;
         logoPreview.style.display = 'block';
         document.getElementById('uploadArea').style.display = 'none';
@@ -121,9 +122,9 @@ function handleLogoUpload(file) {
 }
 
 function updateStickersPreview() {
-    const container = document.getElementById('selectedStickers');
+    var container = document.getElementById('selectedStickers');
     container.innerHTML = '';
-    const stickerNames = {
+    var stickerNames = {
         urgent: '🚨 Urgent Hiring',
         walkin: '🚶 Walk-in Interview',
         immediate: '⚡ Immediate Joining',
@@ -135,8 +136,8 @@ function updateStickersPreview() {
         bonus: '💰 Performance Bonus',
         remote: '🏠 Remote Option'
     };
-    selectedStickers.forEach(sticker => {
-        const badge = document.createElement('div');
+    selectedStickers.forEach(function(sticker) {
+        var badge = document.createElement('div');
         badge.className = 'sticker-badge';
         badge.textContent = stickerNames[sticker] || sticker;
         container.appendChild(badge);
@@ -144,38 +145,38 @@ function updateStickersPreview() {
 }
 
 // ============================================
-// Rich Text Formatting
+// RICH TEXT FORMATTING
 // ============================================
 function formatText(command) {
     document.execCommand(command, false, null);
 }
 
 // ============================================
-// Generate Ad
+// GENERATE AD
 // ============================================
 function generateAd() {
-    const orgName = document.getElementById('orgName').value || 'School Name';
-    const post = document.getElementById('postSelect').value;
-    const qualification = document.getElementById('qualificationSelect').value;
-    const experience = document.getElementById('experienceSelect').value;
-    const salaryMin = document.getElementById('salaryMin').value;
-    const salaryMax = document.getElementById('salaryMax').value;
-    const salaryType = document.getElementById('salaryType').value;
-    const location = document.getElementById('location').value || 'Not specified';
-    const deadline = document.getElementById('deadline').value || 'Not specified';
-    const contactEmail = document.getElementById('contactEmail').value || 'Not specified';
-    const contactPhone = document.getElementById('contactPhone').value || 'Not specified';
-    const jobDesc = document.getElementById('jobDesc').innerHTML || 'No description provided';
-    const requirements = document.getElementById('requirements').innerHTML || 'No requirements listed';
-    const benefits = document.getElementById('benefits').innerHTML || 'No benefits listed';
+    var orgName = document.getElementById('orgName').value || 'School Name';
+    var post = document.getElementById('postSelect').value;
+    var qualification = document.getElementById('qualificationSelect').value;
+    var experience = document.getElementById('experienceSelect').value;
+    var salaryMin = document.getElementById('salaryMin').value;
+    var salaryMax = document.getElementById('salaryMax').value;
+    var salaryType = document.getElementById('salaryType').value;
+    var location = document.getElementById('location').value || 'Not specified';
+    var deadline = document.getElementById('deadline').value || 'Not specified';
+    var contactEmail = document.getElementById('contactEmail').value || 'Not specified';
+    var contactPhone = document.getElementById('contactPhone').value || 'Not specified';
+    var jobDesc = document.getElementById('jobDesc').innerHTML || 'No description provided';
+    var requirements = document.getElementById('requirements').innerHTML || 'No requirements listed';
+    var benefits = document.getElementById('benefits').innerHTML || 'No benefits listed';
     
-    const logoPreview = document.getElementById('logoPreview');
-    const logoHtml = logoPreview.src ? `<img src="${logoPreview.src}" style="max-width: 150px; margin-bottom: 15px;">` : '';
+    var logoPreview = document.getElementById('logoPreview');
+    var logoHtml = logoPreview.src ? '<img src="' + logoPreview.src + '" style="max-width: 150px; margin-bottom: 15px; border-radius: 8px;">' : '';
     
-    const today = new Date().toLocaleDateString();
-    const salaryText = salaryMin && salaryMax ? `${salaryMin} - ${salaryMax} ${salaryType}` : 'Negotiable';
+    var today = new Date().toLocaleDateString();
+    var salaryText = salaryMin && salaryMax ? salaryMin + ' - ' + salaryMax + ' ' + salaryType : 'Negotiable';
     
-    const adHtml = `
+    var adHtml = `
         ${logoHtml}
         <h2 style="margin: 0 0 5px;">${orgName}</h2>
         <h3 style="margin: 0 0 15px; color: var(--primary);">📢 We Are Hiring: ${post}</h3>
@@ -218,29 +219,40 @@ function generateAd() {
     document.getElementById('imageArea').innerHTML = '';
     
     // Update live preview in hero section
-    document.getElementById('livePreviewText').innerHTML = `${post} at ${orgName}`;
+    document.getElementById('livePreviewText').innerHTML = post + ' at ' + orgName;
     
     showToast('Ad preview generated!', 'success');
 }
 
 // ============================================
-// AI Generate Description
+// AI GENERATE DESCRIPTION
 // ============================================
 async function aiGenerateDescription() {
     showLoading(true);
-    const post = document.getElementById('postSelect').value;
-    const orgName = document.getElementById('orgName').value || 'School';
+    var post = document.getElementById('postSelect').value;
+    var orgName = document.getElementById('orgName').value || 'School';
     
     // Simulate AI generation (falls back to local if API not available)
-    const descriptions = {
-        Principal: `As the Principal of ${orgName}, you will lead academic excellence, manage faculty, develop curriculum, and ensure school growth. Key responsibilities include strategic planning, parent-teacher coordination, and maintaining educational standards.`,
-        Teacher: `We are looking for a passionate ${post} to join ${orgName}. Responsibilities include lesson planning, student assessment, classroom management, and parent communication.`,
-        'IT Specialist': `Manage ${orgName}'s IT infrastructure, maintain computer labs, troubleshoot technical issues, and support digital learning initiatives.`,
-        Librarian: `Organize and manage the school library, assist students and staff with research, maintain book records, and promote reading culture.`,
-        default: `Join our team at ${orgName} as a ${post}. Contribute to our mission of providing quality education and fostering student development.`
+    var descriptions = {
+        Principal: 'As the Principal of ' + orgName + ', you will lead academic excellence, manage faculty, develop curriculum, and ensure school growth. Key responsibilities include strategic planning, parent-teacher coordination, and maintaining educational standards.',
+        'Head Teacher': 'We are seeking an experienced Head Teacher for ' + orgName + '. You will oversee academic programs, mentor teachers, coordinate with parents, and ensure student success.',
+        Teacher: 'We are looking for a passionate ' + post + ' to join ' + orgName + '. Responsibilities include lesson planning, student assessment, classroom management, and parent communication.',
+        Coordinator: 'Coordinate academic activities at ' + orgName + '. Manage curriculum implementation, teacher training, and student performance tracking.',
+        'Admin': 'Manage administrative operations at ' + orgName + '. Handle admissions, staff records, facility management, and parent inquiries.',
+        'Assistant Teacher': 'Support lead teachers at ' + orgName + ' in classroom activities, student supervision, and lesson preparation.',
+        'IT Specialist': 'Manage ' + orgName + '\'s IT infrastructure, maintain computer labs, troubleshoot technical issues, and support digital learning initiatives.',
+        Librarian: 'Organize and manage the school library, assist students and staff with research, maintain book records, and promote reading culture.',
+        'HR Manager': 'Lead HR operations at ' + orgName + '. Manage recruitment, staff development, performance reviews, and employee relations.',
+        Receptionist: 'Be the first point of contact at ' + orgName + '. Manage calls, visitors, inquiries, and administrative support.',
+        Accountant: 'Manage financial operations at ' + orgName + '. Handle budgeting, payroll, fees collection, and financial reporting.',
+        'Lab Assistant': 'Support science laboratories at ' + orgName + '. Prepare materials, maintain equipment, and assist teachers during practical sessions.',
+        'Sports Coach': 'Lead sports programs at ' + orgName + '. Train students, organize competitions, and promote physical education.',
+        Driver: 'Safely transport students and staff for ' + orgName + '. Maintain vehicle, follow routes, and ensure passenger safety.',
+        'Security Guard': 'Ensure safety and security at ' + orgName + '. Monitor premises, control access, and respond to emergencies.',
+        default: 'Join our team at ' + orgName + ' as a ' + post + '. Contribute to our mission of providing quality education and fostering student development.'
     };
     
-    const description = descriptions[post] || descriptions.default;
+    var description = descriptions[post] || descriptions.default;
     document.getElementById('jobDesc').innerHTML = description;
     generateAd();
     showLoading(false);
@@ -248,19 +260,19 @@ async function aiGenerateDescription() {
 }
 
 // ============================================
-// Export Functions
+// EXPORT FUNCTIONS
 // ============================================
 async function downloadAsPNG() {
     showLoading(true);
-    const element = document.getElementById('adPreview');
+    var element = document.getElementById('adPreview');
     try {
-        const canvas = await html2canvas(element, {
+        var canvas = await html2canvas(element, {
             scale: 2,
             backgroundColor: '#ffffff',
             logging: false
         });
-        const link = document.createElement('a');
-        link.download = `job_ad_${Date.now()}.png`;
+        var link = document.createElement('a');
+        link.download = 'job_ad_' + Date.now() + '.png';
         link.href = canvas.toDataURL();
         link.click();
         showToast('PNG downloaded successfully!', 'success');
@@ -272,19 +284,19 @@ async function downloadAsPNG() {
 
 async function downloadAsPDF() {
     showLoading(true);
-    const element = document.getElementById('adPreview');
+    var element = document.getElementById('adPreview');
     try {
-        const canvas = await html2canvas(element, {
+        var canvas = await html2canvas(element, {
             scale: 2,
             backgroundColor: '#ffffff'
         });
-        const imgData = canvas.toDataURL('image/png');
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        var imgData = canvas.toDataURL('image/png');
+        var { jsPDF } = window.jspdf;
+        var pdf = new jsPDF('p', 'mm', 'a4');
+        var imgWidth = 210;
+        var imgHeight = (canvas.height * imgWidth) / canvas.width;
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`job_ad_${Date.now()}.pdf`);
+        pdf.save('job_ad_' + Date.now() + '.pdf');
         showToast('PDF downloaded successfully!', 'success');
         // Track share
         trackShare('pdf_download');
@@ -295,10 +307,10 @@ async function downloadAsPDF() {
 }
 
 function downloadAsDOC() {
-    const adContent = document.getElementById('adPreview').cloneNode(true);
+    var adContent = document.getElementById('adPreview').cloneNode(true);
     adContent.style.width = '800px';
     adContent.style.padding = '40px';
-    const htmlContent = `
+    var htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -313,10 +325,10 @@ function downloadAsDOC() {
         <body>${adContent.outerHTML}</body>
         </html>
     `;
-    const blob = new Blob([htmlContent], { type: 'application/msword' });
-    const link = document.createElement('a');
+    var blob = new Blob([htmlContent], { type: 'application/msword' });
+    var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `job_ad_${Date.now()}.doc`;
+    link.download = 'job_ad_' + Date.now() + '.doc';
     link.click();
     URL.revokeObjectURL(link.href);
     showToast('DOC downloaded successfully!', 'success');
@@ -324,7 +336,7 @@ function downloadAsDOC() {
 }
 
 function copyToClipboard() {
-    const adText = document.getElementById('generatedAd').innerText;
+    var adText = document.getElementById('generatedAd').innerText;
     navigator.clipboard.writeText(adText);
     showToast('Copied to clipboard!', 'success');
 }
@@ -346,17 +358,17 @@ function resetForm() {
     document.getElementById('logoPreview').style.display = 'none';
     document.getElementById('uploadArea').style.display = 'block';
     selectedStickers = [];
-    document.querySelectorAll('.sticker-item').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.sticker-item').forEach(function(s) { s.classList.remove('active'); });
     updateStickersPreview();
     generateAd();
     showToast('Form reset successfully!', 'success');
 }
 
 // ============================================
-// Draft Save/Load
+// DRAFT SAVE/LOAD
 // ============================================
 function saveDraft() {
-    const formData = {
+    var formData = {
         orgName: document.getElementById('orgName').value,
         postSelect: document.getElementById('postSelect').value,
         qualificationSelect: document.getElementById('qualificationSelect').value,
@@ -377,9 +389,9 @@ function saveDraft() {
 }
 
 function loadDraft() {
-    const draft = localStorage.getItem('job_ad_draft');
+    var draft = localStorage.getItem('job_ad_draft');
     if (draft) {
-        const data = JSON.parse(draft);
+        var data = JSON.parse(draft);
         document.getElementById('orgName').value = data.orgName || '';
         document.getElementById('postSelect').value = data.postSelect || 'Teacher';
         document.getElementById('qualificationSelect').value = data.qualificationSelect || 'Bachelor';
@@ -396,7 +408,7 @@ function loadDraft() {
         if (data.selectedStickers) {
             selectedStickers = data.selectedStickers;
             updateStickersPreview();
-            document.querySelectorAll('.sticker-item').forEach(s => {
+            document.querySelectorAll('.sticker-item').forEach(function(s) {
                 if (selectedStickers.includes(s.dataset.sticker)) s.classList.add('active');
             });
         }
@@ -410,168 +422,332 @@ function loadDraft() {
 }
 
 // ============================================
-// API Functions (TiDB Integration)
+// CLOUDFLARE WORKERS API FUNCTIONS
 // ============================================
+
+// 1. POST /api/usage - Usage Counter Increment
 async function trackUsage() {
     try {
-        const response = await fetch(`${API_BASE}/increment-usage`, {
+        var response = await fetch(API_BASE + '/api/usage', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: userId })
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                user_id: userId 
+            })
         });
-        const data = await response.json();
-        if (data.total_usage) {
+        
+        if (!response.ok) throw new Error('API response not OK');
+        
+        var data = await response.json();
+        if (data.total_usage !== undefined) {
             document.getElementById('toolUsageCount').innerText = data.total_usage;
+            // Update global stats too
+            updateGlobalStats(data);
         }
+        console.log('✅ Usage tracked successfully');
     } catch (error) {
-        console.log('Usage tracking offline');
-        let localCount = localStorage.getItem('tool_usage_count') || 0;
-        localCount = parseInt(localCount) + 1;
+        console.warn('⚠️ Usage tracking failed, using LocalStorage fallback:', error.message);
+        // LocalStorage fallback
+        var localCount = parseInt(localStorage.getItem('tool_usage_count') || '0');
+        localCount += 1;
         localStorage.setItem('tool_usage_count', localCount);
         document.getElementById('toolUsageCount').innerText = localCount;
+        // Also update global from localStorage
+        updateGlobalStatsFromLocal();
     }
 }
 
+// 2. GET /api/stats?tool_slug=:slug - Get Tool Stats
 async function loadToolUsage() {
     try {
-        const response = await fetch(`${API_BASE}/usage?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.count) {
-            document.getElementById('toolUsageCount').innerText = data.count;
+        var response = await fetch(API_BASE + '/api/stats?tool_slug=' + TOOL_SLUG);
+        
+        if (!response.ok) throw new Error('API response not OK');
+        
+        var data = await response.json();
+        if (data.usage !== undefined) {
+            document.getElementById('toolUsageCount').innerText = data.usage || 0;
         }
+        if (data.views !== undefined) {
+            document.getElementById('globalUsageCount').innerText = data.views || 0;
+        }
+        if (data.shares !== undefined) {
+            document.getElementById('globalSharesCount').innerText = data.shares || 0;
+        }
+        if (data.reactions !== undefined) {
+            document.getElementById('globalReactionsCount').innerText = data.reactions || 0;
+        }
+        console.log('✅ Stats loaded successfully');
     } catch (error) {
-        const localCount = localStorage.getItem('tool_usage_count') || 0;
-        document.getElementById('toolUsageCount').innerText = localCount;
+        console.warn('⚠️ Stats loading failed, using LocalStorage fallback:', error.message);
+        loadLocalStats();
     }
 }
 
-async function loadGlobalStats() {
-    try {
-        const response = await fetch(`${API_BASE}/global-stats`);
-        const data = await response.json();
-        if (data.totalUsage) {
-            document.getElementById('globalUsageCount').innerText = data.totalUsage;
-        }
-        if (data.totalShares) {
-            document.getElementById('globalSharesCount').innerText = data.totalShares;
-        }
-    } catch (error) {
-        document.getElementById('globalUsageCount').innerText = '12,345';
-        document.getElementById('globalSharesCount').innerText = '1,234';
-    }
-}
-
+// 3. POST /api/reactions - Add/Get Reactions
 async function addReaction(reaction) {
     try {
-        const response = await fetch(`${API_BASE}/add-reaction`, {
+        var response = await fetch(API_BASE + '/api/reactions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: reaction, user_id: userId })
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                emoji: reaction, 
+                user_id: userId 
+            })
         });
-        const data = await response.json();
+        
+        if (!response.ok) throw new Error('API response not OK');
+        
+        var data = await response.json();
         if (data.counts) {
             updateReactionCounts(data.counts);
+            // Update global reactions count
+            var total = Object.values(data.counts).reduce(function(a, b) { return a + b; }, 0);
+            document.getElementById('globalReactionsCount').innerText = total;
         }
         if (!data.already_reacted) {
-            showToast(`Thanks for your ${reaction} reaction!`, 'success');
+            showToast('Thanks for your ' + reaction + ' reaction! ❤️', 'success');
         } else {
-            showToast(`You already reacted with ${reaction}`, 'info');
+            showToast('You already reacted with ' + reaction, 'info');
         }
+        console.log('✅ Reaction added successfully');
     } catch (error) {
-        showToast('Reaction saved locally!', 'success');
+        console.warn('⚠️ Reaction failed, using LocalStorage fallback:', error.message);
         updateLocalReaction(reaction);
+        showToast('Reaction saved locally!', 'success');
     }
 }
 
 async function loadReactions() {
     try {
-        const response = await fetch(`${API_BASE}/reactions?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
+        var response = await fetch(API_BASE + '/api/reactions', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG,
+                get: true 
+            })
+        });
+        
+        if (!response.ok) throw new Error('API response not OK');
+        
+        var data = await response.json();
         if (data.reactions) {
             updateReactionCounts(data.reactions);
+            var total = Object.values(data.reactions).reduce(function(a, b) { return a + b; }, 0);
+            document.getElementById('globalReactionsCount').innerText = total;
         }
+        console.log('✅ Reactions loaded successfully');
     } catch (error) {
+        console.warn('⚠️ Reactions load failed, using LocalStorage fallback:', error.message);
         loadLocalReactions();
     }
 }
 
-function updateReactionCounts(counts) {
-    document.getElementById('likeCount').innerText = counts.like || 0;
-    document.getElementById('loveCount').innerText = counts.love || 0;
-    document.getElementById('wowCount').innerText = counts.wow || 0;
-    document.getElementById('sadCount').innerText = counts.sad || 0;
-    document.getElementById('angryCount').innerText = counts.angry || 0;
-    document.getElementById('laughCount').innerText = counts.laugh || 0;
-    document.getElementById('celebrateCount').innerText = counts.celebrate || 0;
-}
-
-function updateLocalReaction(reaction) {
-    let localReactions = JSON.parse(localStorage.getItem('tool_reactions') || '{}');
-    localReactions[reaction] = (localReactions[reaction] || 0) + 1;
-    localStorage.setItem('tool_reactions', JSON.stringify(localReactions));
-    loadLocalReactions();
-}
-
-function loadLocalReactions() {
-    const localReactions = JSON.parse(localStorage.getItem('tool_reactions') || '{}');
-    document.getElementById('likeCount').innerText = localReactions.like || 0;
-    document.getElementById('loveCount').innerText = localReactions.love || 0;
-    document.getElementById('wowCount').innerText = localReactions.wow || 0;
-    document.getElementById('sadCount').innerText = localReactions.sad || 0;
-    document.getElementById('angryCount').innerText = localReactions.angry || 0;
-    document.getElementById('laughCount').innerText = localReactions.laugh || 0;
-    document.getElementById('celebrateCount').innerText = localReactions.celebrate || 0;
-}
-
+// 4. POST /api/shares - Record Shares
 async function trackShare(platform) {
     try {
-        await fetch(`${API_BASE}/add-share`, {
+        var response = await fetch(API_BASE + '/api/shares', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: userId })
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                platform: platform, 
+                user_id: userId 
+            })
         });
-        loadGlobalStats();
+        
+        if (!response.ok) throw new Error('API response not OK');
+        
+        var data = await response.json();
+        if (data.total_shares !== undefined) {
+            document.getElementById('globalSharesCount').innerText = data.total_shares;
+        }
+        console.log('✅ Share tracked successfully');
     } catch (error) {
-        console.log('Share tracking offline');
+        console.warn('⚠️ Share tracking failed:', error.message);
+        // LocalStorage fallback for shares
+        var localShares = parseInt(localStorage.getItem('tool_shares_count') || '0');
+        localShares += 1;
+        localStorage.setItem('tool_shares_count', localShares);
+        document.getElementById('globalSharesCount').innerText = localShares;
+    }
+}
+
+// 5. GET /api/stats - Get Global Stats (NO FAKE DATA)
+async function loadGlobalStats() {
+    try {
+        var response = await fetch(API_BASE + '/api/stats?tool_slug=' + TOOL_SLUG);
+        
+        if (!response.ok) throw new Error('API response not OK');
+        
+        var data = await response.json();
+        
+        // Only update if real data exists - show 0 if no data
+        if (data.views !== undefined && data.views !== null) {
+            document.getElementById('globalUsageCount').innerText = data.views;
+            localStorage.setItem('global_usage_count', data.views);
+        } else {
+            document.getElementById('globalUsageCount').innerText = '0';
+        }
+        
+        if (data.shares !== undefined && data.shares !== null) {
+            document.getElementById('globalSharesCount').innerText = data.shares;
+            localStorage.setItem('global_shares_count', data.shares);
+        } else {
+            document.getElementById('globalSharesCount').innerText = '0';
+        }
+        
+        if (data.reactions !== undefined && data.reactions !== null) {
+            document.getElementById('globalReactionsCount').innerText = data.reactions;
+            localStorage.setItem('global_reactions_count', data.reactions);
+        } else {
+            document.getElementById('globalReactionsCount').innerText = '0';
+        }
+        
+        console.log('✅ Global stats loaded successfully from Cloudflare API');
+    } catch (error) {
+        console.warn('⚠️ Global stats API failed - showing 0 until data loads:', error.message);
+        // Show 0 instead of fake data
+        document.getElementById('globalUsageCount').innerText = '0';
+        document.getElementById('globalSharesCount').innerText = '0';
+        document.getElementById('globalReactionsCount').innerText = '0';
     }
 }
 
 // ============================================
-// Share Functions
+// LOCAL STORAGE FALLBACK FUNCTIONS
+// ============================================
+
+function updateGlobalStats(data) {
+    if (data.total_usage !== undefined) {
+        document.getElementById('globalUsageCount').innerText = data.total_usage;
+        localStorage.setItem('global_usage_count', data.total_usage);
+    }
+    if (data.total_shares !== undefined) {
+        document.getElementById('globalSharesCount').innerText = data.total_shares;
+        localStorage.setItem('global_shares_count', data.total_shares);
+    }
+}
+
+function updateGlobalStatsFromLocal() {
+    var usage = localStorage.getItem('global_usage_count') || '0';
+    var shares = localStorage.getItem('global_shares_count') || '0';
+    var reactions = localStorage.getItem('global_reactions_count') || '0';
+    document.getElementById('globalUsageCount').innerText = usage;
+    document.getElementById('globalSharesCount').innerText = shares;
+    document.getElementById('globalReactionsCount').innerText = reactions;
+}
+
+function loadLocalStats() {
+    var usage = localStorage.getItem('tool_usage_count') || '0';
+    document.getElementById('toolUsageCount').innerText = usage;
+    updateGlobalStatsFromLocal();
+}
+
+function updateReactionCounts(counts) {
+    var mapping = {
+        'like': 'likeCount',
+        'love': 'loveCount',
+        'wow': 'wowCount',
+        'sad': 'sadCount',
+        'laugh': 'laughCount',
+        'celebrate': 'celebrateCount'
+    };
+    
+    Object.keys(mapping).forEach(function(key) {
+        var element = document.getElementById(mapping[key]);
+        if (element) {
+            element.innerText = counts[key] || 0;
+        }
+    });
+    
+    // Save to localStorage
+    localStorage.setItem('tool_reactions', JSON.stringify(counts));
+}
+
+function updateLocalReaction(reaction) {
+    var localReactions = JSON.parse(localStorage.getItem('tool_reactions') || '{}');
+    localReactions[reaction] = (localReactions[reaction] || 0) + 1;
+    localStorage.setItem('tool_reactions', JSON.stringify(localReactions));
+    
+    // Update global reactions count
+    var total = Object.values(localReactions).reduce(function(a, b) { return a + b; }, 0);
+    localStorage.setItem('global_reactions_count', total);
+    document.getElementById('globalReactionsCount').innerText = total;
+    
+    loadLocalReactions();
+}
+
+function loadLocalReactions() {
+    var localReactions = JSON.parse(localStorage.getItem('tool_reactions') || '{}');
+    var mapping = {
+        'like': 'likeCount',
+        'love': 'loveCount',
+        'wow': 'wowCount',
+        'sad': 'sadCount',
+        'laugh': 'laughCount',
+        'celebrate': 'celebrateCount'
+    };
+    
+    Object.keys(mapping).forEach(function(key) {
+        var element = document.getElementById(mapping[key]);
+        if (element) {
+            element.innerText = localReactions[key] || 0;
+        }
+    });
+    
+    // Update global reactions
+    var total = Object.values(localReactions).reduce(function(a, b) { return a + b; }, 0);
+    document.getElementById('globalReactionsCount').innerText = total || '0';
+}
+
+// ============================================
+// SHARE FUNCTIONS
 // ============================================
 function shareOnFacebook() {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    var url = encodeURIComponent(window.location.href);
+    window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank', 'width=600,height=400');
     trackShare('facebook');
     showToast('Shared on Facebook!', 'success');
 }
 
 function shareOnTwitter() {
-    const text = encodeURIComponent('Check out this job opportunity!');
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
+    var text = encodeURIComponent('Check out this job opportunity! 🏫');
+    var url = encodeURIComponent(window.location.href);
+    window.open('https://twitter.com/intent/tweet?text=' + text + '&url=' + url, '_blank', 'width=600,height=400');
     trackShare('twitter');
     showToast('Shared on Twitter!', 'success');
 }
 
 function shareOnWhatsApp() {
-    const text = encodeURIComponent(`Job Opportunity! Check this out: ${window.location.href}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    var text = encodeURIComponent('Job Opportunity! Check this out: ' + window.location.href);
+    window.open('https://wa.me/?text=' + text, '_blank');
     trackShare('whatsapp');
     showToast('Shared on WhatsApp!', 'success');
 }
 
 function shareOnLinkedIn() {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+    var url = encodeURIComponent(window.location.href);
+    window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + url, '_blank', 'width=600,height=400');
     trackShare('linkedin');
     showToast('Shared on LinkedIn!', 'success');
 }
 
 function shareByEmail() {
-    const subject = encodeURIComponent('Job Opportunity');
-    const body = encodeURIComponent(`Check out this job opportunity: ${window.location.href}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    var subject = encodeURIComponent('Job Opportunity at School');
+    var body = encodeURIComponent('Check out this job opportunity: ' + window.location.href);
+    window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
     trackShare('email');
     showToast('Email client opened!', 'success');
 }
@@ -583,20 +759,31 @@ function copyPageURL() {
 }
 
 // ============================================
-// UI Helpers
+// UI HELPERS
 // ============================================
-function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
+function showToast(message, type) {
+    if (type === undefined) type = 'info';
+    var toast = document.getElementById('toast');
     toast.textContent = message;
-    toast.style.background = type === 'success' ? '#06d6a0' : type === 'error' ? '#ef476f' : '#4361ee';
+    if (type === 'success') {
+        toast.style.background = '#06d6a0';
+    } else if (type === 'error') {
+        toast.style.background = '#ef476f';
+    } else if (type === 'info') {
+        toast.style.background = '#4361ee';
+    } else {
+        toast.style.background = '#4361ee';
+    }
+    toast.style.color = 'white';
     toast.classList.add('show');
-    setTimeout(() => {
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(function() {
         toast.classList.remove('show');
     }, 3000);
 }
 
 function showLoading(show) {
-    const spinner = document.getElementById('loadingSpinner');
+    var spinner = document.getElementById('loadingSpinner');
     spinner.style.display = show ? 'flex' : 'none';
 }
 
@@ -613,28 +800,28 @@ function scrollToTool() {
 }
 
 function setDefaultDeadline() {
-    const today = new Date();
-    const defaultDeadline = new Date(today.setMonth(today.getMonth() + 1));
+    var today = new Date();
+    var defaultDeadline = new Date(today.setMonth(today.getMonth() + 1));
     document.getElementById('deadline').value = defaultDeadline.toISOString().split('T')[0];
 }
 
 // ============================================
-// Typewriter Effect
+// TYPEWRITER EFFECT
 // ============================================
 function setupTypewriter() {
-    const texts = [
+    var texts = [
         'Create Professional Job Ads',
         'AI-Powered Descriptions',
         'Attract Best Teachers',
         'Hire in Minutes'
     ];
-    let index = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-    const element = document.getElementById('typewriterText');
+    var index = 0;
+    var charIndex = 0;
+    var isDeleting = false;
+    var element = document.getElementById('typewriterText');
     
     function type() {
-        const currentText = texts[index];
+        var currentText = texts[index];
         if (isDeleting) {
             element.textContent = currentText.substring(0, charIndex - 1);
             charIndex--;
@@ -658,26 +845,26 @@ function setupTypewriter() {
 }
 
 // ============================================
-// Particles Effect
+// PARTICLES EFFECT
 // ============================================
 function setupParticles() {
-    const container = document.getElementById('heroParticles');
-    for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
+    var container = document.getElementById('heroParticles');
+    for (var i = 0; i < 50; i++) {
+        var particle = document.createElement('div');
         particle.style.position = 'absolute';
         particle.style.width = Math.random() * 5 + 2 + 'px';
         particle.style.height = particle.style.width;
-        particle.style.backgroundColor = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+        particle.style.backgroundColor = 'rgba(255, 255, 255, ' + Math.random() * 0.5 + ')';
         particle.style.borderRadius = '50%';
         particle.style.top = Math.random() * 100 + '%';
         particle.style.left = Math.random() * 100 + '%';
-        particle.style.animation = `float ${Math.random() * 10 + 5}s linear infinite`;
+        particle.style.animation = 'float ' + (Math.random() * 10 + 5) + 's linear infinite';
         container.appendChild(particle);
     }
 }
 
 // Add CSS animation for particles
-const style = document.createElement('style');
+var style = document.createElement('style');
 style.textContent = `
     @keyframes float {
         0% { transform: translateY(0) translateX(0); opacity: 0; }
@@ -688,39 +875,44 @@ style.textContent = `
 document.head.appendChild(style);
 
 // ============================================
-// Event Listeners for Reactions
+// EVENT LISTENERS FOR REACTIONS
 // ============================================
 function setupEventListeners() {
-    document.querySelectorAll('.reaction').forEach(reaction => {
-        reaction.addEventListener('click', () => {
-            const reactionType = reaction.dataset.reaction;
+    document.querySelectorAll('.reaction').forEach(function(reaction) {
+        reaction.addEventListener('click', function() {
+            var reactionType = reaction.dataset.reaction;
             addReaction(reactionType);
         });
     });
     
-    // Track initial usage
-    trackUsage();
-    
     // Scroll buttons
-    document.getElementById('scrollUpBtn').addEventListener('click', () => {
+    document.getElementById('scrollUpBtn').addEventListener('click', function() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    document.getElementById('scrollDownBtn').addEventListener('click', () => {
+    document.getElementById('scrollDownBtn').addEventListener('click', function() {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     });
     
     // Auto-generate on input change
-    const inputs = ['orgName', 'postSelect', 'qualificationSelect', 'experienceSelect', 'salaryMin', 'salaryMax', 'location', 'deadline', 'contactEmail', 'contactPhone'];
-    inputs.forEach(id => {
-        document.getElementById(id).addEventListener('input', () => generateAd());
+    var inputs = ['orgName', 'postSelect', 'qualificationSelect', 'experienceSelect', 'salaryMin', 'salaryMax', 'location', 'deadline', 'contactEmail', 'contactPhone'];
+    inputs.forEach(function(id) {
+        var element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', function() { generateAd(); });
+            element.addEventListener('change', function() { generateAd(); });
+        }
     });
     
-    document.getElementById('jobDesc').addEventListener('input', () => generateAd());
-    document.getElementById('requirements').addEventListener('input', () => generateAd());
-    document.getElementById('benefits').addEventListener('input', () => generateAd());
+    var richEditors = ['jobDesc', 'requirements', 'benefits'];
+    richEditors.forEach(function(id) {
+        var element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', function() { generateAd(); });
+        }
+    });
 }
 
 // Initial generate
-setTimeout(() => {
+setTimeout(function() {
     generateAd();
 }, 500);
