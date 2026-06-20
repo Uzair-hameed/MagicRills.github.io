@@ -2,6 +2,8 @@
 // GLOBAL VARIABLES & CONFIGURATION
 // ============================================
 const TOOL_SLUG = 'auto-head-teacher-planner';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev/api';
+let currentUsage = 0;
 let currentReactions = {
     like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0
 };
@@ -18,22 +20,24 @@ const activities = [
 ];
 
 // ============================================
-// API ENDPOINTS (TiDB Integration)
+// API ENDPOINTS (Cloudflare Workers)
 // ============================================
-const API_BASE = 'https://your-api.vercel.app/api'; // Replace with actual API URL
-
 async function apiCall(endpoint, method = 'GET', data = null) {
     try {
         const options = {
             method,
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            credentials: 'include'
         };
         if (data) {
             options.body = JSON.stringify(data);
         }
-        const response = await fetch(`${API_BASE}/${endpoint}`, options);
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
         return await response.json();
     } catch (error) {
         console.error('API Error:', error);
@@ -42,44 +46,69 @@ async function apiCall(endpoint, method = 'GET', data = null) {
 }
 
 // ============================================
-// USAGE COUNTER FUNCTIONS
+// USAGE COUNTER FUNCTIONS (Cloudflare API)
 // ============================================
 async function incrementUsage() {
     try {
-        const result = await apiCall('increment-usage', 'POST', {
-            tool_slug: TOOL_SLUG,
-            user_id: sessionId
+        const result = await apiCall('/usage', 'POST', { 
+            tool_slug: TOOL_SLUG 
         });
-        if (result.success) {
-            updateUsageDisplay(result.total_usage);
+        if (result && result.success) {
+            currentUsage = result.count || 0;
+            updateUsageDisplay(currentUsage);
+            await loadGlobalStats();
+        } else {
+            // Fallback to local
+            let local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+            local++;
+            localStorage.setItem(`${TOOL_SLUG}_usage`, local);
+            currentUsage = local;
+            updateUsageDisplay(currentUsage);
         }
         return result;
     } catch (error) {
         console.error('Usage increment error:', error);
+        let local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        local++;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, local);
+        currentUsage = local;
+        updateUsageDisplay(currentUsage);
     }
 }
 
 async function getUsage() {
     try {
-        const result = await apiCall(`usage?tool_slug=${TOOL_SLUG}`, 'GET');
-        if (result.success) {
-            updateUsageDisplay(result.count);
+        const result = await apiCall(`/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            currentUsage = result.usage || 0;
+            updateUsageDisplay(currentUsage);
+        } else {
+            const local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+            currentUsage = local;
+            updateUsageDisplay(currentUsage);
         }
     } catch (error) {
         console.error('Get usage error:', error);
+        const local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        currentUsage = local;
+        updateUsageDisplay(currentUsage);
     }
 }
 
-async function getGlobalStats() {
+async function loadGlobalStats() {
     try {
-        const result = await apiCall('global-stats', 'GET');
-        if (result.success) {
-            document.getElementById('globalUsageCount').innerText = result.totalUsage || 0;
-            document.getElementById('globalShareCount').innerText = result.totalShares || 0;
+        const result = await apiCall(`/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            document.getElementById('globalUsageCount').innerText = result.usage || 0;
+            // Share count alag se lena hoga
+            const shareResult = await apiCall(`/shares?tool_slug=${TOOL_SLUG}`, 'GET');
+            if (shareResult && shareResult.success) {
+                document.getElementById('globalShareCount').innerText = shareResult.shares || 0;
+            }
         }
     } catch (error) {
         console.error('Global stats error:', error);
-        document.getElementById('globalUsageCount').innerText = '124';
+        document.getElementById('globalUsageCount').innerText = 'N/A';
     }
 }
 
@@ -89,13 +118,17 @@ function updateUsageDisplay(count) {
 }
 
 // ============================================
-// REACTIONS FUNCTIONS
+// REACTIONS FUNCTIONS (Cloudflare API)
 // ============================================
 async function loadReactions() {
     try {
-        const result = await apiCall(`reactions?tool_slug=${TOOL_SLUG}`, 'GET');
-        if (result.success && result.reactions) {
+        const result = await apiCall(`/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success && result.reactions) {
             currentReactions = result.reactions;
+            updateReactionDisplays();
+        } else {
+            const local = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{"like":0,"love":0,"wow":0,"sad":0,"angry":0,"laugh":0,"celebrate":0}');
+            currentReactions = local;
             updateReactionDisplays();
         }
     } catch (error) {
@@ -110,24 +143,31 @@ async function addReaction(emoji, reactionType) {
     }
     
     try {
-        const result = await apiCall('add-reaction', 'POST', {
+        const result = await apiCall('/reactions', 'POST', {
             tool_slug: TOOL_SLUG,
             emoji: emoji,
-            reaction_type: reactionType,
-            user_id: sessionId
+            reaction_type: reactionType
         });
         
-        if (result.success) {
+        if (result && result.success) {
             userReacted.add(reactionType);
-            if (result.counts) {
-                currentReactions = result.counts;
+            if (result.reactions) {
+                currentReactions = result.reactions;
                 updateReactionDisplays();
             }
             showToast(`Thanks for your reaction ${emoji}`, 'success');
             return true;
-        } else if (result.already_reacted) {
+        } else if (result && result.already_reacted) {
             showToast(`You already reacted with this emoji`, 'info');
             return false;
+        } else {
+            // Fallback local
+            let local = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{"like":0,"love":0,"wow":0,"sad":0,"angry":0,"laugh":0,"celebrate":0}');
+            local[reactionType] = (local[reactionType] || 0) + 1;
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(local));
+            await loadReactions();
+            showToast(`Thanks for your reaction ${emoji}`, 'success');
+            return true;
         }
     } catch (error) {
         console.error('Add reaction error:', error);
@@ -160,16 +200,15 @@ function updateReactionDisplays() {
 }
 
 // ============================================
-// SHARE FUNCTIONS
+// SHARE FUNCTIONS (Cloudflare API)
 // ============================================
 async function trackShare(platform) {
     try {
-        const result = await apiCall('add-share', 'POST', {
+        const result = await apiCall('/shares', 'POST', {
             tool_slug: TOOL_SLUG,
-            platform: platform,
-            user_id: sessionId
+            platform: platform
         });
-        if (result.success) {
+        if (result && result.success) {
             updateShareCount();
             showToast(`Shared on ${platform}!`, 'success');
         }
@@ -180,13 +219,18 @@ async function trackShare(platform) {
 
 async function updateShareCount() {
     try {
-        const result = await apiCall(`shares?tool_slug=${TOOL_SLUG}`, 'GET');
-        if (result.success) {
+        const result = await apiCall(`/shares?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
             const shareElem = document.getElementById('shareCount');
-            if (shareElem) shareElem.innerText = `${result.shares} shares`;
+            if (shareElem) shareElem.innerText = `${result.shares || 0} shares`;
+        } else {
+            const shareElem = document.getElementById('shareCount');
+            if (shareElem) shareElem.innerText = `0 shares`;
         }
     } catch (error) {
         console.error('Update share count error:', error);
+        const shareElem = document.getElementById('shareCount');
+        if (shareElem) shareElem.innerText = `0 shares`;
     }
 }
 
@@ -610,26 +654,26 @@ function addExportDropdown() {
     exportContainer.style.display = 'inline-block';
     
     exportContainer.innerHTML = `
-        <button id="exportDropdownBtn" class="btn-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 8px 16px; border-radius: 8px;">
+        <button id="exportDropdownBtn" class="btn-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;">
             <i class="fas fa-download"></i> Export
         </button>
         <div id="exportDropdownMenu" class="export-dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: var(--card-bg); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; min-width: 180px; overflow: hidden;">
-            <button class="export-option" data-export="pdf">
+            <button class="export-option" data-export="pdf" style="display: block; width: 100%; padding: 10px 16px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: 14px;">
                 <i class="fas fa-file-pdf"></i> Export as PDF
             </button>
-            <button class="export-option" data-export="doc">
+            <button class="export-option" data-export="doc" style="display: block; width: 100%; padding: 10px 16px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: 14px;">
                 <i class="fas fa-file-word"></i> Export as DOC
             </button>
-            <button class="export-option" data-export="txt">
+            <button class="export-option" data-export="txt" style="display: block; width: 100%; padding: 10px 16px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: 14px;">
                 <i class="fas fa-file-alt"></i> Export as TXT
             </button>
-            <button class="export-option" data-export="csv">
+            <button class="export-option" data-export="csv" style="display: block; width: 100%; padding: 10px 16px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: 14px;">
                 <i class="fas fa-file-csv"></i> Export as CSV
             </button>
-            <button class="export-option" data-export="json">
+            <button class="export-option" data-export="json" style="display: block; width: 100%; padding: 10px 16px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: 14px;">
                 <i class="fas fa-file-code"></i> Export as JSON
             </button>
-            <button class="export-option" data-export="excel">
+            <button class="export-option" data-export="excel" style="display: block; width: 100%; padding: 10px 16px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: 14px;">
                 <i class="fas fa-file-excel"></i> Export as Excel
             </button>
         </div>
@@ -858,7 +902,7 @@ function resetToDefault() {
 }
 
 // ============================================
-// AI QUOTE GENERATION
+// AI QUOTE GENERATION (Cloudflare API)
 // ============================================
 async function generateAIQuote(category = 'education') {
     const quoteText = document.getElementById('aiQuoteText');
@@ -867,12 +911,14 @@ async function generateAIQuote(category = 'education') {
     quoteText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating quote...';
     
     try {
-        const result = await apiCall('generate-quote', 'POST', {
+        const result = await apiCall('/generate-quote', 'POST', {
             prompt: category,
-            category: category
+            topic: category,
+            category: category,
+            tool_slug: TOOL_SLUG
         });
         
-        if (result.success) {
+        if (result && result.success && result.quote) {
             quoteText.innerHTML = `"${result.quote}"`;
             quoteAuthor.innerHTML = `- ${result.author || 'AI Assistant'}`;
         } else {
@@ -1102,7 +1148,7 @@ async function init() {
         getUsage(),
         loadReactions(),
         updateShareCount(),
-        getGlobalStats(),
+        loadGlobalStats(),
         generateAIQuote('education')
     ]);
     
