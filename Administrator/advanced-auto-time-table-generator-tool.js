@@ -1,7 +1,7 @@
 /**
  * Advanced Auto Timetable Generator
  * Sindh Scheme of Studies 2023-24 | ECCE to Grade XII
- * Fully Integrated with TiDB + Vercel + Grok API
+ * Updated for Cloudflare Workers API
  * Total Features: 76
  */
 
@@ -9,7 +9,7 @@
 // CONFIGURATION
 // ============================================
 const TOOL_SLUG = 'advanced-auto-time-table-generator';
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev/api';
 const USER_ID = localStorage.getItem('user_id') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 if (!localStorage.getItem('user_id')) {
@@ -265,6 +265,7 @@ let currentPosterDesign = null;
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
+    if (!toast || !toastMsg) return;
     toastMsg.textContent = message;
     toast.style.background = isError ? 'var(--danger)' : 'var(--success)';
     toast.classList.add('show');
@@ -275,15 +276,24 @@ function showLoading(show, text = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
     if (loadingText) loadingText.textContent = text;
-    if (show) overlay.classList.add('active');
-    else overlay.classList.remove('active');
+    if (overlay) {
+        if (show) overlay.classList.add('active');
+        else overlay.classList.remove('active');
+    }
 }
 
 async function apiCall(endpoint, method = 'GET', data = null) {
     try {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const options = { 
+            method, 
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        };
         if (data) options.body = JSON.stringify(data);
         const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
         return await response.json();
     } catch (error) {
         console.error('API Error:', error);
@@ -292,13 +302,14 @@ async function apiCall(endpoint, method = 'GET', data = null) {
 }
 
 // ============================================
-// USAGE COUNTER FUNCTIONS (TiDB Integrated)
+// USAGE COUNTER FUNCTIONS (Cloudflare API)
 // ============================================
 async function incrementUsage() {
     try {
-        const result = await apiCall('/increment-usage', 'POST', { tool_slug: TOOL_SLUG, user_id: USER_ID });
+        const result = await apiCall('/usage', 'POST', { tool_slug: TOOL_SLUG });
         if (result && result.success) {
-            await loadUsage();
+            currentUsage = result.count || 0;
+            document.getElementById('usageCount').textContent = currentUsage;
             await loadGlobalUsage();
         } else {
             // Fallback to local
@@ -310,14 +321,19 @@ async function incrementUsage() {
         }
     } catch (error) {
         console.error('Increment usage error:', error);
+        let local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        local++;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, local);
+        currentUsage = local;
+        document.getElementById('usageCount').textContent = currentUsage;
     }
 }
 
 async function loadUsage() {
     try {
-        const result = await apiCall(`/usage?tool_slug=${TOOL_SLUG}`, 'GET');
+        const result = await apiCall(`/stats?tool_slug=${TOOL_SLUG}`, 'GET');
         if (result && result.success) {
-            currentUsage = result.count || 0;
+            currentUsage = result.usage || 0;
             document.getElementById('usageCount').textContent = currentUsage;
         } else {
             const local = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
@@ -333,9 +349,9 @@ async function loadUsage() {
 
 async function loadGlobalUsage() {
     try {
-        const result = await apiCall('/global-stats', 'GET');
+        const result = await apiCall(`/stats?tool_slug=${TOOL_SLUG}`, 'GET');
         if (result && result.success) {
-            globalUsage = result.totalUsage || 0;
+            globalUsage = result.usage || 0;
             document.getElementById('globalUsageCount').textContent = globalUsage;
         } else {
             document.getElementById('globalUsageCount').textContent = 'N/A';
@@ -346,7 +362,7 @@ async function loadGlobalUsage() {
 }
 
 // ============================================
-// REACTIONS FUNCTIONS (TiDB Integrated)
+// REACTIONS FUNCTIONS (Cloudflare API)
 // ============================================
 async function loadReactions() {
     try {
@@ -368,16 +384,15 @@ async function addReaction(emoji) {
     const reactionType = reactionMap[emoji];
     
     try {
-        const result = await apiCall('/add-reaction', 'POST', {
+        const result = await apiCall('/reactions', 'POST', {
             tool_slug: TOOL_SLUG,
             emoji: emoji,
-            reaction_type: reactionType,
-            user_id: USER_ID
+            reaction_type: reactionType
         });
         
         if (result && result.success) {
-            if (result.counts) {
-                reactions = result.counts;
+            if (result.reactions) {
+                reactions = result.reactions;
                 updateReactionUI();
             }
             showToast(`Reacted with ${emoji}!`);
@@ -406,14 +421,13 @@ function updateReactionUI() {
 }
 
 // ============================================
-// SHARE FUNCTIONS (TiDB Integrated)
+// SHARE FUNCTIONS (Cloudflare API)
 // ============================================
 async function recordShare(platform) {
     try {
-        await apiCall('/add-share', 'POST', {
+        await apiCall('/shares', 'POST', {
             tool_slug: TOOL_SLUG,
-            platform: platform,
-            user_id: USER_ID
+            platform: platform
         });
     } catch (error) {
         console.error('Record share error:', error);
@@ -441,6 +455,8 @@ function sharePage(platform) {
         case 'email':
             shareUrl = `mailto:?subject=Auto Timetable Generator&body=${encodeURIComponent(text + '\n\n' + url)}`;
             break;
+        default:
+            return;
     }
     
     if (shareUrl) {
@@ -451,9 +467,13 @@ function sharePage(platform) {
 }
 
 async function copyUrl() {
-    await navigator.clipboard.writeText(window.location.href);
-    recordShare('copy');
-    showToast('URL Copied!');
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        recordShare('copy');
+        showToast('URL Copied!');
+    } catch (error) {
+        showToast('Failed to copy URL', true);
+    }
 }
 
 // ============================================
@@ -685,7 +705,7 @@ function showFreePeriods() {
 }
 
 // ============================================
-// AI QUOTE GENERATOR (Grok API Integrated)
+// AI QUOTE GENERATOR (Cloudflare API)
 // ============================================
 async function generateQuote() {
     const prompt = document.getElementById('quotePrompt')?.value.trim();
@@ -700,7 +720,8 @@ async function generateQuote() {
         const result = await apiCall('/generate-quote', 'POST', {
             prompt: prompt,
             topic: prompt,
-            category: 'inspiration'
+            category: 'inspiration',
+            tool_slug: TOOL_SLUG
         });
         
         const container = document.getElementById('quoteDisplay');
@@ -748,7 +769,7 @@ async function generateQuote() {
 }
 
 // ============================================
-// POSTER GENERATOR (Save/Load from TiDB)
+// POSTER GENERATOR (Cloudflare API)
 // ============================================
 function updatePosterPreview() {
     const bgColor = document.getElementById('posterBgColor')?.value || '#006633';
@@ -779,7 +800,6 @@ async function saveDesign() {
     try {
         const result = await apiCall('/save-design', 'POST', {
             tool_slug: TOOL_SLUG,
-            user_id: USER_ID,
             design_name: `Design_${Date.now()}`,
             design_json: JSON.stringify(designData)
         });
@@ -808,7 +828,7 @@ async function loadDesigns() {
     showLoading(true, 'Loading saved designs...');
     
     try {
-        const result = await apiCall(`/get-designs?tool_slug=${TOOL_SLUG}&user_id=${USER_ID}`, 'GET');
+        const result = await apiCall(`/get-designs?tool_slug=${TOOL_SLUG}`, 'GET');
         
         if (designsContainer) designsContainer.style.display = 'block';
         
@@ -887,6 +907,10 @@ function exportAsPDF(containerId, filename = 'timetable') {
     }
     
     const win = window.open('', '_blank');
+    if (!win) {
+        showToast('Please allow popups', true);
+        return;
+    }
     win.document.write(`
         <html>
         <head>
@@ -943,7 +967,9 @@ function exportAsDOC(containerId, filename = 'timetable') {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${filename}.doc`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('DOC Downloaded');
 }
@@ -960,7 +986,9 @@ function exportAsTXT(containerId, filename = 'timetable') {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${filename}.txt`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('TXT Downloaded');
 }
@@ -1013,7 +1041,8 @@ function initEventListeners() {
             const grade = card.dataset.grade;
             if (grade && SINDH_CURRICULUM[grade]) {
                 displayTimetable(grade, 'classTimetableContainer');
-                document.getElementById('timetableTitle').textContent = SINDH_CURRICULUM[grade].name;
+                const titleEl = document.getElementById('timetableTitle');
+                if (titleEl) titleEl.textContent = SINDH_CURRICULUM[grade].name;
             }
         });
     });
@@ -1041,12 +1070,15 @@ function initEventListeners() {
     const resetMaster = document.getElementById('resetMasterBtn');
     if (resetMaster) {
         resetMaster.addEventListener('click', () => {
-            document.getElementById('masterTimetableContainer').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-calendar-plus"></i>
-                    <p>Click Generate to create Master Timetable for all grades</p>
-                </div>
-            `;
+            const container = document.getElementById('masterTimetableContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-plus"></i>
+                        <p>Click Generate to create Master Timetable for all grades</p>
+                    </div>
+                `;
+            }
         });
     }
     
@@ -1175,4 +1207,4 @@ async function init() {
 }
 
 // Start the app
-init();
+document.addEventListener('DOMContentLoaded', init);
