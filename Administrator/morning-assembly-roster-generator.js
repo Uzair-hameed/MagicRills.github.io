@@ -1,10 +1,12 @@
 /* ============================================
    MORNING ASSEMBLY ROSTER GENERATOR
-   Uses existing test-db.js endpoints
-   Grok API, TiDB, Vercel - Fully Integrated
+   Cloudflare Workers API Integration
+   API: https://magicrills-api.uzairhameed01.workers.dev
    ============================================ */
 
 const TOOL_SLUG = 'morning-assembly-roster-generator';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+
 let currentUserId = localStorage.getItem('user_id') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 localStorage.setItem('user_id', currentUserId);
 
@@ -18,15 +20,24 @@ const WEEK_DAYS = [
 ];
 
 const GROUP_ROTATION = ['A', 'B', 'C', 'D', 'A', 'B'];
+const REACTION_TYPES = ['like', 'love', 'wow', 'sad', 'laugh', 'celebrate'];
+const STORAGE_KEY = 'morning_assembly_data';
 
 // ============================================
-// API CALLS (Using existing test-db.js endpoints)
+// CLOUDFLARE API CALLS
 // ============================================
-async function callAPI(endpoint, method = 'GET', data = null) {
+async function callAPI(endpoint, method = 'POST', data = null) {
     try {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+        };
         if (data) options.body = JSON.stringify(data);
-        const response = await fetch(`/api${endpoint}`, options);
+        
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         return await response.json();
     } catch (error) {
         console.error('API Error:', error);
@@ -34,84 +45,210 @@ async function callAPI(endpoint, method = 'GET', data = null) {
     }
 }
 
-// Usage Counter
+// ============================================
+// LOCALSTORAGE FALLBACK
+// ============================================
+function getLocalData() {
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { usage: 0, reactions: {}, shares: 0, views: 0 };
+    } catch { return { usage: 0, reactions: {}, shares: 0, views: 0 }; }
+}
+
+function setLocalData(data) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) { /* ignore */ }
+}
+
+// ============================================
+// USAGE COUNTER
+// ============================================
 async function incrementUsage() {
-    const result = await callAPI('/increment-usage', 'POST', { tool_slug: TOOL_SLUG, user_id: currentUserId });
-    if (result.success) {
-        document.getElementById('toolUsageCount').innerText = result.total_usage || '0';
-        document.getElementById('globalUsageCount').innerText = result.total_usage || '0';
-    }
-}
-
-async function getUsage() {
-    const result = await callAPI(`/usage?tool_slug=${TOOL_SLUG}`);
-    if (result.success) {
-        document.getElementById('toolUsageCount').innerText = result.count || '0';
-        document.getElementById('globalUsageCount').innerText = result.count || '0';
-    }
-}
-
-// Reactions
-async function addReaction(reactionType) {
-    const result = await callAPI('/add-reaction', 'POST', { 
-        tool_slug: TOOL_SLUG, 
-        emoji: reactionType, 
-        user_id: currentUserId 
-    });
-    if (result.success) {
-        showToast(`Thanks for your ${reactionType} reaction!`, 'success');
-        getReactions();
-    } else if (result.already_reacted) {
-        showToast('You already reacted with this emoji!', 'warning');
-    }
-}
-
-async function getReactions() {
-    const result = await callAPI(`/reactions?tool_slug=${TOOL_SLUG}`);
-    if (result.success && result.reactions) {
-        const reactions = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-        let total = 0;
-        reactions.forEach(react => {
-            const count = result.reactions[react] || 0;
-            total += count;
-            const span = document.querySelector(`.reaction[data-reaction="${react}"] .reaction-count`);
-            if (span) span.innerText = count;
+    try {
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: currentUserId
         });
-        document.getElementById('globalReactionCount').innerText = total;
+        
+        if (result.success) {
+            const count = result.usage || result.count || 0;
+            updateUsageDisplay(count);
+            return count;
+        } else {
+            // Fallback to localStorage
+            const local = getLocalData();
+            local.usage = (local.usage || 0) + 1;
+            setLocalData(local);
+            updateUsageDisplay(local.usage);
+            return local.usage;
+        }
+    } catch (error) {
+        // Fallback to localStorage
+        const local = getLocalData();
+        local.usage = (local.usage || 0) + 1;
+        setLocalData(local);
+        updateUsageDisplay(local.usage);
+        return local.usage;
     }
 }
 
-// Shares
-async function addShare(platform) {
-    await callAPI('/add-share', 'POST', { tool_slug: TOOL_SLUG, platform, user_id: currentUserId });
+function updateUsageDisplay(count) {
+    document.getElementById('toolUsageCount').innerText = count;
+    document.getElementById('globalUsageCount').innerText = count;
+    document.getElementById('statUsage').innerText = count;
 }
 
-// AI Quote - Uses existing test-db.js /api/generate-quote endpoint
+// ============================================
+// GET TOOL STATS
+// ============================================
+async function getStats() {
+    try {
+        const result = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        
+        if (result.success) {
+            const stats = result.stats || result;
+            document.getElementById('statUsage').innerText = stats.usage || stats.total_usage || 0;
+            document.getElementById('statViews').innerText = stats.views || stats.total_views || 0;
+            document.getElementById('statReactions').innerText = stats.reactions || stats.total_reactions || 0;
+            document.getElementById('statShares').innerText = stats.shares || stats.total_shares || 0;
+            
+            document.getElementById('globalUsageCount').innerText = stats.usage || stats.total_usage || 0;
+            document.getElementById('globalShareCount').innerText = stats.shares || stats.total_shares || 0;
+            
+            // Update reactions if available
+            if (stats.reaction_counts) {
+                REACTION_TYPES.forEach(react => {
+                    const count = stats.reaction_counts[react] || 0;
+                    const span = document.querySelector(`.reaction[data-reaction="${react}"] .reaction-count`);
+                    if (span) span.innerText = count;
+                });
+                const total = Object.values(stats.reaction_counts).reduce((a, b) => a + b, 0);
+                document.getElementById('globalReactionCount').innerText = total;
+                document.getElementById('statReactions').innerText = total;
+            }
+            return stats;
+        } else {
+            // Fallback to localStorage
+            const local = getLocalData();
+            document.getElementById('statUsage').innerText = local.usage || 0;
+            document.getElementById('statViews').innerText = local.views || 0;
+            document.getElementById('statReactions').innerText = Object.values(local.reactions || {}).reduce((a, b) => a + b, 0);
+            document.getElementById('statShares').innerText = local.shares || 0;
+            return local;
+        }
+    } catch (error) {
+        // Fallback to localStorage
+        const local = getLocalData();
+        document.getElementById('statUsage').innerText = local.usage || 0;
+        document.getElementById('statViews').innerText = local.views || 0;
+        document.getElementById('statReactions').innerText = Object.values(local.reactions || {}).reduce((a, b) => a + b, 0);
+        document.getElementById('statShares').innerText = local.shares || 0;
+        return local;
+    }
+}
+
+// ============================================
+// REACTIONS
+// ============================================
+async function addReaction(reactionType) {
+    try {
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            emoji: reactionType,
+            user_id: currentUserId
+        });
+        
+        if (result.success) {
+            showToast(`Thanks for your ${reactionType} reaction! ❤️`, 'success');
+            getStats(); // Refresh stats
+        } else if (result.already_reacted) {
+            showToast('You already reacted with this emoji! 😊', 'warning');
+        } else {
+            // Fallback: update localStorage
+            const local = getLocalData();
+            if (!local.reactions) local.reactions = {};
+            local.reactions[reactionType] = (local.reactions[reactionType] || 0) + 1;
+            setLocalData(local);
+            const span = document.querySelector(`.reaction[data-reaction="${reactionType}"] .reaction-count`);
+            if (span) span.innerText = local.reactions[reactionType];
+            showToast(`Thanks for your ${reactionType} reaction! ❤️`, 'success');
+        }
+    } catch (error) {
+        // Fallback: update localStorage
+        const local = getLocalData();
+        if (!local.reactions) local.reactions = {};
+        local.reactions[reactionType] = (local.reactions[reactionType] || 0) + 1;
+        setLocalData(local);
+        const span = document.querySelector(`.reaction[data-reaction="${reactionType}"] .reaction-count`);
+        if (span) span.innerText = local.reactions[reactionType];
+        showToast(`Thanks for your ${reactionType} reaction! ❤️`, 'success');
+    }
+}
+
+// ============================================
+// SHARES
+// ============================================
+async function addShare(platform) {
+    try {
+        await callAPI('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            user_id: currentUserId
+        });
+        
+        // Update share count in UI
+        getStats();
+    } catch (error) {
+        // Fallback: update localStorage
+        const local = getLocalData();
+        local.shares = (local.shares || 0) + 1;
+        setLocalData(local);
+        document.getElementById('globalShareCount').innerText = local.shares;
+        document.getElementById('statShares').innerText = local.shares;
+    }
+}
+
+// ============================================
+// AI QUOTE GENERATION
+// ============================================
 async function generateAIQuote() {
     const theme = document.getElementById('theme').value;
     const quoteText = document.getElementById('aiQuoteText');
     const quoteAuthor = document.getElementById('aiQuoteAuthor');
     
-    quoteText.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div> Generating...';
+    quoteText.innerHTML = '<div class="spinner" style="width:20px;height:20px;display:inline-block;"></div> Generating...';
     
-    const result = await callAPI('/generate-quote', 'POST', { 
-        prompt: theme, 
-        topic: theme, 
-        category: 'education' 
-    });
-    
-    if (result.success && result.quote) {
-        quoteText.innerHTML = `"${result.quote}"`;
-        quoteAuthor.innerHTML = `- ${result.author || 'AI Assistant'}`;
-    } else {
-        // Fallback from test-db.js QUOTE_DATABASE
+    try {
+        const result = await callAPI('/api/generate-quote', 'POST', {
+            prompt: theme,
+            topic: theme,
+            category: 'education'
+        });
+        
+        if (result.success && result.quote) {
+            quoteText.innerHTML = `"${result.quote}"`;
+            quoteAuthor.innerHTML = `- ${result.author || 'AI Assistant'}`;
+        } else {
+            // Fallback quotes
+            const fallbackQuotes = [
+                { quote: 'Education is the most powerful weapon which you can use to change the world.', author: 'Nelson Mandela' },
+                { quote: 'The beautiful thing about learning is that nobody can take it away from you.', author: 'B.B. King' },
+                { quote: 'Education is not preparation for life; education is life itself.', author: 'John Dewey' },
+                { quote: 'Knowledge is power. Information is liberating. Education is the premise of progress.', author: 'Kofi Annan' }
+            ];
+            const selected = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+            quoteText.innerHTML = `"${selected.quote}"`;
+            quoteAuthor.innerHTML = `- ${selected.author}`;
+        }
+    } catch (error) {
+        // Fallback
         quoteText.innerHTML = `"Education is the most powerful weapon which you can use to change the world."`;
         quoteAuthor.innerHTML = `- Nelson Mandela`;
     }
 }
 
 // ============================================
-// GENERATE WEEKLY PLAN WITH CONTENT
+// GENERATE WEEKLY PLAN
 // ============================================
 async function generateWeeklyPlan() {
     const grade = document.getElementById('gradeSelect').value;
@@ -129,7 +266,7 @@ async function generateWeeklyPlan() {
     const container = document.getElementById('weeklyPlanContainer');
     container.innerHTML = '';
     
-    // Increment usage when generating plan
+    // Increment usage
     await incrementUsage();
     
     try {
@@ -137,7 +274,7 @@ async function generateWeeklyPlan() {
             const day = WEEK_DAYS[i];
             const group = GROUP_ROTATION[i];
             
-            // Define activities for this day
+            // Define activities
             const activities = [
                 { order: 1, name: "📖 Recitation from Holy Quran", leadBy: "Student with good Tajweed", time: "4 min", type: "quran" },
                 { order: 2, name: "🌹 Naat-e-Rasool-e-Maqbool", leadBy: "School Naat Khawan", time: "3 min", type: "naat" },
@@ -149,21 +286,25 @@ async function generateWeeklyPlan() {
                 { order: 8, name: "🤲 Dua for Success", leadBy: "School Prefect", time: "2 min", type: "dua" }
             ];
             
-            // Generate content for each activity using AI quote endpoint
+            // Generate content for each activity
             for (let act of activities) {
-                const result = await callAPI('/generate-quote', 'POST', {
-                    prompt: `${theme} - ${act.name} for Grade ${grade} Group ${group}`,
-                    topic: theme,
-                    category: 'education'
-                });
-                
-                if (result.success && result.quote) {
-                    act.content = result.quote;
-                } else {
+                try {
+                    const result = await callAPI('/api/generate-quote', 'POST', {
+                        prompt: `${theme} - ${act.name} for Grade ${grade} Group ${group}`,
+                        topic: theme,
+                        category: 'education'
+                    });
+                    
+                    if (result.success && result.quote) {
+                        act.content = result.quote;
+                    } else {
+                        act.content = getFallbackContent(act.type, theme);
+                    }
+                } catch (e) {
                     act.content = getFallbackContent(act.type, theme);
                 }
                 // Small delay to avoid rate limiting
-                await new Promise(r => setTimeout(r, 300));
+                await new Promise(r => setTimeout(r, 200));
             }
             
             // Build day card
@@ -204,16 +345,16 @@ async function generateWeeklyPlan() {
     }
 }
 
-// Fallback content (matches test-db.js QUOTE_DATABASE)
+// Fallback content
 function getFallbackContent(type, theme) {
     const fallbacks = {
         quran: `"Indeed, Allah is with those who are patient." (Quran 2:153)\n\nUrdu: "بے شک اللہ صبر کرنے والوں کے ساتھ ہے۔"\n\n💡 ${theme} ke liye sabr aur imaan zaroori hai.`,
         naat: `Ya Nabi Salamun Alaika 🌹\nYa Rasool Salamun Alaika\nYa Habib Salamun Alaika\nSalawat Ullah Alaika`,
         hadith: `RasoolAllah (PBUH) ne farmaya: "Taharat iman ka aadha hissa hai."\n\nSabak: ${theme} ke liye pak saaf rehna zaroori hai.`,
-        national: `Pakistan Zindabad! 🇵🇰\n让我们一起为巴基斯坦的繁荣而努力。`,
+        national: `Pakistan Zindabad! 🇵🇰\nپاکستان زندہ باد!`,
         thought: `💭 "${theme} insani zindagi ki buniyad hai. Jo log is par amal karte hain, woh dunya aur aakhirat mein kamyab hote hain."`,
         speech: `🎤 Muhtaram Ustadan aur Piyare Bacho!\n\nAssalam-o-Alaikum!\n\nAaj ki assembly ka mozu "${theme}" hai. Yeh bohat ahem mozu hai. ${theme} se hamari zindagi behtar hoti hai...`,
-        announcement: `📢 Important Announcements:\n1. Tomorrow's schedule will be as per Friday.\n2. All students must wear complete uniform.`,
+        announcement: `📢 Important Announcements:\n1. Tomorrow's schedule will be as per Friday.\n2. All students must wear complete uniform.\n3. Parents' meeting on Saturday.`,
         dua: `🤲 "Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina azaban-nar."\n\nUrdu: "اے ہمارے رب! ہمیں دنیا میں بھی بھلائی دے اور آخرت میں بھی بھلائی دے۔"`
     };
     return fallbacks[type] || fallbacks.thought;
@@ -222,14 +363,16 @@ function getFallbackContent(type, theme) {
 // Toggle content visibility
 window.toggleContent = function(dayId, idx) {
     const contentDiv = document.getElementById(`content-${dayId}-${idx}`);
-    const btn = contentDiv.previousElementSibling.querySelector('.toggle-btn');
+    const btn = contentDiv.previousElementSibling?.querySelector('.toggle-btn');
     
-    if (contentDiv.style.display === 'none') {
-        contentDiv.style.display = 'block';
-        btn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Content';
-    } else {
-        contentDiv.style.display = 'none';
-        btn.innerHTML = '<i class="fas fa-chevron-down"></i> Show Content';
+    if (contentDiv) {
+        if (contentDiv.style.display === 'none' || contentDiv.style.display === '') {
+            contentDiv.style.display = 'block';
+            if (btn) btn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Content';
+        } else {
+            contentDiv.style.display = 'none';
+            if (btn) btn.innerHTML = '<i class="fas fa-chevron-down"></i> Show Content';
+        }
     }
 };
 
@@ -242,19 +385,31 @@ function printPlan() {
     const week = document.getElementById('weekSelect').value;
     
     const win = window.open('', '_blank');
+    if (!win) {
+        showToast('Please allow popups for printing', 'warning');
+        return;
+    }
+    
     win.document.write(`
+        <!DOCTYPE html>
         <html>
         <head>
             <title>Weekly Plan - Grade ${grade}</title>
             <style>
-                body { font-family: Arial, sans-serif; margin: 30px; }
-                h1 { color: #2e7d32; text-align: center; }
-                .header { text-align: center; margin-bottom: 30px; }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Inter', Arial, sans-serif; margin: 30px; background: white; }
+                h1 { color: #2e7d32; text-align: center; font-size: 28px; }
+                .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #4caf50; }
+                .header p { margin: 5px 0; color: #4a5568; }
                 .week-day-card { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 10px; page-break-inside: avoid; }
-                .day-header { background: #4caf50; color: white; padding: 12px; display: flex; justify-content: space-between; }
+                .day-header { background: #4caf50; color: white; padding: 12px 16px; display: flex; justify-content: space-between; flex-wrap: wrap; }
                 .day-activities { padding: 15px; }
-                .activity-row { padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-                .activity-content { padding: 15px; background: #f5f5f5; margin-top: 10px; display: block !important; }
+                .activity-row { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px; }
+                .activity-name { font-weight: 600; flex: 2; }
+                .activity-lead { color: #2196f3; flex: 1; }
+                .activity-time { color: #ff9800; font-weight: 600; }
+                .activity-content { padding: 12px; background: #f5f7fa; margin-top: 8px; border-radius: 8px; display: block !important; }
+                .content-text { line-height: 1.7; white-space: pre-line; }
                 .toggle-btn { display: none; }
                 @media print { .week-day-card { break-inside: avoid; } }
             </style>
@@ -268,11 +423,12 @@ function printPlan() {
                 <p><strong>Group Rotation:</strong> Mon→A, Tue→B, Wed→C, Thu→D, Fri→A, Sat→B</p>
             </div>
             ${printContent}
+            <p style="text-align:center;margin-top:30px;color:#aaa;font-size:12px;">Generated by Morning Assembly Roster Generator | MagicRills.com</p>
         </body>
         </html>
     `);
     win.document.close();
-    win.print();
+    setTimeout(() => win.print(), 500);
 }
 
 // ============================================
@@ -301,8 +457,11 @@ function updateClassStatusGrid() {
 
 window.selectGrade = function(grade) {
     document.getElementById('gradeSelect').value = grade;
+    // Reset all to not_started except completed ones
     for (let g in classStatus) {
-        classStatus[g] = classStatus[g] === 'completed' ? 'completed' : 'not_started';
+        if (classStatus[g] !== 'completed') {
+            classStatus[g] = 'not_started';
+        }
     }
     classStatus[grade] = 'active';
     localStorage.setItem('classStatus', JSON.stringify(classStatus));
@@ -329,63 +488,187 @@ function completeCurrentClass() {
 }
 
 // ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const phrases = [
+        'Weekly Roster',
+        'Group Rotation',
+        'Assembly Planner',
+        'School Tool',
+        'Pakistani Schools'
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById('typewriterText');
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let delay = isDeleting ? 30 : 80;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            delay = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            delay = 500;
+        }
+        
+        setTimeout(typeEffect, delay);
+    }
+    
+    typeEffect();
+}
+
+// ============================================
 // UI HELPERS
 // ============================================
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}" style="color:${type === 'success' ? '#4caf50' : '#2196f3'}"></i> ${message}`;
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'warning' ? 'fa-exclamation-triangle' : 
+                 type === 'error' ? 'fa-times-circle' : 'fa-info-circle';
+    const color = type === 'success' ? '#4caf50' : 
+                  type === 'warning' ? '#ff9800' : 
+                  type === 'error' ? '#f44336' : '#2196f3';
+    toast.innerHTML = `<i class="fas ${icon}" style="color:${color};margin-right:10px;"></i> ${message}`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-// Share functions
-function shareFB() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('facebook'); }
-function shareTW() { window.open(`https://twitter.com/intent/tweet?text=Morning Assembly Roster&url=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('twitter'); }
-function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('whatsapp'); }
-function shareLI() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('linkedin'); }
-function shareEmail() { window.location.href = `mailto:?subject=Morning Assembly Roster&body=${encodeURIComponent(window.location.href)}`; addShare('email'); }
-function copyURL() { navigator.clipboard.writeText(window.location.href); showToast('URL copied!', 'success'); addShare('copy'); }
+// ============================================
+// SHARE FUNCTIONS
+// ============================================
+function shareFB() {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('facebook');
+}
+function shareTW() {
+    window.open(`https://twitter.com/intent/tweet?text=Morning%20Assembly%20Roster%20Generator%20for%20Pakistani%20Schools&url=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('twitter');
+}
+function shareWA() {
+    window.open(`https://wa.me/?text=${encodeURIComponent('Morning Assembly Roster Generator - ' + window.location.href)}`, '_blank');
+    addShare('whatsapp');
+}
+function shareLI() {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+    addShare('linkedin');
+}
+function shareEmail() {
+    window.location.href = `mailto:?subject=Morning%20Assembly%20Roster%20Generator&body=${encodeURIComponent('Check out this Morning Assembly Roster Generator for Pakistani schools: ' + window.location.href)}`;
+    addShare('email');
+}
+function copyURL() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        showToast('URL copied to clipboard!', 'success');
+        addShare('copy');
+    }).catch(() => {
+        // Fallback
+        const input = document.createElement('input');
+        input.value = window.location.href;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('URL copied!', 'success');
+        addShare('copy');
+    });
+}
 
-// Scroll buttons
+// ============================================
+// SCROLL BUTTONS
+// ============================================
 function initScroll() {
-    const up = document.getElementById('scrollUpBtn'), down = document.getElementById('scrollDownBtn');
+    const up = document.getElementById('scrollUpBtn');
+    const down = document.getElementById('scrollDownBtn');
+    
     window.addEventListener('scroll', () => {
         up.classList.toggle('visible', window.scrollY > 300);
         down.classList.toggle('visible', window.innerHeight + window.scrollY < document.body.scrollHeight - 100);
     });
+    
     up.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
     down.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
+// ============================================
+// DARK MODE
+// ============================================
 function initDarkMode() {
     const toggle = document.getElementById('darkModeToggle');
-    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+    const moon = toggle.querySelector('.fa-moon');
+    const sun = toggle.querySelector('.fa-sun');
+    
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
+        moon.style.display = 'none';
+        sun.style.display = 'inline';
+    }
+    
     toggle.onclick = () => {
         document.body.classList.toggle('dark');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem('darkMode', isDark);
+        moon.style.display = isDark ? 'none' : 'inline';
+        sun.style.display = isDark ? 'inline' : 'none';
     };
 }
 
 // ============================================
 // INITIALIZATION
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Set default date
     document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
-    updateClassStatusGrid();
-    getUsage();
-    getReactions();
     
+    // Initialize class status
+    updateClassStatusGrid();
+    
+    // Load stats
+    await getStats();
+    
+    // Increment usage on load
+    await incrementUsage();
+    
+    // Typewriter
+    initTypewriter();
+    
+    // Event listeners
     document.getElementById('generateWeeklyPlanBtn').onclick = generateWeeklyPlan;
     document.getElementById('printPlanBtn').onclick = printPlan;
     document.getElementById('completeClassBtn').onclick = completeCurrentClass;
     document.getElementById('generateQuoteBtn').onclick = generateAIQuote;
     
+    // Reaction listeners
     document.querySelectorAll('.reaction').forEach(el => {
         el.onclick = () => addReaction(el.dataset.reaction);
+        el.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                addReaction(el.dataset.reaction);
+            }
+        };
     });
     
+    // Share listeners
     document.querySelector('.share-btn.fb')?.addEventListener('click', shareFB);
     document.querySelector('.share-btn.tw')?.addEventListener('click', shareTW);
     document.querySelector('.share-btn.wa')?.addEventListener('click', shareWA);
@@ -393,8 +676,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.share-btn.em')?.addEventListener('click', shareEmail);
     document.querySelector('.share-btn.cp')?.addEventListener('click', copyURL);
     
+    // Scroll and dark mode
     initScroll();
     initDarkMode();
     
+    // Generate initial quote
+    generateAIQuote();
+    
     showToast('✨ Ready! Select grade and generate weekly plan', 'info');
 });
+
+// ============================================
+// SERVICE WORKER REGISTRATION (Optional PWA)
+// ============================================
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
