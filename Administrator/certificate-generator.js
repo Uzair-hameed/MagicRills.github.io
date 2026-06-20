@@ -1,31 +1,40 @@
 // ============================================
 // CERTIFICATE GENERATOR - COMPLETE FUNCTIONALITY
-// 150+ Features | English + Urdu Support | TiDB + Vercel + Grok AI
+// Updated for Cloudflare Workers API
+// 150+ Features | English + Urdu Support | Full API Integration
 // ============================================
 
-// API Configuration
-const API_BASE = '/api';
+// ============================================
+// API CONFIGURATION - CLOUDFLARE WORKERS
+// ============================================
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'certificate-generator';
-let userId = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-localStorage.setItem('userId', userId);
+let userId = localStorage.getItem('certificate_userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+localStorage.setItem('certificate_userId', userId);
 
-// Language Configuration
-let currentLanguage = localStorage.getItem('language') || 'en';
+// Session tracking for usage
+let sessionUsed = false;
 
-// Translations
+// ============================================
+// LANGUAGE CONFIGURATION
+// ============================================
+let currentLanguage = localStorage.getItem('certificate_language') || 'en';
+
+// ============================================
+// TRANSLATIONS
+// ============================================
 const translations = {
     en: {
-        // Hero
         heroBadge: 'Professional Edition | 150+ Features',
         heroTitle: 'Certificate Generator',
         heroSubtitle: 'Create stunning professional certificates with AI assistance',
         statUsed: 'Used',
         statReactions: 'Reactions',
         statShares: 'Shares',
+        statViews: 'Views',
+        statFollowers: 'Followers',
         btnCreate: 'Create Now',
         btnAI: 'Enhance with AI',
-        
-        // Tool
         usageText: 'times used',
         templatesTitle: 'Templates',
         templateClassic: 'Classic',
@@ -34,49 +43,31 @@ const translations = {
         templateElegant: 'Elegant',
         templateCreative: 'Creative',
         templateLuxury: 'Luxury',
-        
-        // Details
         detailsTitle: 'Certificate Details',
         titleLabel: 'Title',
         subtitleLabel: 'Subtitle',
         recipientLabel: 'Recipient Name',
         bodyLabel: 'Description',
         dateLabel: 'Date',
-        
-        // Fonts
         fontsTitle: 'Fonts',
         titleFontLabel: 'Title Font',
         bodyFontLabel: 'Body Font',
-        
-        // Colors
         colorsTitle: 'Colors',
         titleColorLabel: 'Title Color',
         borderColorLabel: 'Border Color',
         patternLabel: 'Background Pattern',
-        
-        // Logo & Signatures
         logoSignTitle: 'Logo & Signatures',
         uploadLogoLabel: 'Upload Logo',
         signature1NameLabel: 'Signature 1 - Name',
         signature1TitleLabel: 'Signature 1 - Title',
         signature2NameLabel: 'Signature 2 - Name',
         signature2TitleLabel: 'Signature 2 - Title',
-        
-        // Reactions
         reactionsTitle: 'Your Reaction',
-        
-        // Share
         shareTitle: 'Share',
-        
-        // Download
         downloadTitle: 'Download',
         resetBtn: 'Reset',
-        
-        // Preview
         livePreview: 'Live Preview',
         aiAssist: 'AI Assistant',
-        
-        // Toast Messages
         welcomeMsg: 'Welcome! Start creating your certificate',
         aiSuccess: 'AI has enhanced your text!',
         aiError: 'AI service temporarily unavailable',
@@ -88,20 +79,22 @@ const translations = {
         reactionSuccess: 'Thank you! Your reaction has been saved',
         reactionExists: 'You have already reacted with this emoji',
         reactionError: 'Error saving reaction',
-        loadingText: 'AI is processing...'
+        loadingText: 'AI is processing...',
+        statsError: 'Error loading stats',
+        shareError: 'Error sharing',
+        usageError: 'Error recording usage'
     },
     ur: {
-        // Hero
         heroBadge: 'پیشہ ورانہ ایڈیشن | 150+ فیچرز',
         heroTitle: 'سرٹیفکیٹ جنریٹر',
         heroSubtitle: 'AI کی مدد سے شاندار پیشہ ورانہ سرٹیفکیٹ بنائیں',
         statUsed: 'استعمال شدہ',
         statReactions: 'ردعمل',
         statShares: 'شیئرز',
+        statViews: 'مناظر',
+        statFollowers: 'فالوورز',
         btnCreate: 'ابھی بنائیں',
         btnAI: 'AI سے بہتر کریں',
-        
-        // Tool
         usageText: 'بار استعمال',
         templatesTitle: 'ٹیمپلیٹس',
         templateClassic: 'کلاسک',
@@ -110,49 +103,31 @@ const translations = {
         templateElegant: 'خوبصورت',
         templateCreative: 'تخلیقی',
         templateLuxury: 'لگژری',
-        
-        // Details
         detailsTitle: 'سرٹیفکیٹ کی تفصیلات',
         titleLabel: 'عنوان',
         subtitleLabel: 'ذیلی عنوان',
         recipientLabel: 'وصول کنندہ کا نام',
         bodyLabel: 'تفصیل',
         dateLabel: 'تاریخ',
-        
-        // Fonts
         fontsTitle: 'فونٹس',
         titleFontLabel: 'عنوان کا فونٹ',
         bodyFontLabel: 'باقی متن کا فونٹ',
-        
-        // Colors
         colorsTitle: 'رنگیں',
         titleColorLabel: 'عنوان کا رنگ',
         borderColorLabel: 'بارڈر کا رنگ',
         patternLabel: 'پس منظر پیٹرن',
-        
-        // Logo & Signatures
         logoSignTitle: 'لوگو اور دستخط',
         uploadLogoLabel: 'لوگو اپ لوڈ کریں',
         signature1NameLabel: 'دستخط 1 - نام',
         signature1TitleLabel: 'دستخط 1 - عہدہ',
         signature2NameLabel: 'دستخط 2 - نام',
         signature2TitleLabel: 'دستخط 2 - عہدہ',
-        
-        // Reactions
         reactionsTitle: 'آپ کا ردعمل',
-        
-        // Share
         shareTitle: 'شیئر کریں',
-        
-        // Download
         downloadTitle: 'ڈاؤن لوڈ',
         resetBtn: 'ری سیٹ',
-        
-        // Preview
         livePreview: 'لائیو پریمیو',
         aiAssist: 'AI مدد',
-        
-        // Toast Messages
         welcomeMsg: 'خوش آمدید! سرٹیفکیٹ بنانا شروع کریں',
         aiSuccess: 'AI نے متن بہتر کر دیا!',
         aiError: 'AI سروس عارضی طور پر دستیاب نہیں',
@@ -164,19 +139,29 @@ const translations = {
         reactionSuccess: 'شکریہ! آپ کا ردعمل محفوظ ہو گیا',
         reactionExists: 'آپ پہلے ہی اس ایموجی پر ردعمل دے چکے ہیں',
         reactionError: 'ردعمل محفوظ کرنے میں خرابی',
-        loadingText: 'AI پروسیس کر رہا ہے...'
+        loadingText: 'AI پروسیس کر رہا ہے...',
+        statsError: 'اعداد و شمار لوڈ کرنے میں خرابی',
+        shareError: 'شیئر کرنے میں خرابی',
+        usageError: 'استعمال ریکارڈ کرنے میں خرابی'
     }
 };
 
-// DOM Elements
+// ============================================
+// DOM ELEMENTS
+// ============================================
 let elements = {};
 
-// State Management
+// ============================================
+// STATE MANAGEMENT
+// ============================================
 let currentTemplate = 1;
-let darkMode = localStorage.getItem('darkMode') === 'true';
+let darkMode = localStorage.getItem('certificate_darkMode') === 'true';
 let autoSaveInterval = null;
+let statsLoaded = false;
 
-// Initialize App
+// ============================================
+// INITIALIZATION
+// ============================================
 document.addEventListener('DOMContentLoaded', async () => {
     initElements();
     attachEventListeners();
@@ -185,12 +170,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupAutoSave();
     setupScrollButtons();
     applyDarkMode();
+    setupTypewriter();
     showToast(translations[currentLanguage].welcomeMsg, 'success');
 });
 
+// ============================================
+// ELEMENTS INITIALIZATION
+// ============================================
 function initElements() {
     elements = {
-        // Inputs
         certTitleInput: document.getElementById('certTitleInput'),
         certSubtitleInput: document.getElementById('certSubtitleInput'),
         certRecipientInput: document.getElementById('certRecipientInput'),
@@ -206,8 +194,6 @@ function initElements() {
         signature2NameInput: document.getElementById('signature2NameInput'),
         signature2TitleInput: document.getElementById('signature2TitleInput'),
         logoUpload: document.getElementById('logoUpload'),
-        
-        // Display elements
         certTitle: document.getElementById('certTitle'),
         certSubtitle: document.getElementById('certSubtitle'),
         certRecipient: document.getElementById('certRecipient'),
@@ -220,8 +206,6 @@ function initElements() {
         certLogo: document.getElementById('certLogo'),
         certBorder: document.querySelector('.cert-border'),
         certBg: document.querySelector('.cert-bg'),
-        
-        // Buttons
         exportPDFBtn: document.getElementById('exportPDFBtn'),
         exportDocBtn: document.getElementById('exportDocBtn'),
         exportTxtBtn: document.getElementById('exportTxtBtn'),
@@ -231,33 +215,23 @@ function initElements() {
         scrollToToolBtn: document.getElementById('scrollToToolBtn'),
         darkModeToggle: document.getElementById('darkModeToggle'),
         fullscreenBtn: document.getElementById('fullscreenBtn'),
-        
-        // Counters
         toolUsageCounter: document.getElementById('toolUsageCounter'),
         globalUsageCounter: document.getElementById('globalUsageCounter'),
         globalReactionsCounter: document.getElementById('globalReactionsCounter'),
         globalSharesCounter: document.getElementById('globalSharesCounter'),
-        
-        // Templates
+        globalViewsCounter: document.getElementById('globalViewsCounter'),
+        globalFollowersCounter: document.getElementById('globalFollowersCounter'),
         templateItems: document.querySelectorAll('.template-item'),
-        
-        // Reactions
         reactionBtns: document.querySelectorAll('.reaction-btn'),
-        
-        // Share buttons
         shareBtns: document.querySelectorAll('.share-btn'),
-        
-        // Language buttons
         langBtns: document.querySelectorAll('.lang-btn'),
-        
-        // Toast & Loading
         toast: document.getElementById('toast'),
         toastMessage: document.getElementById('toastMessage'),
         loadingOverlay: document.getElementById('loadingOverlay'),
-        loadingText: document.getElementById('loadingText')
+        loadingText: document.getElementById('loadingText'),
+        certificate: document.getElementById('certificate')
     };
     
-    // Reaction count elements
     elements.reactionCounts = {
         like: document.getElementById('reaction-like'),
         love: document.getElementById('reaction-love'),
@@ -269,8 +243,10 @@ function initElements() {
     };
 }
 
+// ============================================
+// EVENT LISTENERS
+// ============================================
 function attachEventListeners() {
-    // Input listeners
     const inputElements = ['certTitleInput', 'certSubtitleInput', 'certRecipientInput', 'certBodyInput', 
                            'certDateInput', 'titleColorInput', 'borderColorInput', 'bgPatternSelect', 
                            'titleFontSelect', 'bodyFontSelect'];
@@ -282,7 +258,6 @@ function attachEventListeners() {
         }
     });
     
-    // Signature inputs
     if (elements.signature1NameInput) {
         elements.signature1NameInput.addEventListener('input', () => {
             if (elements.signature1NameDisplay) elements.signature1NameDisplay.textContent = elements.signature1NameInput.value;
@@ -304,7 +279,6 @@ function attachEventListeners() {
         });
     }
     
-    // Logo upload
     if (elements.logoUpload) {
         elements.logoUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -316,7 +290,6 @@ function attachEventListeners() {
         });
     }
     
-    // Buttons
     if (elements.exportPDFBtn) elements.exportPDFBtn.addEventListener('click', exportToPDF);
     if (elements.exportDocBtn) elements.exportDocBtn.addEventListener('click', exportToDOC);
     if (elements.exportTxtBtn) elements.exportTxtBtn.addEventListener('click', exportToTXT);
@@ -331,7 +304,6 @@ function attachEventListeners() {
     if (elements.darkModeToggle) elements.darkModeToggle.addEventListener('click', toggleDarkMode);
     if (elements.fullscreenBtn) elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
     
-    // Templates
     if (elements.templateItems) {
         elements.templateItems.forEach(template => {
             template.addEventListener('click', () => {
@@ -343,7 +315,6 @@ function attachEventListeners() {
         });
     }
     
-    // Reactions
     if (elements.reactionBtns) {
         elements.reactionBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
@@ -353,7 +324,6 @@ function attachEventListeners() {
         });
     }
     
-    // Share buttons
     if (elements.shareBtns) {
         elements.shareBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
@@ -363,7 +333,6 @@ function attachEventListeners() {
         });
     }
     
-    // Language buttons
     if (elements.langBtns) {
         elements.langBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -375,15 +344,66 @@ function attachEventListeners() {
 }
 
 // ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function setupTypewriter() {
+    const textElement = document.getElementById('typewriterText');
+    if (!textElement) return;
+    
+    const phrases = [
+        'Professional Certificates',
+        'AI-Powered Designs',
+        '150+ Customization Features',
+        'Instant PDF Downloads',
+        'Social Media Ready'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let currentText = '';
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            currentText = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            currentText = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        textElement.textContent = currentText;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            isDeleting = true;
+            setTimeout(typeEffect, 2000);
+            return;
+        }
+        
+        if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            setTimeout(typeEffect, 500);
+            return;
+        }
+        
+        const speed = isDeleting ? 50 : 100;
+        setTimeout(typeEffect, speed);
+    }
+    
+    setTimeout(typeEffect, 1000);
+}
+
+// ============================================
 // LANGUAGE FUNCTIONS
 // ============================================
-
 function setLanguage(lang) {
     currentLanguage = lang;
-    localStorage.setItem('language', lang);
+    localStorage.setItem('certificate_language', lang);
     applyLanguage(lang);
     
-    // Update active button
     if (elements.langBtns) {
         elements.langBtns.forEach(btn => {
             if (btn.dataset.lang === lang) {
@@ -394,7 +414,6 @@ function setLanguage(lang) {
         });
     }
     
-    // Set RTL for Urdu
     if (lang === 'ur') {
         document.body.setAttribute('dir', 'rtl');
     } else {
@@ -408,21 +427,26 @@ function applyLanguage(lang) {
     const t = translations[lang];
     if (!t) return;
     
-    // Hero section
     const heroBadgeText = document.querySelector('.hero-badge-text');
     if (heroBadgeText) heroBadgeText.textContent = t.heroBadge;
     
     const heroSubtitleText = document.querySelector('.hero-subtitle-text');
     if (heroSubtitleText) heroSubtitleText.textContent = t.heroSubtitle;
     
-    const statUsedText = document.querySelectorAll('.stat-used-text');
-    statUsedText.forEach(el => el.textContent = t.statUsed);
+    const statUsedTexts = document.querySelectorAll('.stat-used-text');
+    statUsedTexts.forEach(el => el.textContent = t.statUsed);
     
-    const statReactionsText = document.querySelectorAll('.stat-reactions-text');
-    statReactionsText.forEach(el => el.textContent = t.statReactions);
+    const statReactionsTexts = document.querySelectorAll('.stat-reactions-text');
+    statReactionsTexts.forEach(el => el.textContent = t.statReactions);
     
-    const statSharesText = document.querySelectorAll('.stat-shares-text');
-    statSharesText.forEach(el => el.textContent = t.statShares);
+    const statSharesTexts = document.querySelectorAll('.stat-shares-text');
+    statSharesTexts.forEach(el => el.textContent = t.statShares);
+    
+    const statViewsTexts = document.querySelectorAll('.stat-views-text');
+    statViewsTexts.forEach(el => el.textContent = t.statViews);
+    
+    const statFollowersTexts = document.querySelectorAll('.stat-followers-text');
+    statFollowersTexts.forEach(el => el.textContent = t.statFollowers);
     
     const btnCreateText = document.querySelector('.btn-create-text');
     if (btnCreateText) btnCreateText.textContent = t.btnCreate;
@@ -430,11 +454,9 @@ function applyLanguage(lang) {
     const btnAIText = document.querySelector('.btn-ai-text');
     if (btnAIText) btnAIText.textContent = t.btnAI;
     
-    // Tool header
     const usageText = document.querySelector('.usage-text');
     if (usageText) usageText.textContent = t.usageText;
     
-    // Templates
     const templatesTitle = document.querySelector('.templates-title');
     if (templatesTitle) templatesTitle.textContent = t.templatesTitle;
     
@@ -456,7 +478,6 @@ function applyLanguage(lang) {
     const templateLuxury = document.querySelector('.template-luxury-text');
     if (templateLuxury) templateLuxury.textContent = t.templateLuxury;
     
-    // Details
     const detailsTitle = document.querySelector('.details-title');
     if (detailsTitle) detailsTitle.textContent = t.detailsTitle;
     
@@ -475,7 +496,6 @@ function applyLanguage(lang) {
     const dateLabel = document.querySelector('.date-label');
     if (dateLabel) dateLabel.innerHTML = '<i class="fas fa-calendar"></i> ' + t.dateLabel;
     
-    // Fonts
     const fontsTitle = document.querySelector('.fonts-title');
     if (fontsTitle) fontsTitle.textContent = t.fontsTitle;
     
@@ -485,7 +505,6 @@ function applyLanguage(lang) {
     const bodyFontLabel = document.querySelector('.body-font-label');
     if (bodyFontLabel) bodyFontLabel.textContent = t.bodyFontLabel;
     
-    // Colors
     const colorsTitle = document.querySelector('.colors-title');
     if (colorsTitle) colorsTitle.textContent = t.colorsTitle;
     
@@ -498,7 +517,6 @@ function applyLanguage(lang) {
     const patternLabel = document.querySelector('.pattern-label');
     if (patternLabel) patternLabel.textContent = t.patternLabel;
     
-    // Logo & Signatures
     const logoSignTitle = document.querySelector('.logo-sign-title');
     if (logoSignTitle) logoSignTitle.textContent = t.logoSignTitle;
     
@@ -517,35 +535,29 @@ function applyLanguage(lang) {
     const signature2TitleLabel = document.querySelector('.signature2-title-label');
     if (signature2TitleLabel) signature2TitleLabel.textContent = t.signature2TitleLabel;
     
-    // Reactions
     const reactionsTitle = document.querySelector('.reactions-title');
     if (reactionsTitle) reactionsTitle.textContent = t.reactionsTitle;
     
-    // Share
     const shareTitle = document.querySelector('.share-title');
     if (shareTitle) shareTitle.textContent = t.shareTitle;
     
-    // Download
     const downloadTitle = document.querySelector('.download-title');
     if (downloadTitle) downloadTitle.textContent = t.downloadTitle;
     
     if (elements.resetBtn) elements.resetBtn.innerHTML = '<i class="fas fa-undo-alt"></i> ' + t.resetBtn;
     
-    // Preview
     const livePreviewText = document.querySelector('.live-preview-text');
     if (livePreviewText) livePreviewText.textContent = t.livePreview;
     
     const aiAssistText = document.querySelector('.ai-assist-text');
     if (aiAssistText) aiAssistText.textContent = t.aiAssist;
     
-    // Loading text
     if (elements.loadingText) elements.loadingText.textContent = t.loadingText;
 }
 
 // ============================================
 // CERTIFICATE UPDATE FUNCTIONS
 // ============================================
-
 function updateCertificatePreview() {
     if (elements.certTitle) elements.certTitle.textContent = elements.certTitleInput?.value || '';
     if (elements.certSubtitle) elements.certSubtitle.textContent = elements.certSubtitleInput?.value || '';
@@ -561,7 +573,6 @@ function updateCertificatePreview() {
         elements.certBorder.style.borderColor = elements.borderColorInput.value;
     }
     
-    // Update fonts
     if (elements.certTitle && elements.titleFontSelect) {
         removeFontClasses(elements.certTitle);
         elements.certTitle.classList.add(elements.titleFontSelect.value);
@@ -572,10 +583,7 @@ function updateCertificatePreview() {
         elements.certBody.classList.add(elements.bodyFontSelect.value);
     }
     
-    // Update background pattern
     updateBackgroundPattern();
-    
-    // Save to localStorage
     saveToLocalStorage();
 }
 
@@ -629,16 +637,23 @@ function applyTemplate(templateId) {
 // ============================================
 // AI FUNCTIONS
 // ============================================
-
 async function enhanceWithAI() {
     showLoading(true);
     try {
         const currentText = elements.certBodyInput?.value || '';
-        const response = await fetch(`${API_BASE}/generate-quote`, {
+        const response = await fetch(`${API_BASE}/api/generate-quote`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: currentText, topic: 'certificate' })
+            body: JSON.stringify({ 
+                prompt: currentText, 
+                topic: 'certificate',
+                language: currentLanguage 
+            })
         });
+        
+        if (!response.ok) {
+            throw new Error('AI service unavailable');
+        }
         
         const data = await response.json();
         if (data.success && data.quote && elements.certBodyInput) {
@@ -646,7 +661,6 @@ async function enhanceWithAI() {
             updateCertificatePreview();
             showToast(translations[currentLanguage].aiSuccess, 'success');
         } else {
-            // Fallback enhancement
             const enhanced = `🌟 ${currentText} 🌟\n\nCongratulations on your outstanding achievement! This recognition celebrates your dedication, hard work, and excellence.`;
             elements.certBodyInput.value = enhanced;
             updateCertificatePreview();
@@ -669,12 +683,18 @@ function openAIAssist() {
 // ============================================
 // EXPORT FUNCTIONS
 // ============================================
-
 async function exportToPDF() {
     showLoading(true);
     try {
-        const certificate = document.getElementById('certificate');
-        const canvas = await html2canvas(certificate, { scale: 2, backgroundColor: '#ffffff' });
+        if (!elements.certificate) {
+            throw new Error('Certificate element not found');
+        }
+        const canvas = await html2canvas(elements.certificate, { 
+            scale: 2, 
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false
+        });
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -683,7 +703,7 @@ async function exportToPDF() {
         doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         doc.save(`certificate_${Date.now()}.pdf`);
         showToast(translations[currentLanguage].pdfSuccess, 'success');
-        await incrementShares('pdf');
+        await recordShare('pdf_download');
     } catch (error) {
         console.error('PDF export error:', error);
         showToast(translations[currentLanguage].aiError, 'error');
@@ -716,8 +736,9 @@ function exportToDOC() {
         link.click();
         URL.revokeObjectURL(link.href);
         showToast(translations[currentLanguage].docSuccess, 'success');
-        incrementShares('doc');
+        recordShare('doc_download');
     } catch (error) {
+        console.error('DOC export error:', error);
         showToast(translations[currentLanguage].aiError, 'error');
     }
 }
@@ -748,59 +769,110 @@ function exportToTXT() {
         link.click();
         URL.revokeObjectURL(link.href);
         showToast(translations[currentLanguage].txtSuccess, 'success');
-        incrementShares('txt');
+        recordShare('txt_download');
     } catch (error) {
+        console.error('TXT export error:', error);
         showToast(translations[currentLanguage].aiError, 'error');
     }
 }
 
 // ============================================
-// API FUNCTIONS (TiDB + Vercel)
+// CLOUDFLARE WORKERS API FUNCTIONS
 // ============================================
 
+// 1. POST /api/usage - Usage Counter Increment
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/increment-usage`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: userId })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-User-ID': userId
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG,
+                user_id: userId,
+                action: 'increment'
+            })
         });
-        const data = await response.json();
-        if (data.success && elements.toolUsageCounter) {
-            elements.toolUsageCounter.textContent = data.total_usage || data.count || '0';
+        
+        if (!response.ok) {
+            throw new Error('API error');
         }
-        await loadGlobalStats();
+        
+        const data = await response.json();
+        if (data.success) {
+            const total = data.total_usage || data.count || 0;
+            if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = total;
+            if (elements.globalUsageCounter) elements.globalUsageCounter.textContent = total;
+            localStorage.setItem(`${TOOL_SLUG}_usage`, total);
+            return total;
+        } else {
+            throw new Error(data.message || 'API error');
+        }
     } catch (error) {
         console.error('Usage increment error:', error);
         let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
         localCount++;
         localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
         if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = localCount;
+        if (elements.globalUsageCounter) elements.globalUsageCounter.textContent = localCount;
+        return localCount;
     }
 }
 
+// 2. POST /api/reactions - Add/Get Reactions
 async function addReaction(emoji) {
     const reactionMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
     const reactionType = reactionMap[emoji] || 'like';
     
     try {
-        const response = await fetch(`${API_BASE}/add-reaction`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, reaction_type: reactionType, user_id: userId })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-User-ID': userId
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                emoji: emoji, 
+                reaction_type: reactionType, 
+                user_id: userId 
+            })
         });
+        
+        if (!response.ok) {
+            throw new Error('API error');
+        }
+        
         const data = await response.json();
         if (data.success || data.counts) {
             updateReactionCounts(data.counts);
             showToast(translations[currentLanguage].reactionSuccess, 'success');
+            await loadStats();
+            return data;
         } else if (data.already_reacted) {
             showToast(translations[currentLanguage].reactionExists, 'info');
             updateReactionCounts(data.counts);
+            return data;
+        } else {
+            throw new Error(data.message || 'API error');
         }
-        await loadGlobalStats();
     } catch (error) {
         console.error('Reaction error:', error);
         showToast(translations[currentLanguage].reactionError, 'error');
+        // Local fallback
+        updateReactionCountsLocal(emoji);
+        return null;
+    }
+}
+
+function updateReactionCountsLocal(emoji) {
+    const mapping = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    const key = mapping[emoji];
+    if (key && elements.reactionCounts[key]) {
+        let current = parseInt(elements.reactionCounts[key].textContent) || 0;
+        elements.reactionCounts[key].textContent = current + 1;
     }
 }
 
@@ -812,23 +884,169 @@ function updateReactionCounts(counts) {
             elements.reactionCounts[value].textContent = counts[key];
         }
     }
+    
+    // Update total reactions
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    if (elements.globalReactionsCounter) elements.globalReactionsCounter.textContent = total;
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, total);
 }
 
+// 3. POST /api/shares - Record Shares
+async function recordShare(platform) {
+    try {
+        const response = await fetch(`${API_BASE}/api/shares`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-User-ID': userId
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                platform: platform, 
+                user_id: userId 
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('API error');
+        }
+        
+        const data = await response.json();
+        if (data.success) {
+            if (elements.globalSharesCounter) {
+                elements.globalSharesCounter.textContent = data.total_shares || data.shares || 0;
+            }
+            localStorage.setItem(`${TOOL_SLUG}_shares`, data.total_shares || data.shares || 0);
+            await loadStats();
+            return data;
+        } else {
+            throw new Error(data.message || 'API error');
+        }
+    } catch (error) {
+        console.error('Share record error:', error);
+        let localShares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+        localShares++;
+        localStorage.setItem(`${TOOL_SLUG}_shares`, localShares);
+        if (elements.globalSharesCounter) elements.globalSharesCounter.textContent = localShares;
+        return null;
+    }
+}
+
+// 4. GET /api/stats?tool_slug=:slug - Get Tool Stats
+async function loadStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-User-ID': userId
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('API error');
+        }
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update usage
+            if (data.usage !== undefined) {
+                if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = data.usage;
+                if (elements.globalUsageCounter) elements.globalUsageCounter.textContent = data.usage;
+                localStorage.setItem(`${TOOL_SLUG}_usage`, data.usage);
+            }
+            
+            // Update reactions
+            if (data.reactions) {
+                updateReactionCounts(data.reactions);
+            }
+            
+            // Update shares
+            if (data.shares !== undefined) {
+                if (elements.globalSharesCounter) elements.globalSharesCounter.textContent = data.shares;
+                localStorage.setItem(`${TOOL_SLUG}_shares`, data.shares);
+            }
+            
+            // Update views
+            if (data.views !== undefined) {
+                if (elements.globalViewsCounter) elements.globalViewsCounter.textContent = data.views;
+                localStorage.setItem(`${TOOL_SLUG}_views`, data.views);
+            }
+            
+            // Update followers
+            if (data.followers !== undefined) {
+                if (elements.globalFollowersCounter) elements.globalFollowersCounter.textContent = data.followers;
+                localStorage.setItem(`${TOOL_SLUG}_followers`, data.followers);
+            }
+            
+            statsLoaded = true;
+            return data;
+        } else {
+            throw new Error(data.message || 'API error');
+        }
+    } catch (error) {
+        console.error('Stats load error:', error);
+        loadLocalStats();
+        return null;
+    }
+}
+
+function loadLocalStats() {
+    const usage = localStorage.getItem(`${TOOL_SLUG}_usage`) || '0';
+    const reactions = localStorage.getItem(`${TOOL_SLUG}_reactions`) || '0';
+    const shares = localStorage.getItem(`${TOOL_SLUG}_shares`) || '0';
+    const views = localStorage.getItem(`${TOOL_SLUG}_views`) || '0';
+    const followers = localStorage.getItem(`${TOOL_SLUG}_followers`) || '0';
+    
+    if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = usage;
+    if (elements.globalUsageCounter) elements.globalUsageCounter.textContent = usage;
+    if (elements.globalReactionsCounter) elements.globalReactionsCounter.textContent = reactions;
+    if (elements.globalSharesCounter) elements.globalSharesCounter.textContent = shares;
+    if (elements.globalViewsCounter) elements.globalViewsCounter.textContent = views;
+    if (elements.globalFollowersCounter) elements.globalFollowersCounter.textContent = followers;
+}
+
+// ============================================
+// SHARE FUNCTION
+// ============================================
 async function shareTool(platform) {
     const url = window.location.href;
     const title = elements.certTitleInput?.value || 'Certificate';
     let shareUrl = '';
     
     switch(platform) {
-        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
-        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`; break;
-        case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`; break;
-        case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; break;
-        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`; break;
+        case 'facebook': 
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; 
+            break;
+        case 'twitter': 
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`; 
+            break;
+        case 'whatsapp': 
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`; 
+            break;
+        case 'linkedin': 
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; 
+            break;
+        case 'email': 
+            shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`; 
+            break;
         case 'copy':
-            await navigator.clipboard.writeText(url);
-            showToast(translations[currentLanguage].copySuccess, 'success');
-            await recordShare(platform);
+            try {
+                await navigator.clipboard.writeText(url);
+                showToast(translations[currentLanguage].copySuccess, 'success');
+                await recordShare('copy');
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast(translations[currentLanguage].copySuccess, 'success');
+                await recordShare('copy');
+            }
+            return;
+        default:
+            showToast(translations[currentLanguage].shareError, 'error');
             return;
     }
     
@@ -838,72 +1056,43 @@ async function shareTool(platform) {
     }
 }
 
-async function recordShare(platform) {
-    try {
-        await fetch(`${API_BASE}/add-share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: userId })
-        });
-        await loadGlobalStats();
-    } catch (error) {
-        console.error('Share record error:', error);
-    }
-}
-
-async function incrementShares(type) {
-    await recordShare(type);
-}
-
-async function loadGlobalStats() {
-    try {
-        const [usageRes, reactionsRes, sharesRes] = await Promise.all([
-            fetch(`${API_BASE}/usage?tool_slug=${TOOL_SLUG}`),
-            fetch(`${API_BASE}/reactions?tool_slug=${TOOL_SLUG}`),
-            fetch(`${API_BASE}/shares?tool_slug=${TOOL_SLUG}`)
-        ]);
-        
-        const usageData = await usageRes.json();
-        const reactionsData = await reactionsRes.json();
-        const sharesData = await sharesRes.json();
-        
-        if (elements.toolUsageCounter && usageData.count) elements.toolUsageCounter.textContent = usageData.count;
-        if (elements.globalUsageCounter && usageData.count) elements.globalUsageCounter.textContent = usageData.count;
-        
-        if (reactionsData.reactions) updateReactionCounts(reactionsData.reactions);
-        
-        const totalReactions = reactionsData.reactions ? Object.values(reactionsData.reactions).reduce((a,b) => a+b, 0) : 0;
-        if (elements.globalReactionsCounter) elements.globalReactionsCounter.textContent = totalReactions;
-        
-        if (elements.globalSharesCounter && sharesData.shares) elements.globalSharesCounter.textContent = sharesData.shares;
-    } catch (error) {
-        console.error('Global stats error:', error);
-        loadLocalStats();
-    }
-}
-
-function loadLocalStats() {
-    const localUsage = localStorage.getItem(`${TOOL_SLUG}_usage`) || '0';
-    if (elements.toolUsageCounter) elements.toolUsageCounter.textContent = localUsage;
-    if (elements.globalUsageCounter) elements.globalUsageCounter.textContent = localUsage;
-}
-
+// ============================================
+// LOAD INITIAL DATA
+// ============================================
 async function loadInitialData() {
-    await incrementUsage();
-    await loadGlobalStats();
-    updateCertificatePreview();
+    try {
+        // Load stats first
+        await loadStats();
+        
+        // Increment usage (only once per session)
+        if (!sessionUsed) {
+            await incrementUsage();
+            sessionUsed = true;
+        }
+        
+        // Load saved data
+        loadFromLocalStorage();
+        
+        // Update preview
+        updateCertificatePreview();
+        
+    } catch (error) {
+        console.error('Initial load error:', error);
+        loadLocalStats();
+        loadFromLocalStorage();
+        updateCertificatePreview();
+    }
 }
 
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
-
 function resetForm() {
     if (elements.certTitleInput) elements.certTitleInput.value = 'Certificate of Achievement';
     if (elements.certSubtitleInput) elements.certSubtitleInput.value = 'This certificate is proudly presented to';
     if (elements.certRecipientInput) elements.certRecipientInput.value = 'John Doe';
     if (elements.certBodyInput) elements.certBodyInput.value = 'For outstanding performance and dedication in the field of web development. Your hard work and commitment have been recognized and appreciated by the entire team.';
-    if (elements.certDateInput) elements.certDateInput.value = new Date().toLocaleDateString('en-US');
+    if (elements.certDateInput) elements.certDateInput.value = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     if (elements.titleColorInput) elements.titleColorInput.value = '#4e54c8';
     if (elements.borderColorInput) elements.borderColorInput.value = '#4e54c8';
     if (elements.signature1NameInput) elements.signature1NameInput.value = 'Jane Smith';
@@ -911,6 +1100,7 @@ function resetForm() {
     if (elements.signature2NameInput) elements.signature2NameInput.value = 'Robert Johnson';
     if (elements.signature2TitleInput) elements.signature2TitleInput.value = 'Director of Education';
     if (elements.certLogo) elements.certLogo.src = '';
+    if (elements.logoUpload) elements.logoUpload.value = '';
     updateCertificatePreview();
     showToast(translations[currentLanguage].resetSuccess, 'success');
 }
@@ -936,6 +1126,7 @@ function saveToLocalStorage() {
 }
 
 function setupAutoSave() {
+    if (autoSaveInterval) clearInterval(autoSaveInterval);
     autoSaveInterval = setInterval(() => {
         saveToLocalStorage();
     }, 30000);
@@ -961,13 +1152,15 @@ function loadFromLocalStorage() {
             if (elements.signature2NameInput && data.signature2Name) elements.signature2NameInput.value = data.signature2Name;
             if (elements.signature2TitleInput && data.signature2Title) elements.signature2TitleInput.value = data.signature2Title;
             updateCertificatePreview();
-        } catch(e) {}
+        } catch(e) {
+            console.error('Load from localStorage error:', e);
+        }
     }
 }
 
 function toggleDarkMode() {
     darkMode = !darkMode;
-    localStorage.setItem('darkMode', darkMode);
+    localStorage.setItem('certificate_darkMode', darkMode);
     applyDarkMode();
 }
 
@@ -983,10 +1176,14 @@ function applyDarkMode() {
 
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+        document.documentElement.requestFullscreen().catch(err => {
+            console.error('Fullscreen error:', err);
+        });
         showToast('Fullscreen mode activated', 'success');
     } else {
-        document.exitFullscreen();
+        document.exitFullscreen().catch(err => {
+            console.error('Exit fullscreen error:', err);
+        });
         showToast('Fullscreen mode exited', 'info');
     }
 }
@@ -1032,7 +1229,8 @@ function showToast(message, type = 'success') {
         elements.toast.style.background = '#43e97b';
     }
     
-    setTimeout(() => {
+    clearTimeout(elements.toastTimeout);
+    elements.toastTimeout = setTimeout(() => {
         elements.toast.classList.add('hidden');
     }, 3000);
 }
