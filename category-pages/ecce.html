@@ -1,767 +1,919 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ECCE Teacher Hub | MagicRills — Live Analytics (TiDB Powered)</title>
-    <!-- Google Fonts & Font Awesome 6 (free) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js CDN for graph -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECCE Teacher Tools - Magicrills</title>
+    
+    <!-- SEO -->
+    <meta name="description" content="12+ Free AI tools for ECCE Teachers. Generate circle time stories, songs, worksheets, milestone checkers, and more. 100% free. No sign up required.">
+    <meta name="keywords" content="ECCE teacher tools, early childhood education, circle time generator, milestone checker, sensory play, worksheet maker">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://magicrills.com/category-pages/ecce.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="ECCE Teacher Tools - Magicrills">
+    <meta property="og:description" content="12+ Free AI tools for ECCE Teachers. Circle time, worksheets, milestone checkers, and more.">
+    <meta property="og:url" content="https://magicrills.com/category-pages/ecce.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://github.com/Uzair-hameed/MagicRills.github.io/blob/main/pics/og-ecce.webp.webp?raw=true">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ECCE Teacher Tools - Magicrills">
+    <meta name="twitter:description" content="12+ Free AI tools for ECCE Teachers.">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4JE1RK9B0K"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-4JE1RK9B0K');
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ============================================
+           CSS VARIABLES - SPACE THEME
+           ============================================ */
+        :root {
+            --space-bg: #05070a;
+            --space-card: rgba(10, 15, 30, 0.75);
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff2d75;
+            --neon-purple: #b44aff;
+            --neon-yellow: #ffe74a;
+            --neon-green: #00ff88;
+            --text-primary: #ffffff;
+            --text-secondary: #8a9bb5;
+            --glass-bg: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.06);
+            --shadow-neon: 0 0 40px rgba(0,212,255,0.05);
+            --radius: 1.5rem;
+            --radius-lg: 2rem;
+            --transition: all 0.4s ease;
         }
 
+        [data-theme="light"] {
+            --space-bg: #e8edf5;
+            --space-card: rgba(255,255,255,0.7);
+            --text-primary: #0a0e17;
+            --text-secondary: #475569;
+            --glass-bg: rgba(0,0,0,0.03);
+            --glass-border: rgba(0,0,0,0.08);
+            --shadow-neon: 0 0 40px rgba(0,0,0,0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
-            background: #fefaf5;
-            color: #1e2a2f;
-            scroll-behavior: smooth;
+            background: var(--space-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.6s ease, color 0.6s ease;
+            min-height: 100vh;
         }
 
-        :root {
-            --orange: #FFB347;
-            --purple: #B19CD9;
-            --aqua: #8FD9C7;
-            --orange-light: #FFD9B5;
-            --purple-light: #E4D5F7;
-            --aqua-light: #C7F0E5;
-            --dark-text: #2c3e2f;
-            --card-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
-            --card-hover: 0 20px 30px -12px rgba(0,0,0,0.2);
-        }
-
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        .hero-upper {
-            background: linear-gradient(135deg, var(--orange-light) 0%, var(--purple-light) 100%);
-            border-radius: 2rem;
-            padding: 2rem 2rem 1.8rem;
-            margin: 1.5rem 0 1rem;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-        }
-
-        .hero-upper h1 {
-            font-size: 2.4rem;
-            font-weight: 800;
-            background: linear-gradient(120deg, #E67E22, #8E44AD, #1ABC9C);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: -0.3px;
-        }
-
-        .hero-upper p {
-            font-size: 1.1rem;
-            margin-top: 0.75rem;
-            color: #2d3e3b;
-            font-weight: 500;
-        }
-
-        .hero-bottom {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1.2rem 2rem;
-            margin: 1rem 0 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1.2rem;
-            margin: 2rem 0 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 1.6rem;
-            padding: 1.2rem 0.8rem;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-            transition: all 0.2s ease;
-            border-bottom: 4px solid var(--orange);
-        }
-
-        .stat-card i {
-            font-size: 2rem;
-            color: var(--purple);
-            margin-bottom: 0.6rem;
-        }
-
-        .stat-number {
-            font-size: 1.9rem;
-            font-weight: 800;
-            color: #1f3d38;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #5f6c6a;
-        }
-
-        .graph-container {
-            background: white;
-            border-radius: 1.6rem;
-            padding: 1.2rem;
-            margin: 1rem 0 2rem;
-            box-shadow: var(--card-shadow);
-        }
-
-        canvas#viewsChart {
-            max-height: 260px;
-            width: 100%;
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 2rem 0 1.2rem;
-            border-left: 6px solid var(--orange);
-            padding-left: 1rem;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.8rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .tool-card {
-            background: white;
-            border-radius: 1.5rem;
+        /* ============================================
+           SPACE BACKGROUND - ANIMATED
+           ============================================ */
+        #space-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: var(--space-bg);
             overflow: hidden;
-            transition: all 0.25s ease-in-out;
-            box-shadow: var(--card-shadow);
-            position: relative;
-            border: 1px solid #f0e4d4;
+            transition: background 0.6s ease;
         }
 
+        .stars { position: absolute; inset: 0; pointer-events: none; }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite alternate;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            animation: nebula-float 25s ease-in-out infinite alternate;
+        }
+        .nebula-1 {
+            width: 500px; height: 500px;
+            top: -100px; left: -100px;
+            background: radial-gradient(circle, rgba(0,212,255,0.15), transparent);
+        }
+        .nebula-2 {
+            width: 400px; height: 400px;
+            bottom: -50px; right: -50px;
+            background: radial-gradient(circle, rgba(255,45,117,0.1), transparent);
+            animation-delay: -8s;
+        }
+        .nebula-3 {
+            width: 350px; height: 350px;
+            top: 50%; left: 30%;
+            background: radial-gradient(circle, rgba(180,74,255,0.08), transparent);
+            animation-delay: -15s;
+        }
+        @keyframes nebula-float {
+            0% { transform: translate(0,0) scale(1); }
+            100% { transform: translate(30px,-20px) scale(1.1); }
+        }
+
+        .glow-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-particle 15s ease-in-out infinite alternate;
+        }
+        @keyframes float-particle {
+            0% { transform: translate(0,0) scale(1); opacity: 0.1; }
+            50% { transform: translate(20px,-30px) scale(1.2); opacity: 0.2; }
+            100% { transform: translate(-10px,20px) scale(0.9); opacity: 0.1; }
+        }
+
+        [data-theme="light"] .nebula { opacity: 0.05; }
+        [data-theme="light"] .glow-particle { display: none; }
+
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--space-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; box-shadow: 0 0 20px var(--neon-blue); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-pink); }
+
+        /* ============================================
+           CONTAINER
+           ============================================ */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 0; flex-wrap: wrap; gap: 1rem;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 0.75rem; text-decoration: none;
+            background: var(--space-card); backdrop-filter: blur(20px);
+            padding: 0.5rem 1.5rem; border-radius: 60px;
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);
+            transition: var(--transition);
+        }
+        .logo:hover { transform: scale(1.03); border-color: var(--neon-blue); }
+        .logo h1 {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            font-size: 0.7rem; font-weight: 600;
+            color: var(--neon-yellow); background: rgba(255,231,74,0.1);
+            padding: 0.2rem 0.8rem; border-radius: 40px;
+            border: 1px solid rgba(255,231,74,0.15);
+        }
+        .header-actions { display: flex; align-items: center; gap: 0.8rem; }
+        .header-badge {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            padding: 0.3rem 1rem; border-radius: 60px;
+            font-size: 0.7rem; font-weight: 600; color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+        .theme-toggle {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); color: var(--text-secondary);
+            width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; font-size: 1.1rem; transition: var(--transition);
+        }
+        .theme-toggle:hover { border-color: var(--neon-blue); color: var(--neon-blue); transform: rotate(30deg); }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+            margin: 0.5rem 0 1.5rem;
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);
+        }
+        .hero-content { max-width: 700px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(0,212,255,0.06); backdrop-filter: blur(20px);
+            padding: 0.3rem 1rem; border-radius: 60px;
+            color: var(--neon-blue); font-size: 0.75rem; font-weight: 600;
+            border: 1px solid rgba(0,212,255,0.1); margin-bottom: 0.8rem;
+            animation: fadeUp 0.8s ease;
+        }
+        .hero-title {
+            font-size: 2.4rem; font-weight: 900; line-height: 1.1;
+            margin-bottom: 0.5rem; animation: fadeUp 1s ease;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink), var(--neon-purple));
+            background-size: 300% 300%;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradient-shift 4s ease infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .hero-subtitle {
+            font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7;
+            margin-bottom: 0.8rem; animation: fadeUp 1.2s ease;
+        }
+        .typewriter-wrapper {
+            display: inline-block; overflow: hidden; vertical-align: bottom;
+        }
+        .typewriter-text {
+            display: inline-block; overflow: hidden; white-space: nowrap;
+            border-right: 3px solid var(--neon-blue);
+            animation: typewriter 4s steps(40) 1s infinite alternate, blink-caret 0.8s step-end infinite;
+            color: var(--neon-yellow); font-weight: 600;
+        }
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--neon-blue); }
+        }
+        .hero-search { max-width: 500px; margin-top: 0.5rem; animation: fadeUp 1.4s ease; }
+        .hero-search .search-bar {
+            display: flex; align-items: center;
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: 60px; border: 1px solid var(--glass-border);
+            padding: 0.1rem; transition: var(--transition);
+        }
+        .hero-search .search-bar:focus-within { border-color: var(--neon-blue); box-shadow: 0 0 40px rgba(0,212,255,0.05); }
+        .hero-search .search-bar input {
+            flex: 1; background: transparent; border: none;
+            padding: 0.6rem 1.2rem; color: var(--text-primary);
+            font-size: 0.85rem; outline: none; font-family: 'Inter', sans-serif;
+        }
+        .hero-search .search-bar input::placeholder { color: var(--text-secondary); }
+        .hero-search .search-bar button {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border: none; color: white; padding: 0.5rem 1.2rem;
+            border-radius: 60px; cursor: pointer; font-weight: 600;
+            transition: var(--transition); font-size: 0.8rem;
+        }
+        .hero-search .search-bar button:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(0,212,255,0.1); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           DASHBOARD STATS
+           ============================================ */
+        .dashboard-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem; margin: 0.5rem 0 1.5rem;
+        }
+        .stat-card-mini {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: 1rem; padding: 0.8rem 1rem;
+            border: 1px solid var(--glass-border); text-align: center;
+            transition: var(--transition); box-shadow: var(--shadow-neon);
+        }
+        .stat-card-mini:hover { border-color: var(--neon-blue); transform: translateY(-4px); }
+        .stat-card-mini .number {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-card-mini .label {
+            font-size: 0.6rem; color: var(--text-secondary); font-weight: 500;
+        }
+
+        /* ============================================
+           SECTION HEADER
+           ============================================ */
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; margin: 2rem 0 1rem;
+        }
+        .section-title {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .section-title i { -webkit-text-fill-color: initial; color: var(--neon-yellow); }
+        .section-count {
+            background: var(--glass-bg); padding: 0.2rem 0.8rem;
+            border-radius: 40px; font-size: 0.7rem; color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* ============================================
+           TOOLS GRID
+           ============================================ */
+        .tools-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.2rem;
+        }
+        .tool-card {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius); padding: 1.2rem;
+            border: 1px solid var(--glass-border); transition: var(--transition);
+            text-decoration: none; box-shadow: var(--shadow-neon);
+            display: flex; flex-direction: column;
+        }
         .tool-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--card-hover);
-            background: linear-gradient(145deg, #fff9f0, #ffffff);
-            border-color: transparent;
-            animation: subtleGlow 0.3s ease;
+            transform: translateY(-6px); border-color: var(--neon-blue);
+            box-shadow: 0 0 60px rgba(0,212,255,0.05);
         }
-
-        .tool-card:hover .tool-inner {
-            background: linear-gradient(115deg, rgba(255,179,71,0.08), rgba(143,217,199,0.1), rgba(177,156,217,0.08));
+        .tool-card .tool-img {
+            width: 100%; height: 140px; border-radius: 0.8rem;
+            object-fit: cover; margin-bottom: 0.8rem;
+            border: 1px solid var(--glass-border); transition: var(--transition);
         }
-
-        .tool-inner {
-            padding: 1.4rem 1.2rem 1.2rem;
+        .tool-card:hover .tool-img { border-color: var(--neon-blue); }
+        .tool-card .tool-name {
+            font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+            margin-bottom: 0.3rem;
         }
-
-        .tool-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #2c3e2f;
+        .tool-card .tool-usage {
+            font-size: 0.7rem; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 0.3rem;
         }
-
-        .tool-card p {
-            font-size: 0.85rem;
-            color: #5e706b;
-            margin-bottom: 1rem;
+        .tool-card .tool-usage i { color: var(--neon-blue); }
+        .tool-card .tool-link {
+            margin-top: 0.8rem; padding: 0.4rem 1rem;
+            background: var(--glass-bg); border-radius: 60px;
+            text-align: center; color: var(--neon-blue); font-weight: 600;
+            font-size: 0.75rem; transition: var(--transition);
+            border: 1px solid var(--glass-border);
         }
+        .tool-card:hover .tool-link { background: var(--neon-blue); color: var(--space-bg); border-color: transparent; }
 
-        .counter-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 0.6rem;
-            border-top: 1px solid #f0e0d0;
-            padding-top: 0.8rem;
-        }
-
-        .usage-counter {
-            font-weight: 700;
-            background: var(--orange-light);
-            padding: 0.2rem 0.7rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .tool-link {
-            background: var(--aqua);
-            color: #1f3d38;
-            text-decoration: none;
-            padding: 0.3rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-
-        .tool-link:hover {
-            background: var(--orange);
-            color: white;
-        }
-
+        /* ============================================
+           BOTTOM SECTION
+           ============================================ */
         .bottom-section {
-            background: #ffffffea;
-            backdrop-filter: blur(2px);
-            border-radius: 2rem;
-            padding: 2rem 1.5rem;
-            margin: 2.5rem 0 2rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(177,156,217,0.3);
+            margin: 2.5rem 0 1.5rem;
         }
-
-        .bottom-flex {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            justify-content: space-between;
+        .bottom-card {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius); padding: 1.5rem;
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);
         }
-
-        .bottom-col {
-            flex: 1;
-            min-width: 160px;
+        .bottom-actions {
+            display: flex; flex-wrap: wrap; gap: 0.6rem;
+            justify-content: center; padding-top: 0.5rem;
         }
-
-        .bottom-col h4 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            border-left: 4px solid var(--purple);
-            padding-left: 10px;
+        .action-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1.2rem; border: 1px solid var(--glass-border);
+            border-radius: 60px; font-weight: 600; font-size: 0.8rem;
+            cursor: pointer; transition: var(--transition); text-decoration: none;
+            background: var(--glass-bg); backdrop-filter: blur(20px); color: var(--text-secondary);
         }
-
-        .clickable-list {
-            list-style: none;
+        .action-btn:hover { transform: translateY(-3px); border-color: var(--neon-blue); color: var(--text-primary); }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; border-color: transparent;
         }
-
-        .clickable-list li {
-            margin-bottom: 0.7rem;
+        .action-btn.primary:hover { box-shadow: 0 0 60px rgba(0,212,255,0.1); }
+        .action-btn.follow {
+            background: linear-gradient(135deg, var(--neon-pink), #ff2d75);
+            color: white; border-color: transparent;
         }
-
-        .clickable-list a {
-            text-decoration: none;
-            color: #2c6b5e;
-            font-weight: 500;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .clickable-list a:hover {
-            color: var(--orange);
-            transform: translateX(5px);
-        }
+        .action-btn.follow:hover { box-shadow: 0 0 60px rgba(255,45,117,0.1); }
 
         .social-icons {
-            display: flex;
-            gap: 1rem;
-            margin: 1rem 0;
-            flex-wrap: wrap;
+            display: flex; gap: 0.4rem; justify-content: center;
         }
-
         .social-icons a {
-            background: #f0eef3;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--purple);
-            font-size: 1.2rem;
-            transition: 0.2s;
-            text-decoration: none;
-            cursor: pointer;
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); transition: var(--transition);
+            text-decoration: none; border: 1px solid var(--glass-border);
         }
-
         .social-icons a:hover {
-            background: var(--orange);
-            color: white;
-            transform: scale(1.05);
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; transform: translateY(-3px); border-color: transparent;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-
-        .btn {
-            background: var(--purple-light);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.85rem;
-            text-decoration: none;
-        }
-
-        .btn-follow {
-            background: var(--orange);
-            color: white;
-        }
-
-        .btn-follow:hover {
-            background: #e6952e;
-        }
-
+        /* ============================================
+           SCROLL BUTTONS
+           ============================================ */
         .scroll-btn {
-            background: var(--aqua);
-            width: 40px;
-            height: 40px;
-            border-radius: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: 0.2s;
+            position: fixed; right: 1.2rem;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); color: var(--text-primary);
+            cursor: pointer; box-shadow: var(--shadow-neon); transition: var(--transition);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+        .scroll-btn:hover { transform: scale(1.1); border-color: var(--neon-blue); }
+        .scroll-up { bottom: 5rem; }
+        .scroll-down { bottom: 1.2rem; }
+
+        /* ============================================
+           TOAST
+           ============================================ */
+        .toast-container {
+            position: fixed; bottom: 6rem; left: 50%;
+            transform: translateX(-50%); z-index: 9999; max-width: 90%;
+        }
+        .toast {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            color: var(--text-primary); padding: 0.5rem 1.2rem;
+            border-radius: 60px; display: flex; align-items: center; gap: 0.6rem;
+            animation: slideUp 0.3s ease; box-shadow: var(--shadow-neon);
+            font-weight: 500; font-size: 0.8rem; border: 1px solid var(--glass-border);
+        }
+        .toast.success { border-color: var(--neon-green); color: var(--neon-green); }
+        .toast.error { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .toast.info { border-color: var(--neon-blue); color: var(--neon-blue); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .share-btn {
-            background: var(--purple);
-            color: white;
-        }
-
-        footer {
-            text-align: center;
-            padding: 1.5rem 0;
-            font-size: 0.8rem;
-            color: #7e8c8a;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--purple);
-        }
-
-        @media (max-width: 750px) {
-            .hero-upper h1 { font-size: 1.7rem; }
-            .stat-number { font-size: 1.5rem; }
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .hero { padding: 1.5rem; }
+            .hero-title { font-size: 1.8rem; }
+            .header { flex-direction: column; gap: 0.5rem; }
+            .logo { justify-content: center; }
+            .header-actions { justify-content: center; }
+            .dashboard-stats { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+            .stat-card-mini .number { font-size: 1.1rem; }
             .tools-grid { grid-template-columns: 1fr; }
-            .bottom-flex { flex-direction: column; }
+            .section-title { font-size: 1.1rem; }
+            .bottom-actions { flex-direction: column; align-items: stretch; }
+            .action-btn { justify-content: center; }
+            .social-icons { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 1.4rem; }
+            .hero { padding: 1rem; border-radius: 1rem; }
+            .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+            .stat-card-mini .number { font-size: 1rem; }
+            .stat-card-mini { padding: 0.5rem; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="hero-upper">
-        <h1><i class="fas fa-chalkboard-user"></i> ECCE Teacher Toolkit</h1>
-        <p>Empowering Early Childhood Educators • Smart Tools, Big Impact (TiDB Live)</p>
+    <!-- ============================================ -->
+    <!-- SPACE BACKGROUND - ANIMATED -->
+    <!-- ============================================ -->
+    <div id="space-bg">
+        <div class="stars" id="starsContainer"></div>
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        <div class="glow-particle" style="width:80px;height:80px;top:10%;left:20%;background:radial-gradient(circle,rgba(0,212,255,0.05),transparent);"></div>
+        <div class="glow-particle" style="width:60px;height:60px;top:60%;left:80%;background:radial-gradient(circle,rgba(255,45,117,0.04),transparent);animation-delay:-5s;"></div>
+        <div class="glow-particle" style="width:100px;height:100px;top:30%;left:70%;background:radial-gradient(circle,rgba(180,74,255,0.03),transparent);animation-delay:-10s;"></div>
     </div>
 
-    <!-- Dashboard - category_stats based -->
-    <div class="dashboard" id="dashboardStats">
-        <div class="stat-card"><i class="fas fa-chart-line"></i><div class="stat-number" id="totalViews">--</div><div class="stat-label">Total Views</div></div>
-        <div class="stat-card"><i class="fas fa-star"></i><div class="stat-number" id="avgRating">--</div><div class="stat-label">Avg Rating</div></div>
-        <div class="stat-card"><i class="fas fa-tools"></i><div class="stat-number" id="totalTools">--</div><div class="stat-label">Total Tools</div></div>
-        <div class="stat-card"><i class="fas fa-comment"></i><div class="stat-number" id="totalReviews">--</div><div class="stat-label">Total Reviews</div></div>
-        <div class="stat-card"><i class="fas fa-search"></i><div class="stat-number" id="monthlySearches">--</div><div class="stat-label">Monthly Searches</div></div>
+    <!-- ============================================ -->
+    <!-- TOAST CONTAINER -->
+    <!-- ============================================ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ============================================ -->
+    <!-- HEADER -->
+    <!-- ============================================ -->
+    <div class="container">
+        <header class="header">
+            <a href="/" class="logo">
+                <h1>Magicrills</h1>
+                <span>.com</span>
+            </a>
+            <div class="header-actions">
+                <div class="header-badge"><i class="fas fa-bolt"></i> 12+ ECCE Tools</div>
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button>
+            </div>
+        </header>
     </div>
 
-    <div class="graph-container">
-        <canvas id="viewsChart" width="400" height="180" style="max-height:220px; width:100%"></canvas>
-        <p style="text-align:center; margin-top:8px; font-size:12px; color:#7b8a76;">📈 Weekly views trend (last 7 days from TiDB)</p>
-    </div>
-
-    <div class="section-title"><i class="fas fa-tools"></i> Every Tool Usage Counter</div>
-    <div class="tools-grid" id="toolsGrid">
-        <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading tools...</div>
-    </div>
-
-    <div class="hero-bottom">
-        <div><i class="fas fa-heart" style="color:#FFB347;"></i> <strong>ECCE Community</strong> | 100+ joyful resources</div>
-        <div><i class="fas fa-lightbulb" style="color:#B19CD9;"></i> "Play • Learn • Grow"</div>
-        <div><i class="fas fa-chart-line" style="color:#8FD9C7;"></i> Real-time teacher analytics from TiDB</div>
-    </div>
-
-    <div class="bottom-section">
-        <div class="bottom-flex">
-            <div class="bottom-col">
-                <h4>✨ Quick Actions</h4>
-                <div class="action-buttons">
-                    <button class="btn btn-follow" id="followBtn"><i class="fab fa-gratipay"></i> Follow</button>
-                    <button class="btn share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
-                    <a href="https://magicrills.com" class="btn" id="backHomeLink" style="background:#8FD9C7; text-decoration:none; display:inline-block;"><i class="fas fa-home"></i> Back to Home</a>
-                </div>
-                <div class="scroll-buttons" style="display:flex; gap:10px; margin-top: 20px;">
-                    <div class="scroll-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></div>
-                    <div class="scroll-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></div>
-                </div>
-                <div class="social-icons" style="margin-top: 20px;">
-                    <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" id="twShare"><i class="fab fa-twitter"></i></a>
-                    <a href="#" id="igIcon"><i class="fab fa-instagram"></i></a>
-                    <a href="#" id="inShare"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" id="pinterestIcon"><i class="fab fa-pinterest"></i></a>
+    <!-- ============================================ -->
+    <!-- HERO SECTION -->
+    <!-- ============================================ -->
+    <div class="container">
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-badge"><i class="fas fa-baby"></i> Early Childhood Education</div>
+                <h1 class="hero-title">
+                    <span class="highlight">ECCE Teacher</span> Toolkit
+                </h1>
+                <p class="hero-subtitle">
+                    Empower young minds with smart tools for early childhood education.
+                    <span class="typewriter-wrapper"><span class="typewriter-text">12+ Free AI Tools</span></span>
+                </p>
+                <div class="hero-search">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="🔍 Search ECCE tools...">
+                        <button onclick="filterTools()"><i class="fas fa-search"></i> Search</button>
+                    </div>
                 </div>
             </div>
-            <div class="bottom-col">
-                <h4>🔥 Popular Tools</h4>
-                <ul class="clickable-list" id="popularList"><li>Loading...</li></ul>
+        </section>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- DASHBOARD STATS -->
+    <!-- ============================================ -->
+    <div class="container">
+        <div class="dashboard-stats" id="statsRow">
+            <div class="stat-card-mini">
+                <div class="number" id="totalToolsCount">12</div>
+                <div class="label"><i class="fas fa-cubes"></i> Total Tools</div>
             </div>
-            <div class="bottom-col">
-                <h4>📈 Trending Tools</h4>
-                <ul class="clickable-list" id="trendingList"><li>Loading...</li></ul>
+            <div class="stat-card-mini">
+                <div class="number" id="onlineUsersCount">--</div>
+                <div class="label"><i class="fas fa-wifi"></i> Online Now</div>
             </div>
-            <div class="bottom-col">
-                <h4>🆕 Latest Tools</h4>
-                <ul class="clickable-list" id="latestToolList"><li>Loading...</li></ul>
+            <div class="stat-card-mini">
+                <div class="number" id="todayVisitorsCount">--</div>
+                <div class="label"><i class="fas fa-user"></i> Today's Visitors</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalUsageCount">--</div>
+                <div class="label"><i class="fas fa-chart-line"></i> Total Usage</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalViewsCount">--</div>
+                <div class="label"><i class="fas fa-eye"></i> Total Views</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalSharesCount">--</div>
+                <div class="label"><i class="fas fa-retweet"></i> Total Shares</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalFollowersCount">--</div>
+                <div class="label"><i class="fas fa-heart"></i> Total Followers</div>
             </div>
         </div>
     </div>
-    <footer>© MagicRills ECCE Hub • Nurturing young minds with creativity • Powered by TiDB</footer>
-</div>
 
-<script>
-    // ========== TOOLS DATA - LINKS REMAIN EXACTLY THE SAME ==========
-    const TOOLS = [
-        { name: "Developmental Milestone Checker", url: "https://magicrills.com/ECCE/developmental-milestone-checker.html", baseUsage: 145 },
-        { name: "Circle Time Story Generator", url: "https://magicrills.com/ECCE/circle-time-story-generator.html", baseUsage: 230 },
-        { name: "Circle Time Song Generator", url: "https://magicrills.com/ECCE/circle-time-song-generator.html", baseUsage: 198 },
-        { name: "Fine Motor Skills Activity Planner", url: "https://magicrills.com/ECCE/fine-motor-skills-activity-planner.html", baseUsage: 167 },
-        { name: "Sensory Play Idea Generator", url: "https://magicrills.com/ECCE/sensory-play-idea-generator.html", baseUsage: 189 },
-        { name: "Social-Emotional Development (ECCE)", url: "https://magicrills.com/ECCE/social-emotional-development-ecce.html", baseUsage: 156 },
-        { name: "Health & Hygiene Teacher Idea", url: "https://magicrills.com/ECCE/health-hygiene-ecce-teacher-idea.html", baseUsage: 134 },
-        { name: "Creative Art ECCE Idea", url: "https://magicrills.com/ECCE/creative-art-ecce-teacher-idea.html", baseUsage: 178 },
-        { name: "The World Around Us Idea", url: "https://magicrills.com/ECCE/the-world-around-us-teacher-idea.html", baseUsage: 143 },
-        { name: "Auto Time Table Generator", url: "https://magicrills.com/ECCE/auto-time-table-generator-for-ecce.html", baseUsage: 210 },
-        { name: "ECCE Observation Tool", url: "https://magicrills.com/ECCE/ecce-observation-tool.html", baseUsage: 125 },
-        { name: "Worksheet Maker for ECCE", url: "https://magicrills.com/ECCE/worksheet-maker-for-ecce-teachers.html", baseUsage: 192 }
-    ];
+    <!-- ============================================ -->
+    <!-- TOOLS GRID -->
+    <!-- ============================================ -->
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-toolbox"></i> All ECCE Tools</h2>
+            <span class="section-count" id="toolCount">12 Tools</span>
+        </div>
+        <div class="tools-grid" id="toolsGrid">
+            <!-- Loaded by JavaScript -->
+        </div>
+    </div>
 
-    // API endpoints (update to your actual TiDB backend)
-    const API_BASE = "https://api.magicrills.com"; // <-- CHANGE TO YOUR ACTUAL API URL
-    const CATEGORY_SLUG = "ecce";
-
-    // Global variables
-    let categoryStats = null;
-    let toolUsageMap = new Map(); // url -> usage count
-    let viewsChart = null;
-
-    // ========== API CALLS TO TiDB BACKEND ==========
-    async function fetchCategoryStats() {
-        try {
-            const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}`);
-            if (!response.ok) throw new Error("Failed to fetch stats");
-            const data = await response.json();
-            categoryStats = data;
-            updateDashboardUI();
-            return data;
-        } catch (error) {
-            console.error("Error fetching category stats:", error);
-            categoryStats = {
-                total_tools: 12,
-                total_reviews: 1890,
-                avg_rating: 4.6,
-                monthly_searches: 8750,
-                total_views: 15680
-            };
-            updateDashboardUI();
-            return categoryStats;
-        }
-    }
-
-    async function fetchToolsUsage() {
-        try {
-            const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}`);
-            if (!response.ok) throw new Error("Failed to fetch tools");
-            const toolsData = await response.json();
-            toolsData.forEach(tool => {
-                if (tool.url) {
-                    toolUsageMap.set(tool.url, tool.usage_count || 0);
-                }
-            });
-            TOOLS.forEach(tool => {
-                if (!toolUsageMap.has(tool.url)) {
-                    toolUsageMap.set(tool.url, tool.baseUsage);
-                }
-            });
-            renderToolsGrid();
-            renderSidebarLinks();
-            updateChartData();
-            return toolsData;
-        } catch (error) {
-            console.error("Error fetching tools usage:", error);
-            TOOLS.forEach(tool => {
-                toolUsageMap.set(tool.url, tool.baseUsage);
-            });
-            renderToolsGrid();
-            renderSidebarLinks();
-            return [];
-        }
-    }
-
-    async function incrementToolUsageOnServer(url) {
-        try {
-            const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}/increment`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ toolUrl: url })
-            });
-            if (!response.ok) throw new Error("Failed to increment");
-            const data = await response.json();
-            if (data.newCount !== undefined) {
-                toolUsageMap.set(url, data.newCount);
-            } else {
-                const current = toolUsageMap.get(url) || 0;
-                toolUsageMap.set(url, current + 1);
-            }
-            if (categoryStats && categoryStats.total_views !== undefined) {
-                categoryStats.total_views = (categoryStats.total_views || 0) + 1;
-                updateDashboardUI();
-            }
-            return true;
-        } catch (error) {
-            console.error("Error incrementing usage:", error);
-            const current = toolUsageMap.get(url) || 0;
-            toolUsageMap.set(url, current + 1);
-            return false;
-        }
-    }
-
-    // ========== UI UPDATE FUNCTIONS ==========
-    function updateDashboardUI() {
-        if (categoryStats) {
-            document.getElementById("totalViews").innerText = formatNumber(categoryStats.total_views || 15680);
-            document.getElementById("avgRating").innerText = (categoryStats.avg_rating || 4.6).toFixed(1);
-            document.getElementById("totalTools").innerText = (categoryStats.total_tools || 12).toLocaleString();
-            document.getElementById("totalReviews").innerText = (categoryStats.total_reviews || 1890).toLocaleString();
-            document.getElementById("monthlySearches").innerText = (categoryStats.monthly_searches || 8750).toLocaleString();
-        }
-    }
-
-    function formatNumber(num) {
-        if (num > 9999) return (num/1000).toFixed(1) + 'K';
-        return num.toLocaleString();
-    }
-
-    function renderToolsGrid() {
-        const grid = document.getElementById('toolsGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        
-        TOOLS.forEach((tool, idx) => {
-            const usageVal = toolUsageMap.get(tool.url) || tool.baseUsage;
-            const card = document.createElement('div');
-            card.className = 'tool-card';
-            card.innerHTML = `
-                <div class="tool-inner">
-                    <h3><i class="fas fa-wand-magic" style="color:var(--purple);"></i> ${escapeHtml(tool.name)}</h3>
-                    <p>Interactive ECCE tool for joyful teaching</p>
-                    <div class="counter-wrap">
-                        <span class="usage-counter"><i class="fas fa-chart-simple"></i> Used: <span class="usage-count">${usageVal.toLocaleString()}</span></span>
-                        <a href="#" class="tool-link" data-url="${tool.url}">Open Tool →</a>
-                    </div>
+    <!-- ============================================ -->
+    <!-- BOTTOM SECTION -->
+    <!-- ============================================ -->
+    <div class="container">
+        <div class="bottom-section">
+            <div class="bottom-card">
+                <div class="bottom-actions">
+                    <button class="action-btn primary" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share</button>
+                    <button class="action-btn follow" id="followBtn"><i class="fas fa-heart"></i> <span id="followText">Follow</span></button>
+                    <a href="/" class="action-btn"><i class="fas fa-home"></i> Home</a>
+                    <button class="action-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Up</button>
+                    <button class="action-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Down</button>
                 </div>
-            `;
-            const link = card.querySelector('.tool-link');
-            link.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const url = link.getAttribute('data-url');
-                await incrementToolUsageOnServer(url);
-                renderToolsGrid();
-                renderSidebarLinks();
-                updateChartData();
-                window.open(url, '_blank');
-            });
-            grid.appendChild(card);
-        });
-    }
+                <div class="social-icons" style="margin-top:0.8rem;">
+                    <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" id="twShare"><i class="fab fa-twitter"></i></a>
+                    <a href="#" id="waShare"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" id="liShare"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    function renderSidebarLinks() {
-        const toolsWithCount = TOOLS.map(tool => ({
-            name: tool.name,
-            url: tool.url,
-            count: toolUsageMap.get(tool.url) || tool.baseUsage
-        }));
-        
-        const popular = [...toolsWithCount].sort((a, b) => b.count - a.count).slice(0, 3);
-        const trending = [...toolsWithCount].sort((a, b) => b.count - a.count).slice(1, 4);
-        const latest = toolsWithCount[toolsWithCount.length - 1];
-        
-        const popularList = document.getElementById('popularList');
-        const trendingList = document.getElementById('trendingList');
-        const latestContainer = document.getElementById('latestToolList');
-        
-        if (popularList) {
-            popularList.innerHTML = '';
-            popular.forEach(t => {
-                const li = document.createElement('li');
-                li.innerHTML = `<a href="#" class="sidebar-link" data-url="${t.url}"><i class="fas fa-fire"></i> ${escapeHtml(t.name)}</a>`;
-                popularList.appendChild(li);
-            });
-        }
-        
-        if (trendingList) {
-            trendingList.innerHTML = '';
-            trending.forEach(t => {
-                const li = document.createElement('li');
-                li.innerHTML = `<a href="#" class="sidebar-link" data-url="${t.url}"><i class="fas fa-chart-line"></i> ${escapeHtml(t.name)}</a>`;
-                trendingList.appendChild(li);
-            });
-        }
-        
-        if (latestContainer) {
-            latestContainer.innerHTML = '';
-            if (latest) {
-                const li = document.createElement('li');
-                li.innerHTML = `<a href="#" class="sidebar-link" data-url="${latest.url}"><i class="fas fa-star"></i> ${escapeHtml(latest.name)} <span style="font-size:10px;">✨new</span></a>`;
-                latestContainer.appendChild(li);
+    <!-- ============================================ -->
+    <!-- SCROLL BUTTONS -->
+    <!-- ============================================ -->
+    <button class="scroll-btn scroll-up" id="scrollUpBtnFixed"><i class="fas fa-chevron-up"></i></button>
+    <button class="scroll-btn scroll-down" id="scrollDownBtnFixed"><i class="fas fa-chevron-down"></i></button>
+
+    <script>
+        // ============================================
+        // STARS GENERATOR
+        // ============================================
+        function generateStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 300; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2.5 + 0.5;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (Math.random() * 4 + 2) + 's');
+                star.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(star);
             }
         }
-        
-        // attach click listeners to sidebar links
-        document.querySelectorAll('.sidebar-link').forEach(link => {
-            link.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const url = link.getAttribute('data-url');
-                await incrementToolUsageOnServer(url);
-                renderToolsGrid();
-                renderSidebarLinks();
-                updateChartData();
-                window.open(url, '_blank');
-            });
-        });
-    }
 
-    // ========== CHART INITIALIZATION ==========
-    function initChart() {
-        const ctx = document.getElementById('viewsChart').getContext('2d');
-        viewsChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Views',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#FFB347',
-                    backgroundColor: 'rgba(255,179,71,0.1)',
-                    tension: 0.3,
-                    fill: true,
-                    pointBackgroundColor: '#B19CD9',
-                    pointBorderColor: '#8FD9C7',
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { position: 'top' } }
-            }
-        });
-    }
+        // ============================================
+        // CONFIG
+        // ============================================
+        const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+        const IMG_BASE = 'https://github.com/Uzair-hameed/MagicRills.github.io/blob/main/pics/';
+        let isFollowing = false;
 
-    async function updateChartData() {
-        if (!viewsChart) return;
-        try {
-            const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}/weekly`);
-            if (response.ok) {
-                const weeklyData = await response.json();
-                if (weeklyData && weeklyData.length === 7) {
-                    viewsChart.data.datasets[0].data = weeklyData;
-                    viewsChart.update();
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching weekly data:", error);
-        }
-        let totalUses = 0;
-        for (let val of toolUsageMap.values()) totalUses += val;
-        const baseDay = Math.max(150, Math.floor(totalUses / 12));
-        const weeklyFallback = [
-            Math.floor(baseDay * 0.5), Math.floor(baseDay * 0.6), Math.floor(baseDay * 0.7),
-            Math.floor(baseDay * 0.75), Math.floor(baseDay * 0.8), Math.floor(baseDay * 0.9),
-            baseDay
+        // ============================================
+        // ECCE TOOLS DATA
+        // ============================================
+        const ecceTools = [
+            { slug: 'developmental-milestone-checker', name: 'Developmental Milestone Checker', category: 'ecce' },
+            { slug: 'circle-time-story-generator', name: 'Circle Time Story Generator', category: 'ecce' },
+            { slug: 'circle-time-song-generator', name: 'Circle Time Song Generator', category: 'ecce' },
+            { slug: 'fine-motor-skills-activity-planner', name: 'Fine Motor Skills Activity Planner', category: 'ecce' },
+            { slug: 'sensory-play-idea-generator', name: 'Sensory Play Idea Generator', category: 'ecce' },
+            { slug: 'social-emotional-development-ecce', name: 'Social-Emotional Development (ECCE)', category: 'ecce' },
+            { slug: 'health-hygiene-ecce-teacher-idea', name: 'Health & Hygiene Teacher Idea', category: 'ecce' },
+            { slug: 'creative-art-ecce-teacher-idea', name: 'Creative Art ECCE Idea', category: 'ecce' },
+            { slug: 'the-world-around-us-teacher-idea', name: 'The World Around Us Idea', category: 'ecce' },
+            { slug: 'auto-time-table-generator-for-ecce', name: 'Auto Time Table Generator', category: 'ecce' },
+            { slug: 'ecce-observation-tool', name: 'ECCE Observation Tool', category: 'ecce' },
+            { slug: 'worksheet-maker-for-ecce-teachers', name: 'Worksheet Maker for ECCE', category: 'ecce' }
         ];
-        viewsChart.data.datasets[0].data = weeklyFallback;
-        viewsChart.update();
-    }
 
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    // ========== SOCIAL & ACTION BUTTONS ==========
-    function sharePage() {
-        if (navigator.share) {
-            navigator.share({ title: 'ECCE Teacher Toolkit', url: window.location.href }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link copied! Share with fellow educators.");
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+            container.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(-20px)'; setTimeout(() => t.remove(), 300); }, 3000);
         }
-    }
 
-    function followHub() {
-        alert("🎉 Thanks for following ECCE Teacher Hub! Stay updated with new resources.");
-    }
-
-    function openSocial(url) {
-        window.open(url, '_blank', 'width=600,height=400');
-    }
-
-    // ========== PAGE LOAD ==========
-    document.addEventListener("DOMContentLoaded", async () => {
-        initChart();
-        await fetchCategoryStats();
-        await fetchToolsUsage();
-        
-        document.getElementById("followBtn")?.addEventListener("click", followHub);
-        document.getElementById("pageShareBtn")?.addEventListener("click", sharePage);
-        document.getElementById("scrollUpBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        document.getElementById("scrollDownBtn")?.addEventListener("click", () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-        document.getElementById("backHomeLink")?.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "https://magicrills.com"; });
-        
-        const currUrl = encodeURIComponent(window.location.href);
-        const title = encodeURIComponent("ECCE Teacher Toolkit - MagicRills");
-        document.getElementById("fbShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.facebook.com/sharer/sharer.php?u=${currUrl}`); });
-        document.getElementById("twShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://twitter.com/intent/tweet?text=${title}&url=${currUrl}`); });
-        document.getElementById("inShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.linkedin.com/sharing/share-offsite/?url=${currUrl}`); });
-        document.getElementById("igIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("📸 Follow @magicrills on Instagram!"); });
-        document.getElementById("pinterestIcon")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://pinterest.com/pin/create/button/?url=${currUrl}&description=${title}`); });
-        
-        // Periodic refresh for real-time feel
-        setInterval(async () => {
-            if (categoryStats && categoryStats.total_views) {
-                categoryStats.total_views += Math.floor(Math.random() * 10) + 3;
-                updateDashboardUI();
+        // ============================================
+        // THEME
+        // ============================================
+        function initTheme() {
+            const saved = localStorage.getItem('magicrills-theme');
+            if (saved === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
             }
-        }, 45000);
-    });
-</script>
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            if (current === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+                localStorage.setItem('magicrills-theme', 'dark');
+                showToast('🌙 Dark mode activated', 'info');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+                localStorage.setItem('magicrills-theme', 'light');
+                showToast('☀️ Light mode activated', 'info');
+            }
+        }
+
+        // ============================================
+        // FETCH DATA
+        // ============================================
+        async function fetchStats() {
+            try {
+                const res = await fetch(`${API_BASE}/api/global-stats`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('todayVisitorsCount').textContent = formatNumber(data.todayVisitors || 0);
+                    document.getElementById('totalUsageCount').textContent = formatNumber(data.totalUsage || 0);
+                    document.getElementById('totalViewsCount').textContent = formatNumber(data.totalUsage || 0);
+                    document.getElementById('totalSharesCount').textContent = formatNumber(data.totalShares || 0);
+                    document.getElementById('totalFollowersCount').textContent = formatNumber(data.totalFollowers || 0);
+                }
+            } catch (e) {}
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/online-users`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('onlineUsersCount').textContent = data.online_users || 0;
+                }
+            } catch (e) {}
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        // ============================================
+        // RENDER TOOLS
+        // ============================================
+        function renderTools(filter = '') {
+            const grid = document.getElementById('toolsGrid');
+            grid.innerHTML = '';
+            
+            const filtered = ecceTools.filter(t => 
+                t.name.toLowerCase().includes(filter.toLowerCase()) ||
+                t.slug.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            document.getElementById('toolCount').textContent = filtered.length + ' Tools';
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="text-align:center;color:var(--text-secondary);padding:2rem;grid-column:1/-1;">No tools found matching "${filter}"</div>`;
+                return;
+            }
+            
+            filtered.forEach(tool => {
+                const imgUrl = `${IMG_BASE}og-${tool.slug}.webp.webp?raw=true`;
+                const card = document.createElement('a');
+                card.href = `/ECCE/${tool.slug}.html`;
+                card.className = 'tool-card';
+                card.innerHTML = `
+                    <img src="${imgUrl}" alt="${tool.name}" class="tool-img" onerror="this.src='${IMG_BASE}magicrills-logo.png?raw=true'">
+                    <div class="tool-name">${tool.name}</div>
+                    <div class="tool-usage"><i class="fas fa-chart-simple"></i> <span id="usage-${tool.slug}">--</span> uses</div>
+                    <div class="tool-link"><i class="fas fa-external-link-alt"></i> Launch Tool</div>
+                `;
+                grid.appendChild(card);
+                
+                // Fetch usage for this tool
+                fetch(`${API_BASE}/api/stats?tool_slug=${tool.slug}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            const el = document.getElementById(`usage-${tool.slug}`);
+                            if (el) el.textContent = formatNumber(data.totalUsage || 0);
+                        }
+                    })
+                    .catch(() => {
+                        const el = document.getElementById(`usage-${tool.slug}`);
+                        if (el) el.textContent = '0';
+                    });
+            });
+        }
+
+        // ============================================
+        // SEARCH
+        // ============================================
+        function filterTools() {
+            const query = document.getElementById('searchInput').value.trim();
+            renderTools(query);
+        }
+
+        // ============================================
+        // FOLLOW
+        // ============================================
+        async function toggleFollow() {
+            const btn = document.getElementById('followBtn');
+            const text = document.getElementById('followText');
+            try {
+                const action = isFollowing ? 'unfollow' : 'follow';
+                const res = await fetch(`${API_BASE}/api/followers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, user_id: localStorage.getItem('userId') || 'anonymous' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isFollowing = !isFollowing;
+                    text.textContent = isFollowing ? 'Following' : 'Follow';
+                    btn.style.background = isFollowing ? 'var(--neon-pink)' : 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))';
+                    if (data.total_followers) {
+                        document.getElementById('totalFollowersCount').textContent = formatNumber(data.total_followers);
+                    }
+                    showToast(isFollowing ? '❤️ You are now following ECCE Tools!' : '👋 You unfollowed ECCE Tools', 'success');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // SHARE
+        // ============================================
+        function sharePage() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: 'ECCE Teacher Tools - Magicrills', text: 'Check out these free AI tools for ECCE teachers!', url }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied!', 'success')).catch(() => showToast('Failed to copy link', 'error'));
+            }
+        }
+
+        function shareOn(platform) {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('ECCE Teacher Tools - Magicrills');
+            const urls = {
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+                twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                whatsapp: `https://wa.me/?text=${text}%20${url}`,
+                linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`
+            };
+            if (urls[platform]) window.open(urls[platform], '_blank', 'width=600,height=500');
+        }
+
+        // ============================================
+        // SCROLL
+        // ============================================
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+
+        // ============================================
+        // AUTO-REFRESH
+        // ============================================
+        function startAutoRefresh() {
+            setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/online-users`);
+                    const data = await res.json();
+                    if (data.success) document.getElementById('onlineUsersCount').textContent = data.online_users || 0;
+                } catch (e) {}
+            }, 30000);
+            setInterval(fetchStats, 60000);
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            generateStars();
+            initTheme();
+            fetchStats();
+            renderTools();
+            startAutoRefresh();
+            
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Search
+            document.getElementById('searchInput').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') filterTools();
+            });
+            
+            // Follow
+            document.getElementById('followBtn').addEventListener('click', toggleFollow);
+            
+            // Share
+            document.getElementById('sharePageBtn').addEventListener('click', sharePage);
+            
+            // Scroll
+            document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
+            document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
+            document.getElementById('scrollUpBtnFixed').addEventListener('click', scrollToTop);
+            document.getElementById('scrollDownBtnFixed').addEventListener('click', scrollToBottom);
+            
+            // Social
+            document.getElementById('fbShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('facebook'); });
+            document.getElementById('twShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('twitter'); });
+            document.getElementById('waShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('whatsapp'); });
+            document.getElementById('liShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('linkedin'); });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Home' || (e.ctrlKey && e.key === 'Home')) { e.preventDefault(); scrollToTop(); }
+                if (e.key === 'End' || (e.ctrlKey && e.key === 'End')) { e.preventDefault(); scrollToBottom(); }
+                if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                }
+            });
+            
+            console.log('🚀 ECCE Page Loaded!');
+            console.log('📡 API Base:', API_BASE);
+            console.log('🔧 Total ECCE Tools:', ecceTools.length);
+        });
+    </script>
 </body>
 </html>
