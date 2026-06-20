@@ -1,242 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Experience Certificate Generator</title>
-    <link rel="stylesheet" href="experience-certificate-generator.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Experience Certificate Generator - Crystal 3D</title>
+    <meta name="description" content="Create professional experience certificates with AI. Crystal 3D theme, 15+ styles." />
+    <link rel="canonical" href="https://magicrills.com/tools/experience-certificate-generator.html" />
+
+    <meta property="og:title" content="Experience Certificate Generator" />
+    <meta property="og:description" content="Crystal 3D themed certificate generator with AI." />
+    <meta property="og:type" content="website" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <link rel="stylesheet" href="experience-certificate-generator.css" />
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-certificate"></i> Experience Certificate Generator</h1>
-            <p>Create professional certificates for employees and staff members</p>
-        </header>
 
-        <div class="dashboard">
-            <!-- Form Section -->
-            <div class="form-section">
-                <div class="form-card">
-                    <h2><i class="fas fa-edit"></i> Employee Details</h2>
-                    
-                    <div class="form-group">
-                        <label for="employeeName">Full Name *</label>
-                        <input type="text" id="employeeName" placeholder="Enter employee full name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="employeeCnic">CNIC Number *</label>
-                        <input type="text" id="employeeCnic" placeholder="XXXXX-XXXXXXX-X">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="companyName">Company/Organization *</label>
-                        <input type="text" id="companyName" placeholder="Enter company name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="department">Department/Category *</label>
-                        <select id="department">
-                            <option value="">Select Department</option>
-                            <option value="School Premises">School Premises</option>
-                            <option value="Sales">Sales</option>
-                            <option value="Admin and Finance">Admin and Finance</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Teaching">Teaching</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Human Resources">Human Resources</option>
-                            <option value="Operations">Operations</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="designation">Designation *</label>
-                        <input type="text" id="designation" placeholder="Employee position">
-                    </div>
-                    
-                    <div class="date-group">
-                        <div class="form-group">
-                            <label for="startDate">Start Date *</label>
-                            <input type="date" id="startDate">
-                        </div>
-                        <div class="form-group">
-                            <label for="endDate">End Date *</label>
-                            <input type="date" id="endDate">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="experienceText">Experience Description</label>
-                        <textarea id="experienceText" rows="3" placeholder="Key responsibilities and achievements"></textarea>
-                        <button id="addExperience" class="btn-secondary">
-                            <i class="fas fa-plus"></i> Add Experience Point
-                        </button>
-                    </div>
-                    
-                    <div id="experienceList" class="experience-list"></div>
-                </div>
+    <!-- ===== PRELOADER ===== -->
+    <div id="preloader"><div class="loader-ring"></div><p>Loading...</p></div>
+
+    <!-- ===== HERO SECTION (Small) ===== -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-glow-1"></div>
+            <div class="hero-glow-2"></div>
+        </div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge"><i class="fas fa-certificate"></i> Professional Tool</div>
+                <h1 class="hero-title">Experience Certificate Generator</h1>
+                <h3 class="hero-subtitle">
+                    Create <span class="hero-highlight"><span id="typewriter"></span><span class="cursor-blink">|</span></span>
+                </h3>
+                <p class="hero-desc">Generate professional certificates with AI-powered descriptions. Crystal 3D theme.</p>
                 
-                <div class="form-card">
-                    <h2><i class="fas fa-sliders-h"></i> Customization</h2>
-                    
-                    <div class="form-group">
-                        <label for="issuerName">Issuer Name *</label>
-                        <input type="text" id="issuerName" placeholder="Certificate issuer name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="issuerDesignation">Issuer Designation *</label>
-                        <input type="text" id="issuerDesignation" placeholder="Issuer position">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Upload Signature</label>
-                        <div class="file-upload">
-                            <input type="file" id="signatureUpload" accept="image/*">
-                            <label for="signatureUpload" class="file-label">
-                                <i class="fas fa-upload"></i> Choose Signature Image
-                            </label>
-                        </div>
-                        <div id="signaturePreview" class="signature-preview"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Color Theme</label>
-                        <div class="color-themes">
-                            <div class="color-option active" data-color="#2c3e50" style="background:#2c3e50;"></div>
-                            <div class="color-option" data-color="#e74c3c" style="background:#e74c3c;"></div>
-                            <div class="color-option" data-color="#3498db" style="background:#3498db;"></div>
-                            <div class="color-option" data-color="#9b59b6" style="background:#9b59b6;"></div>
-                            <div class="color-option" data-color="#1abc9c" style="background:#1abc9c;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="fontFamily">Font Family</label>
-                        <select id="fontFamily">
-                            <option value="Poppins">Poppins</option>
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                        </select>
-                    </div>
+                <div class="hero-stats">
+                    <div class="hs-item"><span class="hs-number" id="statUsers">0</span><span class="hs-label">Users</span></div>
+                    <div class="hs-item"><span class="hs-number" id="statCerts">0</span><span class="hs-label">Certificates</span></div>
+                    <div class="hs-item"><span class="hs-number" id="statReactions">0</span><span class="hs-label">Reactions</span></div>
+                    <div class="hs-item"><span class="hs-number" id="statShares">0</span><span class="hs-label">Shares</span></div>
+                </div>
+
+                <div class="hero-actions">
+                    <a href="#dashboard" class="btn-primary-hero"><i class="fas fa-plus-circle"></i> Create Certificate</a>
+                    <a href="#styles" class="btn-secondary-hero"><i class="fas fa-chevron-down"></i> View Styles</a>
                 </div>
             </div>
-            
-            <!-- Preview Section -->
-            <div class="preview-section">
-                <div class="preview-card">
-                    <h2><i class="fas fa-eye"></i> Certificate Preview</h2>
-                    <div class="certificate-container">
-                        <div class="certificate-a4" id="certificatePreview">
-                            <!-- Certificate header -->
-                            <div class="certificate-header">
-                                <div class="header-decoration">
-                                    <div class="decoration-left"></div>
-                                    <div class="decoration-center">
-                                        <i class="fas fa-certificate"></i>
-                                    </div>
-                                    <div class="decoration-right"></div>
-                                </div>
-                                <h1>CERTIFICATE OF EXPERIENCE</h1>
-                                <div class="header-subtitle">This is to certify that</div>
-                            </div>
-                            
-                            <!-- Certificate body -->
-                            <div class="certificate-body">
-                                <div class="employee-name" id="previewName">[Employee Name]</div>
-                                <div class="employee-details">
-                                    <p>Holder of CNIC: <span id="previewCnic">[CNIC Number]</span> has worked with 
-                                    <span id="previewCompany">[Company Name]</span> in the <span id="previewDepartment">[Department]</span> 
-                                    department as <span id="previewDesignation">[Designation]</span> from 
-                                    <span id="previewStartDate">[Start Date]</span> to <span id="previewEndDate">[End Date]</span>.</p>
-                                    
-                                    <p>During the employment period, the employee demonstrated excellent professional skills and dedication. Key responsibilities included:</p>
-                                    
-                                    <ul id="previewExperienceList">
-                                        <li>Sample responsibility or achievement</li>
-                                        <li>Another key contribution</li>
-                                    </ul>
-                                    
-                                    <p>The employee performed all duties with utmost sincerity and professionalism. We wish <span id="previewName2">[Employee Name]</span> success in all future endeavors.</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Certificate footer -->
-                            <div class="certificate-footer">
-                                <div class="signature-section">
-                                    <div id="previewSignature" class="signature-placeholder">
-                                        <div class="signature-line"></div>
-                                    </div>
-                                    <div class="issuer-details">
-                                        <div id="previewIssuerName">[Issuer Name]</div>
-                                        <div id="previewIssuerDesignation">[Issuer Designation]</div>
-                                    </div>
-                                </div>
-                                <div class="date-section">
-                                    <div class="date-label">Date of Issue:</div>
-                                    <div id="previewCurrentDate">[Current Date]</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Certificate border decorations -->
-                            <div class="border-decoration top-left"></div>
-                            <div class="border-decoration top-right"></div>
-                            <div class="border-decoration bottom-left"></div>
-                            <div class="border-decoration bottom-right"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="preview-actions">
-                        <button id="generateBtn" class="btn-primary">
-                            <i class="fas fa-sync-alt"></i> Generate Certificate
-                        </button>
-                        <button id="exportWord" class="btn-success">
-                            <i class="fas fa-file-word"></i> Export as MS Word
-                        </button>
-                        <button id="resetBtn" class="btn-warning">
-                            <i class="fas fa-redo"></i> Reset Form
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- AI Suggestions Panel -->
-                <div class="ai-panel">
-                    <h3><i class="fas fa-robot"></i> AI Experience Suggestions</h3>
-                    <div class="suggestions-list">
-                        <div class="suggestion-item" data-text="Demonstrated exceptional leadership and team management capabilities">
-                            <i class="fas fa-lightbulb"></i> Leadership skills
-                        </div>
-                        <div class="suggestion-item" data-text="Consistently exceeded performance targets and expectations">
-                            <i class="fas fa-chart-line"></i> Performance excellence
-                        </div>
-                        <div class="suggestion-item" data-text="Showed remarkable problem-solving abilities in challenging situations">
-                            <i class="fas fa-puzzle-piece"></i> Problem solving
-                        </div>
-                        <div class="suggestion-item" data-text="Effectively collaborated with cross-functional teams to achieve project goals">
-                            <i class="fas fa-users"></i> Team collaboration
-                        </div>
+            <div class="hero-visual">
+                <div class="crystal-3d">
+                    <div class="crystal-inner">
+                        <div class="crystal-icon"><i class="fas fa-certificate"></i></div>
+                        <div class="crystal-title">CERT</div>
+                        <div class="crystal-line"></div>
+                        <div class="crystal-name">John Doe</div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Floating Action Buttons -->
-        <div class="floating-actions">
-            <button class="fab" title="Help Guide">
-                <i class="fas fa-question"></i>
-            </button>
-            <button class="fab" title="Save Template">
-                <i class="fas fa-save"></i>
-            </button>
-            <button class="fab" title="Quick Examples">
-                <i class="fas fa-bolt"></i>
-            </button>
+    </section>
+
+    <!-- ===== STYLES SECTION (Only Dropdown) ===== -->
+    <section class="styles" id="styles">
+        <div class="container">
+            <div class="section-label">Certificate Styles</div>
+            <h2 class="section-title">Choose from <span style="color:var(--primary)">15+</span> Designs</h2>
+            <div class="styles-dropdown-wrap">
+                <select id="styleSelect" class="style-select">
+                    <option value="classic">🏛️ Classic Blue</option>
+                    <option value="modern">🌈 Modern Gradient</option>
+                    <option value="elegant">✨ Elegant Gold</option>
+                    <option value="corporate">🏢 Corporate Dark</option>
+                    <option value="minimal">⬜ Minimal Clean</option>
+                    <option value="premium">👑 Premium Purple</option>
+                    <option value="royal">❤️ Royal Red</option>
+                    <option value="ocean">🌊 Ocean Teal</option>
+                    <option value="forest">🌲 Forest Green</option>
+                    <option value="sunset">🌅 Sunset Orange</option>
+                    <option value="rose">🌹 Pink Rose</option>
+                    <option value="space">🚀 Space Dark</option>
+                    <option value="vintage">📜 Vintage Paper</option>
+                    <option value="neon">💜 Neon Glow</option>
+                    <option value="glass">🔮 Glassmorphism</option>
+                </select>
+            </div>
+            <div class="style-preview-grid" id="stylePreviewGrid"></div>
         </div>
+    </section>
+
+    <!-- ===== DASHBOARD ===== -->
+    <section class="dashboard" id="dashboard">
+        <div class="container">
+            <div class="dashboard-grid">
+
+                <!-- FORM COLUMN -->
+                <div class="form-col">
+                    <!-- Employee Details -->
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-user"></i> Employee Details</h3><span class="badge">Required</span></div>
+                        <div class="card-body">
+                            <div class="form-group"><label>Full Name <span class="req">*</span></label><input type="text" id="empName" placeholder="Enter employee name" /></div>
+                            <div class="form-group"><label>CNIC <span class="req">*</span></label><input type="text" id="empCnic" placeholder="XXXXX-XXXXXXX-X" /></div>
+                            <div class="form-group"><label>Company <span class="req">*</span></label><input type="text" id="empCompany" placeholder="Company name" /></div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Department <span class="req">*</span></label><select id="empDept"><option value="">Select</option><option value="School Premises">School Premises</option><option value="Sales">Sales</option><option value="Admin & Finance">Admin & Finance</option><option value="Marketing">Marketing</option><option value="Teaching">Teaching</option><option value="IT">Information Technology</option><option value="HR">Human Resources</option><option value="Operations">Operations</option></select></div>
+                                <div class="form-group"><label>Designation <span class="req">*</span></label><input type="text" id="empDesignation" placeholder="Position" /></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Start Date <span class="req">*</span></label><input type="date" id="empStart" /></div>
+                                <div class="form-group"><label>End Date <span class="req">*</span></label><input type="date" id="empEnd" /></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Experience Points</label>
+                                <textarea id="expInput" rows="2" placeholder="Key responsibilities..."></textarea>
+                                <div class="btn-row">
+                                    <button class="btn-sm btn-outline" id="addExpBtn"><i class="fas fa-plus"></i> Add</button>
+                                    <button class="btn-sm btn-ai" id="aiGenBtn"><i class="fas fa-robot"></i> AI Generate</button>
+                                </div>
+                            </div>
+                            <div id="expList" class="exp-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PREVIEW COLUMN -->
+                <div class="preview-col">
+                    <div class="card preview-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-eye"></i> Live Preview</h3>
+                            <div class="preview-tools">
+                                <button class="pt-btn" id="zoomInBtn"><i class="fas fa-search-plus"></i></button>
+                                <button class="pt-btn" id="zoomOutBtn"><i class="fas fa-search-minus"></i></button>
+                                <button class="pt-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="preview-wrap" id="previewWrap">
+                            <div class="certificate" id="certificate">
+                                <div class="cert-watermark">CERTIFIED</div>
+                                <div class="cert-border tl"></div><div class="cert-border tr"></div>
+                                <div class="cert-border bl"></div><div class="cert-border br"></div>
+                                <div class="cert-header">
+                                    <div class="cert-dec"><span class="dec-line"></span><span class="dec-icon"><i class="fas fa-certificate"></i></span><span class="dec-line"></span></div>
+                                    <h1>CERTIFICATE OF EXPERIENCE</h1>
+                                    <p class="cert-sub">This is to certify that</p>
+                                </div>
+                                <div class="cert-body">
+                                    <div class="cert-name" id="previewName">[Employee Name]</div>
+                                    <div class="cert-details">
+                                        <p>Holder of CNIC: <span id="previewCnic">[CNIC]</span> has worked with <span id="previewCompany">[Company]</span> in the <span id="previewDept">[Department]</span> department as <span id="previewDesignation">[Designation]</span> from <span id="previewStart">[Start]</span> to <span id="previewEnd">[End]</span>.</p>
+                                        <p>Key responsibilities included:</p>
+                                        <ul id="previewExpList"><li>Sample responsibility</li><li>Another contribution</li></ul>
+                                        <p>We wish <span id="previewName2">[Employee Name]</span> success in future endeavors.</p>
+                                    </div>
+                                </div>
+                                <div class="cert-footer">
+                                    <div class="cert-sig"><div id="previewSig"><div class="sig-line"></div></div><div class="sig-name" id="previewIssuer">[Issuer]</div><div class="sig-title" id="previewIssuerTitle">[Designation]</div></div>
+                                    <div class="cert-date"><span class="date-label">Date of Issue:</span><span id="previewDate">[Date]</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ===== HORIZONTAL CUSTOMIZATION (MS Word Style) ===== -->
+                        <div class="customization-horizontal" id="customizationBar">
+                            <div class="custom-group">
+                                <label><i class="fas fa-font"></i> Font</label>
+                                <select id="fontSelect">
+                                    <option value="Inter, sans-serif">Inter</option>
+                                    <option value="Poppins, sans-serif">Poppins</option>
+                                    <option value="Montserrat, sans-serif">Montserrat</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                </select>
+                            </div>
+                            <div class="custom-group">
+                                <label><i class="fas fa-text-height"></i> Size</label>
+                                <select id="fontSizeSelect">
+                                    <option value="12px">Small</option>
+                                    <option value="14px" selected>Normal</option>
+                                    <option value="16px">Large</option>
+                                    <option value="18px">XL</option>
+                                </select>
+                            </div>
+                            <div class="custom-group">
+                                <label><i class="fas fa-arrows-alt-h"></i> Layout</label>
+                                <select id="layoutSelect">
+                                    <option value="standard">Standard</option>
+                                    <option value="compact">Compact</option>
+                                    <option value="spacious">Spacious</option>
+                                </select>
+                            </div>
+                            <div class="custom-group">
+                                <label><i class="fas fa-align-left"></i> Align</label>
+                                <select id="alignSelect">
+                                    <option value="left">Left</option>
+                                    <option value="center" selected>Center</option>
+                                    <option value="right">Right</option>
+                                    <option value="justify">Justify</option>
+                                </select>
+                            </div>
+                            <div class="custom-group">
+                                <label><i class="fas fa-palette"></i> Color</label>
+                                <div class="color-picker-mini" id="colorPickerMini">
+                                    <span class="cp-mini active" data-color="#2c3e50" style="background:#2c3e50"></span>
+                                    <span class="cp-mini" data-color="#e74c3c" style="background:#e74c3c"></span>
+                                    <span class="cp-mini" data-color="#3498db" style="background:#3498db"></span>
+                                    <span class="cp-mini" data-color="#9b59b6" style="background:#9b59b6"></span>
+                                    <span class="cp-mini" data-color="#1abc9c" style="background:#1abc9c"></span>
+                                    <span class="cp-mini" data-color="#f39c12" style="background:#f39c12"></span>
+                                    <span class="cp-mini" data-color="#e67e22" style="background:#e67e22"></span>
+                                    <span class="cp-mini" data-color="#2ecc71" style="background:#2ecc71"></span>
+                                </div>
+                            </div>
+                            <div class="custom-group">
+                                <label><i class="fas fa-signature"></i> Signature</label>
+                                <div class="upload-mini">
+                                    <input type="file" id="sigUpload" accept="image/*" />
+                                    <label for="sigUpload" class="upload-mini-label"><i class="fas fa-upload"></i></label>
+                                </div>
+                                <div id="sigPreviewMini" class="sig-preview-mini"></div>
+                            </div>
+                            <div class="custom-group">
+                                <label><i class="fas fa-user-tie"></i> Issuer</label>
+                                <input type="text" id="issuerName" placeholder="Name" style="width:100px;padding:4px 8px;font-size:0.75rem;" />
+                                <input type="text" id="issuerDesignation" placeholder="Title" style="width:100px;padding:4px 8px;font-size:0.75rem;margin-top:2px;" />
+                            </div>
+                        </div>
+
+                        <div class="preview-actions">
+                            <button class="btn-primary" id="generateBtn"><i class="fas fa-sync-alt"></i> Generate</button>
+                            <button class="btn-pdf" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button class="btn-word" id="docBtn"><i class="fas fa-file-word"></i> DOC</button>
+                            <button class="btn-txt" id="txtBtn"><i class="fas fa-file-alt"></i> TXT</button>
+                            <button class="btn-danger" id="resetBtn"><i class="fas fa-redo"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== BOTTOM SECTION: Reactions Left + Sharing Right ===== -->
+    <section class="bottom-section" id="bottomSection">
+        <div class="container">
+            <div class="bottom-grid">
+
+                <!-- LEFT: Sharing + Social Media Icons -->
+                <div class="bottom-left">
+                    <div class="sharing-card-bottom">
+                        <h4><i class="fas fa-share-alt" style="color:var(--primary)"></i> Share</h4>
+                        <div class="share-grid-bottom">
+                            <button class="s-btn-bottom fb" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                            <button class="s-btn-bottom tw" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                            <button class="s-btn-bottom wa" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                            <button class="s-btn-bottom li" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                            <button class="s-btn-bottom em" data-platform="email"><i class="fas fa-envelope"></i></button>
+                            <button class="s-btn-bottom cp" data-platform="copy"><i class="fas fa-copy"></i></button>
+                        </div>
+                        <div class="share-stats-bottom">Shared <span id="shareCount">0</span> times</div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Reactions -->
+                <div class="bottom-right">
+                    <div class="reactions-card-bottom">
+                        <h4><i class="fas fa-heart" style="color:#e74c3c"></i> Feedback</h4>
+                        <div class="reactions-grid-bottom" id="reactionsGridBottom">
+                            <button class="r-btn-bottom" data-emoji="👍"><span>👍</span><span class="r-count" id="r2-👍">0</span></button>
+                            <button class="r-btn-bottom" data-emoji="❤️"><span>❤️</span><span class="r-count" id="r2-❤️">0</span></button>
+                            <button class="r-btn-bottom" data-emoji="😮"><span>😮</span><span class="r-count" id="r2-😮">0</span></button>
+                            <button class="r-btn-bottom" data-emoji="😢"><span>😢</span><span class="r-count" id="r2-😢">0</span></button>
+                            <button class="r-btn-bottom" data-emoji="😂"><span>😂</span><span class="r-count" id="r2-😂">0</span></button>
+                            <button class="r-btn-bottom" data-emoji="🎉"><span>🎉</span><span class="r-count" id="r2-🎉">0</span></button>
+                            <button class="r-btn-bottom" data-emoji="😠"><span>😠</span><span class="r-count" id="r2-😠">0</span></button>
+                        </div>
+                        <div class="reactions-total-bottom">Total: <span id="totalReactionsBottom">0</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand"><h3><i class="fas fa-certificate"></i> Experience Certificate</h3><p>Crystal 3D Theme</p></div>
+                <div class="footer-links">
+                    <a href="https://magicrills.com"><i class="fas fa-home"></i> Home</a>
+                    <a href="https://magicrills.com/category-pages/administrator.html"><i class="fas fa-arrow-left"></i> Back</a>
+                    <a href="#hero"><i class="fas fa-arrow-up"></i> Top</a>
+                </div>
+            </div>
+            <div class="footer-bottom">© 2024 MagicRills.com — All rights reserved.</div>
+        </div>
+    </footer>
+
+    <!-- ===== FLOATING BUTTONS ===== -->
+    <div class="floating">
+        <button class="floating-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
+        <button class="floating-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
+        <button class="floating-btn" id="darkToggle"><i class="fas fa-moon"></i></button>
     </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toastContainer"></div>
 
     <script src="experience-certificate-generator.js"></script>
 </body>
