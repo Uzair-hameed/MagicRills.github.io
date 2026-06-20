@@ -1,899 +1,931 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>MagicRills | Teacher Tools Hub — Live Analytics (TiDB Powered)</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary-gradient: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.8) 100%);
-      --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-bg-hover: rgba(255, 255, 255, 0.07);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-border-hover: rgba(255, 255, 255, 0.2);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #060913;
-      color: #f8fafc;
-      overflow-x: hidden;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    /* Ambient Smooth Blurred Dynamic Background Animations */
-    .bg-blob {
-      position: fixed;
-      width: 550px;
-      height: 550px;
-      border-radius: 50%;
-      filter: blur(150px);
-      z-index: -1;
-      opacity: 0.35;
-      pointer-events: none;
-    }
-    .blob-1 {
-      background: #4f46e5;
-      top: -10%;
-      left: -5%;
-      animation: morphAndFloat 20s infinite alternate ease-in-out;
-    }
-    .blob-2 {
-      background: #db2777;
-      bottom: -10%;
-      right: -5%;
-      animation: morphAndFloat 25s infinite alternate-reverse ease-in-out;
-    }
-    .blob-3 {
-      background: #0891b2;
-      top: 45%;
-      left: 40%;
-      width: 450px;
-      height: 450px;
-      animation: morphAndFloat 18s infinite alternate ease-in-out;
-    }
-
-    @keyframes morphAndFloat {
-      0% { transform: translate(0, 0) scale(1); border-radius: 50%; }
-      50% { transform: translate(80px, -60px) scale(1.2); border-radius: 40% 60% 70% 30%; }
-      100% { transform: translate(-40px, 40px) scale(0.9); border-radius: 60% 40% 30% 70%; }
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem;
-    }
-
-    /* Smart Transparent Glass Hero Section */
-    .hero {
-      text-align: center;
-      margin-bottom: 3rem;
-      padding: 4rem 2rem;
-      background: rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border-radius: 2.5rem;
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      position: relative;
-      overflow: hidden;
-      animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .hero h1 {
-      font-size: 3.5rem;
-      font-weight: 800;
-      letter-spacing: -1.5px;
-      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-    }
-    .hero h1 i {
-      background: linear-gradient(135deg, #818cf8 0%, #f472b6 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: pulseGlow 3s infinite alternate;
-    }
-    .hero p {
-      margin-top: 1.2rem;
-      font-size: 1.2rem;
-      color: #94a3b8;
-      font-weight: 400;
-      letter-spacing: 0.5px;
-    }
-
-    @keyframes pulseGlow {
-      0% { filter: drop-shadow(0 0 2px rgba(129,140,248,0.2)); }
-      100% { filter: drop-shadow(0 0 12px rgba(244,114,182,0.6)); }
-    }
-
-    /* Transparent Analytics Dashboard Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-    .stat-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: 2rem;
-      padding: 1.8rem 1.2rem;
-      text-align: center;
-      border: 1px solid var(--glass-border);
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educator's Teaching Tool Suite - AI-Powered Teacher Resources | Magicrills</title>
     
-    /* Smart Multi-coloring Neon Highlights for Statistics */
-    .dashboard-grid .stat-card:nth-child(1):hover { border-color: #6366f1; box-shadow: 0 0 25px rgba(99,102,241,0.2); }
-    .dashboard-grid .stat-card:nth-child(2):hover { border-color: #ec4899; box-shadow: 0 0 25px rgba(236,72,153,0.2); }
-    .dashboard-grid .stat-card:nth-child(3):hover { border-color: #10b981; box-shadow: 0 0 25px rgba(16,185,129,0.2); }
-    .dashboard-grid .stat-card:nth-child(4):hover { border-color: #f59e0b; box-shadow: 0 0 25px rgba(245,158,11,0.2); }
-    .dashboard-grid .stat-card:nth-child(5):hover { border-color: #06b6d4; box-shadow: 0 0 25px rgba(6,182,212,0.2); }
-
-    .stat-card i {
-      font-size: 2.2rem;
-      margin-bottom: 0.8rem;
-      transition: transform 0.3s ease;
-    }
-    .dashboard-grid .stat-card:nth-child(1) i { color: #6366f1; }
-    .dashboard-grid .stat-card:nth-child(2) i { color: #ec4899; }
-    .dashboard-grid .stat-card:nth-child(3) i { color: #10b981; }
-    .dashboard-grid .stat-card:nth-child(4) i { color: #f59e0b; }
-    .dashboard-grid .stat-card:nth-child(5) i { color: #06b6d4; }
-
-    .stat-card h3 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 0.5rem;
-    }
-    .stat-number {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: #ffffff;
-      font-variant-numeric: tabular-nums;
-    }
-    .stat-card:hover {
-      transform: translateY(-8px);
-      background: var(--glass-bg-hover);
-    }
-    .stat-card:hover i {
-      transform: scale(1.15);
-    }
-
-    /* Glassmorphic Live Analytics Graph Container */
-    .graph-container {
-      background: rgba(15, 23, 42, 0.3);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 2.2rem;
-      padding: 2.2rem;
-      margin-bottom: 3.5rem;
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
-    }
-    .graph-container h3 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .graph-container h3 i {
-      color: #c084fc;
-    }
-    canvas { max-height: 280px; width: 100%; }
-
-    /* Modern Tools Header Layout */
-    .tools-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 3.5rem 0 2rem;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .tools-header h2 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .tools-header h2 i {
-      color: #818cf8;
-    }
-
-    /* Ultra-Clean Transparent Grid Cards */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 1.8rem;
-      margin-bottom: 4rem;
-    }
-    .tool-card {
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 2rem;
-      padding: 2rem;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      border: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-    }
+    <!-- SEO -->
+    <meta name="description" content="21+ Free AI teaching tools for educators. Generate lesson plans, papers, quizzes, model ideas, and more instantly. 100% free. No sign up required.">
+    <meta name="keywords" content="teacher tools, AI teaching resources, lesson plan generator, paper generator, quiz maker, educator tools, teaching aids, classroom resources">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://magicrills.com/category-pages/teacher.html">
     
-    /* Dynamic Multicolour Glow Trails via CSS selectors */
-    .tools-grid .tool-card:nth-child(3n+1):hover { border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.15); }
-    .tools-grid .tool-card:nth-child(3n+2):hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 20px 40px -10px rgba(236, 72, 153, 0.15); }
-    .tools-grid .tool-card:nth-child(3n+3):hover { border-color: rgba(6, 182, 212, 0.5); box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.15); }
-
-    .tool-card:hover {
-      transform: translateY(-8px) scale(1.01);
-      background: rgba(255, 255, 255, 0.05);
-    }
+    <!-- Open Graph -->
+    <meta property="og:title" content="Educator's Teaching Tool Suite - AI-Powered Teacher Resources">
+    <meta property="og:description" content="21+ Free AI teaching tools for educators. Generate lesson plans, papers, quizzes, model ideas, and more instantly. 100% free.">
+    <meta property="og:url" content="https://magicrills.com/category-pages/teacher.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://github.com/Uzair-hameed/MagicRills.github.io/blob/main/pics/og-teacher.webp.webp?raw=true">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     
-    .tool-card h4 {
-      font-weight: 700;
-      font-size: 1.25rem;
-      margin-bottom: 15px;
-      color: #ffffff;
-      line-height: 1.4;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      transition: color 0.3s;
-    }
-    .tool-card h4 i {
-      margin-top: 5px;
-      font-size: 1.1rem;
-    }
-    .tools-grid .tool-card:nth-child(3n+1) h4 i { color: #818cf8; }
-    .tools-grid .tool-card:nth-child(3n+2) h4 i { color: #f472b6; }
-    .tools-grid .tool-card:nth-child(3n+3) h4 i { color: #22d3ee; }
-
-    /* Glass Badges */
-    .usage-badge {
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 50px;
-      padding: 0.5rem 1.2rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin: 12px 0 18px;
-      color: #94a3b8;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      width: fit-content;
-    }
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Educator's Teaching Tool Suite - AI-Powered Teacher Resources">
+    <meta name="twitter:description" content="21+ Free AI teaching tools for educators. Generate lesson plans, papers, quizzes, model ideas, and more instantly.">
+    <meta name="twitter:image" content="https://github.com/Uzair-hameed/MagicRills.github.io/blob/main/pics/og-teacher.webp.webp?raw=true">
     
-    .tool-link-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: #cbd5e1;
-      font-weight: 600;
-      text-decoration: none;
-      font-size: 0.95rem;
-      transition: all 0.3s;
-    }
-    .tools-grid .tool-card:nth-child(3n+1) .tool-link-btn { color: #a5b4fc; }
-    .tools-grid .tool-card:nth-child(3n+2) .tool-link-btn { color: #fbcfe8; }
-    .tools-grid .tool-card:nth-child(3n+3) .tool-link-btn { color: #c5f2fa; }
-
-    .tool-card:hover .tool-link-btn {
-      color: #ffffff;
-      gap: 12px;
-    }
-
-    /* Glassmorphic Insight Lists Row */
-    .insight-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      margin: 4rem 0;
-    }
-    .insight-col {
-      flex: 1;
-      min-width: 300px;
-      background: rgba(15, 23, 42, 0.3);
-      border-radius: 2.2rem;
-      padding: 2rem;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      transition: transform 0.3s ease;
-    }
-    .insight-col:hover {
-      transform: translateY(-4px);
-    }
-    .insight-col h3 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .insight-list {
-      list-style: none;
-    }
-    .insight-list li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 0;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
-      gap: 15px;
-    }
-    .insight-list li:last-child {
-      border-bottom: none;
-    }
-    .tool-name-link {
-      font-weight: 500;
-      color: #cbd5e1;
-      text-decoration: none;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-    }
-    .tool-name-link:hover {
-      color: #ffffff;
-      padding-left: 4px;
-    }
-    .tool-count {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 30px;
-      padding: 4px 12px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    /* Actions Blur Bar & Glass Buttons */
-    .action-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px;
-      margin: 4rem 0 2rem;
-    }
-    .action-btn {
-      background: var(--primary-gradient);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 14px 32px;
-      border-radius: 50px;
-      font-weight: 600;
-      color: white;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.95rem;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 15px 30px rgba(99, 102, 241, 0.25);
-    }
-    .action-btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.45);
-      border-color: rgba(255,255,255,0.25);
-    }
-    .action-btn.light {
-      background: rgba(255, 255, 255, 0.03);
-      color: #ffffff;
-      border: 1px solid var(--glass-border);
-      box-shadow: none;
-    }
-    .action-btn.light:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--glass-border-hover);
-    }
-
-    /* Floating Social Control Deck */
-    .social-center {
-      display: flex;
-      justify-content: center;
-      margin: 2rem 0;
-    }
-    .social-icons {
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(10px);
-      padding: 1rem 2.5rem;
-      border-radius: 50px;
-      display: flex;
-      gap: 30px;
-      border: 1px solid var(--glass-border);
-    }
-    .social-icons a {
-      color: #94a3b8;
-      font-size: 1.5rem;
-      transition: all 0.3s ease;
-    }
-    .social-icons a:hover { 
-      color: #ffffff; 
-      transform: translateY(-4px) scale(1.2); 
-    }
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4JE1RK9B0K"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-4JE1RK9B0K');
+    </script>
     
-    footer {
-      text-align: center;
-      font-size: 0.85rem;
-      margin-top: 4rem;
-      color: #475569;
-      letter-spacing: 0.8px;
-    }
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CSS VARIABLES - SPACE THEME
+           ============================================ */
+        :root {
+            --space-bg: #05070a;
+            --space-card: rgba(10, 15, 30, 0.75);
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff2d75;
+            --neon-purple: #b44aff;
+            --neon-yellow: #ffe74a;
+            --neon-green: #00ff88;
+            --text-primary: #ffffff;
+            --text-secondary: #8a9bb5;
+            --glass-bg: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.06);
+            --shadow-neon: 0 0 40px rgba(0,212,255,0.05);
+            --radius: 1.5rem;
+            --radius-lg: 2rem;
+            --transition: all 0.4s ease;
+        }
 
-    /* Keyframe Animations */
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        [data-theme="light"] {
+            --space-bg: #e8edf5;
+            --space-card: rgba(255,255,255,0.7);
+            --text-primary: #0a0e17;
+            --text-secondary: #475569;
+            --glass-bg: rgba(0,0,0,0.03);
+            --glass-border: rgba(0,0,0,0.08);
+            --shadow-neon: 0 0 40px rgba(0,0,0,0.05);
+        }
 
-    @media (max-width: 768px) {
-      .container { padding: 1rem; }
-      .hero { padding: 2.5rem 1rem; }
-      .hero h1 { font-size: 2.4rem; }
-      .tools-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-      .action-bar { flex-direction: column; width: 100%; max-width: 340px; margin: 2rem auto; }
-      .action-btn { width: 100%; justify-content: center; }
-    }
-    .loading {
-      text-align: center;
-      padding: 4rem;
-      color: #818cf8;
-      font-size: 1.3rem;
-      grid-column: 1 / -1;
-    }
-  </style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--space-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.6s ease, color 0.6s ease;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           SPACE BACKGROUND - ANIMATED
+           ============================================ */
+        #space-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: var(--space-bg);
+            overflow: hidden;
+            transition: background 0.6s ease;
+        }
+
+        .stars { position: absolute; inset: 0; pointer-events: none; }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite alternate;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            animation: nebula-float 25s ease-in-out infinite alternate;
+        }
+        .nebula-1 {
+            width: 500px; height: 500px;
+            top: -100px; left: -100px;
+            background: radial-gradient(circle, rgba(0,212,255,0.15), transparent);
+        }
+        .nebula-2 {
+            width: 400px; height: 400px;
+            bottom: -50px; right: -50px;
+            background: radial-gradient(circle, rgba(255,45,117,0.1), transparent);
+            animation-delay: -8s;
+        }
+        .nebula-3 {
+            width: 350px; height: 350px;
+            top: 50%; left: 30%;
+            background: radial-gradient(circle, rgba(180,74,255,0.08), transparent);
+            animation-delay: -15s;
+        }
+        @keyframes nebula-float {
+            0% { transform: translate(0,0) scale(1); }
+            100% { transform: translate(30px,-20px) scale(1.1); }
+        }
+
+        .glow-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-particle 15s ease-in-out infinite alternate;
+        }
+        @keyframes float-particle {
+            0% { transform: translate(0,0) scale(1); opacity: 0.1; }
+            50% { transform: translate(20px,-30px) scale(1.2); opacity: 0.2; }
+            100% { transform: translate(-10px,20px) scale(0.9); opacity: 0.1; }
+        }
+
+        [data-theme="light"] .nebula { opacity: 0.05; }
+        [data-theme="light"] .glow-particle { display: none; }
+
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--space-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; box-shadow: 0 0 20px var(--neon-blue); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-pink); }
+
+        /* ============================================
+           CONTAINER
+           ============================================ */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 0; flex-wrap: wrap; gap: 1rem;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 0.75rem; text-decoration: none;
+            background: var(--space-card); backdrop-filter: blur(20px);
+            padding: 0.5rem 1.5rem; border-radius: 60px;
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);
+            transition: var(--transition);
+        }
+        .logo:hover { transform: scale(1.03); border-color: var(--neon-blue); }
+        .logo h1 {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            font-size: 0.7rem; font-weight: 600;
+            color: var(--neon-yellow); background: rgba(255,231,74,0.1);
+            padding: 0.2rem 0.8rem; border-radius: 40px;
+            border: 1px solid rgba(255,231,74,0.15);
+        }
+        .header-actions { display: flex; align-items: center; gap: 0.8rem; }
+        .header-badge {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            padding: 0.3rem 1rem; border-radius: 60px;
+            font-size: 0.7rem; font-weight: 600; color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+        .theme-toggle {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); color: var(--text-secondary);
+            width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; font-size: 1.1rem; transition: var(--transition);
+        }
+        .theme-toggle:hover { border-color: var(--neon-blue); color: var(--neon-blue); transform: rotate(30deg); }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+            margin: 0.5rem 0 1.5rem;
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);
+        }
+        .hero-content { max-width: 700px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(0,212,255,0.06); backdrop-filter: blur(20px);
+            padding: 0.3rem 1rem; border-radius: 60px;
+            color: var(--neon-blue); font-size: 0.75rem; font-weight: 600;
+            border: 1px solid rgba(0,212,255,0.1); margin-bottom: 0.8rem;
+            animation: fadeUp 0.8s ease;
+        }
+        .hero-title {
+            font-size: 2.4rem; font-weight: 900; line-height: 1.1;
+            margin-bottom: 0.5rem; animation: fadeUp 1s ease;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink), var(--neon-purple));
+            background-size: 300% 300%;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradient-shift 4s ease infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .hero-subtitle {
+            font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7;
+            margin-bottom: 0.8rem; animation: fadeUp 1.2s ease;
+        }
+        .typewriter-wrapper {
+            display: inline-block; overflow: hidden; vertical-align: bottom;
+        }
+        .typewriter-text {
+            display: inline-block; overflow: hidden; white-space: nowrap;
+            border-right: 3px solid var(--neon-blue);
+            animation: typewriter 4s steps(40) 1s infinite alternate, blink-caret 0.8s step-end infinite;
+            color: var(--neon-yellow); font-weight: 600;
+        }
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--neon-blue); }
+        }
+        .hero-search { max-width: 500px; margin-top: 0.5rem; animation: fadeUp 1.4s ease; }
+        .hero-search .search-bar {
+            display: flex; align-items: center;
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: 60px; border: 1px solid var(--glass-border);
+            padding: 0.1rem; transition: var(--transition);
+        }
+        .hero-search .search-bar:focus-within { border-color: var(--neon-blue); box-shadow: 0 0 40px rgba(0,212,255,0.05); }
+        .hero-search .search-bar input {
+            flex: 1; background: transparent; border: none;
+            padding: 0.6rem 1.2rem; color: var(--text-primary);
+            font-size: 0.85rem; outline: none; font-family: 'Inter', sans-serif;
+        }
+        .hero-search .search-bar input::placeholder { color: var(--text-secondary); }
+        .hero-search .search-bar button {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border: none; color: white; padding: 0.5rem 1.2rem;
+            border-radius: 60px; cursor: pointer; font-weight: 600;
+            transition: var(--transition); font-size: 0.8rem;
+        }
+        .hero-search .search-bar button:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(0,212,255,0.1); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           DASHBOARD STATS
+           ============================================ */
+        .dashboard-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem; margin: 0.5rem 0 1.5rem;
+        }
+        .stat-card-mini {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: 1rem; padding: 0.8rem 1rem;
+            border: 1px solid var(--glass-border); text-align: center;
+            transition: var(--transition); box-shadow: var(--shadow-neon);
+        }
+        .stat-card-mini:hover { border-color: var(--neon-blue); transform: translateY(-4px); }
+        .stat-card-mini .number {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-card-mini .label {
+            font-size: 0.6rem; color: var(--text-secondary); font-weight: 500;
+        }
+
+        /* ============================================
+           SECTION HEADER
+           ============================================ */
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; margin: 2rem 0 1rem;
+        }
+        .section-title {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .section-title i { -webkit-text-fill-color: initial; color: var(--neon-yellow); }
+        .section-count {
+            background: var(--glass-bg); padding: 0.2rem 0.8rem;
+            border-radius: 40px; font-size: 0.7rem; color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* ============================================
+           TOOLS GRID
+           ============================================ */
+        .tools-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.2rem;
+        }
+        .tool-card {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius); padding: 1.2rem;
+            border: 1px solid var(--glass-border); transition: var(--transition);
+            text-decoration: none; box-shadow: var(--shadow-neon);
+            display: flex; flex-direction: column;
+        }
+        .tool-card:hover {
+            transform: translateY(-6px); border-color: var(--neon-blue);
+            box-shadow: 0 0 60px rgba(0,212,255,0.05);
+        }
+        .tool-card .tool-img {
+            width: 100%; height: 140px; border-radius: 0.8rem;
+            object-fit: cover; margin-bottom: 0.8rem;
+            border: 1px solid var(--glass-border); transition: var(--transition);
+        }
+        .tool-card:hover .tool-img { border-color: var(--neon-blue); }
+        .tool-card .tool-name {
+            font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        .tool-card .tool-usage {
+            font-size: 0.7rem; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 0.3rem;
+        }
+        .tool-card .tool-usage i { color: var(--neon-blue); }
+        .tool-card .tool-link {
+            margin-top: 0.8rem; padding: 0.4rem 1rem;
+            background: var(--glass-bg); border-radius: 60px;
+            text-align: center; color: var(--neon-blue); font-weight: 600;
+            font-size: 0.75rem; transition: var(--transition);
+            border: 1px solid var(--glass-border);
+        }
+        .tool-card:hover .tool-link { background: var(--neon-blue); color: var(--space-bg); border-color: transparent; }
+
+        /* ============================================
+           BOTTOM SECTION
+           ============================================ */
+        .bottom-section {
+            margin: 2.5rem 0 1.5rem;
+        }
+        .bottom-card {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius); padding: 1.5rem;
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);
+        }
+        .bottom-actions {
+            display: flex; flex-wrap: wrap; gap: 0.6rem;
+            justify-content: center; padding-top: 0.5rem;
+        }
+        .action-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1.2rem; border: 1px solid var(--glass-border);
+            border-radius: 60px; font-weight: 600; font-size: 0.8rem;
+            cursor: pointer; transition: var(--transition); text-decoration: none;
+            background: var(--glass-bg); backdrop-filter: blur(20px); color: var(--text-secondary);
+        }
+        .action-btn:hover { transform: translateY(-3px); border-color: var(--neon-blue); color: var(--text-primary); }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; border-color: transparent;
+        }
+        .action-btn.primary:hover { box-shadow: 0 0 60px rgba(0,212,255,0.1); }
+        .action-btn.follow {
+            background: linear-gradient(135deg, var(--neon-pink), #ff2d75);
+            color: white; border-color: transparent;
+        }
+        .action-btn.follow:hover { box-shadow: 0 0 60px rgba(255,45,117,0.1); }
+
+        .social-icons {
+            display: flex; gap: 0.4rem; justify-content: center;
+        }
+        .social-icons a {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); transition: var(--transition);
+            text-decoration: none; border: 1px solid var(--glass-border);
+        }
+        .social-icons a:hover {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; transform: translateY(-3px); border-color: transparent;
+        }
+
+        /* ============================================
+           SCROLL BUTTONS
+           ============================================ */
+        .scroll-btn {
+            position: fixed; right: 1.2rem;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--space-card); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); color: var(--text-primary);
+            cursor: pointer; box-shadow: var(--shadow-neon); transition: var(--transition);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+        .scroll-btn:hover { transform: scale(1.1); border-color: var(--neon-blue); }
+        .scroll-up { bottom: 5rem; }
+        .scroll-down { bottom: 1.2rem; }
+
+        /* ============================================
+           TOAST
+           ============================================ */
+        .toast-container {
+            position: fixed; bottom: 6rem; left: 50%;
+            transform: translateX(-50%); z-index: 9999; max-width: 90%;
+        }
+        .toast {
+            background: var(--space-card); backdrop-filter: blur(20px);
+            color: var(--text-primary); padding: 0.5rem 1.2rem;
+            border-radius: 60px; display: flex; align-items: center; gap: 0.6rem;
+            animation: slideUp 0.3s ease; box-shadow: var(--shadow-neon);
+            font-weight: 500; font-size: 0.8rem; border: 1px solid var(--glass-border);
+        }
+        .toast.success { border-color: var(--neon-green); color: var(--neon-green); }
+        .toast.error { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .toast.info { border-color: var(--neon-blue); color: var(--neon-blue); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .hero { padding: 1.5rem; }
+            .hero-title { font-size: 1.8rem; }
+            .header { flex-direction: column; gap: 0.5rem; }
+            .logo { justify-content: center; }
+            .header-actions { justify-content: center; }
+            .dashboard-stats { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+            .stat-card-mini .number { font-size: 1.1rem; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 1.1rem; }
+            .bottom-actions { flex-direction: column; align-items: stretch; }
+            .action-btn { justify-content: center; }
+            .social-icons { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 1.4rem; }
+            .hero { padding: 1rem; border-radius: 1rem; }
+            .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+            .stat-card-mini .number { font-size: 1rem; }
+            .stat-card-mini { padding: 0.5rem; }
+        }
+    </style>
 </head>
 <body>
-<div class="bg-blob blob-1"></div>
-<div class="bg-blob blob-2"></div>
-<div class="bg-blob blob-3"></div>
 
-<div class="container">
-  <div class="hero">
-    <h1><i class="fas fa-chalkboard"></i> Teacher Tools Hub</h1>
-    <p>AI tools for teachers • real-time usage stats from TiDB • all tools clickable</p>
-  </div>
-
-  <div class="dashboard-grid" id="dashboardMetrics">
-    <div class="stat-card"><i class="fas fa-chart-line"></i><h3>Total Views</h3><div class="stat-number" id="totalViews">--</div></div>
-    <div class="stat-card"><i class="fas fa-star"></i><h3>Avg Rating</h3><div class="stat-number" id="avgRating">--</div></div>
-    <div class="stat-card"><i class="fas fa-tools"></i><h3>Total Tools</h3><div class="stat-number" id="totalTools">--</div></div>
-    <div class="stat-card"><i class="fas fa-comment"></i><h3>Total Reviews</h3><div class="stat-number" id="totalReviews">--</div></div>
-    <div class="stat-card"><i class="fas fa-search"></i><h3>Monthly Searches</h3><div class="stat-number" id="monthlySearches">--</div></div>
-  </div>
-
-  <div class="graph-container">
-    <h3><i class="fas fa-chart-line"></i> Weekly Tool Activity (Real Data from TiDB)</h3>
-    <canvas id="usageTrendChart" width="400" height="160"></canvas>
-  </div>
-
-  <div class="tools-header">
-    <h2><i class="fas fa-toolbox"></i> All Teaching Tools</h2>
-    <span style="font-size:0.85rem; color:#94a3b8;"><i class="fas fa-mouse-pointer"></i> click any tool to open</span>
-  </div>
-  <div class="tools-grid" id="toolsGrid">
-    <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading tools...</div>
-  </div>
-
-  <div class="insight-row">
-    <div class="insight-col" style="border-top: 4px solid #6366f1;">
-      <h3 style="color:#818cf8;"><i class="fas fa-clock"></i> 🆕 Latest Tools</h3>
-      <ul class="insight-list" id="latestList"><li>Loading...</li></ul>
+    <!-- ============================================ -->
+    <!-- SPACE BACKGROUND - ANIMATED -->
+    <!-- ============================================ -->
+    <div id="space-bg">
+        <div class="stars" id="starsContainer"></div>
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        <div class="glow-particle" style="width:80px;height:80px;top:10%;left:20%;background:radial-gradient(circle,rgba(0,212,255,0.05),transparent);"></div>
+        <div class="glow-particle" style="width:60px;height:60px;top:60%;left:80%;background:radial-gradient(circle,rgba(255,45,117,0.04),transparent);animation-delay:-5s;"></div>
+        <div class="glow-particle" style="width:100px;height:100px;top:30%;left:70%;background:radial-gradient(circle,rgba(180,74,255,0.03),transparent);animation-delay:-10s;"></div>
     </div>
-    <div class="insight-col" style="border-top: 4px solid #ec4899;">
-      <h3 style="color:#f472b6;"><i class="fas fa-fire"></i> 🔥 Popular Tools</h3>
-      <ul class="insight-list" id="popularList"><li>Loading...</li></ul>
+
+    <!-- ============================================ -->
+    <!-- TOAST CONTAINER -->
+    <!-- ============================================ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ============================================ -->
+    <!-- HEADER -->
+    <!-- ============================================ -->
+    <div class="container">
+        <header class="header">
+            <a href="/" class="logo">
+                <h1>Magicrills</h1>
+                <span>.com</span>
+            </a>
+            <div class="header-actions">
+                <div class="header-badge"><i class="fas fa-bolt"></i> 21+ Teacher Tools</div>
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button>
+            </div>
+        </header>
     </div>
-    <div class="insight-col" style="border-top: 4px solid #06b6d4;">
-      <h3 style="color:#22d3ee;"><i class="fas fa-chart-line"></i> 📈 Trending Now</h3>
-      <ul class="insight-list" id="trendingList"><li>Loading...</li></ul>
+
+    <!-- ============================================ -->
+    <!-- HERO SECTION -->
+    <!-- ============================================ -->
+    <div class="container">
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-badge"><i class="fas fa-chalkboard-teacher"></i> Educator's Teaching Suite</div>
+                <h1 class="hero-title">
+                    <span class="highlight">Educator's</span> Teaching Tool Suite
+                </h1>
+                <p class="hero-subtitle">
+                    AI-powered teaching resources for modern educators.
+                    <span class="typewriter-wrapper"><span class="typewriter-text">21+ Free AI Tools</span></span>
+                </p>
+                <div class="hero-search">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="🔍 Search teaching tools...">
+                        <button onclick="filterTools()"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-  </div>
 
-  <div class="action-bar">
-    <button class="action-btn" id="followBtn"><i class="fas fa-heart"></i> Follow Hub</button>
-    <a href="https://magicrills.com" class="action-btn light" id="backHomeLink"><i class="fas fa-home"></i> Back to Home</a>
-    <button class="action-btn light" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share Page</button>
-    <button class="action-btn light" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Top</button>
-    <button class="action-btn light" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Bottom</button>
-  </div>
-
-  <div class="social-center">
-    <div class="social-icons">
-      <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
-      <a href="#" id="twitterShare"><i class="fab fa-twitter"></i></a>
-      <a href="#" id="linkedinShare"><i class="fab fa-linkedin-in"></i></a>
-      <a href="#" id="instaIcon"><i class="fab fa-instagram"></i></a>
-      <a href="#" id="ytIcon"><i class="fab fa-youtube"></i></a>
+    <!-- ============================================ -->
+    <!-- DASHBOARD STATS -->
+    <!-- ============================================ -->
+    <div class="container">
+        <div class="dashboard-stats" id="statsRow">
+            <div class="stat-card-mini">
+                <div class="number" id="totalToolsCount">21</div>
+                <div class="label"><i class="fas fa-cubes"></i> Total Tools</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="onlineUsersCount">--</div>
+                <div class="label"><i class="fas fa-wifi"></i> Online Now</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="todayVisitorsCount">--</div>
+                <div class="label"><i class="fas fa-user"></i> Today's Visitors</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalUsageCount">--</div>
+                <div class="label"><i class="fas fa-chart-line"></i> Total Usage</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalViewsCount">--</div>
+                <div class="label"><i class="fas fa-eye"></i> Total Views</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalSharesCount">--</div>
+                <div class="label"><i class="fas fa-retweet"></i> Total Shares</div>
+            </div>
+            <div class="stat-card-mini">
+                <div class="number" id="totalFollowersCount">--</div>
+                <div class="label"><i class="fas fa-heart"></i> Total Followers</div>
+            </div>
+        </div>
     </div>
-  </div>
-  <footer>✨ Powered by TiDB • Real-time analytics • Every click updates database</footer>
-</div>
 
-<script>
-  // ========== TOOLS DATA - LINKS REMAIN EXACTLY THE SAME ==========
-  const TOOLS = [
-    { name: "Mathematics Models Idea Generator", url: "https://magicrills.com/Teacher/mathematics-models-idea-generator.html", baseUsage: 1872 },
-    { name: "Science Models Idea Generator", url: "https://magicrills.com/Teacher/science-models-idea-generator.html", baseUsage: 1563 },
-    { name: "Science Paper Generator", url: "https://magicrills.com/Teacher/science-paper-generator.html", baseUsage: 2041 },
-    { name: "Mathematics Paper Generator", url: "https://magicrills.com/Teacher/mathematics-paper-generator.html", baseUsage: 1928 },
-    { name: "Mind Map Generator", url: "https://magicrills.com/Teacher/mind-map-generator.html", baseUsage: 2844 },
-    { name: "Research Proposal Generator", url: "https://magicrills.com/Teacher/research-proposal-generator.html", baseUsage: 1132 },
-    { name: "Professional Case Study Generator", url: "https://magicrills.com/Teacher/professional-case-study-generator.html", baseUsage: 972 },
-    { name: "Q Bloom Builder", url: "https://magicrills.com/Teacher/q-bloom-builder.html", baseUsage: 834 },
-    { name: "Group Formation Tool", url: "https://magicrills.com/Teacher/group-formation-tool.html", baseUsage: 1450 },
-    { name: "Differentiated Instruction Idea", url: "https://magicrills.com/Teacher/differentiated-instruction-idea.html", baseUsage: 2203 },
-    { name: "Chapter to Outline Generator", url: "https://magicrills.com/Teacher/chapter-to-outline-generator.html", baseUsage: 1104 },
-    { name: "Learning Disabilities Dashboard", url: "https://magicrills.com/Teacher/learning-disabilities-dashboard.html", baseUsage: 910 },
-    { name: "STEAM PBL Project Generator", url: "https://magicrills.com/Teacher/steam-pbl-project-generator.html", baseUsage: 1789 },
-    { name: "English Paper Generator", url: "https://magicrills.com/Teacher/english-paper-generator.html", baseUsage: 1599 },
-    { name: "Urdu Paper Generator", url: "https://magicrills.com/Teacher/urdu-paper-generator.html", baseUsage: 1210 },
-    { name: "Urdu Language PDF-Word Converter", url: "https://magicrills.com/Teacher/urdu-language-pdf-word-converter.html", baseUsage: 2670 },
-    { name: "Plagiarism Paraphrasing Tool", url: "https://magicrills.com/Teacher/plagiarism-paraphrasing-tool.html", baseUsage: 3950 },
-    { name: "Teacher Resource Finder", url: "https://magicrills.com/Teacher/teacher-resource-finder.html", baseUsage: 1033 },
-    { name: "Advanced MCQ Maker Tool", url: "https://magicrills.com/Teacher/advanced-mcq-maker-tool.html", baseUsage: 2145 },
-    { name: "Advanced Lesson Plan Tool", url: "https://magicrills.com/Teacher/advanced-lesson-plan-tool.html", baseUsage: 2432 },
-    { name: "Advanced Notebook Checking Tool", url: "https://magicrills.com/Teacher/advanced-notebook-checking-tool.html", baseUsage: 1187 }
-  ];
+    <!-- ============================================ -->
+    <!-- TOOLS GRID -->
+    <!-- ============================================ -->
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-toolbox"></i> All Teaching Tools</h2>
+            <span class="section-count" id="toolCount">21 Tools</span>
+        </div>
+        <div class="tools-grid" id="toolsGrid">
+            <!-- Loaded by JavaScript -->
+        </div>
+    </div>
 
-  // API endpoints (update these to your actual TiDB backend URLs)
-  const API_BASE = "https://api.magicrills.com"; // <-- CHANGE TO YOUR ACTUAL API URL
-  const CATEGORY_SLUG = "teacher";
+    <!-- ============================================ -->
+    <!-- BOTTOM SECTION -->
+    <!-- ============================================ -->
+    <div class="container">
+        <div class="bottom-section">
+            <div class="bottom-card">
+                <div class="bottom-actions">
+                    <button class="action-btn primary" id="sharePageBtn"><i class="fas fa-share-alt"></i> Share</button>
+                    <button class="action-btn follow" id="followBtn"><i class="fas fa-heart"></i> <span id="followText">Follow</span></button>
+                    <a href="/" class="action-btn"><i class="fas fa-home"></i> Home</a>
+                    <button class="action-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i> Up</button>
+                    <button class="action-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i> Down</button>
+                </div>
+                <div class="social-icons" style="margin-top:0.8rem;">
+                    <a href="#" id="fbShare"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" id="twShare"><i class="fab fa-twitter"></i></a>
+                    <a href="#" id="waShare"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" id="liShare"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  // Global variables
-  let categoryStats = null;
-  let toolUsageMap = new Map(); // url -> usage count
-  let trendChart = null;
+    <!-- ============================================ -->
+    <!-- SCROLL BUTTONS -->
+    <!-- ============================================ -->
+    <button class="scroll-btn scroll-up" id="scrollUpBtnFixed"><i class="fas fa-chevron-up"></i></button>
+    <button class="scroll-btn scroll-down" id="scrollDownBtnFixed"><i class="fas fa-chevron-down"></i></button>
 
-  // ========== API CALLS TO TiDB BACKEND ==========
-  async function fetchCategoryStats() {
-    try {
-      const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}`);
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data = await response.json();
-      categoryStats = data;
-      updateDashboardUI();
-      return data;
-    } catch (error) {
-      console.error("Error fetching category stats:", error);
-      // Fallback to demo data if API fails
-      categoryStats = {
-        total_tools: 21,
-        total_reviews: 1250,
-        avg_rating: 4.7,
-        monthly_searches: 18200,
-        total_views: 52890
-      };
-      updateDashboardUI();
-      return categoryStats;
-    }
-  }
-
-  async function fetchToolsUsage() {
-    try {
-      const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}`);
-      if (!response.ok) throw new Error("Failed to fetch tools");
-      const toolsData = await response.json();
-      // toolsData should be array of { url, usage_count, name, etc }
-      toolsData.forEach(tool => {
-        if (tool.url) {
-          toolUsageMap.set(tool.url, tool.usage_count || 0);
+    <script>
+        // ============================================
+        // STARS GENERATOR
+        // ============================================
+        function generateStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 300; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2.5 + 0.5;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (Math.random() * 4 + 2) + 's');
+                star.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(star);
+            }
         }
-      });
-      // Ensure all TOOLS have a usage value
-      TOOLS.forEach(tool => {
-        if (!toolUsageMap.has(tool.url)) {
-          toolUsageMap.set(tool.url, tool.baseUsage);
+
+        // ============================================
+        // CONFIG
+        // ============================================
+        const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+        const IMG_BASE = 'https://github.com/Uzair-hameed/MagicRills.github.io/blob/main/pics/';
+        let isFollowing = false;
+
+        // ============================================
+        // TEACHER TOOLS DATA (21 Tools)
+        // ============================================
+        const teacherTools = [
+            { slug: 'mathematics-models-idea-generator', name: 'Mathematics Models Idea Generator', category: 'teacher' },
+            { slug: 'science-models-idea-generator', name: 'Science Models Idea Generator', category: 'teacher' },
+            { slug: 'science-paper-generator', name: 'Science Paper Generator', category: 'teacher' },
+            { slug: 'mathematics-paper-generator', name: 'Mathematics Paper Generator', category: 'teacher' },
+            { slug: 'mind-map-generator', name: 'Mind Map Generator', category: 'teacher' },
+            { slug: 'research-proposal-generator', name: 'Research Proposal Generator', category: 'teacher' },
+            { slug: 'professional-case-study-generator', name: 'Professional Case Study Generator', category: 'teacher' },
+            { slug: 'q-bloom-builder', name: 'Q Bloom Builder', category: 'teacher' },
+            { slug: 'group-formation-tool', name: 'Group Formation Tool', category: 'teacher' },
+            { slug: 'differentiated-instruction-idea', name: 'Differentiated Instruction Idea', category: 'teacher' },
+            { slug: 'chapter-to-outline-generator', name: 'Chapter to Outline Generator', category: 'teacher' },
+            { slug: 'learning-disabilities-dashboard', name: 'Learning Disabilities Dashboard', category: 'teacher' },
+            { slug: 'steam-pbl-project-generator', name: 'STEAM PBL Project Generator', category: 'teacher' },
+            { slug: 'english-paper-generator', name: 'English Paper Generator', category: 'teacher' },
+            { slug: 'urdu-paper-generator', name: 'Urdu Paper Generator', category: 'teacher' },
+            { slug: 'urdu-language-pdf-word-converter', name: 'Urdu Language PDF-Word Converter', category: 'teacher' },
+            { slug: 'plagiarism-paraphrasing-tool', name: 'Plagiarism Paraphrasing Tool', category: 'teacher' },
+            { slug: 'teacher-resource-finder', name: 'Teacher Resource Finder', category: 'teacher' },
+            { slug: 'advanced-mcq-maker-tool', name: 'Advanced MCQ Maker Tool', category: 'teacher' },
+            { slug: 'advanced-lesson-plan-tool', name: 'Advanced Lesson Plan Tool', category: 'teacher' },
+            { slug: 'advanced-notebook-checking-tool', name: 'Advanced Notebook Checking Tool', category: 'teacher' }
+        ];
+
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+            container.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(-20px)'; setTimeout(() => t.remove(), 300); }, 3000);
         }
-      });
-      renderToolsGrid();
-      updateInsightSections();
-      updateChartData();
-      return toolsData;
-    } catch (error) {
-      console.error("Error fetching tools usage:", error);
-      // Fallback to baseUsage
-      TOOLS.forEach(tool => {
-        toolUsageMap.set(tool.url, tool.baseUsage);
-      });
-      renderToolsGrid();
-      updateInsightSections();
-      return [];
-    }
-  }
 
-  async function incrementToolUsageOnServer(url) {
-    try {
-      const response = await fetch(`${API_BASE}/api/category-tools/${CATEGORY_SLUG}/increment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toolUrl: url })
-      });
-      if (!response.ok) throw new Error("Failed to increment");
-      const data = await response.json();
-      // Update local map with new count
-      if (data.newCount !== undefined) {
-        toolUsageMap.set(url, data.newCount);
-      } else {
-        // If API doesn't return new count, increment locally
-        const current = toolUsageMap.get(url) || 0;
-        toolUsageMap.set(url, current + 1);
-      }
-      return true;
-    } catch (error) {
-      console.error("Error incrementing usage:", error);
-      // Fallback: increment locally only
-      const current = toolUsageMap.get(url) || 0;
-      toolUsageMap.set(url, current + 1);
-      return false;
-    }
-  }
-
-  // ========== UI UPDATE FUNCTIONS ==========
-  function updateDashboardUI() {
-    if (categoryStats) {
-      document.getElementById("totalViews").innerText = (categoryStats.total_views || 52890).toLocaleString();
-      document.getElementById("avgRating").innerText = (categoryStats.avg_rating || 4.7).toFixed(1);
-      document.getElementById("totalTools").innerText = (categoryStats.total_tools || 21).toLocaleString();
-      document.getElementById("totalReviews").innerText = (categoryStats.total_reviews || 1250).toLocaleString();
-      document.getElementById("monthlySearches").innerText = (categoryStats.monthly_searches || 18200).toLocaleString();
-    }
-  }
-
-  function renderToolsGrid() {
-    const grid = document.getElementById("toolsGrid");
-    if (!grid) return;
-    grid.innerHTML = "";
-    
-    TOOLS.forEach(tool => {
-      const usageCount = toolUsageMap.get(tool.url) || tool.baseUsage;
-      const card = document.createElement("div");
-      card.className = "tool-card";
-      card.innerHTML = `
-        <h4><i class="fas fa-wand-magic"></i> ${escapeHtml(tool.name)}</h4>
-        <div class="usage-badge"><i class="fas fa-chart-simple"></i> Used ${usageCount.toLocaleString()} times</div>
-        <div><a href="#" class="tool-link-btn" data-url="${tool.url}">Open Tool →</a></div>
-      `;
-      const link = card.querySelector(".tool-link-btn");
-      link.addEventListener("click", async (e) => {
-        e.preventDefault();
-        const url = link.getAttribute("data-url");
-        // Increment on server
-        await incrementToolUsageOnServer(url);
-        // Update UI
-        const newCount = toolUsageMap.get(url) || 0;
-        const badge = card.querySelector(".usage-badge");
-        if (badge) {
-          badge.innerHTML = `<i class="fas fa-chart-simple"></i> Used ${newCount.toLocaleString()} times`;
+        // ============================================
+        // THEME
+        // ============================================
+        function initTheme() {
+            const saved = localStorage.getItem('magicrills-theme');
+            if (saved === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+            }
         }
-        updateInsightSections();
-        updateChartData();
-        // Open the tool in new tab (LINK REMAINS EXACTLY THE SAME)
-        window.open(url, "_blank");
-      });
-      grid.appendChild(card);
-    });
-  }
-
-  function updateInsightSections() {
-    // Create array with current usage
-    const toolsWithUsage = TOOLS.map(tool => ({
-      name: tool.name,
-      url: tool.url,
-      usage: toolUsageMap.get(tool.url) || tool.baseUsage
-    }));
-    
-    // Latest: last 5 tools from original array order
-    const latestTools = TOOLS.slice(-5).map(t => ({
-      name: t.name,
-      url: t.url,
-      usage: toolUsageMap.get(t.url) || t.baseUsage
-    }));
-    
-    // Popular: top 5 by usage
-    const popularTools = [...toolsWithUsage].sort((a, b) => b.usage - a.usage).slice(0, 5);
-    
-    // Trending: next 5 after popular
-    const trendingTools = [...toolsWithUsage].sort((a, b) => b.usage - a.usage).slice(5, 10);
-    
-    const latestContainer = document.getElementById("latestList");
-    const popularContainer = document.getElementById("popularList");
-    const trendingContainer = document.getElementById("trendingList");
-    
-    function createClickableLi(tool, showCount = true) {
-      const li = document.createElement("li");
-      const nameSpan = document.createElement("a");
-      nameSpan.className = "tool-name-link";
-      nameSpan.innerText = tool.name;
-      nameSpan.href = "#";
-      nameSpan.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await incrementToolUsageOnServer(tool.url);
-        const newCount = toolUsageMap.get(tool.url) || 0;
-        // Update the count display in this specific li if needed
-        if (showCount && countSpan) {
-          countSpan.innerText = newCount.toLocaleString();
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            if (current === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+                localStorage.setItem('magicrills-theme', 'dark');
+                showToast('🌙 Dark mode activated', 'info');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+                localStorage.setItem('magicrills-theme', 'light');
+                showToast('☀️ Light mode activated', 'info');
+            }
         }
-        renderToolsGrid(); // re-render full grid to update all counts
-        updateInsightSections(); // refresh all lists
-        updateChartData();
-        window.open(tool.url, "_blank");
-      });
-      const countSpan = document.createElement("span");
-      countSpan.className = "tool-count";
-      countSpan.innerText = tool.usage.toLocaleString();
-      li.appendChild(nameSpan);
-      if (showCount) li.appendChild(countSpan);
-      return li;
-    }
-    
-    if (latestContainer) {
-      latestContainer.innerHTML = "";
-      latestTools.forEach(t => latestContainer.appendChild(createClickableLi(t, true)));
-    }
-    if (popularContainer) {
-      popularContainer.innerHTML = "";
-      popularTools.forEach(t => popularContainer.appendChild(createClickableLi(t, true)));
-    }
-    if (trendingContainer) {
-      trendingContainer.innerHTML = "";
-      trendingTools.forEach(t => trendingContainer.appendChild(createClickableLi(t, true)));
-    }
-  }
 
-  // ========== CHART INITIALIZATION ==========
-  function initChart() {
-    const ctx = document.getElementById('usageTrendChart').getContext('2d');
-    
-    // Custom neon gradient for Chart line
-    const chartGradient = ctx.createLinearGradient(0, 0, 0, 250);
-    chartGradient.addColorStop(0, 'rgba(129, 140, 248, 0.25)');
-    chartGradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
-
-    trendChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-          label: 'Daily Tool Usage',
-          data: [0, 0, 0, 0, 0, 0, 0],
-          borderColor: '#6366f1',
-          borderWidth: 3,
-          backgroundColor: chartGradient,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: '#ec4899',
-          pointBorderColor: '#fff',
-          pointHoverRadius: 7
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } } 
-          } 
-        },
-        scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
-          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } }
+        // ============================================
+        // FETCH DATA
+        // ============================================
+        async function fetchStats() {
+            try {
+                const res = await fetch(`${API_BASE}/api/global-stats`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('todayVisitorsCount').textContent = formatNumber(data.todayVisitors || 0);
+                    document.getElementById('totalUsageCount').textContent = formatNumber(data.totalUsage || 0);
+                    document.getElementById('totalViewsCount').textContent = formatNumber(data.totalUsage || 0);
+                    document.getElementById('totalSharesCount').textContent = formatNumber(data.totalShares || 0);
+                    document.getElementById('totalFollowersCount').textContent = formatNumber(data.totalFollowers || 0);
+                }
+            } catch (e) {}
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/online-users`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('onlineUsersCount').textContent = data.online_users || 0;
+                }
+            } catch (e) {}
         }
-      }
-    });
-  }
 
-  async function updateChartData() {
-    if (!trendChart) return;
-    try {
-      // Fetch weekly data from API
-      const response = await fetch(`${API_BASE}/api/category-stats/${CATEGORY_SLUG}/weekly`);
-      if (response.ok) {
-        const weeklyData = await response.json();
-        if (weeklyData && weeklyData.length === 7) {
-          trendChart.data.datasets[0].data = weeklyData;
-          trendChart.update();
-          return;
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
         }
-      }
-    } catch (error) {
-      console.error("Error fetching weekly data:", error);
-    }
-    // Fallback: generate based on total usage
-    let totalUses = 0;
-    for (let val of toolUsageMap.values()) totalUses += val;
-    const baseDay = Math.max(200, Math.floor(totalUses / 15));
-    const weeklyFallback = [
-      Math.floor(baseDay * 0.7), Math.floor(baseDay * 0.75), Math.floor(baseDay * 0.8),
-      Math.floor(baseDay * 0.85), Math.floor(baseDay * 0.9), Math.floor(baseDay * 0.95),
-      baseDay
-    ];
-    trendChart.data.datasets[0].data = weeklyFallback;
-    trendChart.update();
-  }
 
-  function escapeHtml(str) {
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
-    });
-  }
+        // ============================================
+        // RENDER TOOLS
+        // ============================================
+        function renderTools(filter = '') {
+            const grid = document.getElementById('toolsGrid');
+            grid.innerHTML = '';
+            
+            const filtered = teacherTools.filter(t => 
+                t.name.toLowerCase().includes(filter.toLowerCase()) ||
+                t.slug.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            document.getElementById('toolCount').textContent = filtered.length + ' Tools';
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="text-align:center;color:var(--text-secondary);padding:2rem;grid-column:1/-1;">No tools found matching "${filter}"</div>`;
+                return;
+            }
+            
+            filtered.forEach(tool => {
+                const imgUrl = `${IMG_BASE}og-${tool.slug}.webp.webp?raw=true`;
+                const card = document.createElement('a');
+                card.href = `/Teacher/${tool.slug}.html`;
+                card.className = 'tool-card';
+                card.innerHTML = `
+                    <img src="${imgUrl}" alt="${tool.name}" class="tool-img" onerror="this.src='${IMG_BASE}magicrills-logo.png?raw=true'">
+                    <div class="tool-name">${tool.name}</div>
+                    <div class="tool-usage"><i class="fas fa-chart-simple"></i> <span id="usage-${tool.slug}">--</span> uses</div>
+                    <div class="tool-link"><i class="fas fa-external-link-alt"></i> Launch Tool</div>
+                `;
+                grid.appendChild(card);
+                
+                // Fetch usage for this tool
+                fetch(`${API_BASE}/api/stats?tool_slug=${tool.slug}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            const el = document.getElementById(`usage-${tool.slug}`);
+                            if (el) el.textContent = formatNumber(data.totalUsage || 0);
+                        }
+                    })
+                    .catch(() => {
+                        const el = document.getElementById(`usage-${tool.slug}`);
+                        if (el) el.textContent = '0';
+                    });
+            });
+        }
 
-  // ========== SOCIAL & ACTION BUTTONS ==========
-  function sharePage() {
-    if (navigator.share) {
-      navigator.share({ title: 'Teacher Tools Hub', url: window.location.href }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied! Share with fellow teachers.");
-    }
-  }
+        // ============================================
+        // SEARCH
+        // ============================================
+        function filterTools() {
+            const query = document.getElementById('searchInput').value.trim();
+            renderTools(query);
+        }
 
-  function followHub() {
-    alert("🎉 Thanks for following! You'll get updates on new AI teaching tools.");
-  }
+        // ============================================
+        // FOLLOW
+        // ============================================
+        async function toggleFollow() {
+            const btn = document.getElementById('followBtn');
+            const text = document.getElementById('followText');
+            try {
+                const action = isFollowing ? 'unfollow' : 'follow';
+                const res = await fetch(`${API_BASE}/api/followers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, user_id: localStorage.getItem('userId') || 'anonymous' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isFollowing = !isFollowing;
+                    text.textContent = isFollowing ? 'Following' : 'Follow';
+                    btn.style.background = isFollowing ? 'var(--neon-pink)' : 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))';
+                    if (data.total_followers) {
+                        document.getElementById('totalFollowersCount').textContent = formatNumber(data.total_followers);
+                    }
+                    showToast(isFollowing ? '❤️ You are now following Teaching Tools!' : '👋 You unfollowed Teaching Tools', 'success');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
 
-  function openSocial(url) {
-    window.open(url, '_blank', 'width=600,height=400');
-  }
+        // ============================================
+        // SHARE
+        // ============================================
+        function sharePage() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: 'Educator\'s Teaching Tool Suite - Magicrills', text: 'Check out these free AI teaching tools!', url }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied!', 'success')).catch(() => showToast('Failed to copy link', 'error'));
+            }
+        }
 
-  // ========== PAGE LOAD ==========
-  document.addEventListener("DOMContentLoaded", async () => {
-    initChart();
-    await fetchCategoryStats();
-    await fetchToolsUsage();
-    
-    // Attach event listeners
-    document.getElementById("followBtn")?.addEventListener("click", followHub);
-    document.getElementById("sharePageBtn")?.addEventListener("click", sharePage);
-    document.getElementById("scrollUpBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    document.getElementById("scrollDownBtn")?.addEventListener("click", () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-    document.getElementById("backHomeLink")?.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "https://magicrills.com"; });
-    
-    const currUrl = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent("Teacher Tools Hub - MagicRills");
-    document.getElementById("fbShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.facebook.com/sharer/sharer.php?u=${currUrl}`); });
-    document.getElementById("twitterShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://twitter.com/intent/tweet?text=${title}&url=${currUrl}`); });
-    document.getElementById("linkedinShare")?.addEventListener("click", (e) => { e.preventDefault(); openSocial(`https://www.linkedin.com/sharing/share-offsite/?url=${currUrl}`); });
-    document.getElementById("instaIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("📸 Follow @magicrills on Instagram!"); });
-    document.getElementById("ytIcon")?.addEventListener("click", (e) => { e.preventDefault(); alert("🎬 Subscribe to MagicRills YouTube for teacher tips."); });
-  });
-</script>
+        function shareOn(platform) {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('Educator\'s Teaching Tool Suite - Magicrills');
+            const urls = {
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+                twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                whatsapp: `https://wa.me/?text=${text}%20${url}`,
+                linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`
+            };
+            if (urls[platform]) window.open(urls[platform], '_blank', 'width=600,height=500');
+        }
+
+        // ============================================
+        // SCROLL
+        // ============================================
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+
+        // ============================================
+        // AUTO-REFRESH
+        // ============================================
+        function startAutoRefresh() {
+            setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/online-users`);
+                    const data = await res.json();
+                    if (data.success) document.getElementById('onlineUsersCount').textContent = data.online_users || 0;
+                } catch (e) {}
+            }, 30000);
+            setInterval(fetchStats, 60000);
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            generateStars();
+            initTheme();
+            fetchStats();
+            renderTools();
+            startAutoRefresh();
+            
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Search
+            document.getElementById('searchInput').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') filterTools();
+            });
+            
+            // Follow
+            document.getElementById('followBtn').addEventListener('click', toggleFollow);
+            
+            // Share
+            document.getElementById('sharePageBtn').addEventListener('click', sharePage);
+            
+            // Scroll
+            document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
+            document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
+            document.getElementById('scrollUpBtnFixed').addEventListener('click', scrollToTop);
+            document.getElementById('scrollDownBtnFixed').addEventListener('click', scrollToBottom);
+            
+            // Social
+            document.getElementById('fbShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('facebook'); });
+            document.getElementById('twShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('twitter'); });
+            document.getElementById('waShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('whatsapp'); });
+            document.getElementById('liShare').addEventListener('click', (e) => { e.preventDefault(); shareOn('linkedin'); });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Home' || (e.ctrlKey && e.key === 'Home')) { e.preventDefault(); scrollToTop(); }
+                if (e.key === 'End' || (e.ctrlKey && e.key === 'End')) { e.preventDefault(); scrollToBottom(); }
+                if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                }
+            });
+            
+            console.log('🚀 Teacher Page Loaded!');
+            console.log('📡 API Base:', API_BASE);
+            console.log('🔧 Total Teacher Tools:', teacherTools.length);
+        });
+    </script>
 </body>
 </html>
