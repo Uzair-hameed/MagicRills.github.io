@@ -1,7 +1,6 @@
 // ============================================
 // SCHOOL CIRCULAR GENERATOR - MAIN JAVASCRIPT
-// Features: 61+ Features | TiDB Integration | Grok API | 7 Reactions | Design Styles
-// Fully Integrated with API Endpoints
+// Features: Cloudflare Workers API | 7 Reactions | Share Buttons | Stats Dashboard
 // ============================================
 
 // ============================================
@@ -15,10 +14,79 @@ let userId = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random
 localStorage.setItem('userId', userId);
 let currentStyle = 'classic';
 
-// API Base URL
-const API_BASE = '/api';
+// ============================================
+// CLOUDFLARE WORKERS API CONFIGURATION
+// ============================================
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
-// Templates Database (13 Templates including Timing)
+// Helper: Get headers for API requests
+function getHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    };
+}
+
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const phrases = [
+        '📝 PTM Circulars',
+        '🌴 Holiday Notices',
+        '📋 Exam Schedules',
+        '🎉 School Events',
+        '💰 Fee Reminders',
+        '🏆 Result Declarations',
+        '⚽ Sports Days',
+        '🚌 School Trips',
+        '👔 Staff Meetings',
+        '📖 Admissions',
+        '🎓 Workshops',
+        '⏰ Timing Changes'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterElement = document.getElementById('typewriterText');
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (!isDeleting) {
+            // Typing
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            
+            if (charIndex === currentPhrase.length) {
+                isDeleting = true;
+                setTimeout(type, 2000);
+                return;
+            }
+            setTimeout(type, 80);
+        } else {
+            // Deleting
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            
+            if (charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(type, 500);
+                return;
+            }
+            setTimeout(type, 40);
+        }
+    }
+    
+    type();
+}
+
+// ============================================
+// TEMPLATES DATABASE (13 Templates)
+// ============================================
 const templates = {
     ptm: `<div class="circular-point"><i class="fas fa-star"></i><div>It is to be informed that PTM (Parent's Teacher Meeting) for <strong>Playgroup (P.G)</strong> to class <strong>Tenth (10th)</strong> will be held on [Date].</div></div>
 <div class="circular-point"><i class="fas fa-star"></i><div>Parents are requested to come and collect their child's report and result.</div></div>
@@ -133,7 +201,6 @@ function applyDesignStyle(style) {
     previewContainer.classList.remove('style-classic', 'style-modern', 'style-formal', 'style-colorful', 'style-minimal');
     previewContainer.classList.add(`style-${style}`);
     
-    // Additional style-specific changes
     const title = document.getElementById('previewTitle');
     const header = document.querySelector('.circular-header');
     
@@ -157,13 +224,15 @@ function applyDesignStyle(style) {
 }
 
 // ============================================
-// API CALLS (TiDB + Vercel + Grok Integration)
+// CLOUDFLARE WORKERS API CALLS
 // ============================================
+
+// 1. POST /api/usage - Usage Counter Increment
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/increment-usage`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ tool_slug: toolSlug, user_id: userId })
         });
         const data = await response.json();
@@ -173,6 +242,7 @@ async function incrementUsage() {
         }
         return data;
     } catch (error) {
+        // Fallback: LocalStorage
         let localUsage = parseInt(localStorage.getItem(`${toolSlug}_usage`) || '0') + 1;
         localStorage.setItem(`${toolSlug}_usage`, localUsage);
         document.getElementById('toolUsageCount').innerText = localUsage;
@@ -183,27 +253,37 @@ async function incrementUsage() {
 
 async function getUsage() {
     try {
-        const response = await fetch(`${API_BASE}/usage?tool_slug=${toolSlug}`);
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${toolSlug}`, {
+            method: 'GET',
+            headers: getHeaders()
+        });
         const data = await response.json();
         if (data.success) {
-            document.getElementById('toolUsageCount').innerText = data.count || 0;
-            document.getElementById('globalUsageCount').innerText = data.count || 0;
+            document.getElementById('toolUsageCount').innerText = data.usage || 0;
+            document.getElementById('globalUsageCount').innerText = data.usage || 0;
+            document.getElementById('shareCountDisplay').innerText = data.shares || 0;
+            document.getElementById('globalShareCount').innerText = data.shares || 0;
         }
     } catch (error) {
+        // Fallback: LocalStorage
         let localUsage = localStorage.getItem(`${toolSlug}_usage`) || '0';
         document.getElementById('toolUsageCount').innerText = localUsage;
         document.getElementById('globalUsageCount').innerText = localUsage;
+        let shares = localStorage.getItem(`${toolSlug}_shares`) || '0';
+        document.getElementById('shareCountDisplay').innerText = shares;
+        document.getElementById('globalShareCount').innerText = shares;
     }
 }
 
+// 2. POST /api/reactions - Add/Get Reactions
 async function addReaction(reactionType) {
     const emojiMap = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
     const emoji = emojiMap[reactionType];
     
     try {
-        const response = await fetch(`${API_BASE}/add-reaction`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ tool_slug: toolSlug, emoji: emoji, reaction_type: reactionType, user_id: userId })
         });
         const data = await response.json();
@@ -214,14 +294,18 @@ async function addReaction(reactionType) {
             showToast(`You already reacted with ${reactionType}`, true);
         }
     } catch (error) {
-        showToast('Reaction saved locally!', false);
+        // Fallback: LocalStorage
         updateLocalReactions(reactionType);
+        showToast('Reaction saved locally!', false);
     }
 }
 
 async function getReactions() {
     try {
-        const response = await fetch(`${API_BASE}/reactions?tool_slug=${toolSlug}`);
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${toolSlug}`, {
+            method: 'GET',
+            headers: getHeaders()
+        });
         const data = await response.json();
         if (data.success) {
             updateReactionCounts(data.reactions);
@@ -261,11 +345,12 @@ function loadLocalReactions() {
     document.getElementById('globalReactionCount').innerText = total;
 }
 
+// 3. POST /api/shares - Record Shares
 async function addShare(platform) {
     try {
-        const response = await fetch(`${API_BASE}/add-share`, {
+        const response = await fetch(`${API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ tool_slug: toolSlug, platform: platform, user_id: userId })
         });
         const data = await response.json();
@@ -274,6 +359,7 @@ async function addShare(platform) {
             showToast(`Shared on ${platform}!`);
         }
     } catch (error) {
+        // Fallback: LocalStorage
         let shares = parseInt(localStorage.getItem(`${toolSlug}_shares`) || '0') + 1;
         localStorage.setItem(`${toolSlug}_shares`, shares);
         document.getElementById('shareCountDisplay').innerText = shares;
@@ -284,7 +370,10 @@ async function addShare(platform) {
 
 async function updateShareCount() {
     try {
-        const response = await fetch(`${API_BASE}/shares?tool_slug=${toolSlug}`);
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${toolSlug}`, {
+            method: 'GET',
+            headers: getHeaders()
+        });
         const data = await response.json();
         if (data.success) {
             document.getElementById('shareCountDisplay').innerText = data.shares || 0;
@@ -298,23 +387,23 @@ async function updateShareCount() {
 }
 
 // ============================================
-// AI CONTENT GENERATION (Grok API)
+// AI CONTENT GENERATION (Grok API via Cloudflare)
 // ============================================
 async function generateAIContent(prompt) {
     const loadingSpinner = document.getElementById('loadingSpinner');
     loadingSpinner.style.display = 'block';
     
     try {
-        const response = await fetch(`${API_BASE}/generate-quote`, {
+        const response = await fetch(`${API_BASE}/api/generate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ prompt: prompt, tool_slug: toolSlug })
         });
         const data = await response.json();
         
-        if (data.success && data.quote) {
-            const aiContent = `<div class="circular-point"><i class="fas fa-star"></i><div>${data.quote}</div></div>
-            <p style="margin-top: 15px;"><em>- ${data.author || 'AI Generated'}</em></p>`;
+        if (data.success && data.content) {
+            const aiContent = `<div class="circular-point"><i class="fas fa-star"></i><div>${data.content}</div></div>
+            <p style="margin-top: 15px;"><em>- AI Generated</em></p>`;
             document.getElementById('editor').innerHTML = aiContent;
             document.getElementById('previewBody').innerHTML = aiContent;
             showToast('AI content generated successfully!');
@@ -329,6 +418,7 @@ async function generateAIContent(prompt) {
             showToast('AI generated fallback content');
         }
     } catch (error) {
+        // Fallback content
         const fallbackContent = `<div class="circular-point"><i class="fas fa-star"></i><div>${prompt || 'Important school announcement'} regarding upcoming events.</div></div>
         <div class="circular-point"><i class="fas fa-star"></i><div>All parents and students are requested to take note.</div></div>
         <div class="circular-point"><i class="fas fa-star"></i><div>For further details, contact the school administration.</div></div>
@@ -807,6 +897,9 @@ function setupEventListeners() {
 // INITIALIZATION
 // ============================================
 async function init() {
+    // Start Typewriter Animation
+    initTypewriter();
+    
     // Set initial values
     document.getElementById('circularNumber').value = generateCircularNumber();
     document.getElementById('issueDate').valueAsDate = new Date();
@@ -827,7 +920,7 @@ async function init() {
     document.getElementById('editor').innerHTML = defaultContent;
     document.getElementById('previewBody').innerHTML = defaultContent;
     
-    // Fetch data from API
+    // Fetch data from Cloudflare API
     await getUsage();
     await getReactions();
     await updateShareCount();
@@ -847,5 +940,5 @@ async function init() {
     showToast('School Circular Generator Ready!');
 }
 
-// Start the app
-init();
+// Start the app when DOM is ready
+document.addEventListener('DOMContentLoaded', init);
