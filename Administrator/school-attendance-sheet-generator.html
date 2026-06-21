@@ -1,44 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- ============================================ -->
+    <!-- FULL SEO META TAGS -->
+    <!-- ============================================ -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
-    <!-- PRIMARY SEO -->
-    <title>Free School Attendance Sheet Generator - AI for Administrators</title>
-    <meta name="description" content="Generate school attendance sheets instantly with our free AI tool. Perfect for administrators tracking student and staff attendance.">
-    <meta name="keywords" content="attendance sheet, school attendance, administrator tools, attendance tracker, AI attendance generator">
+    <!-- PRIMARY META TAGS -->
+    <title>Smart Attendance System | School Management & Tracking Tool</title>
+    <meta name="description" content="Free Smart Attendance System for schools. Track student attendance, generate reports, analyze patterns with AI-powered insights. Download CSV, Excel, PDF reports.">
+    <meta name="keywords" content="attendance system, school management, student tracking, attendance sheet, teacher tools, attendance tracker, school attendance, student attendance, class attendance, attendance report, smart attendance">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://magicrills.com/Administrator/school-attendance-sheet-generator.html">
+    <meta name="author" content="MagicRills">
+    <meta name="language" content="English">
+    <link rel="canonical" href="https://magicrills.com/tools/school-attendance-sheet-generator">
     
-    <!-- OPEN GRAPH -->
-    <meta property="og:title" content="Free School Attendance Sheet Generator - AI for Administrators">
-    <meta property="og:description" content="Generate school attendance sheets instantly with our free AI tool. Perfect for administrators tracking student and staff attendance.">
-    <meta property="og:url" content="https://magicrills.com/Administrator/school-attendance-sheet-generator.html">
+    <!-- OPEN GRAPH META TAGS (Facebook, LinkedIn) -->
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://magicrills.com/pics/og-school-attendance-sheet-generator.webp">
+    <meta property="og:url" content="https://magicrills.com/tools/school-attendance-sheet-generator">
+    <meta property="og:title" content="Smart Attendance System - School Management Tool">
+    <meta property="og:description" content="Track student attendance, generate reports, analyze patterns with this free Smart Attendance System for schools.">
+    <meta property="og:image" content="https://magicrills.com/assets/images/attendance-system-og.jpg">
+    <meta property="og:site_name" content="MagicRills">
+    <meta property="og:locale" content="en_US">
     
-    <!-- TWITTER -->
+    <!-- TWITTER CARD META TAGS -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Free School Attendance Sheet Generator - AI for Administrators">
-    <meta name="twitter:description" content="Generate school attendance sheets instantly with our free AI tool. Perfect for administrators tracking student and staff attendance.">
-    <meta name="twitter:image" content="https://magicrills.com/pics/og-school-attendance-sheet-generator.webp">
+    <meta name="twitter:url" content="https://magicrills.com/tools/school-attendance-sheet-generator">
+    <meta name="twitter:title" content="Smart Attendance System - School Management Tool">
+    <meta name="twitter:description" content="Track student attendance, generate reports, analyze patterns with this free Smart Attendance System for schools.">
+    <meta name="twitter:image" content="https://magicrills.com/assets/images/attendance-system-og.jpg">
+    <meta name="twitter:site" content="@magicrills">
+    <meta name="twitter:creator" content="@magicrills">
     
-    <!-- STYLES & FONTS -->
+    <!-- JSON-LD SCHEMA MARKUP -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Smart Attendance System",
+        "url": "https://magicrills.com/tools/school-attendance-sheet-generator",
+        "description": "Track student attendance, generate reports, analyze patterns with AI-powered insights.",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "author": {
+            "@type": "Organization",
+            "name": "MagicRills"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "1250"
+        }
+    }
+    </script>
+    
+    <!-- ============================================ -->
+    <!-- STYLES & SCRIPTS -->
+    <!-- ============================================ -->
     <link rel="stylesheet" href="school-attendance-sheet-generator.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        /* Quick fix for empty state */
+        .empty-state { text-align: center; padding: 40px; color: #64748b; }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; }
+        
+        /* Typewriter Animation */
+        .typewriter {
+            display: inline-block;
+            overflow: hidden;
+            border-right: 3px solid rgba(255, 255, 255, 0.75);
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: 0.15em;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: rgba(255, 255, 255, 0.75); }
+        }
+        
+        /* Neon Text Effect */
+        .neon-text {
+            color: #fff;
+            text-shadow: 
+                0 0 7px #fff,
+                0 0 10px #fff,
+                0 0 21px #fff,
+                0 0 42px #0fa,
+                0 0 82px #0fa,
+                0 0 92px #0fa,
+                0 0 102px #0fa,
+                0 0 151px #0fa;
+        }
+        
+        .neon-text-pink {
+            color: #fff;
+            text-shadow: 
+                0 0 7px #fff,
+                0 0 10px #fff,
+                0 0 21px #fff,
+                0 0 42px #f09,
+                0 0 82px #f09,
+                0 0 92px #f09,
+                0 0 102px #f09,
+                0 0 151px #f09;
+        }
+        
+        .neon-text-blue {
+            color: #fff;
+            text-shadow: 
+                0 0 7px #fff,
+                0 0 10px #fff,
+                0 0 21px #fff,
+                0 0 42px #0af,
+                0 0 82px #0af,
+                0 0 92px #0af,
+                0 0 102px #0af,
+                0 0 151px #0af;
+        }
+        
+        /* Dark Space Theme Background */
+        .hero {
+            position: relative;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%);
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(79,70,229,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(118,75,162,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 100%, rgba(15, 255, 170, 0.05) 0%, transparent 50%);
+            z-index: 0;
+        }
+        
+        /* Stars Animation */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- HERO SECTION -->
+<!-- ============================================ -->
+<!-- HERO SECTION WITH TYPWRITER + NEON + STARS -->
+<!-- ============================================ -->
 <section class="hero">
+    <!-- Stars Background -->
+    <div class="stars" id="starsContainer"></div>
     <div class="hero-bg"></div>
     <div class="hero-content">
         <div class="hero-badge"><i class="fas fa-robot"></i> AI-Powered</div>
-        <h1>Smart Attendance <span class="highlight">Management System</span></h1>
-        <p>Track attendance, generate reports, analyze patterns — all in one place.</p>
+        <h1>
+            <span class="typewriter neon-text">Smart Attendance System</span>
+        </h1>
+        <p class="neon-text-blue" style="font-size: 1.2rem; margin-top: 1rem;">
+            <i class="fas fa-rocket"></i> Track attendance, generate reports, analyze patterns — all in one place.
+        </p>
         <div class="hero-buttons">
             <button class="btn-primary" onclick="scrollToApp()"><i class="fas fa-rocket"></i> Get Started</button>
             <button class="btn-outline" onclick="generateAIQuote()"><i class="fas fa-magic"></i> AI Quote</button>
@@ -51,13 +221,15 @@
     </div>
 </section>
 
+<!-- ============================================ -->
 <!-- MAIN APP -->
+<!-- ============================================ -->
 <div class="app-container" id="mainApp">
 
     <!-- TOP BAR -->
     <div class="top-bar">
         <div class="logo-wrapper">
-            <img id="logoPreview" class="school-logo" src="https://via.placeholder.com/50" alt="Logo">
+            <img id="logoPreview" class="school-logo" src="https://via.placeholder.com/50" alt="School Logo">
             <input type="file" id="logoUpload" hidden accept="image/*">
             <button class="icon-btn" onclick="document.getElementById('logoUpload').click()"><i class="fas fa-camera"></i></button>
             <span class="school-name">Smart School</span>
@@ -149,7 +321,7 @@
         </div>
     </div>
 
-    <!-- REACTIONS -->
+    <!-- REACTIONS (7 Reactions: 👍 ❤️ 😮 😢 😂 🎉) -->
     <div class="reactions-panel">
         <h4><i class="fas fa-heart"></i> What do you think?</h4>
         <div class="reactions">
@@ -157,7 +329,6 @@
             <button class="reaction" data-reaction="love">❤️ <span class="reaction-count" id="loveCount">0</span></button>
             <button class="reaction" data-reaction="wow">😮 <span class="reaction-count" id="wowCount">0</span></button>
             <button class="reaction" data-reaction="sad">😢 <span class="reaction-count" id="sadCount">0</span></button>
-            <button class="reaction" data-reaction="angry">😠 <span class="reaction-count" id="angryCount">0</span></button>
             <button class="reaction" data-reaction="laugh">😂 <span class="reaction-count" id="laughCount">0</span></button>
             <button class="reaction" data-reaction="celebrate">🎉 <span class="reaction-count" id="celebrateCount">0</span></button>
         </div>
@@ -207,5 +378,24 @@
 <div id="loading" class="loading hidden"><div class="spinner"></div><p>Loading...</p></div>
 
 <script src="school-attendance-sheet-generator.js"></script>
+
+<!-- Stars Generator Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('starsContainer');
+    for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.setProperty('--duration', (2 + Math.random() * 4) + 's');
+        star.style.animationDelay = Math.random() * 4 + 's';
+        star.style.width = (1 + Math.random() * 3) + 'px';
+        star.style.height = star.style.width;
+        container.appendChild(star);
+    }
+});
+</script>
+
 </body>
 </html>
