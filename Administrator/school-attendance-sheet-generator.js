@@ -1,15 +1,36 @@
 // ============================================
 // SMART ATTENDANCE SYSTEM - MAIN JAVASCRIPT
-// FULLY WORKING VERSION - NO ERRORS
+// CLOUDFLARE WORKERS API INTEGRATION
 // ============================================
 
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'school-attendance-sheet-generator',
+    TOOL_NAME: 'Smart Attendance System',
+    CATEGORY: 'Administrator'
+};
+
+// ============================================
 // GLOBAL VARIABLES
+// ============================================
 let students = [];
 let schoolLogo = null;
 let pieChart = null;
 let lineChart = null;
-let totalUsage = parseInt(localStorage.getItem('totalUsage') || '0');
-let userReactions = JSON.parse(localStorage.getItem('userReactions') || '{}');
+let totalUsage = 0;
+let userReactions = {};
+let toolStats = {
+    usage: 0,
+    views: 0,
+    shares: 0,
+    followers: 0
+};
+let isApiAvailable = true;
+let usageIncremented = false;
 
 // ============================================
 // DOM ELEMENTS (Cached for performance)
@@ -21,6 +42,290 @@ const studentTableBody = document.getElementById('studentTableBody');
 const cumulativeTableBody = document.getElementById('cumulativeTableBody');
 
 // ============================================
+// API CALLS - CLOUDFLARE WORKERS
+// ============================================
+async function callApi(endpoint, method = 'GET', data = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using fallback:', error);
+        isApiAvailable = false;
+        return null;
+    }
+}
+
+// ============================================
+// USAGE COUNTER - Cloudflare API
+// ============================================
+async function incrementUsage() {
+    if (usageIncremented) return;
+    
+    try {
+        const result = await callApi('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            tool_name: CONFIG.TOOL_NAME,
+            category: CONFIG.CATEGORY
+        });
+        
+        if (result && result.success) {
+            totalUsage = result.usage_count || 0;
+            usageIncremented = true;
+            localStorage.setItem('totalUsage', totalUsage);
+            updateUsageDisplay();
+        } else {
+            // Fallback to localStorage
+            totalUsage = parseInt(localStorage.getItem('totalUsage') || '0') + 1;
+            localStorage.setItem('totalUsage', totalUsage);
+            usageIncremented = true;
+            updateUsageDisplay();
+        }
+    } catch (error) {
+        console.warn('Usage increment fallback:', error);
+        totalUsage = parseInt(localStorage.getItem('totalUsage') || '0') + 1;
+        localStorage.setItem('totalUsage', totalUsage);
+        usageIncremented = true;
+        updateUsageDisplay();
+    }
+}
+
+function updateUsageDisplay() {
+    document.getElementById('toolUsageCount').textContent = totalUsage || 0;
+    document.getElementById('globalUsageCount').textContent = totalUsage || 0;
+}
+
+// ============================================
+// TOOL STATS - Cloudflare API
+// ============================================
+async function fetchToolStats() {
+    try {
+        const result = await callApi(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        
+        if (result && result.success) {
+            toolStats = result.data || toolStats;
+            updateStatsDisplay();
+            // Save to localStorage as fallback
+            localStorage.setItem('toolStats', JSON.stringify(toolStats));
+        } else {
+            // Fallback to localStorage
+            const savedStats = localStorage.getItem('toolStats');
+            if (savedStats) {
+                toolStats = JSON.parse(savedStats);
+                updateStatsDisplay();
+            }
+        }
+    } catch (error) {
+        console.warn('Stats fetch fallback:', error);
+        const savedStats = localStorage.getItem('toolStats');
+        if (savedStats) {
+            toolStats = JSON.parse(savedStats);
+            updateStatsDisplay();
+        }
+    }
+}
+
+function updateStatsDisplay() {
+    // Update dashboard stats in UI
+    const statElements = {
+        'totalStudents': students.length,
+        'presentCount': getTodayPresent(),
+        'absentCount': getTodayAbsent(),
+        'leaveCount': getTodayLeave(),
+        'attPercent': getTodayPercent()
+    };
+    
+    // Update any stat cards that show tool stats
+    document.querySelectorAll('.stat-card .value').forEach(el => {
+        const label = el.closest('.stat-card')?.querySelector('.label')?.textContent;
+        if (label === 'Total Students') el.textContent = students.length;
+        else if (label === 'Present Today') el.textContent = getTodayPresent();
+        else if (label === 'Absent') el.textContent = getTodayAbsent();
+        else if (label === 'On Leave') el.textContent = getTodayLeave();
+        else if (label === 'Attendance Rate') el.textContent = getTodayPercent() + '%';
+    });
+}
+
+function getTodayPresent() {
+    const date = datePicker.value;
+    return students.filter(s => s.attendance[date] === 'Present').length;
+}
+
+function getTodayAbsent() {
+    const date = datePicker.value;
+    return students.filter(s => s.attendance[date] === 'Absent').length;
+}
+
+function getTodayLeave() {
+    const date = datePicker.value;
+    return students.filter(s => s.attendance[date] === 'Leave').length;
+}
+
+function getTodayPercent() {
+    const date = datePicker.value;
+    const present = getTodayPresent();
+    const total = students.length;
+    return total > 0 ? Math.round((present / total) * 100) : 0;
+}
+
+// ============================================
+// REACTIONS SYSTEM - Cloudflare API
+// ============================================
+async function loadReactions() {
+    try {
+        // Try to get reactions from API first
+        const result = await callApi('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            action: 'get'
+        });
+        
+        if (result && result.success) {
+            const reactions = result.reactions || {};
+            updateReactionCounts(reactions);
+            localStorage.setItem('reactions', JSON.stringify(reactions));
+        } else {
+            // Fallback to localStorage
+            const reactions = JSON.parse(localStorage.getItem('reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"laugh":0,"celebrate":0}');
+            updateReactionCounts(reactions);
+        }
+    } catch (error) {
+        console.warn('Reactions load fallback:', error);
+        const reactions = JSON.parse(localStorage.getItem('reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"laugh":0,"celebrate":0}');
+        updateReactionCounts(reactions);
+    }
+    
+    // Setup reaction event listeners
+    document.querySelectorAll('.reaction').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.reaction;
+            addReaction(type);
+        });
+    });
+}
+
+async function addReaction(type) {
+    // Check if user already reacted
+    userReactions = JSON.parse(localStorage.getItem('userReactions') || '{}');
+    if (userReactions[type]) {
+        showToast('You already reacted with this emoji', 'info');
+        return;
+    }
+    
+    try {
+        const result = await callApi('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            reaction: type,
+            action: 'add'
+        });
+        
+        if (result && result.success) {
+            const reactions = result.reactions || {};
+            updateReactionCounts(reactions);
+            localStorage.setItem('reactions', JSON.stringify(reactions));
+            
+            userReactions[type] = true;
+            localStorage.setItem('userReactions', JSON.stringify(userReactions));
+            showToast('Thank you for your feedback!', 'success');
+        } else {
+            // Fallback to localStorage
+            const reactions = JSON.parse(localStorage.getItem('reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"laugh":0,"celebrate":0}');
+            reactions[type] = (reactions[type] || 0) + 1;
+            localStorage.setItem('reactions', JSON.stringify(reactions));
+            updateReactionCounts(reactions);
+            
+            userReactions[type] = true;
+            localStorage.setItem('userReactions', JSON.stringify(userReactions));
+            showToast('Thank you for your feedback!', 'success');
+        }
+    } catch (error) {
+        console.warn('Reaction add fallback:', error);
+        const reactions = JSON.parse(localStorage.getItem('reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"laugh":0,"celebrate":0}');
+        reactions[type] = (reactions[type] || 0) + 1;
+        localStorage.setItem('reactions', JSON.stringify(reactions));
+        updateReactionCounts(reactions);
+        
+        userReactions[type] = true;
+        localStorage.setItem('userReactions', JSON.stringify(userReactions));
+        showToast('Thank you for your feedback!', 'success');
+    }
+}
+
+function updateReactionCounts(reactions) {
+    document.getElementById('likeCount').textContent = reactions.like || 0;
+    document.getElementById('loveCount').textContent = reactions.love || 0;
+    document.getElementById('wowCount').textContent = reactions.wow || 0;
+    document.getElementById('sadCount').textContent = reactions.sad || 0;
+    document.getElementById('laughCount').textContent = reactions.laugh || 0;
+    document.getElementById('celebrateCount').textContent = reactions.celebrate || 0;
+}
+
+// ============================================
+// SHARE TRACKING - Cloudflare API
+// ============================================
+async function recordShare(platform) {
+    try {
+        const result = await callApi('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform
+        });
+        
+        if (result && result.success) {
+            toolStats.shares = result.shares_count || 0;
+            localStorage.setItem('toolStats', JSON.stringify(toolStats));
+        }
+    } catch (error) {
+        console.warn('Share tracking fallback:', error);
+        toolStats.shares = (toolStats.shares || 0) + 1;
+        localStorage.setItem('toolStats', JSON.stringify(toolStats));
+    }
+}
+
+// ============================================
+// SOCIAL SHARING (Updated with tracking)
+// ============================================
+function shareOnFacebook() {
+    recordShare('facebook');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+}
+
+function shareOnTwitter() {
+    recordShare('twitter');
+    window.open(`https://twitter.com/intent/tweet?text=Check out this Smart Attendance System!&url=${encodeURIComponent(window.location.href)}`, '_blank');
+}
+
+function shareOnWhatsApp() {
+    recordShare('whatsapp');
+    window.open(`https://wa.me/?text=${encodeURIComponent('Smart Attendance System - ' + window.location.href)}`, '_blank');
+}
+
+function shareOnLinkedIn() {
+    recordShare('linkedin');
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+}
+
+function copyPageURL() {
+    recordShare('copy');
+    navigator.clipboard.writeText(window.location.href);
+    showToast('URL copied to clipboard!', 'success');
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,18 +333,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     datePicker.value = today;
     
-    // Load data
+    // Load data from localStorage first (fast)
     loadFromLocalStorage();
     
-    // Initialize
+    // Initialize UI
     loadClassData();
     updateStats();
     initCharts();
     updateUsageDisplay();
-    loadReactions();
     setupTheme();
     setupSearch();
     setupEventListeners();
+    
+    // Load reactions
+    loadReactions();
+    
+    // Fetch tool stats from API
+    fetchToolStats();
+    
+    // Increment usage (only once per load)
+    incrementUsage();
     
     showToast('Welcome to Smart Attendance System!', 'success');
 });
@@ -58,7 +371,7 @@ function scrollToApp() {
 }
 
 // ============================================
-// LOCAL STORAGE
+// LOCAL STORAGE (Fallback)
 // ============================================
 function saveToLocalStorage() {
     localStorage.setItem('attendanceData', JSON.stringify(students));
@@ -77,13 +390,16 @@ function loadFromLocalStorage() {
 }
 
 // ============================================
-// THEME
+// THEME - Dark Space + Neon
 // ============================================
 function setupTheme() {
-    const isDark = localStorage.getItem('darkMode') === 'true';
+    const isDark = localStorage.getItem('darkMode') !== 'false';
     if (isDark) {
         document.body.classList.add('dark-mode');
         document.querySelector('#themeToggle i').className = 'fas fa-sun';
+    } else {
+        document.body.classList.remove('dark-mode');
+        document.querySelector('#themeToggle i').className = 'fas fa-moon';
     }
 }
 
@@ -589,85 +905,6 @@ function generateMonthlyReport() {
 }
 
 // ============================================
-// USAGE COUNTER
-// ============================================
-function updateUsageDisplay() {
-    document.getElementById('toolUsageCount').textContent = totalUsage;
-    document.getElementById('globalUsageCount').textContent = totalUsage;
-}
-
-function incrementUsage() {
-    totalUsage++;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageDisplay();
-}
-
-// ============================================
-// REACTIONS SYSTEM
-// ============================================
-function loadReactions() {
-    const reactions = JSON.parse(localStorage.getItem('reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"angry":0,"laugh":0,"celebrate":0}');
-    updateReactionCounts(reactions);
-    
-    document.querySelectorAll('.reaction').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const type = btn.dataset.reaction;
-            addReaction(type);
-        });
-    });
-}
-
-function updateReactionCounts(reactions) {
-    document.getElementById('likeCount').textContent = reactions.like || 0;
-    document.getElementById('loveCount').textContent = reactions.love || 0;
-    document.getElementById('wowCount').textContent = reactions.wow || 0;
-    document.getElementById('sadCount').textContent = reactions.sad || 0;
-    document.getElementById('angryCount').textContent = reactions.angry || 0;
-    document.getElementById('laughCount').textContent = reactions.laugh || 0;
-    document.getElementById('celebrateCount').textContent = reactions.celebrate || 0;
-}
-
-function addReaction(type) {
-    if (userReactions[type]) {
-        showToast('You already reacted with this emoji', 'info');
-        return;
-    }
-    
-    userReactions[type] = true;
-    localStorage.setItem('userReactions', JSON.stringify(userReactions));
-    
-    const reactions = JSON.parse(localStorage.getItem('reactions') || '{"like":0,"love":0,"wow":0,"sad":0,"angry":0,"laugh":0,"celebrate":0}');
-    reactions[type]++;
-    localStorage.setItem('reactions', JSON.stringify(reactions));
-    updateReactionCounts(reactions);
-    showToast('Thank you for your feedback!', 'success');
-}
-
-// ============================================
-// SOCIAL SHARING
-// ============================================
-function shareOnFacebook() {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
-}
-
-function shareOnTwitter() {
-    window.open(`https://twitter.com/intent/tweet?text=Check out this Smart Attendance System!&url=${encodeURIComponent(window.location.href)}`, '_blank');
-}
-
-function shareOnWhatsApp() {
-    window.open(`https://wa.me/?text=${encodeURIComponent('Smart Attendance System - ' + window.location.href)}`, '_blank');
-}
-
-function shareOnLinkedIn() {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
-}
-
-function copyPageURL() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('URL copied to clipboard!', 'success');
-}
-
-// ============================================
 // AI QUOTE GENERATION
 // ============================================
 const quotes = [
@@ -722,5 +959,4 @@ function escapeHtml(text) {
 
 // Initial load
 loadCumulativeReport();
-incrementUsage();
 showToast('System ready!', 'success');
