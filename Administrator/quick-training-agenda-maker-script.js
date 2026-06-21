@@ -1,7 +1,6 @@
 /* ========================================
    QUICK TRAINING AGENDA MAKER - SCRIPT
-   FULLY INTEGRATED WITH TiDB + VERCEL + GROK API
-   ALL ENDPOINTS WORKING - NO FAKE DATA
+   UPDATED: CLOUDFLARE WORKERS API
    ======================================== */
 
 // ========================================
@@ -9,17 +8,28 @@
 // ========================================
 
 const TOOL_SLUG = 'quick-training-agenda-maker';
+const TOOL_NAME = 'Quick Training Agenda Maker';
+const CATEGORY = 'Mixed-Tools';
 
-// !!! IMPORTANT: Replace with your actual Vercel URL !!!
-// Example: const API_BASE = 'https://your-app-name.vercel.app/api';
-const API_BASE = '/api';  // اگر same domain پر ہے تو یہ کام کرے گا
-// اگر different domain پر ہے تو یہ ڈالیں:
-// const API_BASE = 'https://your-app-name.vercel.app/api';
+// Cloudflare Workers API Configuration
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
-let currentUserId = localStorage.getItem('userId');
+// LocalStorage keys for fallback
+const STORAGE_KEYS = {
+    USAGE: 'qta_usage_count',
+    REACTIONS: 'qta_reactions_data',
+    SHARES: 'qta_shares_count',
+    USER_ID: 'qta_user_id',
+    DARK_MODE: 'darkMode',
+    THEME: 'theme'
+};
+
+// Generate or retrieve user ID
+let currentUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
 if (!currentUserId) {
     currentUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-    localStorage.setItem('userId', currentUserId);
+    localStorage.setItem(STORAGE_KEYS.USER_ID, currentUserId);
 }
 
 let totalDays = 0;
@@ -52,7 +62,7 @@ const scrollUpBtn = document.getElementById('scrollUpBtn');
 const scrollDownBtn = document.getElementById('scrollDownBtn');
 
 // ========================================
-// API CALLS - REAL TiDB ENDPOINTS
+// CLOUDFLARE WORKERS API CALLS
 // ========================================
 
 async function callAPI(endpoint, method = 'GET', data = null) {
@@ -61,7 +71,9 @@ async function callAPI(endpoint, method = 'GET', data = null) {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
-                'X-User-Id': currentUserId
+                'X-API-Key': API_KEY,
+                'X-User-Id': currentUserId,
+                'X-Tool-Slug': TOOL_SLUG
             }
         };
         if (data && (method === 'POST' || method === 'PUT')) {
@@ -72,10 +84,18 @@ async function callAPI(endpoint, method = 'GET', data = null) {
         console.log(`📡 API Call: ${method} ${url}`);
         
         const response = await fetch(url, options);
-        const result = await response.json();
         
-        console.log(`📡 API Response:`, result);
-        return result;
+        // Handle non-JSON responses
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const result = await response.json();
+            console.log(`📡 API Response:`, result);
+            return result;
+        } else {
+            const text = await response.text();
+            console.log(`📡 API Response (text):`, text);
+            return { success: false, error: 'Invalid response format', raw: text };
+        }
     } catch (error) {
         console.error('❌ API Error:', error);
         return { success: false, error: error.message };
@@ -83,81 +103,149 @@ async function callAPI(endpoint, method = 'GET', data = null) {
 }
 
 // ========================================
-// USAGE COUNTER - TiDB
+// USAGE COUNTER - Cloudflare API
 // ========================================
 
 async function incrementUsage() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/usage`, 'POST', { 
-            user_id: currentUserId,
-            tool_slug: TOOL_SLUG 
+        const result = await callAPI('/api/usage', 'POST', { 
+            tool_slug: TOOL_SLUG,
+            user_id: currentUserId
         });
         
-        if (result.success && result.total_usage) {
-            document.getElementById('globalUsageCount').innerText = result.total_usage;
-            console.log('✅ Usage incremented:', result.total_usage);
+        if (result.success) {
+            const usageCount = result.usage || result.total_usage || 0;
+            document.getElementById('globalUsageCount').innerText = usageCount;
+            // Save to localStorage as fallback
+            localStorage.setItem(STORAGE_KEYS.USAGE, usageCount);
+            console.log('✅ Usage incremented:', usageCount);
         } else {
-            console.log('⚠️ Usage increment response:', result);
+            // Fallback: use localStorage
+            let fallbackCount = parseInt(localStorage.getItem(STORAGE_KEYS.USAGE) || '0') + 1;
+            localStorage.setItem(STORAGE_KEYS.USAGE, fallbackCount);
+            document.getElementById('globalUsageCount').innerText = fallbackCount;
+            console.log('⚠️ Usage fallback (localStorage):', fallbackCount);
         }
         return result;
     } catch (error) {
         console.error('❌ Usage increment error:', error);
+        // Fallback
+        let fallbackCount = parseInt(localStorage.getItem(STORAGE_KEYS.USAGE) || '0') + 1;
+        localStorage.setItem(STORAGE_KEYS.USAGE, fallbackCount);
+        document.getElementById('globalUsageCount').innerText = fallbackCount;
         return { success: false };
     }
 }
 
 async function getGlobalStats() {
     try {
-        const result = await callAPI('/global-stats', 'GET');
-        if (result.success && result.totalUsage) {
-            document.getElementById('globalUsageCount').innerText = result.totalUsage;
-            console.log('✅ Global stats loaded:', result.totalUsage);
+        const result = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result.success) {
+            const usage = result.usage || result.total_usage || 0;
+            document.getElementById('globalUsageCount').innerText = usage;
+            localStorage.setItem(STORAGE_KEYS.USAGE, usage);
+            
+            // Update reactions if available
+            if (result.reactions) {
+                updateReactionCounts(result.reactions);
+            }
+            if (result.shares !== undefined) {
+                document.getElementById('totalSharesCount').innerText = result.shares;
+                localStorage.setItem(STORAGE_KEYS.SHARES, result.shares);
+            }
+            console.log('✅ Global stats loaded:', result);
+        } else {
+            loadFallbackStats();
         }
         return result;
     } catch (error) {
         console.error('❌ Global stats error:', error);
+        loadFallbackStats();
         return { success: false };
     }
 }
 
+function loadFallbackStats() {
+    // Load from localStorage
+    const usage = parseInt(localStorage.getItem(STORAGE_KEYS.USAGE) || '0');
+    document.getElementById('globalUsageCount').innerText = usage;
+    
+    const shares = parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) || '0');
+    document.getElementById('totalSharesCount').innerText = shares;
+    
+    // Load reactions from localStorage
+    try {
+        const reactionsData = JSON.parse(localStorage.getItem(STORAGE_KEYS.REACTIONS) || '{}');
+        updateReactionCounts(reactionsData);
+    } catch (e) {
+        console.log('No reactions data in localStorage');
+    }
+}
+
 // ========================================
-// REACTIONS - TiDB
+// REACTIONS - Cloudflare API
 // ========================================
 
 async function addReaction(reactionType) {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/reactions`, 'POST', {
+        const result = await callAPI('/api/reactions', 'POST', {
             user_id: currentUserId,
-            emoji: reactionType,
+            tool_slug: TOOL_SLUG,
             reaction_type: reactionType,
-            tool_slug: TOOL_SLUG
+            emoji: reactionType
         });
         
         if (result.success) {
             updateReactionCounts(result.counts || {});
+            // Save to localStorage
+            localStorage.setItem(STORAGE_KEYS.REACTIONS, JSON.stringify(result.counts || {}));
             showToast(`Reacted: ${reactionType} 👍`, 'success');
             console.log('✅ Reaction added:', reactionType, result.counts);
         } else if (result.already_reacted) {
             showToast(`You already reacted with ${reactionType}`, 'warning');
             console.log('⚠️ Already reacted:', reactionType);
         } else {
-            showToast('Reaction failed: ' + (result.error || 'Unknown'), 'error');
-            console.error('❌ Reaction failed:', result);
+            // Fallback: update localStorage
+            updateLocalReaction(reactionType);
+            showToast(`Reacted: ${reactionType} (offline mode)`, 'info');
         }
         return result;
     } catch (error) {
         console.error('❌ Reaction error:', error);
-        showToast('Network error. Please try again.', 'error');
+        // Fallback
+        updateLocalReaction(reactionType);
+        showToast(`Reacted: ${reactionType} (offline mode)`, 'info');
         return { success: false };
     }
 }
 
+function updateLocalReaction(reactionType) {
+    let reactions = {};
+    try {
+        reactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.REACTIONS) || '{}');
+    } catch (e) {
+        reactions = {};
+    }
+    reactions[reactionType] = (reactions[reactionType] || 0) + 1;
+    localStorage.setItem(STORAGE_KEYS.REACTIONS, JSON.stringify(reactions));
+    updateReactionCounts(reactions);
+}
+
 async function getReactions() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/reactions`, 'GET');
+        const result = await callAPI('/api/reactions', 'GET');
         if (result.success && result.reactions) {
             updateReactionCounts(result.reactions);
+            localStorage.setItem(STORAGE_KEYS.REACTIONS, JSON.stringify(result.reactions));
             console.log('✅ Reactions loaded:', result.reactions);
+        } else {
+            // Load from localStorage
+            try {
+                const reactionsData = JSON.parse(localStorage.getItem(STORAGE_KEYS.REACTIONS) || '{}');
+                updateReactionCounts(reactionsData);
+            } catch (e) {
+                console.log('No reactions data');
+            }
         }
         return result;
     } catch (error) {
@@ -168,46 +256,64 @@ async function getReactions() {
 
 function updateReactionCounts(counts) {
     const reactions = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+    let total = 0;
     reactions.forEach(react => {
         const btn = document.querySelector(`.reaction-btn[data-reaction="${react}"]`);
         if (btn) {
             const span = btn.querySelector('span');
-            if (span) span.innerText = counts[react] || 0;
+            const count = counts[react] || 0;
+            if (span) span.innerText = count;
+            total += count;
         }
     });
-    const total = Object.values(counts).reduce((a, b) => a + b, 0);
     document.getElementById('totalReactionsCount').innerText = total;
 }
 
 // ========================================
-// SHARES - TiDB
+// SHARES - Cloudflare API
 // ========================================
 
 async function recordShare(platform) {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/shares`, 'POST', {
+        const result = await callAPI('/api/shares', 'POST', {
             user_id: currentUserId,
-            platform: platform,
-            tool_slug: TOOL_SLUG
+            tool_slug: TOOL_SLUG,
+            platform: platform
         });
         console.log('✅ Share recorded:', platform, result);
+        if (result.success) {
+            const shareCount = result.shares || result.total_shares || 0;
+            document.getElementById('totalSharesCount').innerText = shareCount;
+            localStorage.setItem(STORAGE_KEYS.SHARES, shareCount);
+        }
         return result;
     } catch (error) {
         console.error('❌ Share record error:', error);
+        // Fallback
+        let shareCount = parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) || '0') + 1;
+        localStorage.setItem(STORAGE_KEYS.SHARES, shareCount);
+        document.getElementById('totalSharesCount').innerText = shareCount;
         return { success: false };
     }
 }
 
 async function getSharesCount() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/shares`, 'GET');
+        const result = await callAPI('/api/shares', 'GET');
         if (result.success && result.shares !== undefined) {
             document.getElementById('totalSharesCount').innerText = result.shares;
+            localStorage.setItem(STORAGE_KEYS.SHARES, result.shares);
             console.log('✅ Shares count:', result.shares);
+        } else {
+            // Load from localStorage
+            const shares = parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) || '0');
+            document.getElementById('totalSharesCount').innerText = shares;
         }
         return result;
     } catch (error) {
         console.error('❌ Get shares error:', error);
+        const shares = parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) || '0');
+        document.getElementById('totalSharesCount').innerText = shares;
         return { success: false };
     }
 }
@@ -263,33 +369,6 @@ async function copyPageUrl() {
 }
 
 // ========================================
-// AI QUOTE GENERATION - GROK API
-// ========================================
-
-async function generateAIQuote(prompt) {
-    try {
-        showToast('Generating AI quote...', 'info');
-        const result = await callAPI('/generate-quote', 'POST', {
-            prompt: prompt,
-            topic: prompt,
-            tool_slug: TOOL_SLUG
-        });
-        
-        if (result.success && result.quote) {
-            showToast(`✨ ${result.quote.substring(0, 50)}...`, 'success');
-            console.log('✅ AI Quote generated:', result);
-            return result;
-        } else {
-            console.log('⚠️ AI quote fallback');
-            return { success: false, quote: "Keep learning and growing every day!", author: "Training Expert" };
-        }
-    } catch (error) {
-        console.error('❌ Grok API error:', error);
-        return { success: false, quote: "Education is the key to success!", author: "Wisdom" };
-    }
-}
-
-// ========================================
 // INITIALIZATION
 // ========================================
 
@@ -297,6 +376,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Quick Training Agenda Maker - Initializing...');
     console.log('👤 User ID:', currentUserId);
     console.log('🔗 API Base:', API_BASE);
+    console.log('🔑 API Key:', API_KEY);
     
     // Set default dates
     const tomorrow = new Date();
@@ -308,32 +388,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('endDateInput').value = nextWeek.toISOString().split('T')[0];
     
     // Load preferences
-    if (localStorage.getItem('darkMode') === 'true') {
+    if (localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true') {
         document.body.classList.add('dark-mode');
         updateDarkModeIcon(true);
     }
     
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
     if (savedTheme && savedTheme !== 'default') {
         document.body.classList.add(`theme-${savedTheme}`);
     }
     
-    // Load all stats from TiDB
+    // Load all stats from Cloudflare API
     await getGlobalStats();
     await getReactions();
     await getSharesCount();
-    
-    // Check API health
-    try {
-        const health = await callAPI('/health', 'GET');
-        if (health.success) {
-            console.log('✅ API is healthy:', health);
-        } else {
-            console.log('⚠️ API health check:', health);
-        }
-    } catch (e) {
-        console.error('❌ API health check failed:', e);
-    }
     
     // Event Listeners
     startCustomizeBtn.addEventListener('click', generateCustomForm);
@@ -361,9 +429,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.classList.remove('theme-ocean', 'theme-forest', 'theme-sunset', 'theme-purple', 'theme-midnight');
             if (theme !== 'default') {
                 document.body.classList.add(`theme-${theme}`);
-                localStorage.setItem('theme', theme);
+                localStorage.setItem(STORAGE_KEYS.THEME, theme);
             } else {
-                localStorage.removeItem('theme');
+                localStorage.removeItem(STORAGE_KEYS.THEME);
             }
             showToast(`Theme changed to ${theme}`, 'success');
         });
@@ -497,7 +565,7 @@ async function generateCustomForm() {
         `;
     }
     
-    // Increment usage in TiDB
+    // Increment usage in Cloudflare API
     await incrementUsage();
     
     goToStep(2);
@@ -771,7 +839,7 @@ function showToast(message, type = 'info') {
 
 function toggleDarkMode() {
     const isDark = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', isDark);
+    localStorage.setItem(STORAGE_KEYS.DARK_MODE, isDark);
     updateDarkModeIcon(isDark);
     showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'success');
 }
