@@ -63,16 +63,42 @@ const provincePolicyContent = {
     }
 };
 
-// Global state
+// ============================================
+// CLOUDFLARE WORKERS API CONFIG
+// ============================================
+const API_CONFIG = {
+    base: 'https://magicrills-api.uzairhameed01.workers.dev',
+    key: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    endpoints: {
+        usage: '/api/usage',
+        reactions: '/api/reactions',
+        shares: '/api/shares',
+        stats: '/api/stats'
+    }
+};
+
+// ============================================
+// TOOL INFO
+// ============================================
+const TOOL = {
+    name: 'Registers Policy Dashboard',
+    slug: 'registers-policy-dashboard',
+    category: 'Teacher'
+};
+
+// ============================================
+// GLOBAL STATE
+// ============================================
 let currentProvince = "sindh";
 let currentView = "grid";
-let darkMode = localStorage.getItem("darkMode") === "true";
+let darkMode = true; // Default dark mode
 let isEnglish = true;
 let currentRegister = null;
 let reactionsData = {};
 let usageCounts = {};
+let statsData = { usage: 0, views: 0, shares: 0, followers: 0 };
 
-// Reactions emojis
+// Reactions emojis (7 types)
 const REACTIONS = [
     { emoji: "👍", type: "like", label: "Like" },
     { emoji: "❤️", type: "love", label: "Love" },
@@ -83,17 +109,361 @@ const REACTIONS = [
     { emoji: "🎉", type: "celebrate", label: "Celebrate" }
 ];
 
-// Initialize
+// Typewriter phrases
+const typewriterPhrases = [
+    '📚 24 School Registers',
+    '📝 AI-Powered Assistance',
+    '🏛️ Government of Pakistan',
+    '📊 Real-Time Analytics',
+    '🔍 Smart Search',
+    '🌍 Sindh • Punjab • Balochistan • KPK'
+];
+
+// ============================================
+// INITIALIZATION
+// ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    if (darkMode) document.body.classList.add("dark");
+    // Force dark mode on load
+    document.body.classList.add("dark");
+    darkMode = true;
+    localStorage.setItem("darkMode", "true");
+    
+    // Start typewriter
+    startTypewriter();
+    
+    // Load tool data
+    loadToolStats();
     renderRegisters();
-    loadGlobalStats();
     setupEventListeners();
     initParticles();
     updateUILanguage();
+    
+    // Increment usage on load (API + Fallback)
+    incrementUsage(TOOL.slug);
+    
     showToast(isEnglish ? "Welcome! Register Policy Dashboard Loaded" : "خوش آمدید! رجسٹر پالیسی ڈیش بورڈ لوڈ ہو گیا", "success");
 });
 
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function startTypewriter() {
+    const textElement = document.getElementById('typewriterText');
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let speed = 80;
+
+    function type() {
+        const currentPhrase = typewriterPhrases[phraseIndex];
+        
+        if (!isDeleting) {
+            // Typing
+            textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            speed = 80 + Math.random() * 40;
+            
+            if (charIndex === currentPhrase.length) {
+                isDeleting = true;
+                speed = 2000; // Pause at end
+            }
+        } else {
+            // Deleting
+            textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            speed = 40 + Math.random() * 30;
+            
+            if (charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % typewriterPhrases.length;
+                speed = 500; // Pause before next
+            }
+        }
+        
+        setTimeout(type, speed);
+    }
+    
+    type();
+}
+
+// ============================================
+// CLOUDFLARE API CALLS WITH FALLBACK
+// ============================================
+async function callAPI(endpoint, method = 'GET', body = null) {
+    const url = `${API_CONFIG.base}${endpoint}`;
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_CONFIG.key
+    };
+    
+    const options = {
+        method,
+        headers,
+        credentials: 'omit'
+    };
+    
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using localStorage fallback:', error.message);
+        return null;
+    }
+}
+
+// ============================================
+// USAGE INCREMENT
+// ============================================
+async function incrementUsage(slug) {
+    try {
+        // Try API first
+        const result = await callAPI('/api/usage', 'POST', { 
+            tool_slug: slug,
+            tool_name: TOOL.name,
+            category: TOOL.category
+        });
+        
+        if (result && result.success) {
+            updateStatsFromAPI();
+            return;
+        }
+    } catch (e) {
+        console.warn('API usage increment failed, using localStorage');
+    }
+    
+    // Fallback: LocalStorage
+    const stored = localStorage.getItem('registers_usage');
+    const usage = stored ? JSON.parse(stored) : {};
+    usage[slug] = (usage[slug] || 0) + 1;
+    localStorage.setItem('registers_usage', JSON.stringify(usage));
+    updateStatsDisplay();
+}
+
+// ============================================
+// REACTIONS API
+// ============================================
+async function addReaction(slug, type) {
+    const key = `${slug}_${type}`;
+    
+    try {
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: slug,
+            reaction_type: type,
+            emoji: REACTIONS.find(r => r.type === type)?.emoji || ''
+        });
+        
+        if (result && result.success) {
+            // Update from API response
+            await loadReactions(slug);
+            updateStatsFromAPI();
+            showToast(isEnglish ? `Reaction added: ${type}` : `ری ایکشن شامل کر دیا: ${type}`, "success");
+            return;
+        }
+    } catch (e) {
+        console.warn('API reaction failed, using localStorage');
+    }
+    
+    // Fallback: LocalStorage
+    const stored = localStorage.getItem('registers_reactions');
+    const reactions = stored ? JSON.parse(stored) : {};
+    reactions[key] = (reactions[key] || 0) + 1;
+    localStorage.setItem('registers_reactions', JSON.stringify(reactions));
+    
+    // Update UI
+    const countSpan = document.getElementById(`react-${slug}-${type}`);
+    if (countSpan) {
+        countSpan.textContent = reactions[key] || 0;
+    }
+    updateStatsDisplay();
+    showToast(isEnglish ? `Reaction added: ${type}` : `ری ایکشن شامل کر دیا: ${type}`, "success");
+}
+
+async function loadReactions(slug) {
+    try {
+        const result = await callAPI(`/api/reactions?tool_slug=${slug}`, 'GET');
+        if (result && result.success && result.data) {
+            REACTIONS.forEach(r => {
+                const count = result.data[r.type] || 0;
+                const countSpan = document.getElementById(`react-${slug}-${r.type}`);
+                if (countSpan) {
+                    countSpan.textContent = count;
+                }
+                reactionsData[`${slug}_${r.type}`] = count;
+            });
+            return;
+        }
+    } catch (e) {
+        console.warn('API load reactions failed, using localStorage');
+    }
+    
+    // Fallback: LocalStorage
+    const stored = localStorage.getItem('registers_reactions');
+    const reactions = stored ? JSON.parse(stored) : {};
+    REACTIONS.forEach(r => {
+        const key = `${slug}_${r.type}`;
+        const count = reactions[key] || 0;
+        const countSpan = document.getElementById(`react-${slug}-${r.type}`);
+        if (countSpan) {
+            countSpan.textContent = count;
+        }
+        reactionsData[key] = count;
+    });
+}
+
+// ============================================
+// SHARES API
+// ============================================
+async function recordShare(slug, platform) {
+    try {
+        const result = await callAPI('/api/shares', 'POST', {
+            tool_slug: slug,
+            platform: platform
+        });
+        
+        if (result && result.success) {
+            updateStatsFromAPI();
+            showToast(isEnglish ? `Shared on ${platform}` : `${platform} پر شیئر کیا`, "success");
+            return;
+        }
+    } catch (e) {
+        console.warn('API share failed, using localStorage');
+    }
+    
+    // Fallback: LocalStorage
+    const stored = localStorage.getItem('registers_shares');
+    const shares = stored ? JSON.parse(stored) : {};
+    shares[slug] = (shares[slug] || 0) + 1;
+    localStorage.setItem('registers_shares', JSON.stringify(shares));
+    updateStatsDisplay();
+    showToast(isEnglish ? `Shared successfully` : `کامیابی سے شیئر ہو گیا`, "success");
+}
+
+// ============================================
+// STATS API
+// ============================================
+async function loadToolStats() {
+    try {
+        const result = await callAPI(`/api/stats?tool_slug=${TOOL.slug}`, 'GET');
+        if (result && result.success && result.data) {
+            statsData = result.data;
+            updateStatsDisplay();
+            return;
+        }
+    } catch (e) {
+        console.warn('API stats failed, using localStorage');
+    }
+    
+    // Fallback: Load from localStorage
+    loadLocalStats();
+    updateStatsDisplay();
+}
+
+async function updateStatsFromAPI() {
+    await loadToolStats();
+}
+
+function loadLocalStats() {
+    const usage = localStorage.getItem('registers_usage');
+    const reactions = localStorage.getItem('registers_reactions');
+    const shares = localStorage.getItem('registers_shares');
+    
+    const usageObj = usage ? JSON.parse(usage) : {};
+    const reactionsObj = reactions ? JSON.parse(reactions) : {};
+    const sharesObj = shares ? JSON.parse(shares) : {};
+    
+    statsData.usage = Object.values(usageObj).reduce((a, b) => a + b, 0);
+    statsData.views = statsData.usage;
+    statsData.shares = Object.values(sharesObj).reduce((a, b) => a + b, 0);
+    statsData.followers = Math.floor(Math.random() * 100) + 50; // Simulated
+}
+
+function updateStatsDisplay() {
+    const usageEl = document.getElementById('globalUsage');
+    const reactionsEl = document.getElementById('globalReactions');
+    const sharesEl = document.getElementById('globalShares');
+    const followersEl = document.getElementById('globalFollowers');
+    
+    // Calculate total reactions
+    const totalReactions = Object.values(reactionsData).reduce((a, b) => a + b, 0);
+    
+    if (usageEl) usageEl.textContent = statsData.usage || 0;
+    if (reactionsEl) reactionsEl.textContent = totalReactions || 0;
+    if (sharesEl) sharesEl.textContent = statsData.shares || 0;
+    if (followersEl) followersEl.textContent = statsData.followers || 0;
+}
+
+// ============================================
+// SHARE FUNCTIONS
+// ============================================
+function shareOnPlatform(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('Registers Policy Dashboard - Government School Management System');
+    let shareUrl = '';
+    
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(window.location.href);
+            showToast(isEnglish ? 'Link copied to clipboard!' : 'لنک کلپ بورڈ پر کاپی ہو گیا!', 'success');
+            return;
+        default:
+            return;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=500');
+        recordShare(TOOL.slug, platform);
+    }
+}
+
+function sharePage() {
+    // Show share options via toast or modal
+    const platforms = ['Facebook', 'Twitter', 'WhatsApp', 'LinkedIn', 'Copy'];
+    const platformMap = {
+        'Facebook': 'facebook',
+        'Twitter': 'twitter',
+        'WhatsApp': 'whatsapp',
+        'LinkedIn': 'linkedin',
+        'Copy': 'copy'
+    };
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Registers Policy Dashboard',
+            text: 'Complete policy guidelines for 24 school registers in Pakistan.',
+            url: window.location.href
+        }).catch(() => {});
+        return;
+    }
+    
+    // Fallback: open a small modal or use toast with options
+    const msg = isEnglish 
+        ? 'Share via: Facebook • Twitter • WhatsApp • LinkedIn' 
+        : 'شیئر کریں: فیس بک • ٹویٹر • واٹس ایپ • لنکڈ ان';
+    showToast(msg, 'info');
+}
+
+// ============================================
+// EVENT LISTENERS SETUP
+// ============================================
 function setupEventListeners() {
     // Province buttons
     document.querySelectorAll(".province-btn").forEach(btn => {
@@ -113,7 +483,7 @@ function setupEventListeners() {
     searchEn.addEventListener("input", (e) => renderRegisters(e.target.value));
     searchUr.addEventListener("input", (e) => renderRegisters(e.target.value));
     
-    // Dark mode
+    // Dark mode toggle
     document.getElementById("darkModeToggle").addEventListener("click", () => {
         darkMode = !darkMode;
         localStorage.setItem("darkMode", darkMode);
@@ -139,7 +509,7 @@ function setupEventListeners() {
         window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     });
     
-    // Share page
+    // Share page button
     document.getElementById("sharePageBtn").addEventListener("click", sharePage);
     
     // Compare button
@@ -169,8 +539,20 @@ function setupEventListeners() {
             if (e.target === modal) modal.style.display = "none";
         });
     });
+    
+    // Share social buttons in modal
+    document.querySelectorAll(".share-social-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const platform = btn.dataset.share;
+            shareOnPlatform(platform);
+        });
+    });
 }
 
+// ============================================
+// UI LANGUAGE UPDATE
+// ============================================
 function updateUILanguage() {
     // Toggle visibility of English/Urdu elements
     document.querySelectorAll(".sub-en, .label-en, .lang-text-en, .btn-text-en, .header-title-en, .export-txt-en, .export-pdf-en, .ai-sum-en, .ai-title-en, .copy-en, .compare-title-en").forEach(el => {
@@ -200,6 +582,9 @@ function updateUILanguage() {
     }
 }
 
+// ============================================
+// RENDER REGISTERS (3 cards per row)
+// ============================================
 function renderRegisters(searchTerm = "") {
     const grid = document.getElementById("registersGrid");
     const term = (searchTerm || "").toLowerCase();
@@ -233,6 +618,9 @@ function renderRegisters(searchTerm = "") {
     registersData.forEach(reg => loadReactions(reg.slug));
 }
 
+// ============================================
+// OPEN REGISTER DETAIL
+// ============================================
 function openRegisterDetail(slug) {
     currentRegister = registersData.find(r => r.slug === slug);
     if (!currentRegister) return;
@@ -249,7 +637,7 @@ function openRegisterDetail(slug) {
                 <i class="${currentRegister.icon}" style="font-size: 2rem;"></i>
             </div>
             <div>
-                <h2>${isEnglish ? currentRegister.name : currentRegister.nameUr}</h2>
+                <h2 style="font-family: 'Orbitron', sans-serif; color: #00f5ff;">${isEnglish ? currentRegister.name : currentRegister.nameUr}</h2>
                 <p style="color: var(--gray);">${isEnglish ? currentRegister.desc : currentRegister.descUr}</p>
             </div>
         </div>
@@ -260,13 +648,13 @@ function openRegisterDetail(slug) {
         
         <div class="pros-cons">
             <div class="pros-box">
-                <h4><i class="fas fa-check-circle" style="color: #10b981;"></i> ${isEnglish ? "Benefits" : "فوائد"}</h4>
+                <h4><i class="fas fa-check-circle" style="color: #00ff88;"></i> ${isEnglish ? "Benefits" : "فوائد"}</h4>
                 <div class="policy-item">${isEnglish ? "Ensures accurate record keeping" : "درست ریکارڈ کیپنگ کو یقینی بناتا ہے"}</div>
                 <div class="policy-item">${isEnglish ? "Legal documentation for audit" : "آڈٹ کے لیے قانونی دستاویز"}</div>
                 <div class="policy-item">${isEnglish ? "Improves accountability" : "احتساب کو بہتر بناتا ہے"}</div>
             </div>
             <div class="cons-box">
-                <h4><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ${isEnglish ? "Challenges" : "چیلنجز"}</h4>
+                <h4><i class="fas fa-exclamation-triangle" style="color: #ff0044;"></i> ${isEnglish ? "Challenges" : "چیلنجز"}</h4>
                 <div class="policy-item">${isEnglish ? "Time-consuming manual entry" : "وقت طلب دستی اندراج"}</div>
                 <div class="policy-item">${isEnglish ? "Potential for human error" : "انسانی غلطی کا امکان"}</div>
                 <div class="policy-item">${isEnglish ? "Requires regular verification" : "باقاعدہ تصدیق کی ضرورت"}</div>
@@ -298,36 +686,9 @@ function openRegisterDetail(slug) {
     document.getElementById("aiSummarizeBtn").onclick = () => openAISummary();
 }
 
-function incrementUsage(slug) {
-    usageCounts[slug] = (usageCounts[slug] || 0) + 1;
-    updateGlobalStats();
-}
-
-function loadReactions(slug) {
-    // Simulate loading from TiDB
-    REACTIONS.forEach(r => {
-        const countSpan = document.getElementById(`react-${slug}-${r.type}`);
-        if (countSpan) {
-            const count = reactionsData[`${slug}_${r.type}`] || 0;
-            countSpan.textContent = count;
-        }
-    });
-}
-
-function addReaction(slug, type) {
-    const key = `${slug}_${type}`;
-    reactionsData[key] = (reactionsData[key] || 0) + 1;
-    loadReactions(slug);
-    updateGlobalStats();
-    showToast(isEnglish ? `Reaction added: ${type}` : `ری ایکشن شامل کر دیا: ${type}`, "success");
-}
-
-function sharePage() {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    showToast(isEnglish ? "Page URL copied to clipboard!" : "پیج یو آر ایل کلپ بورڈ پر کاپی ہو گیا!", "success");
-}
-
+// ============================================
+// COMPARE MODAL
+// ============================================
 function openCompareModal() {
     const modal = document.getElementById("compareModal");
     const content = document.getElementById("compareContent");
@@ -335,8 +696,8 @@ function openCompareModal() {
     content.innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
             ${Object.keys(provincePolicyContent).map(province => `
-                <div style="padding: 1rem; border-radius: 12px; background: var(--light);">
-                    <h4 style="color: var(--primary);">${isEnglish ? provincePolicyContent[province].name : provincePolicyContent[province].nameUr}</h4>
+                <div style="padding: 1rem; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,245,255,0.05);">
+                    <h4 style="color: #00f5ff; font-family: 'Orbitron', sans-serif;">${isEnglish ? provincePolicyContent[province].name : provincePolicyContent[province].nameUr}</h4>
                     <div class="policy-item"><strong>${isEnglish ? "Attendance:" : "حاضری:"}</strong> ${provincePolicyContent[province].attendanceRules}</div>
                     <div class="policy-item"><strong>${isEnglish ? "Retention:" : "ریکارڈ مدت:"}</strong> ${provincePolicyContent[province].retentionPeriod}</div>
                     <div class="policy-item"><strong>${isEnglish ? "Notes:" : "خصوصی نوٹ:"}</strong> ${provincePolicyContent[province].specialNotes}</div>
@@ -348,23 +709,26 @@ function openCompareModal() {
     modal.style.display = "flex";
 }
 
+// ============================================
+// AI SUMMARY
+// ============================================
 function openAISummary() {
     const modal = document.getElementById("aiModal");
     const content = document.getElementById("aiSummaryContent");
     
     content.innerHTML = `
         <div style="text-align: center; padding: 2rem;">
-            <i class="fas fa-spinner fa-pulse" style="font-size: 2rem; color: var(--primary);"></i>
-            <p>${isEnglish ? "Generating AI summary..." : "اے آئی خلاصہ تیار کر رہا ہے..."}</p>
+            <i class="fas fa-spinner fa-pulse" style="font-size: 2rem; color: #00f5ff;"></i>
+            <p style="color: rgba(255,255,255,0.6);">${isEnglish ? "Generating AI summary..." : "اے آئی خلاصہ تیار کر رہا ہے..."}</p>
         </div>
     `;
     modal.style.display = "flex";
     
     setTimeout(() => {
         content.innerHTML = `
-            <p>${isEnglish ? "This register is essential for maintaining accurate school records. Regular updates ensure compliance with government policies and facilitate smooth audits." : "یہ رجسٹر اسکول کے درست ریکارڈ کو برقرار رکھنے کے لیے ضروری ہے۔ باقاعدہ اپ ڈیٹس حکومتی پالیسیوں کی تعمیل کو یقینی بناتی ہیں اور آڈٹ کو آسان بناتی ہیں۔"}</p>
+            <p style="color: rgba(255,255,255,0.8);">${isEnglish ? "This register is essential for maintaining accurate school records. Regular updates ensure compliance with government policies and facilitate smooth audits." : "یہ رجسٹر اسکول کے درست ریکارڈ کو برقرار رکھنے کے لیے ضروری ہے۔ باقاعدہ اپ ڈیٹس حکومتی پالیسیوں کی تعمیل کو یقینی بناتی ہیں اور آڈٹ کو آسان بناتی ہیں۔"}</p>
             <br>
-            <p><strong>${isEnglish ? "Key Recommendation:" : "اہم سفارش:"}</strong> ${isEnglish ? "Digitize records where possible for better accessibility and security." : "بہتر رسائی اور حفاظت کے لیے جہاں ممکن ہو ریکارڈ کو ڈیجیٹل بنائیں۔"}</p>
+            <p style="color: rgba(255,255,255,0.8);"><strong style="color: #00f5ff;">${isEnglish ? "Key Recommendation:" : "اہم سفارش:"}</strong> ${isEnglish ? "Digitize records where possible for better accessibility and security." : "بہتر رسائی اور حفاظت کے لیے جہاں ممکن ہو ریکارڈ کو ڈیجیٹل بنائیں۔"}</p>
         `;
     }, 1500);
     
@@ -375,12 +739,15 @@ function openAISummary() {
     };
 }
 
+// ============================================
+// EXPORT CONTENT
+// ============================================
 function exportContent(type) {
     if (!currentRegister) return;
     
     const content = `
 ${isEnglish ? currentRegister.name : currentRegister.nameUr}
-${isEnglish ? "=".repeat(50) : "=".repeat(50)}
+${"=".repeat(50)}
 
 ${isEnglish ? "Province" : "صوبہ"}: ${isEnglish ? provincePolicyContent[currentProvince].name : provincePolicyContent[currentProvince].nameUr}
 
@@ -402,11 +769,12 @@ ${isEnglish ? "Generated by Registers Policy Dashboard - Govt of Pakistan" : "ر
         URL.revokeObjectURL(url);
         showToast(isEnglish ? "TXT exported!" : "ٹیکسٹ ڈاؤنلوڈ ہو گیا!", "success");
     } else if (type === "pdf") {
-        // Simple print simulation for PDF
         const printWindow = window.open("", "_blank");
         printWindow.document.write(`
-            <html><head><title>${currentRegister.name} Policy</title></head>
-            <body style="font-family: Arial; padding: 2rem;"><pre>${content}</pre></body>
+            <html><head><title>${currentRegister.name} Policy</title>
+            <style>body{font-family:'Inter',sans-serif;padding:2rem;background:#0a0a1a;color:#e2e8f0;}pre{white-space:pre-wrap;}</style>
+            </head>
+            <body><pre>${content}</pre></body>
             </html>
         `);
         printWindow.print();
@@ -414,15 +782,9 @@ ${isEnglish ? "Generated by Registers Policy Dashboard - Govt of Pakistan" : "ر
     }
 }
 
-function loadGlobalStats() {
-    document.getElementById("globalUsage").textContent = Object.values(usageCounts).reduce((a,b) => a+b, 0);
-    document.getElementById("globalReactions").textContent = Object.values(reactionsData).reduce((a,b) => a+b, 0);
-}
-
-function updateGlobalStats() {
-    loadGlobalStats();
-}
-
+// ============================================
+// VOICE SEARCH
+// ============================================
 function startVoiceSearch() {
     if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
         showToast(isEnglish ? "Voice search not supported in this browser" : "اس براؤزر میں آواز سے تلاش کی سہولت موجود نہیں", "error");
@@ -451,6 +813,9 @@ function startVoiceSearch() {
     showToast(isEnglish ? "Listening... Speak now" : "سن رہے ہیں... اب بولیں", "info");
 }
 
+// ============================================
+// TOAST NOTIFICATIONS
+// ============================================
 function showToast(message, type = "info") {
     const container = document.getElementById("toastContainer");
     const toast = document.createElement("div");
@@ -463,6 +828,9 @@ function showToast(message, type = "info") {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// ============================================
+// PARTICLES BACKGROUND
+// ============================================
 function initParticles() {
     const canvas = document.getElementById("particlesCanvas");
     if (!canvas) return;
@@ -472,14 +840,17 @@ function initParticles() {
     const ctx = canvas.getContext("2d");
     
     const particles = [];
-    for (let i = 0; i < 50; i++) {
+    const colors = ['#00f5ff', '#ff6bff', '#00ff88', '#ffdd00'];
+    
+    for (let i = 0; i < 60; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            radius: Math.random() * 3,
-            alpha: Math.random() * 0.5,
-            speedX: (Math.random() - 0.5) * 0.5,
-            speedY: (Math.random() - 0.5) * 0.5
+            radius: Math.random() * 3 + 1,
+            alpha: Math.random() * 0.3 + 0.1,
+            speedX: (Math.random() - 0.5) * 0.4,
+            speedY: (Math.random() - 0.5) * 0.4,
+            color: colors[Math.floor(Math.random() * colors.length)]
         });
     }
     
@@ -496,17 +867,18 @@ function initParticles() {
             
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.alpha;
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 10;
             ctx.fill();
+            ctx.shadowBlur = 0;
         });
         requestAnimationFrame(animate);
     }
     
     animate();
-}
-
-function setupParticles() {
-    initParticles();
+    
     window.addEventListener("resize", () => {
         const canvas = document.getElementById("particlesCanvas");
         if (canvas) {
