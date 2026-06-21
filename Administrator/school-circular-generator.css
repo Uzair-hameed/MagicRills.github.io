@@ -25,6 +25,8 @@
     --border: #e2e8f0;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --neon-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+    --neon-text: #3b82f6;
     
     --border-radius: 16px;
     --border-radius-sm: 10px;
@@ -37,15 +39,17 @@
     --primary-light: #60a5fa;
     --secondary: #64748b;
     
-    --bg-body: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    --bg-card: #1e293b;
+    --bg-body: #0a0e1a;
+    --bg-card: #111827;
     --bg-sidebar: #0f172a;
     --text-primary: #f1f5f9;
     --text-secondary: #cbd5e1;
     --text-muted: #64748b;
-    --border: #334155;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --border: #1e293b;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.6);
+    --neon-glow: 0 0 30px rgba(59, 130, 246, 0.5);
+    --neon-text: #60a5fa;
 }
 
 * {
@@ -62,6 +66,58 @@ body {
     transition: var(--transition);
     min-height: 100vh;
     overflow-x: hidden;
+}
+
+/* ============================================
+   DARK SPACE THEME - LIVE BACKGROUND
+   ============================================ */
+[data-theme="dark"] .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1a2e 30%, #1a0a2e 60%, #0a0e1a 100%);
+}
+
+[data-theme="dark"] .hero-bg-animation .orb {
+    opacity: 0.4;
+}
+
+[data-theme="dark"] .orb1 {
+    background: radial-gradient(circle, #3b82f6, #1a0a2e);
+    box-shadow: 0 0 80px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .orb2 {
+    background: radial-gradient(circle, #ff6b00, #1a0a2e);
+    box-shadow: 0 0 80px rgba(255, 107, 0, 0.2);
+}
+
+[data-theme="dark"] .orb3 {
+    background: radial-gradient(circle, #8b5cf6, #1a0a2e);
+    box-shadow: 0 0 80px rgba(139, 92, 246, 0.3);
+}
+
+/* Floating Stars for Dark Theme */
+[data-theme="dark"] .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(2px 2px at 50px 160px, #ddd, transparent),
+        radial-gradient(2px 2px at 90px 40px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 130px 80px, #fff, transparent),
+        radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.7), transparent);
+    background-size: 200px 200px;
+    animation: twinkle 4s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
 }
 
 /* ============================================
@@ -213,6 +269,35 @@ body {
     animation: fadeInUp 0.6s ease 0.1s both;
 }
 
+/* NEON TEXT EFFECT */
+[data-theme="dark"] .hero-title .gradient-text {
+    background: linear-gradient(135deg, #ff6b00, #fbbf24, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: neonPulse 2s ease-in-out infinite alternate;
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.2);
+}
+
+[data-theme="dark"] .hero-title {
+    text-shadow: 0 0 40px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .hero-badge {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="dark"] .hero-desc {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes neonPulse {
+    0% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.2); }
+    100% { text-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 80px rgba(139, 92, 246, 0.4), 0 0 120px rgba(255, 107, 0, 0.2); }
+}
+
 .gradient-text {
     background: linear-gradient(135deg, #ff6b00, #fbbf24, #3b82f6);
     -webkit-background-clip: text;
@@ -242,6 +327,22 @@ body {
     animation: fadeInUp 0.6s ease 0.2s both;
 }
 
+/* TYPEWRITER CURSOR */
+.typewriter-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.2em;
+    background: #ff6b00;
+    margin-left: 4px;
+    animation: blink 0.7s step-end infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
 .hero-stats {
     display: flex;
     justify-content: center;
@@ -259,6 +360,11 @@ body {
     font-size: 2rem;
     font-weight: 800;
     color: #ff6b00;
+}
+
+[data-theme="dark"] .stat-number {
+    color: #60a5fa;
+    text-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
 }
 
 .stat-label {
@@ -293,9 +399,18 @@ body {
     box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
 }
 
+[data-theme="dark"] .btn-hero-primary {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    box-shadow: 0 4px 25px rgba(59, 130, 246, 0.4);
+}
+
 .btn-hero-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4);
+}
+
+[data-theme="dark"] .btn-hero-primary:hover {
+    box-shadow: 0 8px 35px rgba(59, 130, 246, 0.6);
 }
 
 .btn-hero-secondary {
@@ -407,6 +522,10 @@ body {
     background: linear-gradient(145deg, #fff, #f8fafc);
 }
 
+[data-theme="dark"] .preview-container.style-modern {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+}
+
 .preview-container.style-modern .circular-title {
     background: linear-gradient(135deg, var(--primary), var(--accent));
     -webkit-background-clip: text;
@@ -435,8 +554,16 @@ body {
     border-radius: 16px;
 }
 
+[data-theme="dark"] .preview-container.style-colorful {
+    background: linear-gradient(135deg, #1e293b, #2d1b0e);
+}
+
 .preview-container.style-colorful .circular-title {
     color: #d35400;
+}
+
+[data-theme="dark"] .preview-container.style-colorful .circular-title {
+    color: #f59e0b;
 }
 
 .preview-container.style-colorful .circular-point i {
@@ -450,6 +577,10 @@ body {
     border-left: 4px solid var(--primary);
     border-radius: 0;
     padding: 30px;
+}
+
+[data-theme="dark"] .preview-container.style-minimal {
+    background: #111827;
 }
 
 /* ============================================
