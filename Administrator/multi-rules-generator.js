@@ -2,7 +2,19 @@
 // ============================================
 // COMPLETE MULTI RULES GENERATOR
 // 50+ Categories | 1000+ Rules | Beautiful Templates
+// Cloudflare Workers API Integrated
 // ============================================
+
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_NAME: 'Multi Rules Generator',
+    TOOL_SLUG: 'multi-rules-generator',
+    CATEGORY: 'Mixed-Tools'
+};
 
 // ============================================
 // 50 COMPLETE CATEGORIES WITH 20 RULES EACH
@@ -441,7 +453,6 @@ const RULES_DATABASE = {
             "Be respectful of performers and fellow audience members."
         ]
     },
-    // Additional categories to reach 50+
     physics: {
         title: "⚛️ Physics Lab Rules",
         icon: "fas fa-microscope",
@@ -835,7 +846,8 @@ console.log(`✅ Loaded ${CATEGORIES.length} categories with 20 rules each (${Ob
 let currentCategory = 'classroom';
 let currentRules = [...RULES_DATABASE.classroom.rules];
 let currentUsageCount = 0;
-let currentReactions = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+let currentReactions = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 };
+let currentShares = 0;
 let userReactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
 let SESSION_ID = localStorage.getItem('session_id') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 localStorage.setItem('session_id', SESSION_ID);
@@ -845,6 +857,197 @@ const ruleIcons = [
     "⏰", "👨‍🏫", "🙋", "✋", "🪑", "💬", "📚", "👂", "🧹", "📱",
     "📝", "🤫", "⚠️", "🏫", "🌟", "❓", "🗣️", "⏱️", "👔", "⭐"
 ];
+
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+const typewriterTexts = [
+    "Create Rules for Any Environment",
+    "50+ Categories Available",
+    "AI-Powered Rule Generation",
+    "Beautiful Templates Included",
+    "Perfect for Teachers & Students",
+    "Classroom Rules Made Easy",
+    "Download & Share Instantly"
+];
+
+let typewriterIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+let typewriterElement = document.getElementById('typewriterText');
+
+function typewriterEffect() {
+    if (!typewriterElement) return;
+    
+    const currentText = typewriterTexts[typewriterIndex];
+    
+    if (!isDeleting) {
+        // Typing
+        typewriterElement.textContent = currentText.substring(0, charIndex + 1);
+        charIndex++;
+        
+        if (charIndex === currentText.length) {
+            isDeleting = true;
+            setTimeout(typewriterEffect, 3000);
+            return;
+        }
+        
+        setTimeout(typewriterEffect, 80 + Math.random() * 40);
+    } else {
+        // Deleting
+        typewriterElement.textContent = currentText.substring(0, charIndex - 1);
+        charIndex--;
+        
+        if (charIndex === 0) {
+            isDeleting = false;
+            typewriterIndex = (typewriterIndex + 1) % typewriterTexts.length;
+            setTimeout(typewriterEffect, 500);
+            return;
+        }
+        
+        setTimeout(typewriterEffect, 40 + Math.random() * 20);
+    }
+}
+
+// ============================================
+// CLOUDFLARE API HELPER
+// ============================================
+const API = {
+    async call(endpoint, method = 'GET', data = null) {
+        const url = `${CONFIG.API_BASE}${endpoint}`;
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('API call failed:', error);
+            return null;
+        }
+    },
+
+    async incrementUsage(toolSlug) {
+        try {
+            const result = await this.call('/api/usage', 'POST', {
+                tool_slug: toolSlug || CONFIG.TOOL_SLUG
+            });
+            if (result && result.success) {
+                return result;
+            }
+            // Fallback to local
+            return this.incrementUsageLocal();
+        } catch (error) {
+            return this.incrementUsageLocal();
+        }
+    },
+
+    incrementUsageLocal() {
+        const key = `${CONFIG.TOOL_SLUG}_usage`;
+        let count = parseInt(localStorage.getItem(key) || '0');
+        count++;
+        localStorage.setItem(key, count);
+        return { success: true, usage: count, source: 'local' };
+    },
+
+    async getStats(toolSlug) {
+        try {
+            const result = await this.call(`/api/stats?tool_slug=${toolSlug || CONFIG.TOOL_SLUG}`, 'GET');
+            if (result && result.success) {
+                return result;
+            }
+            return this.getStatsLocal();
+        } catch (error) {
+            return this.getStatsLocal();
+        }
+    },
+
+    getStatsLocal() {
+        return {
+            success: true,
+            stats: {
+                usage: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0'),
+                shares: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0'),
+                reactions: JSON.parse(localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`) || '{}')
+            },
+            source: 'local'
+        };
+    },
+
+    async recordShare(toolSlug) {
+        try {
+            const result = await this.call('/api/shares', 'POST', {
+                tool_slug: toolSlug || CONFIG.TOOL_SLUG
+            });
+            if (result && result.success) {
+                return result;
+            }
+            return this.recordShareLocal();
+        } catch (error) {
+            return this.recordShareLocal();
+        }
+    },
+
+    recordShareLocal() {
+        const key = `${CONFIG.TOOL_SLUG}_shares`;
+        let count = parseInt(localStorage.getItem(key) || '0');
+        count++;
+        localStorage.setItem(key, count);
+        return { success: true, shares: count, source: 'local' };
+    },
+
+    async addReaction(toolSlug, reactionType) {
+        try {
+            const result = await this.call('/api/reactions', 'POST', {
+                tool_slug: toolSlug || CONFIG.TOOL_SLUG,
+                reaction: reactionType
+            });
+            if (result && result.success) {
+                return result;
+            }
+            return this.addReactionLocal(reactionType);
+        } catch (error) {
+            return this.addReactionLocal(reactionType);
+        }
+    },
+
+    addReactionLocal(reactionType) {
+        const key = `${CONFIG.TOOL_SLUG}_reactions`;
+        let reactions = JSON.parse(localStorage.getItem(key) || '{}');
+        reactions[reactionType] = (reactions[reactionType] || 0) + 1;
+        localStorage.setItem(key, JSON.stringify(reactions));
+        return { success: true, reactions, source: 'local' };
+    },
+
+    async getReactions(toolSlug) {
+        try {
+            const result = await this.call(`/api/reactions?tool_slug=${toolSlug || CONFIG.TOOL_SLUG}`, 'GET');
+            if (result && result.success) {
+                return result;
+            }
+            return this.getReactionsLocal();
+        } catch (error) {
+            return this.getReactionsLocal();
+        }
+    },
+
+    getReactionsLocal() {
+        const key = `${CONFIG.TOOL_SLUG}_reactions`;
+        const reactions = JSON.parse(localStorage.getItem(key) || '{}');
+        return { success: true, reactions, source: 'local' };
+    }
+};
 
 // ============================================
 // DOM ELEMENTS
@@ -879,6 +1082,7 @@ const copyUrlBtn = document.getElementById('copyUrlBtn');
 const usageCountSpan = document.getElementById('usageCount');
 const globalUsageCountSpan = document.getElementById('globalUsageCount');
 const globalReactionsCountSpan = document.getElementById('globalReactionsCount');
+const globalSharesCountSpan = document.getElementById('globalSharesCount');
 const randomCategoryBtn = document.getElementById('randomCategoryBtn');
 const bulkAddBtn = document.getElementById('bulkAddBtn');
 const categoriesCountDisplay = document.getElementById('categoriesCountDisplay');
@@ -891,7 +1095,6 @@ const reactionSpans = {
     love: document.getElementById('loveCount'),
     wow: document.getElementById('wowCount'),
     sad: document.getElementById('sadCount'),
-    angry: document.getElementById('angryCount'),
     laugh: document.getElementById('laughCount'),
     celebrate: document.getElementById('celebrateCount')
 };
@@ -930,7 +1133,6 @@ function updateBeautifulRulesDisplay() {
             <div class="rule-beautiful-icon">${ruleIcons[index % ruleIcons.length]}</div>
         `;
         
-        // Double click to edit
         card.addEventListener('dblclick', () => {
             const newText = prompt('Edit rule:', rule);
             if (newText && newText.trim()) {
@@ -978,7 +1180,6 @@ function loadCategory(category) {
     loadRulesFromLocal(category);
     incrementUsage();
     
-    // Update active state in sidebar
     document.querySelectorAll('.category-item').forEach(item => {
         if (item.dataset.category === category) {
             item.classList.add('active');
@@ -987,47 +1188,65 @@ function loadCategory(category) {
         }
     });
     
-    // Save last category
     localStorage.setItem('last_category', category);
     
-    // Update total rules count display
     if (totalRulesCount) {
         totalRulesCount.textContent = `${currentRules.length} Rules`;
     }
 }
 
 // ============================================
-// USAGE COUNTER
+// USAGE COUNTER (Cloudflare + Local)
 // ============================================
-function incrementUsage() {
-    currentUsageCount++;
-    usageCountSpan.textContent = currentUsageCount;
-    localStorage.setItem(`${currentCategory}_usage`, currentUsageCount);
-    
-    // Update global stats display
-    let total = 0;
-    CATEGORIES.forEach(cat => {
-        total += parseInt(localStorage.getItem(`${cat.slug}_usage`) || 0);
-    });
-    globalUsageCountSpan.textContent = total;
-}
-
-function loadUsageCount() {
-    const stored = localStorage.getItem(`${currentCategory}_usage`);
-    if (stored) {
-        currentUsageCount = parseInt(stored);
+async function incrementUsage() {
+    try {
+        const result = await API.incrementUsage(CONFIG.TOOL_SLUG);
+        if (result && result.usage !== undefined) {
+            currentUsageCount = result.usage;
+        } else {
+            const localCount = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0');
+            currentUsageCount = localCount;
+        }
+    } catch (error) {
+        const localCount = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0');
+        currentUsageCount = localCount;
     }
-    usageCountSpan.textContent = currentUsageCount;
     
-    let total = 0;
-    CATEGORIES.forEach(cat => {
-        total += parseInt(localStorage.getItem(`${cat.slug}_usage`) || 0);
-    });
-    globalUsageCountSpan.textContent = total;
+    usageCountSpan.textContent = currentUsageCount;
+    updateGlobalStats();
+}
+
+function updateGlobalStats() {
+    // Get from localStorage as fallback
+    const usage = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0');
+    const shares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0');
+    const reactions = JSON.parse(localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`) || '{}');
+    const totalReactions = Object.values(reactions).reduce((a, b) => a + b, 0);
+    
+    if (globalUsageCountSpan) globalUsageCountSpan.textContent = usage;
+    if (globalSharesCountSpan) globalSharesCountSpan.textContent = shares;
+    if (globalReactionsCountSpan) globalReactionsCountSpan.textContent = totalReactions;
+}
+
+async function loadStats() {
+    try {
+        const result = await API.getStats(CONFIG.TOOL_SLUG);
+        if (result && result.stats) {
+            if (globalUsageCountSpan) globalUsageCountSpan.textContent = result.stats.usage || 0;
+            if (globalSharesCountSpan) globalSharesCountSpan.textContent = result.stats.shares || 0;
+            const reactions = result.stats.reactions || {};
+            const totalReactions = Object.values(reactions).reduce((a, b) => a + b, 0);
+            if (globalReactionsCountSpan) globalReactionsCountSpan.textContent = totalReactions;
+        } else {
+            updateGlobalStats();
+        }
+    } catch (error) {
+        updateGlobalStats();
+    }
 }
 
 // ============================================
-// REACTIONS
+// REACTIONS (Cloudflare + Local)
 // ============================================
 function updateReactionsDisplay() {
     for (const [reaction, count] of Object.entries(currentReactions)) {
@@ -1036,19 +1255,33 @@ function updateReactionsDisplay() {
         }
     }
     const total = Object.values(currentReactions).reduce((a, b) => a + b, 0);
-    globalReactionsCountSpan.textContent = total;
+    if (globalReactionsCountSpan) globalReactionsCountSpan.textContent = total;
 }
 
-function loadReactions() {
-    const saved = localStorage.getItem(`${currentCategory}_reactions`);
-    if (saved) {
-        currentReactions = JSON.parse(saved);
-        updateReactionsDisplay();
+async function loadReactions() {
+    try {
+        const result = await API.getReactions(CONFIG.TOOL_SLUG);
+        if (result && result.reactions) {
+            currentReactions = result.reactions;
+            updateReactionsDisplay();
+        } else {
+            const saved = localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`);
+            if (saved) {
+                currentReactions = JSON.parse(saved);
+                updateReactionsDisplay();
+            }
+        }
+    } catch (error) {
+        const saved = localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`);
+        if (saved) {
+            currentReactions = JSON.parse(saved);
+            updateReactionsDisplay();
+        }
     }
 }
 
-function addReaction(reactionType, emoji) {
-    const key = `${currentCategory}_${reactionType}`;
+async function addReaction(reactionType, emoji) {
+    const key = `${CONFIG.TOOL_SLUG}_${reactionType}`;
     if (userReactions[key]) {
         showToast(`You already reacted with ${emoji}`, 'warning');
         return;
@@ -1057,24 +1290,50 @@ function addReaction(reactionType, emoji) {
     userReactions[key] = true;
     localStorage.setItem('user_reactions', JSON.stringify(userReactions));
     
-    currentReactions[reactionType]++;
-    localStorage.setItem(`${currentCategory}_reactions`, JSON.stringify(currentReactions));
-    updateReactionsDisplay();
+    try {
+        const result = await API.addReaction(CONFIG.TOOL_SLUG, reactionType);
+        if (result && result.reactions) {
+            currentReactions = result.reactions;
+        } else {
+            currentReactions[reactionType] = (currentReactions[reactionType] || 0) + 1;
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_reactions`, JSON.stringify(currentReactions));
+        }
+    } catch (error) {
+        currentReactions[reactionType] = (currentReactions[reactionType] || 0) + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_reactions`, JSON.stringify(currentReactions));
+    }
     
+    updateReactionsDisplay();
     showToast(`Thanks for your ${reactionType} reaction!`);
     
-    // Trigger confetti for like/love/celebrate
     if (reactionType === 'like' || reactionType === 'love' || reactionType === 'celebrate') {
-        canvasConfetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        if (typeof canvasConfetti !== 'undefined') {
+            canvasConfetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
     }
 }
 
 // ============================================
-// SHARE FUNCTIONS
+// SHARE FUNCTIONS (Cloudflare + Local)
 // ============================================
+async function recordShare() {
+    try {
+        const result = await API.recordShare(CONFIG.TOOL_SLUG);
+        if (result && result.shares !== undefined) {
+            currentShares = result.shares;
+        } else {
+            currentShares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0');
+        }
+    } catch (error) {
+        currentShares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0');
+    }
+    if (globalSharesCountSpan) globalSharesCountSpan.textContent = currentShares;
+}
+
 function shareOnFacebook() {
     const url = encodeURIComponent(window.location.href);
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    recordShare();
     showToast('Shared on Facebook!');
 }
 
@@ -1082,18 +1341,21 @@ function shareOnTwitter() {
     const text = encodeURIComponent(`Check out ${RULES_DATABASE[currentCategory].title} on Multi Rules Generator!`);
     const url = encodeURIComponent(window.location.href);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
+    recordShare();
     showToast('Shared on Twitter!');
 }
 
 function shareOnWhatsApp() {
     const text = encodeURIComponent(`${RULES_DATABASE[currentCategory].title}\n${window.location.href}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
+    recordShare();
     showToast('Shared on WhatsApp!');
 }
 
 function shareOnLinkedIn() {
     const url = encodeURIComponent(window.location.href);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+    recordShare();
     showToast('Shared on LinkedIn!');
 }
 
@@ -1101,12 +1363,14 @@ function shareViaEmail() {
     const subject = encodeURIComponent(RULES_DATABASE[currentCategory].title);
     const body = encodeURIComponent(`Check out these rules: ${window.location.href}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    recordShare();
     showToast('Email client opened!');
 }
 
 async function copyPageUrl() {
     try {
         await navigator.clipboard.writeText(window.location.href);
+        recordShare();
         showToast('URL copied to clipboard!');
     } catch (err) {
         showToast('Failed to copy URL', 'error');
@@ -1116,8 +1380,6 @@ async function copyPageUrl() {
 // ============================================
 // BEAUTIFUL EXPORT FUNCTIONS
 // ============================================
-
-// Generate beautiful HTML template for export
 function generateBeautifulHTML() {
     const category = RULES_DATABASE[currentCategory];
     const colors = [
@@ -1552,8 +1814,11 @@ function goBack() {
 // ============================================
 // INITIALIZATION
 // ============================================
-function init() {
-    console.log('🚀 Initializing Multi Rules Generator...');
+async function init() {
+    console.log('🚀 Initializing Multi Rules Generator with Cloudflare API...');
+    
+    // Start typewriter animation
+    setTimeout(typewriterEffect, 500);
     
     // Update counts
     if (categoriesCountDisplay) categoriesCountDisplay.textContent = CATEGORIES.length;
@@ -1572,9 +1837,10 @@ function init() {
         loadCategory('classroom');
     }
     
-    // Load stats
+    // Load stats from Cloudflare API
+    await loadStats();
+    await loadReactions();
     loadUsageCount();
-    loadReactions();
     
     // Event Listeners
     addRuleBtn.addEventListener('click', addNewRule);
@@ -1595,7 +1861,6 @@ function init() {
     randomCategoryBtn.addEventListener('click', randomCategory);
     bulkAddBtn.addEventListener('click', bulkAddRules);
     
-    // Quick action buttons
     document.querySelectorAll('.quick-action-btn[data-category]').forEach(btn => {
         btn.addEventListener('click', () => {
             const cat = btn.dataset.category;
@@ -1605,7 +1870,6 @@ function init() {
         });
     });
     
-    // Search
     categorySearch.addEventListener('input', (e) => {
         const term = e.target.value;
         filterCategories(term);
@@ -1624,26 +1888,23 @@ function init() {
     
     voiceSearchBtn.addEventListener('click', startVoiceSearch);
     
-    // Reactions
     document.querySelectorAll('.reaction').forEach(reactionDiv => {
         reactionDiv.addEventListener('click', () => {
             const reactionType = reactionDiv.dataset.reaction;
             const emojiMap = {
                 like: '👍', love: '❤️', wow: '😮', 
-                sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉'
+                sad: '😢', laugh: '😂', celebrate: '🎉'
             };
             addReaction(reactionType, emojiMap[reactionType]);
         });
     });
     
-    // Share buttons
     document.querySelector('.share-btn.facebook')?.addEventListener('click', shareOnFacebook);
     document.querySelector('.share-btn.twitter')?.addEventListener('click', shareOnTwitter);
     document.querySelector('.share-btn.whatsapp')?.addEventListener('click', shareOnWhatsApp);
     document.querySelector('.share-btn.linkedin')?.addEventListener('click', shareOnLinkedIn);
     document.querySelector('.share-btn.email')?.addEventListener('click', shareViaEmail);
     
-    // FAB options
     document.getElementById('fabNewRule')?.addEventListener('click', () => {
         newRuleInput.focus();
         fabContainer.classList.remove('active');
@@ -1655,14 +1916,12 @@ function init() {
         fabContainer.classList.remove('active');
     });
     
-    // Premium modal close
     document.querySelector('.premium-modal-close')?.addEventListener('click', closePremiumModal);
     document.querySelector('.premium-cancel-btn')?.addEventListener('click', closePremiumModal);
     premiumModal.addEventListener('click', (e) => {
         if (e.target === premiumModal) closePremiumModal();
     });
     
-    // Enter key
     newRuleInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addNewRule();
     });
