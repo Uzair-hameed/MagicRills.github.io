@@ -1,27 +1,38 @@
 /* ========================================
-   TABLE OF SPECIFICATIONS - TiDB INTEGRATED
-   59 Features | Full API Integration | Live Database
+   TABLE OF SPECIFICATIONS - CLOUDFLARE WORKERS API
+   Advanced Modern Version | 7 Reactions | Typewriter
    ======================================== */
 
 // ========================================
 // CONFIGURATION
 // ========================================
-const API_BASE = '/api'; // Change to your API endpoint (e.g., https://your-api.vercel.app/api)
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'table-of-specifications';
+const TOOL_NAME = 'Table of Specifications Builder';
+const TOOL_CATEGORY = 'Teacher';
 
-// Global State
+// ========================================
+// GLOBAL STATE
+// ========================================
 let currentChapters = [];
 let currentItems = [];
 let currentRubrics = [];
 let currentMarksMatrix = [];
 let dbConnected = false;
 let userId = null;
+let isDarkMode = false;
+let typewriterInterval = null;
 
-// Bloom Levels
+// ========================================
+// BLOOM & DIFFICULTY LEVELS
+// ========================================
 const BLOOM_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 const DIFFICULTY_LEVELS = ['Easy', 'Moderate', 'Hard'];
 
-// Grade Targets
+// ========================================
+// GRADE TARGETS
+// ========================================
 const GRADE_TARGETS = {
     1: { Remember: 50, Understand: 35, Apply: 10, Analyze: 5, Evaluate: 0, Create: 0 },
     2: { Remember: 48, Understand: 36, Apply: 11, Analyze: 5, Evaluate: 0, Create: 0 },
@@ -35,7 +46,9 @@ const GRADE_TARGETS = {
     10: { Remember: 15, Understand: 25, Apply: 30, Analyze: 14, Evaluate: 10, Create: 6 }
 };
 
-// Question Templates for Variation
+// ========================================
+// QUESTION TEMPLATES
+// ========================================
 const QUESTION_TEMPLATES = {
     Remember: [
         "Define {topic}.", "List the key features of {topic}.", "Identify {topic} from the description.",
@@ -78,7 +91,9 @@ const QUESTION_TEMPLATES = {
     ]
 };
 
-// Bloom Verbs for Classification
+// ========================================
+// BLOOM VERBS
+// ========================================
 const BLOOM_VERBS = {
     Remember: ['define', 'list', 'state', 'recall', 'identify', 'label', 'name', 'match', 'memorize', 'enumerate'],
     Understand: ['explain', 'describe', 'summarize', 'classify', 'illustrate', 'interpret', 'paraphrase', 'discuss'],
@@ -88,7 +103,9 @@ const BLOOM_VERBS = {
     Create: ['create', 'design', 'compose', 'develop', 'formulate', 'construct', 'plan', 'produce']
 };
 
-// Rubric Guidelines (Two-line as requested)
+// ========================================
+// RUBRIC GUIDELINES
+// ========================================
 const RUBRIC_GUIDELINES = {
     Remember: { 
         what: "Tests basic recall of facts, terms, definitions, and basic concepts. Students must remember previously learned information.", 
@@ -126,17 +143,30 @@ const RUBRIC_LEVELS = {
 };
 
 // ========================================
+// TYPEWRITER TEXTS
+// ========================================
+const TYPEWRITER_TEXTS = [
+    '📚 Create professional Table of Specifications',
+    '🎯 AI-powered Bloom\'s Taxonomy integration',
+    '📊 Smart question blueprint generation',
+    '⭐ Rubrics & assessment guidelines',
+    '🚀 Cloudflare Workers powered',
+    '💡 10,000+ teachers trust this tool'
+];
+
+// ========================================
 // HELPER FUNCTIONS
 // ========================================
 
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-info-circle' };
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${message}`;
     const container = document.getElementById('toastContainer');
     if (container) {
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => toast.remove(), 3500);
     }
 }
 
@@ -163,7 +193,67 @@ function escapeHtml(text) {
 }
 
 // ========================================
-// TIDB API CALLS (Fully Integrated)
+// PARTICLES GENERATOR
+// ========================================
+function generateParticles() {
+    const container = document.getElementById('particlesContainer');
+    if (!container) return;
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.width = (2 + Math.random() * 4) + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDuration = (15 + Math.random() * 25) + 's';
+        particle.style.animationDelay = (Math.random() * 20) + 's';
+        particle.style.opacity = 0.1 + Math.random() * 0.3;
+        const colors = ['#a855f7', '#3b82f6', '#06b6d4', '#ec4899', '#10b981', '#f59e0b'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        container.appendChild(particle);
+    }
+}
+
+// ========================================
+// TYPEWRITER EFFECT
+// ========================================
+function startTypewriter() {
+    const textElement = document.getElementById('typewriterText');
+    if (!textElement) return;
+    
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    
+    function type() {
+        const currentText = TYPEWRITER_TEXTS[textIndex];
+        
+        if (isDeleting) {
+            textElement.textContent = currentText.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            textElement.textContent = currentText.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let speed = isDeleting ? 30 : 50;
+        
+        if (!isDeleting && charIndex === currentText.length) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            textIndex = (textIndex + 1) % TYPEWRITER_TEXTS.length;
+            speed = 500;
+        }
+        
+        typewriterInterval = setTimeout(type, speed);
+    }
+    
+    type();
+}
+
+// ========================================
+// CLOUDFLARE WORKERS API CALLS
 // ========================================
 
 async function apiCall(endpoint, method = 'GET', data = null) {
@@ -172,57 +262,56 @@ async function apiCall(endpoint, method = 'GET', data = null) {
             method,
             headers: { 
                 'Content-Type': 'application/json',
-                'X-User-Id': getUserId()
+                'X-User-Id': getUserId(),
+                'X-API-Key': API_KEY
             }
         };
         if (data) options.body = JSON.stringify(data);
         
         const url = `${API_BASE}${endpoint}`;
-        console.log(`API Call: ${method} ${url}`, data);
+        console.log(`📡 API Call: ${method} ${url}`, data);
         
         const response = await fetch(url, options);
         const result = await response.json();
         
         if (!response.ok) {
-            console.error('API Error:', result);
-            return { success: false, error: result.error || 'API Error' };
+            console.error('❌ API Error:', result);
+            return { success: false, error: result.error || 'API Error', status: response.status };
         }
         
         return result;
     } catch (error) {
-        console.error('Network Error:', error);
+        console.error('🌐 Network Error:', error);
         return { success: false, error: error.message, offline: true };
     }
 }
 
-// Health Check
+// ===== HEALTH CHECK =====
 async function checkDatabaseHealth() {
-    const result = await apiCall('/health', 'GET');
-    dbConnected = result.success && result.database === 'connected';
-    
-    // Update DB status indicator
-    let dbIndicator = document.getElementById('dbStatusIndicator');
-    if (!dbIndicator) {
-        dbIndicator = document.createElement('div');
-        dbIndicator.id = 'dbStatusIndicator';
-        dbIndicator.className = 'db-status';
-        document.body.appendChild(dbIndicator);
+    try {
+        const result = await apiCall('/health', 'GET');
+        dbConnected = result.success && result.database === 'connected';
+    } catch (e) {
+        dbConnected = false;
     }
     
-    if (dbConnected) {
-        dbIndicator.className = 'db-status online';
-        dbIndicator.innerHTML = '<i class="fas fa-database"></i> TiDB Connected';
-    } else {
-        dbIndicator.className = 'db-status offline';
-        dbIndicator.innerHTML = '<i class="fas fa-database"></i> Offline Mode (Local)';
+    const indicator = document.getElementById('dbStatusIndicator');
+    if (indicator) {
+        if (dbConnected) {
+            indicator.className = 'db-status online';
+            indicator.innerHTML = '<i class="fas fa-cloud"></i> Cloudflare Workers Connected';
+        } else {
+            indicator.className = 'db-status offline';
+            indicator.innerHTML = '<i class="fas fa-database"></i> Offline Mode (Local)';
+        }
     }
     
     return dbConnected;
 }
 
-// Usage Counter Endpoints
+// ===== USAGE =====
 async function incrementUsage() {
-    const result = await apiCall(`/${TOOL_SLUG}/usage`, 'POST', {
+    const result = await apiCall('/api/usage', 'POST', {
         tool_slug: TOOL_SLUG,
         user_id: getUserId(),
         session_id: getUserId()
@@ -230,42 +319,38 @@ async function incrementUsage() {
     
     if (result.success) {
         const usageElem = document.getElementById('usageCount');
-        if (usageElem) usageElem.textContent = result.total_usage || result.count;
-        
-        const globalElem = document.getElementById('globalUsageCount');
-        if (globalElem && result.total_usage) globalElem.textContent = result.total_usage;
+        if (usageElem) usageElem.textContent = result.total_usage || result.count || 0;
     } else if (result.offline) {
-        // Fallback to localStorage if API is offline
         let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0') + 1;
         localStorage.setItem(`${TOOL_SLUG}_usage`, count);
         const usageElem = document.getElementById('usageCount');
         if (usageElem) usageElem.textContent = count;
     }
-    
     return result;
 }
 
 async function getUsage() {
-    const result = await apiCall(`/${TOOL_SLUG}/usage`, 'GET');
-    
+    const result = await apiCall('/api/usage', 'GET');
     if (result.success) {
         const usageElem = document.getElementById('usageCount');
-        if (usageElem) usageElem.textContent = result.count;
+        if (usageElem) usageElem.textContent = result.count || 0;
     } else if (result.offline) {
         const count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
         const usageElem = document.getElementById('usageCount');
         if (usageElem) usageElem.textContent = count;
     }
-    
     return result;
 }
 
-// Reactions Endpoints
+// ===== REACTIONS =====
 async function addReaction(emoji) {
-    const reactionMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    const reactionMap = { 
+        '👍': 'like', '❤️': 'love', '😮': 'wow', 
+        '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate', '🔥': 'fire' 
+    };
     const reactionType = reactionMap[emoji];
     
-    const result = await apiCall(`/${TOOL_SLUG}/reactions`, 'POST', {
+    const result = await apiCall('/api/reactions', 'POST', {
         tool_slug: TOOL_SLUG,
         emoji: emoji,
         reaction_type: reactionType,
@@ -275,31 +360,32 @@ async function addReaction(emoji) {
     
     if (result.success) {
         await getReactions();
-        showToast(`Added ${emoji} reaction!`);
+        showToast(`Added ${emoji} reaction!`, 'success');
     } else if (result.already_reacted) {
         showToast('You already reacted with this emoji!', 'warning');
     } else if (result.offline) {
-        // Fallback to localStorage
         const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
         const key = `${emoji}_${getUserId()}`;
         if (!reactions[key]) {
             reactions[key] = true;
             localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
             await getReactions();
-            showToast(`Added ${emoji} reaction! (Offline Mode)`);
+            showToast(`Added ${emoji} reaction! (Offline)`, 'success');
         } else {
             showToast('You already reacted with this emoji!', 'warning');
         }
     }
-    
     return result;
 }
 
 async function getReactions() {
-    const result = await apiCall(`/${TOOL_SLUG}/reactions`, 'GET');
+    const result = await apiCall('/api/reactions', 'GET');
     
     if (result.success && result.reactions) {
-        const reactionMap = { 'like': '👍', 'love': '❤️', 'wow': '😮', 'sad': '😢', 'angry': '😠', 'laugh': '😂', 'celebrate': '🎉' };
+        const reactionMap = { 
+            'like': '👍', 'love': '❤️', 'wow': '😮', 
+            'sad': '😢', 'laugh': '😂', 'celebrate': '🎉', 'fire': '🔥' 
+        };
         
         Object.entries(reactionMap).forEach(([type, emoji]) => {
             const count = result.reactions[type] || 0;
@@ -310,16 +396,17 @@ async function getReactions() {
             }
         });
         
-        // Update total reactions in hero
         const totalReactions = Object.values(result.reactions).reduce((a, b) => a + b, 0);
-        const globalReactionElem = document.getElementById('globalReactionCount');
-        if (globalReactionElem) globalReactionElem.textContent = totalReactions;
+        const globalElem = document.getElementById('globalReactionCount');
+        if (globalElem) globalElem.textContent = totalReactions;
         
     } else if (result.offline) {
-        // Fallback to localStorage
         const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-        const counts = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
-        const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+        const counts = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0, fire: 0 };
+        const emojiMap = { 
+            '👍': 'like', '❤️': 'love', '😮': 'wow', 
+            '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate', '🔥': 'fire' 
+        };
         
         Object.keys(reactions).forEach(key => {
             const emoji = key.split('_')[0];
@@ -335,13 +422,12 @@ async function getReactions() {
             }
         });
     }
-    
     return result;
 }
 
-// Shares Endpoints
+// ===== SHARES =====
 async function addShare(platform) {
-    const result = await apiCall(`/${TOOL_SLUG}/shares`, 'POST', {
+    const result = await apiCall('/api/shares', 'POST', {
         tool_slug: TOOL_SLUG,
         platform: platform,
         user_id: getUserId()
@@ -349,21 +435,19 @@ async function addShare(platform) {
     
     if (result.success) {
         await getShares();
-        showToast(`Shared on ${platform}!`);
+        showToast(`Shared on ${platform}!`, 'success');
     } else if (result.offline) {
         let shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0') + 1;
         localStorage.setItem(`${TOOL_SLUG}_shares`, shares);
         const sharesElem = document.getElementById('totalSharesCount');
         if (sharesElem) sharesElem.textContent = shares;
-        showToast(`Shared on ${platform}! (Offline Mode)`);
+        showToast(`Shared on ${platform}! (Offline)`, 'success');
     }
-    
     return result;
 }
 
 async function getShares() {
-    const result = await apiCall(`/${TOOL_SLUG}/shares`, 'GET');
-    
+    const result = await apiCall('/api/shares', 'GET');
     if (result.success) {
         const sharesElem = document.getElementById('totalSharesCount');
         if (sharesElem) sharesElem.textContent = result.shares || 0;
@@ -372,13 +456,12 @@ async function getShares() {
         const sharesElem = document.getElementById('totalSharesCount');
         if (sharesElem) sharesElem.textContent = shares;
     }
-    
     return result;
 }
 
-// Stats Endpoint
+// ===== STATS =====
 async function getStats() {
-    const result = await apiCall(`/${TOOL_SLUG}/stats`, 'GET');
+    const result = await apiCall(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
     
     if (result.success) {
         const usageElem = document.getElementById('usageCount');
@@ -392,33 +475,35 @@ async function getStats() {
         
         const globalElem = document.getElementById('globalUsageCount');
         if (globalElem) globalElem.textContent = result.totalUsage || 0;
+    } else if (result.offline) {
+        const usage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        const shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+        const usageElem = document.getElementById('usageCount');
+        if (usageElem) usageElem.textContent = usage;
+        const sharesElem = document.getElementById('totalSharesCount');
+        if (sharesElem) sharesElem.textContent = shares;
+        const globalElem = document.getElementById('globalUsageCount');
+        if (globalElem) globalElem.textContent = usage;
     }
-    
     return result;
 }
 
 // ========================================
 // BLOOM CLASSIFICATION
 // ========================================
-
 function classifyBloom(text) {
     const lowerText = text.toLowerCase();
     let scores = {};
-    
     for (const [level, verbs] of Object.entries(BLOOM_VERBS)) {
         scores[level] = 0;
         for (const verb of verbs) {
             if (lowerText.includes(verb)) scores[level]++;
         }
     }
-    
     let maxLevel = 'Understand';
     let maxScore = 0;
     for (const [level, score] of Object.entries(scores)) {
-        if (score > maxScore) {
-            maxScore = score;
-            maxLevel = level;
-        }
+        if (score > maxScore) { maxScore = score; maxLevel = level; }
     }
     return maxLevel;
 }
@@ -426,7 +511,6 @@ function classifyBloom(text) {
 // ========================================
 // CONTENT PARSING
 // ========================================
-
 function parseContent(text) {
     const lines = text.split('\n');
     const chapters = [];
@@ -476,7 +560,6 @@ function parseContent(text) {
 // ========================================
 // ALLOCATION FUNCTIONS
 // ========================================
-
 function getBloomTargets() {
     const inputs = document.querySelectorAll('.bloom-input');
     let total = Array.from(inputs).reduce((sum, inp) => sum + (parseInt(inp.value) || 0), 0);
@@ -501,7 +584,6 @@ function allocateMarks(chapters, totalMarks, bloomTargets) {
     
     let currentTotal = marksMatrix.flat().reduce((a, b) => a + b, 0);
     let diff = totalMarks - currentTotal;
-    
     for (let ci = 0; ci < chapters.length && diff !== 0; ci++) {
         for (let bi = 0; bi < BLOOM_LEVELS.length && diff !== 0; bi++) {
             if (diff > 0) { marksMatrix[ci][bi]++; diff--; }
@@ -553,7 +635,6 @@ function generateItems(marksMatrix, chapters) {
             
             let remainingMarks = marks;
             
-            // Remember/Understand: MCQ style (1 mark)
             if ((bloomLevel === 'Remember' || bloomLevel === 'Understand') && remainingMarks >= 1) {
                 const count = Math.min(remainingMarks, 15);
                 for (let i = 0; i < count; i++) {
@@ -567,7 +648,6 @@ function generateItems(marksMatrix, chapters) {
                 remainingMarks -= count;
             }
             
-            // Apply/Analyze: Short questions (2-3 marks)
             if ((bloomLevel === 'Apply' || bloomLevel === 'Analyze') && remainingMarks >= 2) {
                 const count = Math.min(Math.floor(remainingMarks / 2), 5);
                 for (let i = 0; i < count; i++) {
@@ -581,7 +661,6 @@ function generateItems(marksMatrix, chapters) {
                 remainingMarks -= count * 2;
             }
             
-            // Evaluate/Create: Essay type (5-10 marks)
             if ((bloomLevel === 'Evaluate' || bloomLevel === 'Create') && remainingMarks >= 5) {
                 const markValue = remainingMarks >= 10 ? 10 : remainingMarks >= 5 ? 5 : remainingMarks;
                 items.push({
@@ -631,8 +710,8 @@ function renderTOSMatrix(chapters, marksMatrix, items) {
     const totalMarks = rowTotals.reduce((a, b) => a + b, 0);
     
     let html = '<table><thead><tr><th>Chapter / Topic</th>';
-    BLOOM_LEVELS.forEach(bloom => {
-        const pct = totalMarks > 0 ? Math.round((colTotals[BLOOM_LEVELS.indexOf(bloom)] / totalMarks) * 100) : 0;
+    BLOOM_LEVELS.forEach((bloom, idx) => {
+        const pct = totalMarks > 0 ? Math.round((colTotals[idx] / totalMarks) * 100) : 0;
         html += `<th>${bloom}<br><small>(${pct}%)</small></th>`;
     });
     html += '<th>Total</th><th>%</th></tr></thead><tbody>';
@@ -643,12 +722,12 @@ function renderTOSMatrix(chapters, marksMatrix, items) {
         const rowTotal = rowTotals[ci];
         const percentage = totalMarks > 0 ? Math.round((rowTotal / totalMarks) * 100) : 0;
         
-        html += `<tr style="background: var(--gray-50)"><td><strong>${escapeHtml(chapter.name)}</strong></td>`;
+        html += `<tr style="background: rgba(168,85,247,0.05)"><td><strong>${escapeHtml(chapter.name)}</strong></td>`;
         rowMarks.forEach(marks => { html += `<td>${marks}</td>`; });
         html += `<td><strong>${rowTotal}</strong></td><td>${percentage}%</td></tr>`;
         
         for (const topic of chapter.topics) {
-            html += `<tr><td style="padding-left: 20px;">└ ${escapeHtml(topic.name)}</td>`;
+            html += `<tr><td style="padding-left: 20px; color: var(--text-secondary);">└ ${escapeHtml(topic.name)}</td>`;
             const topicMarks = BLOOM_LEVELS.map((bloom, bi) => {
                 const subtopicsWithBloom = topic.subtopics.filter(st => st.bloom === bloom);
                 return subtopicsWithBloom.length * (bloom === 'Remember' || bloom === 'Understand' ? 1 : bloom === 'Apply' || bloom === 'Analyze' ? 2 : 4);
@@ -659,10 +738,10 @@ function renderTOSMatrix(chapters, marksMatrix, items) {
         }
     }
     
-    html += `<tr style="background: var(--primary-bg); font-weight: bold;"><td>TOTAL</th>`;
+    html += `<tr style="background: rgba(168,85,247,0.12); font-weight: bold;"><td>TOTAL</th>`;
     colTotals.forEach(total => { html += `<th>${total}</th>`; });
     html += `<th>${totalMarks}</th><th>100%</th>`;
-    html += '</tbody><table>';
+    html += '</tbody></table>';
     container.innerHTML = html;
     
     const infoBar = document.getElementById('tosInfo');
@@ -674,7 +753,7 @@ function renderTOSMatrix(chapters, marksMatrix, items) {
             <span class="badge"><i class="fas fa-star"></i> ${totalMarks} Marks</span>
             <span class="badge"><i class="fas fa-clock"></i> MCQ: ${byType.MCQ || 0} | Short: ${byType.Short || 0} | Structured: ${byType.Structured || 0} | Essay: ${byType.Extended || 0}</span>
             <span class="badge"><i class="fas fa-chart-line"></i> Easy: ${byDifficulty.Easy || 0} | Moderate: ${byDifficulty.Moderate || 0} | Hard: ${byDifficulty.Hard || 0}</span>
-            <span class="badge"><i class="fas fa-database"></i> ${dbConnected ? 'Live DB' : 'Local Mode'}</span>
+            <span class="badge"><i class="fas fa-cloud"></i> ${dbConnected ? 'Cloudflare Live' : 'Local Mode'}</span>
         `;
     }
 }
@@ -688,7 +767,7 @@ function renderItemsBlueprint(items) {
         return;
     }
     
-    let html = '</table><thead><tr><th>#</th><th>Chapter</th><th>Topic</th><th>Bloom Level</th><th>Type</th><th>Marks</th><th>Difficulty</th><th>Question</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>#</th><th>Chapter</th><th>Topic</th><th>Bloom Level</th><th>Type</th><th>Marks</th><th>Difficulty</th><th>Question</th></tr></thead><tbody>';
     
     items.forEach((item, idx) => {
         const diffClass = item.difficulty === 'Easy' ? 'difficulty-easy' : (item.difficulty === 'Moderate' ? 'difficulty-moderate' : 'difficulty-hard');
@@ -696,11 +775,11 @@ function renderItemsBlueprint(items) {
             <td>${idx + 1}</td>
             <td>${escapeHtml(item.chapter)}</td>
             <td>${escapeHtml(item.topic)}</td>
-            <td><span class="badge" style="background: var(--primary-bg);">${item.bloom}</span></td>
+            <td><span class="badge" style="background: rgba(168,85,247,0.15); color: var(--neon-purple);">${item.bloom}</span></td>
             <td>${item.type}</td>
             <td>${item.marks}</td>
             <td><span class="${diffClass}">${item.difficulty}</span></td>
-            <td style="text-align:left; max-width:300px;">${escapeHtml(item.question)}</td>
+            <td style="text-align:left; max-width:300px; font-size:0.8rem;">${escapeHtml(item.question)}</td>
         </tr>`;
     });
     html += '</tbody></table>';
@@ -740,7 +819,8 @@ function showCoverageMessage(message, isWarning = false) {
     const msgSpan = document.getElementById('coverageMessage');
     if (card && msgSpan) {
         card.style.display = 'flex';
-        card.style.background = isWarning ? 'var(--warning)' : 'var(--success)';
+        card.style.background = isWarning ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)';
+        card.style.borderColor = isWarning ? 'rgba(245,158,11,0.3)' : 'rgba(16,185,129,0.3)';
         msgSpan.textContent = message;
         setTimeout(() => {
             card.style.opacity = '0';
@@ -783,7 +863,7 @@ function exportToTXT(element, filename, title) {
 }
 
 function exportToDOC(content, filename) {
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:Arial,sans-serif;margin:40px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px}th{background:#f0f0f0}</style></head><body>${content}</body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:Arial,sans-serif;margin:40px;background:#fff;color:#000}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px}th{background:#f0f0f0}</style></head><body>${content}</body></html>`;
     downloadFile(html, filename, 'application/msword');
 }
 
@@ -855,11 +935,10 @@ async function generateToS() {
         renderItemsBlueprint(items);
         renderRubrics(rubrics);
         
-        // Increment usage in TiDB
         await incrementUsage();
         
-        showToast(`ToS Generated! ${items.length} questions created. Data saved to TiDB.`, 'success');
-        showCoverageMessage(`✓ Successfully generated ${items.length} questions covering ${chapters.length} chapters | Synced with Cloud Database`);
+        showToast(`✅ ToS Generated! ${items.length} questions created.`, 'success');
+        showCoverageMessage(`✓ Successfully generated ${items.length} questions covering ${chapters.length} chapters | Synced with Cloudflare`);
     } catch (error) {
         console.error('Generation error:', error);
         showToast('Error generating ToS: ' + error.message, 'error');
@@ -886,7 +965,7 @@ function initBloomSliders() {
         <div class="slider-item">
             <label>${bloom}</label>
             <input type="range" class="bloom-input" data-bloom="${bloom}" min="0" max="100" value="${targets[bloom]}" onchange="window.normalizeBloom()">
-            <input type="number" class="bloom-number" data-bloom="${bloom}" value="${targets[bloom]}" style="width:60px;font-size:0.7rem;text-align:center" onchange="window.normalizeBloom()">
+            <input type="number" class="bloom-number" data-bloom="${bloom}" value="${targets[bloom]}" style="width:55px;font-size:0.7rem;text-align:center" onchange="window.normalizeBloom()">
         </div>
     `).join('');
     
@@ -894,7 +973,7 @@ function initBloomSliders() {
         <div class="slider-item">
             <label>${diff}</label>
             <input type="range" class="diff-input" data-diff="${diff}" min="0" max="100" value="${diff === 'Easy' ? 40 : diff === 'Moderate' ? 40 : 20}" onchange="window.normalizeDiff()">
-            <input type="number" class="diff-number" data-diff="${diff}" value="${diff === 'Easy' ? 40 : diff === 'Moderate' ? 40 : 20}" style="width:60px;font-size:0.7rem;text-align:center" onchange="window.normalizeDiff()">
+            <input type="number" class="diff-number" data-diff="${diff}" value="${diff === 'Easy' ? 40 : diff === 'Moderate' ? 40 : 20}" style="width:55px;font-size:0.7rem;text-align:center" onchange="window.normalizeDiff()">
         </div>
     `).join('');
 }
@@ -928,7 +1007,7 @@ window.normalizeDiff = function() {
 // ========================================
 
 function initEventListeners() {
-    // Scroll buttons
+    // Scroll
     const scrollToTool = document.getElementById('scrollToToolBtn');
     const scrollUp = document.getElementById('scrollUpBtn');
     const scrollDown = document.getElementById('scrollDownBtn');
@@ -949,19 +1028,19 @@ function initEventListeners() {
             await getStats();
             await getReactions();
             await getShares();
-            showToast('Stats refreshed from TiDB!', 'success');
+            showToast('Stats refreshed from Cloudflare!', 'success');
         });
     }
     
-    // Dark mode toggle
-    const darkToggle = document.getElementById('darkModeToggle');
-    if (darkToggle) {
-        darkToggle.addEventListener('click', () => {
-            const isDark = document.body.getAttribute('data-theme') === 'dark';
-            document.body.setAttribute('data-theme', isDark ? '' : 'dark');
-            localStorage.setItem('darkMode', !isDark);
-            darkToggle.innerHTML = !isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            showToast(!isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    // Dark Mode Toggle
+    const darkToggleBtn = document.getElementById('darkModeToggleBtn');
+    if (darkToggleBtn) {
+        darkToggleBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : '');
+            localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
+            darkToggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+            showToast(isDarkMode ? 'Dark mode enabled' : 'Light mode enabled');
         });
     }
     
@@ -972,6 +1051,16 @@ function initEventListeners() {
     
     if (uploadArea && pdfInput) {
         uploadArea.addEventListener('click', () => pdfInput.click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--neon-purple)'; });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'rgba(255,255,255,0.05)'; });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.05)';
+            const files = e.dataTransfer.files;
+            if (files.length) pdfInput.files = files;
+            pdfInput.dispatchEvent(new Event('change'));
+        });
+        
         pdfInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file && file.type === 'application/pdf') {
@@ -1047,97 +1136,79 @@ function initEventListeners() {
     const copyBtn = document.getElementById('copyUrlBtn');
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.href);
-            showToast('URL copied to clipboard!', 'success');
-            addShare('copy');
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast('URL copied to clipboard!', 'success');
+                addShare('copy');
+            }).catch(() => {
+                showToast('Could not copy URL', 'error');
+            });
         });
     }
     
-    // Export buttons for ToS
+    // Export buttons - ToS
     const tosMatrix = document.getElementById('tosMatrix');
-    if (document.getElementById('exportTosCsvBtn')) {
-        document.getElementById('exportTosCsvBtn').addEventListener('click', () => {
-            const table = tosMatrix?.querySelector('table');
-            if (table) exportToCSV(table, 'tos_matrix.csv');
-        });
-    }
-    if (document.getElementById('exportTosExcelBtn')) {
-        document.getElementById('exportTosExcelBtn').addEventListener('click', () => {
-            const table = tosMatrix?.querySelector('table');
-            if (table && typeof XLSX !== 'undefined') {
-                const ws = XLSX.utils.table_to_sheet(table);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'ToS_Matrix');
-                XLSX.writeFile(wb, 'tos_matrix.xlsx');
-                showToast('Excel exported!');
-            } else if (table) {
-                exportToCSV(table, 'tos_matrix.csv');
-                showToast('Excel not available, CSV exported instead');
-            }
-        });
-    }
-    if (document.getElementById('exportTosTxtBtn')) {
-        document.getElementById('exportTosTxtBtn').addEventListener('click', () => {
-            const table = tosMatrix?.querySelector('table');
-            if (table) exportToTXT(table, 'tos_matrix.txt', 'TABLE OF SPECIFICATIONS');
-        });
-    }
-    if (document.getElementById('exportTosDocBtn')) {
-        document.getElementById('exportTosDocBtn').addEventListener('click', () => {
-            const table = tosMatrix?.querySelector('table');
-            if (table) exportToDOC(table.outerHTML, 'tos_matrix.doc');
-        });
-    }
-    if (document.getElementById('exportTosPdfBtn')) {
-        document.getElementById('exportTosPdfBtn').addEventListener('click', () => {
-            const wrapper = tosMatrix?.querySelector('.table-wrapper');
-            if (wrapper) exportToPDF(wrapper, 'tos_matrix.pdf');
-        });
-    }
+    const tosTable = () => tosMatrix?.querySelector('table');
     
-    // Export buttons for Items
+    document.getElementById('exportTosCsvBtn')?.addEventListener('click', () => {
+        const table = tosTable();
+        if (table) exportToCSV(table, 'tos_matrix.csv');
+    });
+    document.getElementById('exportTosExcelBtn')?.addEventListener('click', () => {
+        const table = tosTable();
+        if (table && typeof XLSX !== 'undefined') {
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'ToS_Matrix');
+            XLSX.writeFile(wb, 'tos_matrix.xlsx');
+            showToast('Excel exported!');
+        } else if (table) { exportToCSV(table, 'tos_matrix.csv'); }
+    });
+    document.getElementById('exportTosTxtBtn')?.addEventListener('click', () => {
+        const table = tosTable();
+        if (table) exportToTXT(table, 'tos_matrix.txt', 'TABLE OF SPECIFICATIONS');
+    });
+    document.getElementById('exportTosDocBtn')?.addEventListener('click', () => {
+        const table = tosTable();
+        if (table) exportToDOC(table.outerHTML, 'tos_matrix.doc');
+    });
+    document.getElementById('exportTosPdfBtn')?.addEventListener('click', () => {
+        const wrapper = tosMatrix?.querySelector('.table-wrapper');
+        if (wrapper) exportToPDF(wrapper, 'tos_matrix.pdf');
+    });
+    
+    // Export buttons - Items
     const itemsBlueprint = document.getElementById('itemsBlueprint');
-    if (document.getElementById('exportItemsCsvBtn')) {
-        document.getElementById('exportItemsCsvBtn').addEventListener('click', () => {
-            const table = itemsBlueprint?.querySelector('table');
-            if (table) exportToCSV(table, 'items_blueprint.csv');
-        });
-    }
-    if (document.getElementById('exportItemsTxtBtn')) {
-        document.getElementById('exportItemsTxtBtn').addEventListener('click', () => {
-            const table = itemsBlueprint?.querySelector('table');
-            if (table) exportToTXT(table, 'items_blueprint.txt', 'QUESTION BLUEPRINT');
-        });
-    }
-    if (document.getElementById('exportItemsDocBtn')) {
-        document.getElementById('exportItemsDocBtn').addEventListener('click', () => {
-            const table = itemsBlueprint?.querySelector('table');
-            if (table) exportToDOC(table.outerHTML, 'items_blueprint.doc');
-        });
-    }
-    if (document.getElementById('exportItemsPdfBtn')) {
-        document.getElementById('exportItemsPdfBtn').addEventListener('click', () => {
-            const wrapper = itemsBlueprint?.querySelector('.table-wrapper');
-            if (wrapper) exportToPDF(wrapper, 'items_blueprint.pdf');
-        });
-    }
+    const itemsTable = () => itemsBlueprint?.querySelector('table');
+    
+    document.getElementById('exportItemsCsvBtn')?.addEventListener('click', () => {
+        const table = itemsTable();
+        if (table) exportToCSV(table, 'items_blueprint.csv');
+    });
+    document.getElementById('exportItemsTxtBtn')?.addEventListener('click', () => {
+        const table = itemsTable();
+        if (table) exportToTXT(table, 'items_blueprint.txt', 'QUESTION BLUEPRINT');
+    });
+    document.getElementById('exportItemsDocBtn')?.addEventListener('click', () => {
+        const table = itemsTable();
+        if (table) exportToDOC(table.outerHTML, 'items_blueprint.doc');
+    });
+    document.getElementById('exportItemsPdfBtn')?.addEventListener('click', () => {
+        const wrapper = itemsBlueprint?.querySelector('.table-wrapper');
+        if (wrapper) exportToPDF(wrapper, 'items_blueprint.pdf');
+    });
     
     // Rubrics export
-    const rubricsBtn = document.getElementById('exportRubricsBtn');
-    if (rubricsBtn) {
-        rubricsBtn.addEventListener('click', () => {
-            const rubricsText = currentRubrics.map(r => 
-                `${r.bloom} Level:\n- Questions: ${r.count}\n- Marks: ${r.marks}\n- What it means: ${r.guidelines.what}\n- What to do: ${r.guidelines.how}\n- Criteria: ${r.criteria.join(', ')}\n- Levels: ${r.levels.join(' | ')}\n${'='.repeat(60)}`
-            ).join('\n');
-            downloadFile(rubricsText, 'rubrics.txt', 'text/plain');
-        });
-    }
+    document.getElementById('exportRubricsBtn')?.addEventListener('click', () => {
+        const rubricsText = currentRubrics.map(r => 
+            `${r.bloom} Level:\n- Questions: ${r.count}\n- Marks: ${r.marks}\n- What it means: ${r.guidelines.what}\n- What to do: ${r.guidelines.how}\n- Criteria: ${r.criteria.join(', ')}\n- Levels: ${r.levels.join(' | ')}\n${'='.repeat(60)}`
+        ).join('\n');
+        downloadFile(rubricsText, 'rubrics.txt', 'text/plain');
+    });
     
     // Print
-    const printBtn = document.getElementById('printTosBtn');
-    if (printBtn) printBtn.addEventListener('click', () => window.print());
+    document.getElementById('printTosBtn')?.addEventListener('click', () => window.print());
     
-    // Tab switching
+    // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
@@ -1150,20 +1221,22 @@ function initEventListeners() {
     });
     
     // Theme switching
-    document.querySelectorAll('.theme-btn').forEach(btn => {
+    document.querySelectorAll('.theme-btn[data-theme]').forEach(btn => {
         btn.addEventListener('click', () => {
             const theme = btn.dataset.theme;
             if (theme === 'dark') {
+                isDarkMode = true;
                 document.body.setAttribute('data-theme', 'dark');
                 localStorage.setItem('darkMode', 'true');
-                const darkToggleBtn = document.getElementById('darkModeToggle');
-                if (darkToggleBtn) darkToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                const toggleBtn = document.getElementById('darkModeToggleBtn');
+                if (toggleBtn) toggleBtn.textContent = '☀️';
             } else {
+                isDarkMode = false;
                 document.body.setAttribute('data-theme', theme);
                 localStorage.setItem('darkMode', 'false');
                 localStorage.setItem('theme', theme);
-                const darkToggleBtn = document.getElementById('darkModeToggle');
-                if (darkToggleBtn) darkToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                const toggleBtn = document.getElementById('darkModeToggleBtn');
+                if (toggleBtn) toggleBtn.textContent = '🌙';
             }
             showToast(`${theme} theme applied!`);
         });
@@ -1175,40 +1248,55 @@ function initEventListeners() {
 // ========================================
 
 async function init() {
-    console.log('Initializing ToS Tool with TiDB Integration...');
+    console.log('🚀 Initializing ToS Tool with Cloudflare Workers API...');
+    console.log(`📌 Tool: ${TOOL_NAME} (${TOOL_SLUG})`);
+    console.log(`📌 Category: ${TOOL_CATEGORY}`);
     
+    // Generate particles
+    generateParticles();
+    
+    // Start typewriter
+    startTypewriter();
+    
+    // Init sliders
     initBloomSliders();
+    
+    // Event listeners
     initEventListeners();
     
     // Check database connection
     await checkDatabaseHealth();
     
-    // Load all stats from TiDB
+    // Load all stats
     await getStats();
     await getReactions();
     await getShares();
     
+    // Increment usage on load
+    await incrementUsage();
+    
     // Apply saved theme
     const savedTheme = localStorage.getItem('theme');
     const isDark = localStorage.getItem('darkMode') === 'true';
-    const darkToggleBtn = document.getElementById('darkModeToggle');
+    const darkToggleBtn = document.getElementById('darkModeToggleBtn');
     
     if (isDark) {
         document.body.setAttribute('data-theme', 'dark');
-        if (darkToggleBtn) darkToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        if (darkToggleBtn) darkToggleBtn.textContent = '☀️';
+        isDarkMode = true;
     } else if (savedTheme && savedTheme !== 'dark') {
         document.body.setAttribute('data-theme', savedTheme);
     }
     
-    // Register this tool with TiDB
-    await apiCall('/register', 'POST', {
+    // Register tool
+    await apiCall('/api/register', 'POST', {
         tool_slug: TOOL_SLUG,
-        tool_name: 'Table of Specifications Builder',
-        tool_category: 'education'
+        tool_name: TOOL_NAME,
+        tool_category: TOOL_CATEGORY
     });
     
-    console.log('ToS Tool initialized successfully with TiDB Cloud Integration!');
-    showToast('Connected to TiDB Cloud | Live Database Active', 'success');
+    console.log('✅ ToS Tool initialized successfully with Cloudflare Workers!');
+    showToast('🌐 Connected to Cloudflare Workers API', 'success');
 }
 
 // Start the app
