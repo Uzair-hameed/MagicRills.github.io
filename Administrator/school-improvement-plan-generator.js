@@ -1,48 +1,74 @@
 // ============================================
-// SCHOOL IMPROVEMENT PLAN GENERATOR - COMPLETE REWRITE
-// Fixed: PDF, DOCX, Dashboard, Scroll Issues
+// SCHOOL IMPROVEMENT PLAN GENERATOR - CLOUDFLARE WORKERS API
+// Version: 3.0 | Professional | Modern | Advanced
 // ============================================
 
-// Tool Configuration
+// ============================================
+// CONFIGURATION
+// ============================================
 const TOOL_SLUG = 'school-improvement-plan-generator';
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 // Global State
 let currentStep = 0;
 let sections = ['home', 'basicInfo', 'profile', 'focus', 'budget', 'priority', 'monitor', 'summary'];
 let toolUsageCount = 0;
 let toolShareCount = 0;
+let toolViewCount = 0;
+let toolFollowerCount = 0;
 let userReactions = {};
+let isApiAvailable = true;
+let statsLoaded = false;
 
 // Typing Animation Text
 const typingTexts = [
     "Create SMART goals for your school...",
     "Track budget and resources efficiently...",
     "Generate professional SIP reports...",
-    "Download as DOCX or TXT format..."
+    "Download as DOCX or TXT format...",
+    "AI-powered school improvement planning...",
+    "Data-driven decisions for better education..."
 ];
 
 // ============================================
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('[SIP] Initializing School Improvement Plan Generator v3.0...');
+    
     initializeElements();
     initializeEventListeners();
     createParticles();
     startTypingAnimation();
-    await loadGlobalStats();
-    await loadToolStats();
-    await loadUserReactions();
+    
+    // Load stats with loading animation
+    await Promise.all([
+        loadGlobalStats(),
+        loadToolStats(),
+        loadUserReactions()
+    ]);
+    
+    // Increment usage after stats are loaded
+    await incrementUsage();
+    
     loadDraftFromLocalStorage();
     setupAutoSave();
     setupFocusAreas();
     setupBudgetItems();
     setupMilestones();
+    
     showSection(0);
     updateProgress();
-    showToast('Welcome to SIP Generator!', 'success');
+    updateDashboard();
+    
+    console.log('[SIP] Initialization complete!');
+    showToast('Welcome to SIP Generator! 🎓', 'success');
 });
 
+// ============================================
+// ELEMENT INITIALIZATION
+// ============================================
 function initializeElements() {
     window.themeToggle = document.getElementById('themeToggleBtn');
     window.scrollUpBtn = document.getElementById('scrollUpBtn');
@@ -53,10 +79,26 @@ function initializeElements() {
     window.floatingNotification = document.getElementById('floatingNotification');
     
     // Theme
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light');
         if (window.themeToggle) window.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        if (window.themeToggle) window.themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
     }
+}
+
+// ============================================
+// THEME TOGGLE
+// ============================================
+if (window.themeToggle) {
+    window.themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('light');
+        const isLight = document.body.classList.contains('light');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        window.themeToggle.innerHTML = isLight ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        showToast(`${isLight ? 'Light' : 'Dark'} mode activated ✨`, 'info');
+    });
 }
 
 // ============================================
@@ -66,15 +108,20 @@ function createParticles() {
     const container = document.getElementById('heroParticles');
     if (!container) return;
     
-    for (let i = 0; i < 30; i++) {
+    const colors = ['#00d4ff', '#b44dff', '#ff2d55', '#00ff88', '#ffd700', '#ff6b35'];
+    
+    for (let i = 0; i < 50; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
-        const size = Math.random() * 4 + 1;
+        const size = Math.random() * 3 + 1;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
         particle.style.left = `${Math.random() * 100}%`;
-        particle.style.animationDuration = `${Math.random() * 8 + 4}s`;
-        particle.style.animationDelay = `${Math.random() * 5}s`;
+        particle.style.animationDuration = `${Math.random() * 12 + 6}s`;
+        particle.style.animationDelay = `${Math.random() * 8}s`;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.background = color;
+        particle.style.boxShadow = `0 0 ${size * 4}px ${color}`;
         container.appendChild(particle);
     }
 }
@@ -103,7 +150,7 @@ function startTypingAnimation() {
         
         if (!isDeleting && charIndex === currentText.length) {
             isDeleting = true;
-            setTimeout(typeEffect, 2000);
+            setTimeout(typeEffect, 2500);
             return;
         }
         
@@ -114,14 +161,14 @@ function startTypingAnimation() {
             return;
         }
         
-        setTimeout(typeEffect, isDeleting ? 40 : 80);
+        setTimeout(typeEffect, isDeleting ? 30 : 70);
     }
     
     typeEffect();
 }
 
 // ============================================
-// DASHBOARD - REDESIGNED
+// DASHBOARD
 // ============================================
 function updateDashboard() {
     const dashboard = document.querySelector('.dashboard-grid');
@@ -132,67 +179,66 @@ function updateDashboard() {
     const percentage = Math.floor((completedSteps / totalSteps) * 100);
     
     dashboard.innerHTML = `
-        <div class="dashboard-card">
+        <div class="dashboard-card glass-effect">
             <div class="dashboard-title">
                 <i class="fas fa-chart-simple"></i> Overall Progress
             </div>
-            <div class="progress-circle-container">
+            <div class="progress-circle-container" style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
                 <svg class="progress-circle" width="120" height="120" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" stroke-width="8"/>
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="#10b981" stroke-width="8" 
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-color)" stroke-width="8"/>
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="var(--neon-blue)" stroke-width="8" 
                             stroke-dasharray="${2 * Math.PI * 54}" 
                             stroke-dashoffset="${2 * Math.PI * 54 * (1 - percentage / 100)}"
                             transform="rotate(-90 60 60)"
-                            stroke-linecap="round"/>
+                            stroke-linecap="round"
+                            style="transition: stroke-dashoffset 0.8s ease;"/>
                 </svg>
-                <div class="progress-circle-text">${percentage}%</div>
+                <div class="progress-circle-text" style="position:absolute; font-size:1.5rem; font-weight:700; color:var(--neon-blue);">${percentage}%</div>
             </div>
-            <div class="progress-stats">
+            <div class="progress-stats" style="display:flex; justify-content:center; gap:1.5rem; margin-top:0.75rem; font-size:0.8rem; color:var(--text-secondary);">
                 <span>✅ ${completedSteps} of ${totalSteps} steps</span>
                 <span>📋 ${document.querySelectorAll('.goal-item').length || 0} Goals</span>
-                <span>💰 ${document.querySelectorAll('.budget-item').length || 0} Budget Items</span>
+                <span>💰 ${document.querySelectorAll('.budget-item').length || 0} Budget</span>
             </div>
         </div>
-        <div class="dashboard-card">
+        <div class="dashboard-card glass-effect">
             <div class="dashboard-title">
-                <i class="fas fa-list-check"></i> Quick Actions
+                <i class="fas fa-chart-bar"></i> Tool Stats (Live)
             </div>
-            <div class="quick-actions">
-                <button class="quick-action-btn" onclick="document.getElementById('nextToProfileBtn')?.click()">
-                    <i class="fas fa-arrow-right"></i> Continue where you left
+            <div class="stats-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="stat-mini" style="background:rgba(0,212,255,0.05); padding:12px; border-radius:10px; text-align:center; border:1px solid rgba(0,212,255,0.08);">
+                    <span class="stat-mini-number" style="font-size:1.5rem; font-weight:700; color:var(--neon-blue);">${toolUsageCount}</span>
+                    <span class="stat-mini-label" style="font-size:0.7rem; color:var(--text-secondary); display:block;">Uses</span>
+                </div>
+                <div class="stat-mini" style="background:rgba(180,77,255,0.05); padding:12px; border-radius:10px; text-align:center; border:1px solid rgba(180,77,255,0.08);">
+                    <span class="stat-mini-number" style="font-size:1.5rem; font-weight:700; color:var(--neon-purple);">${toolShareCount}</span>
+                    <span class="stat-mini-label" style="font-size:0.7rem; color:var(--text-secondary); display:block;">Shares</span>
+                </div>
+                <div class="stat-mini" style="background:rgba(0,255,136,0.05); padding:12px; border-radius:10px; text-align:center; border:1px solid rgba(0,255,136,0.08);">
+                    <span class="stat-mini-number" style="font-size:1.5rem; font-weight:700; color:var(--neon-green);">${toolViewCount}</span>
+                    <span class="stat-mini-label" style="font-size:0.7rem; color:var(--text-secondary); display:block;">Views</span>
+                </div>
+                <div class="stat-mini" style="background:rgba(255,215,0,0.05); padding:12px; border-radius:10px; text-align:center; border:1px solid rgba(255,215,0,0.08);">
+                    <span class="stat-mini-number" style="font-size:1.5rem; font-weight:700; color:var(--neon-yellow);">${toolFollowerCount}</span>
+                    <span class="stat-mini-label" style="font-size:0.7rem; color:var(--text-secondary); display:block;">Followers</span>
+                </div>
+            </div>
+            <div class="quick-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="quick-action-btn" onclick="document.getElementById('nextToProfileBtn')?.click()" style="background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 16px; border-radius:8px; cursor:pointer; transition:var(--transition); flex:1;">
+                    <i class="fas fa-arrow-right"></i> Continue
                 </button>
-                <button class="quick-action-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-                    <i class="fas fa-arrow-up"></i> Go to Top
-                </button>
-                <button class="quick-action-btn" id="exportDocxQuickBtn">
-                    <i class="fas fa-file-word"></i> Export as DOCX
-                </button>
-                <button class="quick-action-btn" id="exportTxtQuickBtn">
-                    <i class="fas fa-file-alt"></i> Export as TXT
+                <button class="quick-action-btn" id="exportDocxQuickBtn" style="background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 16px; border-radius:8px; cursor:pointer; transition:var(--transition); flex:1;">
+                    <i class="fas fa-file-word"></i> DOCX
                 </button>
             </div>
         </div>
     `;
     
     document.getElementById('exportDocxQuickBtn')?.addEventListener('click', () => exportToDOCX());
-    document.getElementById('exportTxtQuickBtn')?.addEventListener('click', () => exportToTXT());
 }
 
 // ============================================
-// THEME TOGGLE
-// ============================================
-if (window.themeToggle) {
-    window.themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        window.themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        showToast(`${isDark ? 'Dark' : 'Light'} mode activated`, 'info');
-    });
-}
-
-// ============================================
-// SCROLL BUTTONS - FIXED (no auto scroll on navigation)
+// SCROLL BUTTONS
 // ============================================
 if (window.scrollUpBtn) {
     window.scrollUpBtn.addEventListener('click', () => {
@@ -206,7 +252,7 @@ if (window.scrollDownBtn) {
 }
 
 // ============================================
-// SECTION NAVIGATION - FIXED (no forced scroll)
+// SECTION NAVIGATION
 // ============================================
 function showSection(index) {
     sections.forEach((section, i) => {
@@ -234,8 +280,8 @@ function updateProgress() {
 }
 
 // Navigation Event Listeners
-document.getElementById('startPlanBtn')?.addEventListener('click', () => { incrementUsage(); showSection(1); });
-document.getElementById('heroStartBtn')?.addEventListener('click', () => { incrementUsage(); showSection(1); });
+document.getElementById('startPlanBtn')?.addEventListener('click', () => { showSection(1); });
+document.getElementById('heroStartBtn')?.addEventListener('click', () => { showSection(1); });
 document.getElementById('nextToProfileBtn')?.addEventListener('click', () => showSection(2));
 document.getElementById('backToBasicBtn')?.addEventListener('click', () => showSection(1));
 document.getElementById('nextToFocusBtn')?.addEventListener('click', () => showSection(3));
@@ -250,48 +296,104 @@ document.getElementById('generatePlanFinalBtn')?.addEventListener('click', () =>
 document.getElementById('editPlanBtn')?.addEventListener('click', () => showSection(0));
 
 // ============================================
-// USAGE COUNTER
+// CLOUDFLARE WORKERS API - USAGE COUNTER
 // ============================================
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/usage/increment`, {
+        console.log('[SIP] Incrementing usage count...');
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: getUserId() })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                user_id: getUserId() 
+            })
         });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        if (data.success) toolUsageCount = data.total_usage;
+        
+        if (data.success) {
+            toolUsageCount = data.total_usage || data.usage_count || 0;
+            isApiAvailable = true;
+            console.log('[SIP] Usage incremented:', toolUsageCount);
+        } else {
+            throw new Error(data.message || 'API error');
+        }
     } catch (error) {
-        toolUsageCount++;
+        console.warn('[SIP] API error, using localStorage:', error.message);
+        isApiAvailable = false;
+        let localUsage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`)) || 0;
+        localUsage++;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, localUsage);
+        toolUsageCount = localUsage;
     }
     updateUsageDisplay();
 }
 
 async function loadToolStats() {
     try {
-        const response = await fetch(`${API_BASE}/stats/get?tool_slug=${TOOL_SLUG}`);
+        console.log('[SIP] Loading tool stats...');
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        
         if (data.success) {
-            toolUsageCount = data.totalUsage || 0;
-            toolShareCount = data.totalShares || 0;
-            updateUsageDisplay();
+            toolUsageCount = data.totalUsage || data.usage_count || 0;
+            toolShareCount = data.totalShares || data.shares_count || 0;
+            toolViewCount = data.totalViews || data.views_count || 0;
+            toolFollowerCount = data.totalFollowers || data.followers_count || 0;
+            isApiAvailable = true;
+            statsLoaded = true;
+            console.log('[SIP] Stats loaded:', { toolUsageCount, toolShareCount, toolViewCount, toolFollowerCount });
+        } else {
+            throw new Error(data.message || 'API error');
         }
-    } catch (error) {}
+    } catch (error) {
+        console.warn('[SIP] API error, using localStorage:', error.message);
+        isApiAvailable = false;
+        toolUsageCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`)) || 0;
+        toolShareCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`)) || 0;
+        toolViewCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_views`)) || 0;
+        toolFollowerCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_followers`)) || 0;
+        statsLoaded = true;
+    }
+    updateUsageDisplay();
+    updateDashboard();
 }
 
 async function loadGlobalStats() {
     try {
-        const response = await fetch(`${API_BASE}/global-stats`);
+        console.log('[SIP] Loading global stats...');
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=global`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        
         if (data.success) {
-            document.getElementById('globalUsageStat').innerText = data.totalUsage || 0;
-            document.getElementById('globalSharesStat').innerText = data.totalShares || 0;
-            document.getElementById('toolsCountStat').innerText = data.totalTools || 0;
+            document.getElementById('globalUsageStat').innerText = data.totalUsage || data.usage_count || 0;
+            document.getElementById('globalSharesStat').innerText = data.totalShares || data.shares_count || 0;
+            document.getElementById('toolsCountStat').innerText = data.totalTools || data.tools_count || 0;
+            // Remove loading class
+            document.querySelectorAll('.stat-number').forEach(el => el.classList.remove('loading'));
+        } else {
+            throw new Error(data.message || 'API error');
         }
     } catch (error) {
-        document.getElementById('globalUsageStat').innerText = '1,234';
-        document.getElementById('globalSharesStat').innerText = '567';
-        document.getElementById('toolsCountStat').innerText = '42';
+        console.warn('[SIP] API error for global stats:', error.message);
+        // Show fallback - no "Loading..." text
+        document.getElementById('globalUsageStat').innerText = '—';
+        document.getElementById('globalSharesStat').innerText = '—';
+        document.getElementById('toolsCountStat').innerText = '—';
+        document.querySelectorAll('.stat-number').forEach(el => el.classList.remove('loading'));
     }
 }
 
@@ -303,57 +405,142 @@ function updateUsageDisplay() {
 }
 
 // ============================================
-// REACTIONS SYSTEM
+// CLOUDFLARE WORKERS API - REACTIONS
 // ============================================
 async function loadUserReactions() {
     try {
-        const response = await fetch(`${API_BASE}/reactions/get?tool_slug=${TOOL_SLUG}&user_id=${getUserId()}`);
+        console.log('[SIP] Loading user reactions...');
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}&user_id=${getUserId()}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        if (data.success && data.user_reactions) userReactions = data.user_reactions;
+        
+        if (data.success && data.user_reactions) {
+            userReactions = data.user_reactions;
+        }
         await loadAllReactionCounts();
-    } catch (error) {}
+    } catch (error) {
+        console.warn('[SIP] API error for reactions:', error.message);
+        try {
+            const saved = localStorage.getItem(`${TOOL_SLUG}_reactions`);
+            if (saved) {
+                userReactions = JSON.parse(saved);
+            }
+        } catch (e) {}
+    }
 }
 
 async function loadAllReactionCounts() {
     try {
-        const response = await fetch(`${API_BASE}/reactions/get?tool_slug=${TOOL_SLUG}`);
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        if (data.success && data.counts) updateReactionCounters(data.counts);
-    } catch (error) {}
+        
+        if (data.success && data.counts) {
+            updateReactionCounters(data.counts);
+        }
+    } catch (error) {
+        console.warn('[SIP] API error for reaction counts:', error.message);
+        try {
+            const saved = localStorage.getItem(`${TOOL_SLUG}_reaction_counts`);
+            if (saved) {
+                updateReactionCounters(JSON.parse(saved));
+            }
+        } catch (e) {}
+    }
 }
 
 function updateReactionCounters(counts) {
-    const map = { 'like': 'likeCount', 'love': 'loveCount', 'wow': 'wowCount', 'sad': 'sadCount', 'angry': 'angryCount', 'laugh': 'laughCount', 'celebrate': 'celebrateCount' };
+    const map = { 
+        'like': 'likeCount', 
+        'love': 'loveCount', 
+        'wow': 'wowCount', 
+        'sad': 'sadCount', 
+        'laugh': 'laughCount', 
+        'celebrate': 'celebrateCount' 
+    };
     for (const [key, count] of Object.entries(counts)) {
         const el = document.getElementById(map[key]);
         if (el) el.innerText = count;
     }
+    try {
+        localStorage.setItem(`${TOOL_SLUG}_reaction_counts`, JSON.stringify(counts));
+    } catch (e) {}
 }
 
 async function addReaction(emoji) {
-    const reactionType = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' }[emoji];
+    const reactionTypeMap = { 
+        '👍': 'like', 
+        '❤️': 'love', 
+        '😮': 'wow', 
+        '😢': 'sad', 
+        '😂': 'laugh', 
+        '🎉': 'celebrate' 
+    };
+    const reactionType = reactionTypeMap[emoji];
+    
+    if (!reactionType) {
+        showToast('Invalid reaction', 'error');
+        return;
+    }
+    
     if (userReactions[reactionType]) {
         showToast('You already reacted with this emoji!', 'warning');
         return;
     }
     
     try {
-        const response = await fetch(`${API_BASE}/reactions/add`, {
+        console.log('[SIP] Adding reaction:', emoji);
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, user_id: getUserId() })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                emoji: emoji, 
+                user_id: getUserId() 
+            })
         });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        
         if (data.success) {
             userReactions[reactionType] = true;
+            try {
+                localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(userReactions));
+            } catch (e) {}
             updateReactionCounters(data.counts);
-            showToast(`Reacted with ${emoji}!`, 'success');
+            showToast(`Reacted with ${emoji}! 🎉`, 'success');
+        } else {
+            throw new Error(data.message || 'API error');
         }
     } catch (error) {
-        showToast('Failed to add reaction', 'error');
+        console.warn('[SIP] API error for reaction, using fallback:', error.message);
+        userReactions[reactionType] = true;
+        try {
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(userReactions));
+        } catch (e) {}
+        
+        let counts = {};
+        try {
+            const saved = localStorage.getItem(`${TOOL_SLUG}_reaction_counts`);
+            if (saved) counts = JSON.parse(saved);
+        } catch (e) {}
+        counts[reactionType] = (counts[reactionType] || 0) + 1;
+        updateReactionCounters(counts);
+        showToast(`Reacted with ${emoji}! 🎉`, 'success');
     }
 }
 
+// Reaction event listeners
 document.querySelectorAll('.reaction').forEach(el => {
     el.addEventListener('click', () => {
         const emoji = el.getAttribute('data-emoji');
@@ -362,11 +549,46 @@ document.querySelectorAll('.reaction').forEach(el => {
 });
 
 // ============================================
-// SOCIAL MEDIA SHARING
+// CLOUDFLARE WORKERS API - SHARES
 // ============================================
+async function recordShare(platform) {
+    try {
+        console.log('[SIP] Recording share:', platform);
+        const response = await fetch(`${API_BASE}/api/shares`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                platform: platform, 
+                user_id: getUserId() 
+            })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            toolShareCount = data.total_shares || data.shares_count || toolShareCount + 1;
+            updateUsageDisplay();
+            showToast(`Shared on ${platform}! 📤`, 'success');
+        } else {
+            throw new Error(data.message || 'API error');
+        }
+    } catch (error) {
+        console.warn('[SIP] API error for share, using fallback:', error.message);
+        toolShareCount++;
+        localStorage.setItem(`${TOOL_SLUG}_shares`, toolShareCount);
+        updateUsageDisplay();
+        showToast(`Shared on ${platform}! 📤`, 'success');
+    }
+}
+
 async function shareOnPlatform(platform) {
     const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent('School Improvement Plan');
+    const title = encodeURIComponent('School Improvement Plan - SIP Generator');
     let shareUrl = '';
     
     switch(platform) {
@@ -374,7 +596,7 @@ async function shareOnPlatform(platform) {
         case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`; break;
         case 'whatsapp': shareUrl = `https://wa.me/?text=${title}%20${url}`; break;
         case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`; break;
-        case 'email': shareUrl = `mailto:?subject=${title}&body=${url}`; break;
+        case 'email': shareUrl = `mailto:?subject=${title}&body=Check out this School Improvement Plan: ${url}`; break;
         default: return;
     }
     
@@ -382,34 +604,7 @@ async function shareOnPlatform(platform) {
     await recordShare(platform);
 }
 
-async function recordShare(platform) {
-    try {
-        const response = await fetch(`${API_BASE}/shares/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: getUserId() })
-        });
-        if (response.ok) {
-            toolShareCount++;
-            updateUsageDisplay();
-            showToast(`Shared on ${platform}!`, 'success');
-        }
-    } catch (error) {
-        toolShareCount++;
-        updateUsageDisplay();
-    }
-}
-
-document.getElementById('copyUrlBtn')?.addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard!', 'success');
-        await recordShare('copy');
-    } catch (err) {
-        showToast('Failed to copy URL', 'error');
-    }
-});
-
+// Share button event listeners
 document.querySelectorAll('.share-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const platform = btn.getAttribute('data-platform');
@@ -417,10 +612,26 @@ document.querySelectorAll('.share-btn').forEach(btn => {
     });
 });
 
-// ============================================
-// EXPORT FUNCTIONS - COMPLETELY REWRITTEN
-// ============================================
+document.getElementById('copyUrlBtn')?.addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast('URL copied to clipboard! 📋', 'success');
+        await recordShare('copy');
+    } catch (err) {
+        const input = document.createElement('input');
+        input.value = window.location.href;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        showToast('URL copied to clipboard! 📋', 'success');
+        await recordShare('copy');
+    }
+});
 
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
 function generateReportHTML() {
     const schoolName = document.getElementById('schoolName')?.value || 'School Name';
     const year = document.getElementById('year')?.value || '2025';
@@ -445,7 +656,6 @@ function generateReportHTML() {
     const priority3 = document.getElementById('priority3')?.value || 'Not specified';
     const performanceTargets = document.getElementById('performanceTargets')?.value || 'Not specified';
     
-    // Collect Goals
     let goalsHtml = '';
     document.querySelectorAll('.goal-item').forEach((goal, idx) => {
         const title = goal.querySelector('.goal-title')?.value || 'No title';
@@ -459,7 +669,6 @@ function generateReportHTML() {
         goal.querySelectorAll('.action-desc').forEach(action => {
             if (action.value) actions.push(action.value);
         });
-        const actionSteps = actions.length ? actions.map((a, i) => `${i+1}. ${a}`).join('\n') : 'No action steps';
         
         goalsHtml += `
             <div style="border:1px solid #ddd; margin:15px 0; padding:15px; border-radius:8px;">
@@ -468,7 +677,7 @@ function generateReportHTML() {
                 <p><strong>Success Indicator:</strong> ${indicator}</p>
                 <p><strong>Responsible:</strong> ${responsible}</p>
                 <p><strong>Timeline:</strong> ${timeline}</p>
-                <p><strong>Budget:</strong> ${budget}</p>
+                <p><strong>Budget:</strong> $${budget}</p>
                 <p><strong>Action Steps:</strong></p>
                 <ul>${actions.map(a => `<li>${a}</li>`).join('')}</ul>
             </div>
@@ -479,7 +688,6 @@ function generateReportHTML() {
         goalsHtml = '<p>No goals added yet. Please add goals in Focus Areas section.</p>';
     }
     
-    // Collect Budget Items
     let budgetHtml = '';
     let totalBudgetAllocated = 0;
     document.querySelectorAll('.budget-item').forEach(item => {
@@ -491,7 +699,6 @@ function generateReportHTML() {
         }
     });
     
-    // Collect Milestones
     let milestonesHtml = '';
     document.querySelectorAll('.milestone-item').forEach(item => {
         const name = item.querySelector('input[placeholder="Milestone name"]')?.value;
@@ -591,7 +798,6 @@ function generateReportHTML() {
 async function exportToDOCX() {
     try {
         showToast('Generating DOCX document...', 'info');
-        
         const htmlContent = generateReportHTML();
         const blob = new Blob([htmlContent], { type: 'application/msword' });
         const link = document.createElement('a');
@@ -600,7 +806,6 @@ async function exportToDOCX() {
         link.download = `${schoolName.replace(/\s+/g, '_')}_SIP_${new Date().toISOString().slice(0,10)}.doc`;
         link.click();
         URL.revokeObjectURL(link.href);
-        
         showToast('DOCX downloaded successfully!', 'success');
         await recordShare('docx_export');
     } catch (error) {
@@ -668,7 +873,6 @@ function exportToTXT() {
         link.download = `${schoolName.replace(/\s+/g, '_')}_SIP.txt`;
         link.click();
         URL.revokeObjectURL(link.href);
-        
         showToast('TXT downloaded successfully!', 'success');
     } catch (error) {
         console.error('TXT error:', error);
@@ -676,7 +880,6 @@ function exportToTXT() {
     }
 }
 
-// Print functionality
 document.getElementById('printPlanBtn')?.addEventListener('click', () => {
     const printWindow = window.open('', '_blank');
     printWindow.document.write(generateReportHTML());
@@ -890,7 +1093,7 @@ function setupMilestones() {
         div.style.gap = '0.5rem';
         div.style.marginBottom = '0.5rem';
         div.innerHTML = `
-            <input type="text" placeholder="Milestone" class="form-control" style="flex:2">
+            <input type="text" placeholder="Milestone name" class="form-control" style="flex:2">
             <input type="date" class="form-control" style="flex:1">
             <select class="form-control" style="flex:1"><option>Not Started</option><option>In Progress</option><option>Completed</option></select>
             <button class="remove-btn remove-milestone">✕</button>
@@ -950,12 +1153,20 @@ function generateSummaryStats() {
     const totalMilestones = document.querySelectorAll('.milestone-item').length;
     
     return `
-        <div class="stat-card"><div class="stat-number">${totalGoals}</div><div class="stat-label">SMART Goals</div></div>
-        <div class="stat-card"><div class="stat-number">${totalBudgetItems}</div><div class="stat-label">Budget Items</div></div>
-        <div class="stat-card"><div class="stat-number">${totalMilestones}</div><div class="stat-label">Milestones</div></div>
+        <div class="stat-summary-card"><i class="fas fa-bullseye"></i><div class="value">${totalGoals}</div><div class="label">SMART Goals</div></div>
+        <div class="stat-summary-card"><i class="fas fa-coins"></i><div class="value">${totalBudgetItems}</div><div class="label">Budget Items</div></div>
+        <div class="stat-summary-card"><i class="fas fa-flag-checkered"></i><div class="value">${totalMilestones}</div><div class="label">Milestones</div></div>
     `;
 }
 
 // Export buttons
 document.getElementById('exportDocxBtn')?.addEventListener('click', exportToDOCX);
 document.getElementById('exportTxtBtn')?.addEventListener('click', exportToTXT);
+
+// ============================================
+// INITIALIZE EVENT LISTENERS
+// ============================================
+function initializeEventListeners() {
+    console.log('[SIP] Event listeners initialized');
+    // Theme toggle is handled above
+}
