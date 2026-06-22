@@ -1,21 +1,32 @@
 // ============================================
 // TIME TABLE GENERATOR - MAIN JAVASCRIPT
-// Full Features: 45+ | TiDB Integration | Reactions | Usage Counter | Sharing
+// Cloudflare Workers API Integration | Full Features
+// Version: 3.0 - Advanced Professional Edition
 // ============================================
 
 // ============================================
 // CONFIGURATION
 // ============================================
 const TOOL_SLUG = 'time-table-generator';
-const API_BASE = '/api'; // Relative path for Vercel deployment
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
+
 let currentUserId = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 localStorage.setItem('userId', currentUserId);
+
+// LocalStorage Fallback Keys
+const LS_KEYS = {
+    USAGE: `tt_usage_${TOOL_SLUG}`,
+    REACTIONS: `tt_reactions_${TOOL_SLUG}`,
+    SHARES: `tt_shares_${TOOL_SLUG}`,
+    STATS: `tt_stats_${TOOL_SLUG}`
+};
 
 // Days and Periods
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const PERIODS = ['8:20-9:00', '9:00-9:40', '9:40-10:20', '10:20-11:00', '11:30-12:10', '12:10-12:50', '12:50-1:30'];
 
-// Provincial Curriculum Data (Based on Official Policies)
+// Provincial Curriculum Data
 const PROVINCE_DATA = {
     sindh: {
         name: 'Sindh',
@@ -87,6 +98,13 @@ const PROVINCE_DATA = {
 let currentTimetableData = null;
 let currentTeachers = [];
 let currentSubjectAssignments = {};
+let isApiAvailable = true;
+let statsData = {
+    usage: 0,
+    views: 0,
+    shares: 0,
+    followers: 0
+};
 
 // ============================================
 // DOM ELEMENTS
@@ -116,8 +134,49 @@ const elements = {
     toolUsageCount: document.getElementById('toolUsageCount'),
     globalUsageCount: document.getElementById('globalUsageCount'),
     globalReactionCount: document.getElementById('globalReactionCount'),
-    globalShareCount: document.getElementById('globalShareCount')
+    globalShareCount: document.getElementById('globalShareCount'),
+    typewriterText: document.getElementById('typewriterText')
 };
+
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+const typewriterPhrases = [
+    'Generate Smart Timetables for Grades VI-VIII',
+    'Based on Official Curricula of All Provinces',
+    'Sindh • Punjab • Khyber Pakhtunkhwa • Balochistan',
+    'AI-Powered Teacher Assignment System',
+    'Smart Scheduling with Zero Conflicts',
+    'Real-time Stats & Analytics Dashboard'
+];
+
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+let typewriterTimeout;
+
+function typewriterEffect() {
+    const currentPhrase = typewriterPhrases[phraseIndex];
+    const typeSpeed = isDeleting ? 30 : 60;
+    
+    if (!isDeleting && charIndex <= currentPhrase.length) {
+        elements.typewriterText.textContent = currentPhrase.substring(0, charIndex);
+        charIndex++;
+        typewriterTimeout = setTimeout(typewriterEffect, typeSpeed);
+    } else if (!isDeleting && charIndex > currentPhrase.length) {
+        isDeleting = true;
+        typewriterTimeout = setTimeout(typewriterEffect, 2000);
+    } else if (isDeleting && charIndex >= 0) {
+        elements.typewriterText.textContent = currentPhrase.substring(0, charIndex);
+        charIndex--;
+        typewriterTimeout = setTimeout(typewriterEffect, typeSpeed);
+    } else if (isDeleting && charIndex < 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % typewriterPhrases.length;
+        charIndex = 0;
+        typewriterTimeout = setTimeout(typewriterEffect, 500);
+    }
+}
 
 // ============================================
 // HELPER FUNCTIONS
@@ -125,7 +184,8 @@ const elements = {
 function showToast(message, duration = 3000) {
     elements.toastMessage.textContent = message;
     elements.toastNotification.classList.add('show');
-    setTimeout(() => {
+    clearTimeout(elements.toastTimeout);
+    elements.toastTimeout = setTimeout(() => {
         elements.toastNotification.classList.remove('show');
     }, duration);
 }
@@ -146,21 +206,16 @@ function hidePremiumModal() {
     elements.premiumModal.classList.remove('active');
 }
 
-// Dark Mode Toggle
+// Dark Mode Toggle (Always Dark)
 function initDarkMode() {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-        elements.darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-    }
+    document.body.classList.add('dark-mode');
+    elements.darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    localStorage.setItem('darkMode', 'enabled');
 }
 
 function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-    elements.darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    // Always keep dark mode
+    showToast('✨ Dark Mode is always active for premium experience');
 }
 
 // Scroll Functions
@@ -173,7 +228,7 @@ function scrollDown() {
 }
 
 // ============================================
-// API CALLS (TiDB Integration)
+// CLOUDFLARE WORKERS API CALLS
 // ============================================
 async function callAPI(endpoint, method = 'GET', data = null) {
     try {
@@ -181,6 +236,7 @@ async function callAPI(endpoint, method = 'GET', data = null) {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
             }
         };
         if (data && (method === 'POST' || method === 'PUT')) {
@@ -189,146 +245,264 @@ async function callAPI(endpoint, method = 'GET', data = null) {
         
         const response = await fetch(`${API_BASE}${endpoint}`, options);
         if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        return await response.json();
+        const result = await response.json();
+        isApiAvailable = true;
+        return result;
     } catch (error) {
-        console.error('API Call Error:', error);
-        return { success: false, error: error.message };
+        console.warn('API Call Failed - Using LocalStorage Fallback:', error.message);
+        isApiAvailable = false;
+        return { success: false, error: error.message, fallback: true };
     }
 }
 
-// Increment Usage Counter
+// ============================================
+// USAGE COUNTER
+// ============================================
 async function incrementUsage() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/usage`, 'POST', {
+        const result = await callAPI('/api/usage', 'POST', {
             tool_slug: TOOL_SLUG,
             user_id: currentUserId
         });
+        
         if (result.success) {
-            elements.toolUsageCount.textContent = result.total_usage || 0;
-            fetchGlobalStats();
+            const count = result.total_usage || 0;
+            elements.toolUsageCount.textContent = count;
+            localStorage.setItem(LS_KEYS.USAGE, count);
+            await fetchStats();
+            return result;
+        } else {
+            // Fallback: LocalStorage increment
+            let localCount = parseInt(localStorage.getItem(LS_KEYS.USAGE)) || 0;
+            localCount++;
+            localStorage.setItem(LS_KEYS.USAGE, localCount);
+            elements.toolUsageCount.textContent = localCount;
+            return { success: true, total_usage: localCount, fallback: true };
         }
-        return result;
     } catch (error) {
         console.error('Usage increment error:', error);
-        return null;
+        // Fallback
+        let localCount = parseInt(localStorage.getItem(LS_KEYS.USAGE)) || 0;
+        localCount++;
+        localStorage.setItem(LS_KEYS.USAGE, localCount);
+        elements.toolUsageCount.textContent = localCount;
+        return { success: true, total_usage: localCount, fallback: true };
     }
 }
 
-// Get Usage Count
 async function getUsageCount() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/usage?tool_slug=${TOOL_SLUG}`, 'GET');
+        const result = await callAPI(`/api/usage?tool_slug=${TOOL_SLUG}`, 'GET');
         if (result.success) {
-            elements.toolUsageCount.textContent = result.count || 0;
+            const count = result.count || result.total_usage || 0;
+            elements.toolUsageCount.textContent = count;
+            localStorage.setItem(LS_KEYS.USAGE, count);
+        } else {
+            // Fallback
+            const localCount = parseInt(localStorage.getItem(LS_KEYS.USAGE)) || 0;
+            elements.toolUsageCount.textContent = localCount;
         }
     } catch (error) {
         console.error('Get usage error:', error);
-        elements.toolUsageCount.textContent = '0';
+        const localCount = parseInt(localStorage.getItem(LS_KEYS.USAGE)) || 0;
+        elements.toolUsageCount.textContent = localCount;
     }
 }
 
-// Add Reaction
+// ============================================
+// REACTIONS (7 Types: 👍 ❤️ 😮 😢 😂 🎉)
+// ============================================
+const REACTION_EMOJIS = {
+    like: '👍',
+    love: '❤️',
+    wow: '😮',
+    sad: '😢',
+    laugh: '😂',
+    celebrate: '🎉'
+};
+
+const REACTION_KEYS = ['like', 'love', 'wow', 'sad', 'laugh', 'celebrate'];
+
 async function addReaction(reactionType) {
+    if (!REACTION_KEYS.includes(reactionType)) {
+        console.warn('Invalid reaction type:', reactionType);
+        return;
+    }
+
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/reactions`, 'POST', {
+        const result = await callAPI('/api/reactions', 'POST', {
             tool_slug: TOOL_SLUG,
-            emoji: getEmojiFromReaction(reactionType),
+            emoji: REACTION_EMOJIS[reactionType],
             reaction_type: reactionType,
             user_id: currentUserId
         });
+        
         if (result.success) {
-            showToast(`Thank you for your ${reactionType} reaction!`);
-            fetchReactions();
+            showToast(`💫 Thank you for your ${reactionType} reaction!`);
+            await fetchReactions();
+            await fetchStats();
         } else if (result.already_reacted) {
-            showToast('You already reacted with this emoji!');
+            showToast('✨ You already reacted with this emoji!');
+        } else {
+            // Fallback: Update local
+            updateLocalReaction(reactionType);
         }
         return result;
     } catch (error) {
         console.error('Add reaction error:', error);
-        // Fallback: Update local counts
-        updateLocalReactionCount(reactionType);
+        updateLocalReaction(reactionType);
     }
 }
 
-function getEmojiFromReaction(reaction) {
-    const map = {
-        like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉'
-    };
-    return map[reaction] || '👍';
+function updateLocalReaction(reactionType) {
+    const reactions = JSON.parse(localStorage.getItem(LS_KEYS.REACTIONS) || '{}');
+    reactions[reactionType] = (reactions[reactionType] || 0) + 1;
+    localStorage.setItem(LS_KEYS.REACTIONS, JSON.stringify(reactions));
+    updateReactionUI(reactions);
+    showToast('💫 Reaction saved locally!');
 }
 
-// Get Reactions
 async function fetchReactions() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
+        const result = await callAPI(`/api/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
         if (result.success && result.reactions) {
-            document.getElementById('likeCount').textContent = result.reactions.like || 0;
-            document.getElementById('loveCount').textContent = result.reactions.love || 0;
-            document.getElementById('wowCount').textContent = result.reactions.wow || 0;
-            document.getElementById('sadCount').textContent = result.reactions.sad || 0;
-            document.getElementById('angryCount').textContent = result.reactions.angry || 0;
-            document.getElementById('laughCount').textContent = result.reactions.laugh || 0;
-            document.getElementById('celebrateCount').textContent = result.reactions.celebrate || 0;
+            localStorage.setItem(LS_KEYS.REACTIONS, JSON.stringify(result.reactions));
+            updateReactionUI(result.reactions);
             
             const total = Object.values(result.reactions).reduce((a, b) => a + b, 0);
             if (elements.globalReactionCount) elements.globalReactionCount.textContent = total;
+        } else {
+            // Fallback
+            const reactions = JSON.parse(localStorage.getItem(LS_KEYS.REACTIONS) || '{}');
+            updateReactionUI(reactions);
         }
     } catch (error) {
         console.error('Fetch reactions error:', error);
+        const reactions = JSON.parse(localStorage.getItem(LS_KEYS.REACTIONS) || '{}');
+        updateReactionUI(reactions);
     }
 }
 
-// Add Share
+function updateReactionUI(reactions) {
+    REACTION_KEYS.forEach(key => {
+        const countEl = document.getElementById(`${key}Count`);
+        if (countEl) {
+            countEl.textContent = reactions[key] || 0;
+        }
+    });
+}
+
+// ============================================
+// SHARES
+// ============================================
 async function addShare(platform) {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/shares`, 'POST', {
+        const result = await callAPI('/api/shares', 'POST', {
             tool_slug: TOOL_SLUG,
             platform: platform,
             user_id: currentUserId
         });
+        
         if (result.success) {
-            showToast(`Shared on ${platform}!`);
-            fetchShares();
-            fetchGlobalStats();
+            showToast(`📤 Shared on ${platform}!`);
+            await fetchShares();
+            await fetchStats();
+        } else {
+            // Fallback
+            updateLocalShare(platform);
         }
         return result;
     } catch (error) {
         console.error('Add share error:', error);
+        updateLocalShare(platform);
     }
 }
 
-// Get Shares
+function updateLocalShare(platform) {
+    const shares = JSON.parse(localStorage.getItem(LS_KEYS.SHARES) || '{"total": 0}');
+    shares.total = (shares.total || 0) + 1;
+    if (shares[platform]) {
+        shares[platform] = (shares[platform] || 0) + 1;
+    } else {
+        shares[platform] = 1;
+    }
+    localStorage.setItem(LS_KEYS.SHARES, JSON.stringify(shares));
+    if (elements.globalShareCount) elements.globalShareCount.textContent = shares.total;
+    showToast(`📤 Shared on ${platform} (saved locally)`);
+}
+
 async function fetchShares() {
     try {
-        const result = await callAPI(`/${TOOL_SLUG}/shares?tool_slug=${TOOL_SLUG}`, 'GET');
+        const result = await callAPI(`/api/shares?tool_slug=${TOOL_SLUG}`, 'GET');
         if (result.success) {
-            if (elements.globalShareCount) elements.globalShareCount.textContent = result.shares || 0;
+            const total = result.shares || 0;
+            if (elements.globalShareCount) elements.globalShareCount.textContent = total;
+            localStorage.setItem(LS_KEYS.SHARES, JSON.stringify({ total }));
+        } else {
+            // Fallback
+            const shares = JSON.parse(localStorage.getItem(LS_KEYS.SHARES) || '{"total": 0}');
+            if (elements.globalShareCount) elements.globalShareCount.textContent = shares.total || 0;
         }
     } catch (error) {
         console.error('Fetch shares error:', error);
+        const shares = JSON.parse(localStorage.getItem(LS_KEYS.SHARES) || '{"total": 0}');
+        if (elements.globalShareCount) elements.globalShareCount.textContent = shares.total || 0;
     }
 }
 
-// Global Stats
-async function fetchGlobalStats() {
+// ============================================
+// STATS (Usage, Views, Shares, Followers)
+// ============================================
+async function fetchStats() {
     try {
-        const result = await callAPI('/global-stats', 'GET');
+        const result = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
         if (result.success) {
-            if (elements.globalUsageCount) elements.globalUsageCount.textContent = result.totalUsage || 0;
+            statsData = {
+                usage: result.usage || 0,
+                views: result.views || 0,
+                shares: result.shares || 0,
+                followers: result.followers || 0
+            };
+            localStorage.setItem(LS_KEYS.STATS, JSON.stringify(statsData));
+            updateStatsUI();
+        } else {
+            // Fallback
+            const saved = JSON.parse(localStorage.getItem(LS_KEYS.STATS) || '{"usage":0,"views":0,"shares":0,"followers":0}');
+            statsData = saved;
+            updateStatsUI();
         }
     } catch (error) {
-        console.error('Global stats error:', error);
+        console.error('Fetch stats error:', error);
+        const saved = JSON.parse(localStorage.getItem(LS_KEYS.STATS) || '{"usage":0,"views":0,"shares":0,"followers":0}');
+        statsData = saved;
+        updateStatsUI();
     }
 }
 
-// Health Check
+function updateStatsUI() {
+    if (elements.globalUsageCount) elements.globalUsageCount.textContent = statsData.usage || 0;
+    if (elements.globalShareCount) elements.globalShareCount.textContent = statsData.shares || 0;
+    if (elements.toolUsageCount) elements.toolUsageCount.textContent = statsData.usage || 0;
+    
+    // Update followers and views if elements exist
+    const viewsEl = document.getElementById('globalViewsCount');
+    const followersEl = document.getElementById('globalFollowersCount');
+    if (viewsEl) viewsEl.textContent = statsData.views || 0;
+    if (followersEl) followersEl.textContent = statsData.followers || 0;
+}
+
+// ============================================
+// HEALTH CHECK
+// ============================================
 async function healthCheck() {
     try {
-        const result = await callAPI('/health', 'GET');
+        const result = await callAPI('/api/health', 'GET');
         console.log('API Health:', result);
-        return result.success;
+        isApiAvailable = result.success;
+        return isApiAvailable;
     } catch (error) {
-        console.error('Health check failed:', error);
+        console.warn('Health check failed - using fallback mode:', error.message);
+        isApiAvailable = false;
         return false;
     }
 }
@@ -359,12 +533,8 @@ function generateTimetable() {
     if (!provinceData) return;
     
     let subjects = [...provinceData.subjects];
-    
-    // Adjust for class level (VI, VII, VIII have same structure but can be customized)
-    // For variation, shuffle subjects before assignment
     subjects = shuffleArray([...subjects]);
     
-    // Create subject pool with period counts
     let subjectPool = [];
     subjects.forEach(subj => {
         for (let i = 0; i < subj.periods; i++) {
@@ -375,10 +545,8 @@ function generateTimetable() {
         }
     });
     
-    // Shuffle for variation (ensures different timetable each time)
     subjectPool = shuffleArray(subjectPool);
     
-    // Create timetable matrix
     const timetable = [];
     const teacherSchedule = {};
     const subjectSchedule = {};
@@ -386,7 +554,6 @@ function generateTimetable() {
     DAYS.forEach(day => {
         const daySchedule = [];
         for (let periodIdx = 0; periodIdx < PERIODS.length; periodIdx++) {
-            // Wednesday Break at period 4 (index 3)
             if (day === 'Wednesday' && periodIdx === 3) {
                 daySchedule.push({
                     subject: 'BREAK',
@@ -419,7 +586,6 @@ function generateTimetable() {
                 isFree: false
             });
             
-            // Track teacher schedule
             if (!teacherSchedule[slot.teacher]) teacherSchedule[slot.teacher] = [];
             teacherSchedule[slot.teacher].push({
                 day: day,
@@ -428,7 +594,6 @@ function generateTimetable() {
                 class: className
             });
             
-            // Track subject schedule
             if (!subjectSchedule[slot.name]) subjectSchedule[slot.name] = [];
             subjectSchedule[slot.name].push({
                 day: day,
@@ -437,7 +602,6 @@ function generateTimetable() {
                 class: className
             });
             
-            // Remove used slot (one per week for variety)
             subjectPool.splice(randomIndex, 1);
         }
         timetable.push({ day, periods: daySchedule });
@@ -454,9 +618,7 @@ function generateTimetable() {
         generatedAt: new Date().toISOString()
     };
     
-    // Identify free periods for teachers
     identifyFreePeriods();
-    
     return currentTimetableData;
 }
 
@@ -491,7 +653,7 @@ function renderMasterTimetable() {
     if (!currentTimetableData) return;
     
     let html = '<table class="timetable-table">';
-    html += '<caption>Master Timetable - ' + currentTimetableData.className + ' (' + PROVINCE_DATA[currentTimetableData.province].name + ')</caption>';
+    html += '<caption>📅 Master Timetable - ' + currentTimetableData.className + ' (' + PROVINCE_DATA[currentTimetableData.province].name + ')</caption>';
     html += '<thead><tr><th>Day / Period</th>';
     PERIODS.forEach(p => html += `<th>${p}</th>`);
     html += '</tr></thead><tbody>';
@@ -518,7 +680,7 @@ function renderClasswiseTimetable() {
     const selectedClass = elements.classwiseSelect.value;
     
     let html = '<table class="timetable-table">';
-    html += `<caption>Class ${selectedClass} Timetable</caption>`;
+    html += `<caption>📚 Class ${selectedClass} Timetable</caption>`;
     html += '<thead><tr><th>Day / Period</th>';
     PERIODS.forEach(p => html += `<th>${p}</th>`);
     html += '</tr></thead><tbody>';
@@ -563,7 +725,7 @@ function renderTeacherwiseTimetable() {
     html += '<thead><tr><th>Day</th><th>Period</th></tr></thead><tbody>';
     
     if (freePeriods.length === 0) {
-        html += '<tr><td colspan="2">No free periods (fully scheduled)</td></tr>';
+        html += '<tr><td colspan="2">🎯 No free periods (fully scheduled)</td></tr>';
     } else {
         freePeriods.forEach(fp => {
             html += `<tr><td>${fp.day}</td><td>${fp.period}</td></tr>`;
@@ -601,14 +763,14 @@ function renderFreetimeTimetable() {
     const teachers = Object.keys(freePeriods);
     
     let html = '<table class="timetable-table">';
-    html += '<caption>Teacher Free Periods Overview</caption>';
+    html += '<caption>🕐 Teacher Free Periods Overview</caption>';
     html += '<thead><tr><th>Teacher</th><th>Free Periods Count</th><th>Free Slots</th></tr></thead><tbody>';
     
     teachers.forEach(teacher => {
         const free = freePeriods[teacher];
         html += `<tr>
             <td>${teacher}</td>
-            <td>${free.length}</td>
+            <td><span class="free-badge">${free.length}</span></td>
             <td>${free.map(f => `${f.day} ${f.period}`).join(', ') || 'None'}</td>
         </tr>`;
     });
@@ -620,7 +782,7 @@ function renderFreetimeTimetable() {
 function updateTeacherSelect() {
     if (!currentTimetableData) return;
     
-    let options = '<option value="">Select Teacher</option>';
+    let options = '<option value="">👨‍🏫 Select Teacher</option>';
     currentTimetableData.allTeachers.forEach(teacher => {
         options += `<option value="${teacher}">${teacher}</option>`;
     });
@@ -631,7 +793,7 @@ function updateSubjectSelect() {
     if (!currentTimetableData) return;
     
     const provinceData = PROVINCE_DATA[currentTimetableData.province];
-    let options = '<option value="">Select Subject</option>';
+    let options = '<option value="">📖 Select Subject</option>';
     provinceData.subjects.forEach(subj => {
         options += `<option value="${subj.name}">${subj.name}</option>`;
     });
@@ -649,11 +811,12 @@ function exportToPDF() {
         <head>
             <title>Time Table - ${currentTimetableData?.className || 'VI-VIII'}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 20px; direction: ltr; }
+                body { font-family: Arial, sans-serif; padding: 20px; direction: ltr; background: white; }
                 table { width: 100%; border-collapse: collapse; }
                 th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
                 th { background: #0ea5e9; color: white; }
                 .break-period { background: #fef3c7; }
+                caption { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; }
             </style>
         </head>
         <body>${printContent}</body>
@@ -670,6 +833,8 @@ function exportToDOC() {
         <style>
             table { border-collapse: collapse; width: 100%; }
             th, td { border: 1px solid black; padding: 8px; text-align: center; }
+            th { background: #0ea5e9; color: white; }
+            .break-period { background: #fef3c7; }
         </style>
     `;
     const fullHtml = `<html><head><meta charset="UTF-8">${style}</head><body>${content}</body></html>`;
@@ -680,12 +845,12 @@ function exportToDOC() {
     link.click();
     URL.revokeObjectURL(link.href);
     addShare('doc_export');
-    showToast('DOC file downloaded!');
+    showToast('📄 DOC file downloaded!');
 }
 
 function exportToTXT() {
-    let textContent = 'TIME TABLE\n';
-    textContent += '='.repeat(50) + '\n\n';
+    let textContent = '📅 TIME TABLE GENERATOR\n';
+    textContent += '='.repeat(60) + '\n\n';
     
     if (currentTimetableData) {
         textContent += `Class: ${currentTimetableData.className}\n`;
@@ -694,10 +859,10 @@ function exportToTXT() {
         
         currentTimetableData.timetable.forEach(dayData => {
             textContent += `\n${dayData.day}\n`;
-            textContent += '-'.repeat(40) + '\n';
+            textContent += '-'.repeat(50) + '\n';
             dayData.periods.forEach((period, idx) => {
                 if (period.isBreak) {
-                    textContent += `${PERIODS[idx]}: BREAK\n`;
+                    textContent += `${PERIODS[idx]}: ☕ BREAK\n`;
                 } else {
                     textContent += `${PERIODS[idx]}: ${period.subject} (${period.teacher})\n`;
                 }
@@ -711,7 +876,7 @@ function exportToTXT() {
     link.download = `timetable_${currentTimetableData?.className || 'VI-VIII'}.txt`;
     link.click();
     URL.revokeObjectURL(link.href);
-    showToast('TXT file downloaded!');
+    showToast('📄 TXT file downloaded!');
 }
 
 // ============================================
@@ -724,14 +889,14 @@ function shareOnFacebook() {
 }
 
 function shareOnTwitter() {
-    const text = encodeURIComponent('Check out this Time Table Generator for Grades VI-VIII!');
+    const text = encodeURIComponent('📅 Check out this amazing Time Table Generator for Grades VI-VIII! 🎓');
     const url = encodeURIComponent(window.location.href);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
     addShare('twitter');
 }
 
 function shareOnWhatsApp() {
-    const text = encodeURIComponent(`Time Table Generator - Check it out: ${window.location.href}`);
+    const text = encodeURIComponent(`📅 Time Table Generator - Check it out: ${window.location.href}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
     addShare('whatsapp');
 }
@@ -743,27 +908,16 @@ function shareOnLinkedIn() {
 }
 
 function shareByEmail() {
-    const subject = encodeURIComponent('Time Table Generator for School');
-    const body = encodeURIComponent(`Check out this useful tool: ${window.location.href}`);
+    const subject = encodeURIComponent('📅 Time Table Generator for School');
+    const body = encodeURIComponent(`Check out this amazing tool: ${window.location.href}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     addShare('email');
 }
 
 function copyPageURL() {
     navigator.clipboard.writeText(window.location.href);
-    showToast('URL copied to clipboard!');
+    showToast('📋 URL copied to clipboard!');
     addShare('copy_url');
-}
-
-// ============================================
-// LOCAL REACTION FALLBACK
-// ============================================
-function updateLocalReactionCount(reaction) {
-    const countEl = document.getElementById(`${reaction}Count`);
-    if (countEl) {
-        const current = parseInt(countEl.textContent) || 0;
-        countEl.textContent = current + 1;
-    }
 }
 
 // ============================================
@@ -782,8 +936,8 @@ function initEventListeners() {
         if (elements.subjectwiseSelect.value) renderSubjectwiseTimetable();
         renderFreetimeTimetable();
         hideLoading();
-        showToast('Timetable generated successfully!');
-        incrementUsage();
+        showToast('✨ Timetable generated successfully!');
+        await incrementUsage();
     });
     
     elements.resetBtn.addEventListener('click', () => {
@@ -791,18 +945,23 @@ function initEventListeners() {
         elements.classSelect.value = 'VI';
         elements.mediumSelect.value = 'urdu';
         elements.teacherAssignment.value = 'auto';
-        showToast('Settings reset to default');
+        showToast('🔄 Settings reset to default');
     });
     
     elements.classwiseSelect.addEventListener('change', renderClasswiseTimetable);
     elements.teacherwiseSelect.addEventListener('change', renderTeacherwiseTimetable);
     elements.subjectwiseSelect.addEventListener('change', renderSubjectwiseTimetable);
     
-    // Reactions
+    // Reactions - 7 types only
     document.querySelectorAll('.reaction').forEach(el => {
         el.addEventListener('click', () => {
             const reaction = el.dataset.reaction;
-            if (reaction) addReaction(reaction);
+            if (reaction && REACTION_KEYS.includes(reaction)) {
+                addReaction(reaction);
+                // Visual feedback
+                el.classList.add('active');
+                setTimeout(() => el.classList.remove('active'), 500);
+            }
         });
     });
     
@@ -834,7 +993,7 @@ function initEventListeners() {
         });
     });
     
-    // Dark mode
+    // Dark mode - always dark
     elements.darkModeToggle.addEventListener('click', toggleDarkMode);
     
     // Scroll buttons
@@ -866,15 +1025,23 @@ function initEventListeners() {
 // INITIALIZATION
 // ============================================
 async function init() {
-    console.log('Initializing Time Table Generator...');
+    console.log('🚀 Initializing Time Table Generator v3.0...');
+    
+    // Dark mode always on
     initDarkMode();
     initEventListeners();
     
+    // Start typewriter animation
+    typewriterEffect();
+    
+    // Check API health
     await healthCheck();
+    
+    // Load all data
     await getUsageCount();
     await fetchReactions();
     await fetchShares();
-    await fetchGlobalStats();
+    await fetchStats();
     
     // Generate initial timetable
     generateTimetable();
@@ -884,8 +1051,12 @@ async function init() {
     updateSubjectSelect();
     renderFreetimeTimetable();
     
-    console.log('Initialization complete!');
+    // Auto-increment usage on load
+    await incrementUsage();
+    
+    console.log('✅ Initialization complete!');
+    console.log(`📊 API Status: ${isApiAvailable ? 'Connected' : 'Offline (Fallback Mode)'}`);
 }
 
 // Start the app
-init();
+document.addEventListener('DOMContentLoaded', init);
