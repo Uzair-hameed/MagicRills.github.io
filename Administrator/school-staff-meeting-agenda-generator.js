@@ -1,21 +1,32 @@
 /* school-staff-meeting-agenda-generator.js */
 // ============================================
 // SCHOOL STAFF MEETING AGENDA GENERATOR - JS
-// REDESIGNED VERSION with Two Separate Sections
-// API Endpoints from test-db.js
+// CLOUDFLARE WORKERS API INTEGRATION
 // ============================================
 
-// Configuration
+// ===== CONFIGURATION =====
 const TOOL_SLUG = 'school-staff-meeting-agenda-generator';
-const API_BASE = window.location.origin;
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
+
 let currentUserId = localStorage.getItem('user_id') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 localStorage.setItem('user_id', currentUserId);
 
 let extractedPoints = [];
 let currentUsageCount = 0;
 let currentMode = 'agenda';
+let toolStats = { usage: 0, views: 0, shares: 0, followers: 0 };
 
-// Templates Database
+// ===== TYPEWRITER TEXT ARRAY =====
+const typewriterTexts = [
+    'Create professional meeting agendas with AI assistance',
+    'Review past minutes and generate smart agendas effortlessly',
+    'Powered by Grok AI for intelligent agenda suggestions',
+    'Collaborate with your team using smart meeting tools',
+    'Save time with AI-powered meeting agenda generation'
+];
+
+// ===== TEMPLATES DATABASE =====
 const templates = {
     custom: { objectives: [], agenda: [] },
     discipline: {
@@ -108,11 +119,14 @@ const templates = {
     }
 };
 
-// DOM Elements
+// ===== DOM ELEMENTS =====
 let schoolName, meetingDate, meetingTime, venue, presenter, secretary, additionalNotes, templateSelect, objectivesList, agendaItemsList, reviewPointsList, usageCountSpan, loadingOverlay, previewModal, previewContent, toast;
 let agendaSection, minutesSection, modeBtns;
+let typewriterIndex = 0;
+let typewriterCharIndex = 0;
+let isDeleting = false;
 
-// Initialize
+// ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
     // Get elements
     schoolName = document.getElementById('schoolName');
@@ -150,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUsageCount();
     loadReactions();
     loadGlobalStats();
+    loadToolStats();
     
     // Dark mode
     loadDarkMode();
@@ -157,20 +172,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup mode switching
     setupModeSwitching();
     
-    showToast('Tool ready! Create a new agenda or review past minutes.');
+    // Start typewriter animation
+    startTypewriter();
+    
+    showToast('🚀 Tool ready! Create a new agenda or review past minutes.');
 });
 
+// ===== TYPEWRITER ANIMATION =====
+function startTypewriter() {
+    const textElement = document.getElementById('typewriterText');
+    if (!textElement) return;
+    
+    // Remove cursor from initial text
+    const cursorSpan = textElement.querySelector('.typewriter-cursor');
+    
+    function type() {
+        const currentText = typewriterTexts[typewriterIndex];
+        
+        if (isDeleting) {
+            // Deleting
+            const displayText = currentText.substring(0, typewriterCharIndex - 1);
+            textElement.innerHTML = displayText + '<span class="typewriter-cursor"></span>';
+            typewriterCharIndex--;
+            
+            if (typewriterCharIndex < 0) {
+                isDeleting = false;
+                typewriterIndex = (typewriterIndex + 1) % typewriterTexts.length;
+                setTimeout(type, 500);
+                return;
+            }
+            setTimeout(type, 30);
+        } else {
+            // Typing
+            const displayText = currentText.substring(0, typewriterCharIndex + 1);
+            textElement.innerHTML = displayText + '<span class="typewriter-cursor"></span>';
+            typewriterCharIndex++;
+            
+            if (typewriterCharIndex >= currentText.length) {
+                isDeleting = true;
+                setTimeout(type, 3000);
+                return;
+            }
+            setTimeout(type, 40);
+        }
+    }
+    
+    setTimeout(type, 1000);
+}
+
+// ===== MODE SWITCHING =====
 function setupModeSwitching() {
     modeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const mode = btn.dataset.mode;
             currentMode = mode;
             
-            // Update active state
             modeBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            // Show/hide sections
             if (mode === 'agenda') {
                 agendaSection.classList.add('active-section');
                 minutesSection.classList.remove('active-section');
@@ -182,6 +241,7 @@ function setupModeSwitching() {
     });
 }
 
+// ===== EVENT LISTENERS =====
 function setupEventListeners() {
     document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
     document.getElementById('scrollUpBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -228,6 +288,318 @@ function setupEventListeners() {
     if (reviewPointsList) {
         const observer = new MutationObserver(() => saveToLocalStorage());
         observer.observe(reviewPointsList, { childList: true, subtree: true, characterData: true });
+    }
+}
+
+// ============================================
+// CLOUDFLARE WORKERS API - USAGE COUNTER
+// ============================================
+async function incrementUsage() {
+    try {
+        const response = await fetch(`${API_BASE}/api/usage`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                user_id: currentUserId 
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentUsageCount = data.total_usage || 0;
+            if (usageCountSpan) usageCountSpan.textContent = currentUsageCount;
+            updateDashboardStats('usage', currentUsageCount);
+            await loadToolStats();
+        } else {
+            fallbackIncrementUsage();
+        }
+    } catch (error) {
+        console.warn('API usage increment failed, using fallback:', error);
+        fallbackIncrementUsage();
+    }
+}
+
+function fallbackIncrementUsage() {
+    let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0') + 1;
+    localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
+    currentUsageCount = localCount;
+    if (usageCountSpan) usageCountSpan.textContent = localCount;
+    updateDashboardStats('usage', localCount);
+}
+
+async function loadUsageCount() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentUsageCount = data.usage || 0;
+            if (usageCountSpan) usageCountSpan.textContent = currentUsageCount;
+            updateDashboardStats('usage', currentUsageCount);
+            updateDashboardStats('views', data.views || 0);
+            updateDashboardStats('shares', data.shares || 0);
+            updateDashboardStats('followers', data.followers || 0);
+            
+            // Update global stats
+            document.getElementById('globalUsageCount').textContent = data.usage || 0;
+            document.getElementById('globalSharesCount').textContent = data.shares || 0;
+        } else {
+            loadFallbackStats();
+        }
+    } catch (error) {
+        console.warn('API stats load failed, using fallback:', error);
+        loadFallbackStats();
+    }
+}
+
+function loadFallbackStats() {
+    const localUsage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+    const localViews = parseInt(localStorage.getItem(`${TOOL_SLUG}_views`) || '0');
+    const localShares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+    const localFollowers = parseInt(localStorage.getItem(`${TOOL_SLUG}_followers`) || '0');
+    
+    currentUsageCount = localUsage;
+    if (usageCountSpan) usageCountSpan.textContent = localUsage;
+    updateDashboardStats('usage', localUsage);
+    updateDashboardStats('views', localViews);
+    updateDashboardStats('shares', localShares);
+    updateDashboardStats('followers', localFollowers);
+    
+    document.getElementById('globalUsageCount').textContent = localUsage;
+    document.getElementById('globalSharesCount').textContent = localShares;
+}
+
+// ============================================
+// CLOUDFLARE WORKERS API - REACTIONS
+// ============================================
+async function addReaction(reactionType) {
+    const emojiMap = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
+    const emoji = emojiMap[reactionType];
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                emoji: emoji, 
+                reaction_type: reactionType, 
+                user_id: currentUserId 
+            })
+        });
+        
+        const data = await response.json();
+        if (data.counts) {
+            updateReactionCounts(data.counts);
+            // Update followers count (sum of all reactions)
+            const total = Object.values(data.counts).reduce((a, b) => a + b, 0);
+            updateDashboardStats('followers', total);
+        } else {
+            loadReactions();
+        }
+        showToast('💖 Thank you for your feedback!');
+    } catch (error) {
+        console.warn('API reaction failed, using fallback:', error);
+        updateLocalReaction(reactionType);
+        showToast('💖 Reaction saved locally!');
+    }
+}
+
+function updateLocalReaction(reactionType) {
+    let localReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+    localReactions[reactionType] = (localReactions[reactionType] || 0) + 1;
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(localReactions));
+    updateReactionCounts(localReactions);
+    
+    const total = Object.values(localReactions).reduce((a, b) => a + b, 0);
+    updateDashboardStats('followers', total);
+}
+
+async function loadReactions() {
+    try {
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.reactions) {
+                updateReactionCounts(data.reactions);
+                const total = Object.values(data.reactions).reduce((a, b) => a + b, 0);
+                updateDashboardStats('followers', total);
+                document.getElementById('globalReactionsCount').textContent = total;
+            }
+        } else {
+            loadLocalReactions();
+        }
+    } catch (error) {
+        console.warn('API reactions load failed, using fallback:', error);
+        loadLocalReactions();
+    }
+}
+
+function loadLocalReactions() {
+    const localReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+    updateReactionCounts(localReactions);
+    const total = Object.values(localReactions).reduce((a, b) => a + b, 0);
+    updateDashboardStats('followers', total);
+    document.getElementById('globalReactionsCount').textContent = total;
+}
+
+function updateReactionCounts(counts) {
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        const reaction = btn.dataset.reaction;
+        const countSpan = btn.querySelector('.reaction-count');
+        if (countSpan && counts[reaction] !== undefined) {
+            countSpan.textContent = counts[reaction];
+        }
+    });
+}
+
+// ============================================
+// CLOUDFLARE WORKERS API - SHARES
+// ============================================
+async function trackShare(platform) {
+    try {
+        const response = await fetch(`${API_BASE}/api/shares`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                platform: platform, 
+                user_id: currentUserId 
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.total_shares !== undefined) {
+                updateDashboardStats('shares', data.total_shares);
+                document.getElementById('globalSharesCount').textContent = data.total_shares;
+            }
+            await loadToolStats();
+        } else {
+            fallbackTrackShare(platform);
+        }
+    } catch (error) {
+        console.warn('API share tracking failed, using fallback:', error);
+        fallbackTrackShare(platform);
+    }
+}
+
+function fallbackTrackShare(platform) {
+    let localShares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0') + 1;
+    localStorage.setItem(`${TOOL_SLUG}_shares`, localShares);
+    updateDashboardStats('shares', localShares);
+    document.getElementById('globalSharesCount').textContent = localShares;
+}
+
+// ============================================
+// TOOL STATS DASHBOARD
+// ============================================
+function updateDashboardStats(type, value) {
+    const statsMap = {
+        'usage': 'statUsage',
+        'views': 'statViews',
+        'shares': 'statShares',
+        'followers': 'statFollowers'
+    };
+    
+    const elementId = statsMap[type];
+    if (elementId) {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = value;
+    }
+}
+
+async function loadToolStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            toolStats = data;
+            updateDashboardStats('usage', data.usage || 0);
+            updateDashboardStats('views', data.views || 0);
+            updateDashboardStats('shares', data.shares || 0);
+            updateDashboardStats('followers', data.followers || 0);
+            
+            document.getElementById('globalUsageCount').textContent = data.usage || 0;
+            document.getElementById('globalSharesCount').textContent = data.shares || 0;
+        } else {
+            loadFallbackStats();
+        }
+    } catch (error) {
+        console.warn('API stats load failed:', error);
+        loadFallbackStats();
+    }
+}
+
+// ============================================
+// SHARE FUNCTIONS
+// ============================================
+function shareOnFacebook() { trackShare('facebook'); window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); }
+function shareOnTwitter() { trackShare('twitter'); window.open(`https://twitter.com/intent/tweet?text=School%20Staff%20Meeting%20Agenda%20Generator&url=${encodeURIComponent(window.location.href)}`, '_blank'); }
+function shareOnWhatsApp() { trackShare('whatsapp'); window.open(`https://wa.me/?text=${encodeURIComponent('Check out this tool: ' + window.location.href)}`, '_blank'); }
+function shareOnLinkedIn() { trackShare('linkedin'); window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); }
+function shareByEmail() { trackShare('email'); window.location.href = `mailto:?subject=School Meeting Agenda Tool&body=${window.location.href}`; }
+function copyPageURL() { 
+    trackShare('copy'); 
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('📋 URL copied!');
+        }).catch(() => {
+            fallbackCopyURL();
+        });
+    } else {
+        fallbackCopyURL();
+    }
+}
+
+function fallbackCopyURL() {
+    const textArea = document.createElement('textarea');
+    textArea.value = window.location.href;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast('📋 URL copied!');
+}
+
+// ============================================
+// GLOBAL STATS
+// ============================================
+async function loadGlobalStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('globalUsageCount').textContent = data.usage || 0;
+            document.getElementById('globalSharesCount').textContent = data.shares || 0;
+        }
+    } catch (error) {
+        // Use local data
+        const usage = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
+        const shares = localStorage.getItem(`${TOOL_SLUG}_shares`) || 0;
+        document.getElementById('globalUsageCount').textContent = usage;
+        document.getElementById('globalSharesCount').textContent = shares;
     }
 }
 
@@ -451,10 +823,8 @@ function transferReviewToAgenda() {
         return;
     }
     
-    // Switch to agenda section
     document.querySelector('.mode-btn[data-mode="agenda"]').click();
     
-    // Add as objectives or review items in agenda
     reviewPoints.forEach(point => {
         addObjective(`[From Previous Minutes] ${point}`);
     });
@@ -525,7 +895,6 @@ async function aiGenerateAgenda() {
     showLoading(true);
     showToast('AI is generating smart agenda...');
     
-    // Simulate AI generation with variation
     setTimeout(() => {
         const schoolType = schoolName?.value || 'School';
         const date = meetingDate?.value || new Date().toISOString().split('T')[0];
@@ -552,7 +921,6 @@ async function aiGenerateAgenda() {
         objectivesList.innerHTML = '';
         agendaItemsList.innerHTML = '';
         
-        // Randomly select 3-4 objectives
         const shuffledObjectives = [...aiObjectives];
         for (let i = shuffledObjectives.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -561,7 +929,6 @@ async function aiGenerateAgenda() {
         const selectedObjectives = shuffledObjectives.slice(0, Math.floor(Math.random() * 2) + 3);
         selectedObjectives.forEach(obj => addObjective(obj));
         
-        // Add all agenda items with slight variations
         aiAgendaItems.forEach(item => {
             const variation = Math.random() > 0.5 ? " (Updated)" : "";
             addAgendaItem(item.title + variation, item.desc, item.presenter, item.duration, item.priority);
@@ -630,174 +997,41 @@ function generateAgenda() {
     const agendaItems = getAgendaItemsArray();
     
     let previewHtml = `
-        <div style="text-align:center; margin-bottom:30px;">
-            <h2>${escapeHtml(school)}</h2>
-            <h3 style="color: #6366F1;">Staff Meeting Agenda</h3>
-            <p><strong>Date:</strong> ${formattedDate} | <strong>Time:</strong> ${time} | <strong>Venue:</strong> ${escapeHtml(venueText)}</p>
-            <p><strong>Chairperson:</strong> ${escapeHtml(presenterText)} | <strong>Secretary:</strong> ${escapeHtml(secretaryText)}</p>
+        <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid rgba(139,92,246,0.2); padding-bottom:20px;">
+            <h2 style="color: #A78BFA;">${escapeHtml(school)}</h2>
+            <h3 style="color: #8B5CF6;">Staff Meeting Agenda</h3>
+            <p style="color: #94A3B8;"><strong>Date:</strong> ${formattedDate} | <strong>Time:</strong> ${time} | <strong>Venue:</strong> ${escapeHtml(venueText)}</p>
+            <p style="color: #94A3B8;"><strong>Chairperson:</strong> ${escapeHtml(presenterText)} | <strong>Secretary:</strong> ${escapeHtml(secretaryText)}</p>
         </div>
-        <hr>
         
-        <h3>📋 Previous Review Points (Points to Remember)</h3>
-        ${reviewPoints.length > 0 ? `<ul>${reviewPoints.map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>` : '<p>No previous review points.</p>'}
+        <h3 style="color: #8B5CF6; margin-top:25px;">📋 Previous Review Points</h3>
+        ${reviewPoints.length > 0 ? `<ul style="padding-left:20px;">${reviewPoints.map(p => `<li style="margin:6px 0; color:#E2E8F0;">${escapeHtml(p)}</li>`).join('')}</ul>` : '<p style="color:#94A3B8;">No previous review points.</p>'}
         
-        <h3>🎯 Meeting Objectives</h3>
-        ${objectives.length > 0 ? `<ul>${objectives.map(obj => `<li>${escapeHtml(obj)}</li>`).join('')}</ul>` : '<p>No objectives added.</p>'}
+        <h3 style="color: #8B5CF6; margin-top:25px;">🎯 Meeting Objectives</h3>
+        ${objectives.length > 0 ? `<ul style="padding-left:20px;">${objectives.map(obj => `<li style="margin:6px 0; color:#E2E8F0;">${escapeHtml(obj)}</li>`).join('')}</ul>` : '<p style="color:#94A3B8;">No objectives added.</p>'}
         
-        <h3>📌 Agenda Items</h3>
+        <h3 style="color: #8B5CF6; margin-top:25px;">📌 Agenda Items</h3>
         ${agendaItems.map((item, idx) => `
-            <div style="margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid #ddd;">
-                <h4>${idx + 1}. ${escapeHtml(item.title)}</h4>
-                <p><strong>Presenter:</strong> ${escapeHtml(item.presenterName)} | <strong>Duration:</strong> ${escapeHtml(item.duration)} | <strong>Priority:</strong> ${item.priority}</p>
-                <p><strong>Discussion:</strong> ${escapeHtml(item.desc) || 'To be discussed'}</p>
+            <div style="margin-bottom:20px; padding:15px; background:rgba(139,92,246,0.05); border-radius:12px; border-left:3px solid #8B5CF6;">
+                <h4 style="color:#E2E8F0; margin-bottom:5px;">${idx + 1}. ${escapeHtml(item.title)}</h4>
+                <p style="color:#94A3B8; font-size:0.9rem;"><strong>Presenter:</strong> ${escapeHtml(item.presenterName)} | <strong>Duration:</strong> ${escapeHtml(item.duration)} | <strong>Priority:</strong> ${item.priority}</p>
+                <p style="color:#CBD5E1; margin-top:5px;"><strong>Discussion:</strong> ${escapeHtml(item.desc) || 'To be discussed'}</p>
             </div>
         `).join('')}
         
-        ${notes ? `<h3>📌 Additional Notes</h3><p>${escapeHtml(notes).replace(/\n/g, '<br>')}</p>` : ''}
+        ${notes ? `<h3 style="color: #8B5CF6; margin-top:25px;">📌 Additional Notes</h3><p style="color:#E2E8F0;">${escapeHtml(notes).replace(/\n/g, '<br>')}</p>` : ''}
         
-        <hr>
-        <div style="margin-top:40px; display:flex; justify-content:space-between;">
-            <div><hr style="width:200px;"><p style="font-style:italic;">Chairperson Signature</p></div>
-            <div><hr style="width:200px;"><p style="font-style:italic;">Secretary Signature</p></div>
+        <hr style="border-color:rgba(139,92,246,0.15); margin:30px 0;">
+        <div style="display:flex; justify-content:space-between; margin-top:40px;">
+            <div><hr style="width:200px; border-color:rgba(139,92,246,0.2);"><p style="font-style:italic; color:#94A3B8;">Chairperson Signature</p></div>
+            <div><hr style="width:200px; border-color:rgba(139,92,246,0.2);"><p style="font-style:italic; color:#94A3B8;">Secretary Signature</p></div>
         </div>
-        <p style="text-align:center; font-size:12px; margin-top:30px;">Generated by School Staff Meeting Agenda Generator</p>
+        <p style="text-align:center; font-size:12px; margin-top:30px; color:#64748B;">Generated by School Staff Meeting Agenda Generator</p>
     `;
     
     previewContent.innerHTML = previewHtml;
     previewModal.classList.remove('hidden');
     saveToLocalStorage();
-}
-
-// ============================================
-// API CALLS FOR TiDB
-// ============================================
-async function incrementUsage() {
-    try {
-        const response = await fetch(`${API_BASE}/api/increment-usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: currentUserId })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            currentUsageCount = data.total_usage || 0;
-            if (usageCountSpan) usageCountSpan.textContent = currentUsageCount;
-        } else {
-            fallbackIncrementUsage();
-        }
-    } catch (error) {
-        fallbackIncrementUsage();
-    }
-}
-
-function fallbackIncrementUsage() {
-    let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0') + 1;
-    localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
-    currentUsageCount = localCount;
-    if (usageCountSpan) usageCountSpan.textContent = localCount;
-}
-
-async function loadUsageCount() {
-    try {
-        const response = await fetch(`${API_BASE}/api/usage?tool_slug=${TOOL_SLUG}`);
-        if (response.ok) {
-            const data = await response.json();
-            currentUsageCount = data.count || 0;
-            if (usageCountSpan) usageCountSpan.textContent = currentUsageCount;
-        } else {
-            const localCount = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-            if (usageCountSpan) usageCountSpan.textContent = localCount;
-        }
-    } catch (error) {
-        const localCount = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-        if (usageCountSpan) usageCountSpan.textContent = localCount;
-    }
-}
-
-async function addReaction(reactionType) {
-    const emojiMap = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
-    const emoji = emojiMap[reactionType];
-    
-    try {
-        const response = await fetch(`${API_BASE}/api/add-reaction`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, reaction_type: reactionType, user_id: currentUserId })
-        });
-        const data = await response.json();
-        if (data.counts) updateReactionCounts(data.counts);
-        else loadReactions();
-        showToast('Thank you for your feedback!');
-    } catch (error) {
-        showToast('Reaction saved locally');
-        updateLocalReaction(reactionType);
-    }
-}
-
-function updateLocalReaction(reactionType) {
-    let localReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-    localReactions[reactionType] = (localReactions[reactionType] || 0) + 1;
-    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(localReactions));
-    updateReactionCounts(localReactions);
-}
-
-async function loadReactions() {
-    try {
-        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.reactions) updateReactionCounts(data.reactions);
-        } else {
-            const localReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-            updateReactionCounts(localReactions);
-        }
-    } catch (error) {
-        const localReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-        updateReactionCounts(localReactions);
-    }
-}
-
-function updateReactionCounts(counts) {
-    document.querySelectorAll('.reaction-btn').forEach(btn => {
-        const reaction = btn.dataset.reaction;
-        const countSpan = btn.querySelector('.reaction-count');
-        if (countSpan && counts[reaction] !== undefined) {
-            countSpan.textContent = counts[reaction];
-        }
-    });
-}
-
-async function trackShare(platform) {
-    try {
-        await fetch(`${API_BASE}/api/add-share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: currentUserId })
-        });
-        loadGlobalStats();
-    } catch (error) {
-        console.error('Share tracking error:', error);
-    }
-}
-
-function shareOnFacebook() { trackShare('facebook'); window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); }
-function shareOnTwitter() { trackShare('twitter'); window.open(`https://twitter.com/intent/tweet?text=School%20Staff%20Meeting%20Agenda%20Generator&url=${encodeURIComponent(window.location.href)}`, '_blank'); }
-function shareOnWhatsApp() { trackShare('whatsapp'); window.open(`https://wa.me/?text=${encodeURIComponent('Check this out: ' + window.location.href)}`, '_blank'); }
-function shareOnLinkedIn() { trackShare('linkedin'); window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); }
-function shareByEmail() { trackShare('email'); window.location.href = `mailto:?subject=School Meeting Agenda Tool&body=${window.location.href}`; }
-function copyPageURL() { trackShare('copy'); navigator.clipboard.writeText(window.location.href); showToast('URL copied!'); }
-
-async function loadGlobalStats() {
-    try {
-        const response = await fetch(`${API_BASE}/api/global-stats`);
-        if (response.ok) {
-            const data = await response.json();
-            const usageEl = document.getElementById('globalUsageCount');
-            const sharesEl = document.getElementById('globalSharesCount');
-            if (usageEl) usageEl.textContent = data.totalUsage || 0;
-            if (sharesEl) sharesEl.textContent = data.totalShares || 0;
-        }
-    } catch (error) {}
 }
 
 // ============================================
@@ -807,8 +1041,25 @@ function printAgenda() { window.print(); }
 function closePreview() { previewModal.classList.add('hidden'); }
 function copyAgendaToClipboard() { 
     const textContent = previewContent.innerText;
-    navigator.clipboard.writeText(textContent); 
-    showToast('Agenda copied!'); 
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(textContent).then(() => {
+            showToast('📋 Agenda copied!');
+        }).catch(() => {
+            fallbackCopyAgenda(textContent);
+        });
+    } else {
+        fallbackCopyAgenda(textContent);
+    }
+}
+
+function fallbackCopyAgenda(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast('📋 Agenda copied!');
 }
 
 function downloadAgenda(format) {
@@ -821,7 +1072,7 @@ function downloadAgenda(format) {
         const textContent = previewContent.innerText;
         downloadFile(textContent, `${filename}.txt`, 'text/plain');
     } else if (format === 'doc') {
-        const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Meeting Agenda</title><style>body{font-family:Arial;margin:2cm;}</style></head><body>${content}</body></html>`;
+        const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Meeting Agenda</title><style>body{font-family:Arial;margin:2cm;background:white;color:black;}</style></head><body>${content}</body></html>`;
         downloadFile(htmlContent, `${filename}.doc`, 'application/msword');
     } else if (format === 'pdf') {
         showToast('Click Print and save as PDF');
@@ -866,31 +1117,35 @@ function saveToLocalStorage() {
 function loadFromLocalStorage() {
     const saved = localStorage.getItem(`${TOOL_SLUG}_form`);
     if (saved) {
-        const data = JSON.parse(saved);
-        if (schoolName) schoolName.value = data.schoolName || '';
-        if (meetingDate) meetingDate.value = data.meetingDate || '';
-        if (meetingTime) meetingTime.value = data.meetingTime || '';
-        if (venue) venue.value = data.venue || '';
-        if (presenter) presenter.value = data.presenter || '';
-        if (secretary) secretary.value = data.secretary || '';
-        if (additionalNotes) additionalNotes.value = data.additionalNotes || '';
-        
-        if (data.reviewPoints && data.reviewPoints.length) {
-            reviewPointsList.innerHTML = '';
-            data.reviewPoints.forEach(point => addReviewPoint(point));
+        try {
+            const data = JSON.parse(saved);
+            if (schoolName) schoolName.value = data.schoolName || '';
+            if (meetingDate) meetingDate.value = data.meetingDate || '';
+            if (meetingTime) meetingTime.value = data.meetingTime || '';
+            if (venue) venue.value = data.venue || '';
+            if (presenter) presenter.value = data.presenter || '';
+            if (secretary) secretary.value = data.secretary || '';
+            if (additionalNotes) additionalNotes.value = data.additionalNotes || '';
+            
+            if (data.reviewPoints && data.reviewPoints.length) {
+                reviewPointsList.innerHTML = '';
+                data.reviewPoints.forEach(point => addReviewPoint(point));
+            }
+            
+            if (data.objectives && data.objectives.length) {
+                objectivesList.innerHTML = '';
+                data.objectives.forEach(obj => addObjective(obj));
+            }
+            
+            if (data.agendaItems && data.agendaItems.length) {
+                agendaItemsList.innerHTML = '';
+                data.agendaItems.forEach(item => addAgendaItem(item.title, item.desc, item.presenter, item.duration, item.priority));
+            }
+            
+            if (data.extractedPoints) extractedPoints = data.extractedPoints;
+        } catch (e) {
+            console.warn('Failed to load saved data:', e);
         }
-        
-        if (data.objectives && data.objectives.length) {
-            objectivesList.innerHTML = '';
-            data.objectives.forEach(obj => addObjective(obj));
-        }
-        
-        if (data.agendaItems && data.agendaItems.length) {
-            agendaItemsList.innerHTML = '';
-            data.agendaItems.forEach(item => addAgendaItem(item.title, item.desc, item.presenter, item.duration, item.priority));
-        }
-        
-        if (data.extractedPoints) extractedPoints = data.extractedPoints;
     }
 }
 
@@ -943,20 +1198,18 @@ function showToast(message, type = 'success') {
     const toastMsg = document.getElementById('toastMessage');
     if (toastMsg) toastMsg.textContent = message;
     toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3000);
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.classList.add('hidden'), 3500);
 }
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
 }
 
-// Make functions global
+// ===== MAKE FUNCTIONS GLOBAL =====
 window.addObjective = addObjective;
 window.addAgendaItem = addAgendaItem;
 window.addReviewPoint = addReviewPoint;
