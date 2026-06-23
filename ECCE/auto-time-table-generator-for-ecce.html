@@ -1,138 +1,300 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- ========== META TAGS (FULL SEO) ========== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ECCE Pro | Auto Time Table Generator</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>ECCE Pro | Auto Time Table Generator for Early Childhood Education</title>
+    <meta name="title" content="ECCE Pro | Auto Time Table Generator for Early Childhood Education">
+    <meta name="description" content="Generate professional ECCE time tables automatically. Perfect for early childhood educators, preschool teachers, and daycares. Free, fast, and easy to use.">
+    <meta name="keywords" content="ECCE timetable generator, early childhood education, preschool schedule, daycare timetable, teacher tool, ECCE pro, time table maker">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="ECCE Pro Team">
+    <meta name="language" content="English">
+    <link rel="canonical" href="https://magicrills-api.uzairhameed01.workers.dev/ecce-timetable">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills-api.uzairhameed01.workers.dev/ecce-timetable">
+    <meta property="og:title" content="ECCE Pro | Auto Time Table Generator for Early Childhood Education">
+    <meta property="og:description" content="Generate professional ECCE time tables automatically. Perfect for early childhood educators, preschool teachers, and daycares.">
+    <meta property="og:image" content="https://magicrills-api.uzairhameed01.workers.dev/images/ecce-og-image.jpg">
+    <meta property="og:site_name" content="ECCE Pro Tools">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://magicrills-api.uzairhameed01.workers.dev/ecce-timetable">
+    <meta name="twitter:title" content="ECCE Pro | Auto Time Table Generator for Early Childhood Education">
+    <meta name="twitter:description" content="Generate professional ECCE time tables automatically. Perfect for early childhood educators, preschool teachers, and daycares.">
+    <meta name="twitter:image" content="https://magicrills-api.uzairhameed01.workers.dev/images/ecce-og-image.jpg">
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "ECCE Pro Time Table Generator",
+        "description": "Generate professional ECCE time tables automatically for early childhood education.",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "ECCE Pro"
+        }
+    }
+    </script>
+    
     <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <!-- jsPDF + html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
     <style>
-        /* Toast Notification */
-        .toast-notify {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e2a3e;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 60px;
-            font-weight: bold;
-            z-index: 10000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            animation: fadeInUp 0.2s ease;
-            font-size: 0.9rem;
-            pointer-events: none;
-            font-family: monospace;
+        /* ========== ROOT VARIABLES - DARK SPACE THEME ========== */
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111927;
+            --bg-card: #151f2e;
+            --bg-card-hover: #1a2a3d;
+            --bg-input: #0d1520;
+            --bg-table-header: #1a3a5c;
+            --bg-table-row: #0f1a28;
+            --bg-table-alt: #152235;
+            
+            --text-primary: #e8edf5;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-white: #ffffff;
+            
+            --border-color: #1e3347;
+            --border-light: #2a4058;
+            
+            --accent-cyan: #00d4ff;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-glow: 0 0 40px rgba(0, 212, 255, 0.08);
+            
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --radius-full: 9999px;
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
+        
+        /* ========== RESET & BASE ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #f4f7fc;
-            padding: 24px 16px;
-            transition: background 0.3s, color 0.2s;
-        }
-        /* Light / Dark theme */
-        body.light {
-            --bg-body: #f0f2f5;
-            --card-bg: #ffffff;
-            --text-primary: #1e2a3e;
-            --text-secondary: #2c3e50;
-            --border: #dce4ec;
-            --btn-primary: #0f3b5e;
-            --btn-primary-hover: #1a4d74;
-            --btn-success: #2c7a4d;
-            --btn-warning: #b45f2b;
-            --btn-secondary: #475569;
-            --table-header: #1e4668;
-            --table-row: #fefefe;
-            --table-alt: #f8fafc;
-            --shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-            --reaction-bg: #f1f5f9;
-        }
-        body.dark {
-            --bg-body: #121212;
-            --card-bg: #1e2a2e;
-            --text-primary: #eef2f3;
-            --text-secondary: #cbd5e1;
-            --border: #334155;
-            --btn-primary: #2c6e9e;
-            --btn-primary-hover: #3b82b6;
-            --btn-success: #2d6a4f;
-            --btn-warning: #d97736;
-            --btn-secondary: #5b6e8c;
-            --table-header: #0f2c3b;
-            --table-row: #1e2f3a;
-            --table-alt: #16262e;
-            --shadow: 0 12px 24px rgba(0,0,0,0.5);
-            --reaction-bg: #2d3a46;
-        }
-        body {
-            background: var(--bg-body);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at 20% 50%, rgba(0, 212, 255, 0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.02) 0%, transparent 50%);
+            line-height: 1.6;
         }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-cyan);
+            border-radius: var(--radius-full);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
+        
+        /* ========== TOAST NOTIFICATION ========== */
+        .toast-notify {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 14px 28px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            z-index: 10000;
+            box-shadow: var(--shadow-card), 0 0 20px rgba(0, 212, 255, 0.1);
+            animation: fadeInUp 0.3s ease;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            pointer-events: none;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        }
+        
+        /* ========== CONTAINER ========== */
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px 16px;
         }
-        /* Card with Hover Effect (ECCE category: green to teal) */
+        
+        /* ========== HERO SECTION ========== */
+        .hero-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 48px 40px;
+            margin-bottom: 32px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: var(--accent-cyan);
+            padding: 4px 16px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            min-height: 48px;
+        }
+        .hero-subtitle .typewriter {
+            color: var(--accent-cyan);
+            border-right: 3px solid var(--accent-cyan);
+            padding-right: 4px;
+            animation: blink 0.8s step-end infinite;
+        }
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+        .hero-description {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.8;
+        }
+        .hero-stats-row {
+            display: flex;
+            gap: 40px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .hero-stat i {
+            color: var(--accent-cyan);
+            font-size: 1.1rem;
+        }
+        .hero-stat strong {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+        
+        /* ========== CARDS ========== */
         .card {
-            background: var(--card-bg);
-            border-radius: 32px;
-            box-shadow: var(--shadow);
-            padding: 24px 28px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            padding: 28px 32px;
             margin-bottom: 28px;
-            border: 1px solid var(--border);
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+            opacity: 0.6;
         }
         .card:hover {
-            transform: translateY(-8px);
-            background: linear-gradient(135deg, #0f6b5e, #1e9c7c) !important;
-            color: white !important;
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.3);
+            border-color: var(--border-light);
+            box-shadow: var(--shadow-card), 0 0 30px rgba(0, 212, 255, 0.04);
         }
-        .card:hover * {
-            color: white !important;
-            border-color: rgba(255,255,255,0.3);
-        }
-        .card:hover button:not(.theme-toggle):not(.scroll-btn) {
-            background: white;
-            color: #0f6b5e !important;
-        }
-        .card:hover .reaction-btn {
-            background: rgba(255,255,255,0.2);
-            color: white !important;
-        }
-        .card:hover .social-icon {
-            color: white;
-        }
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1e6f5c, #289672);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            display: inline-block;
-        }
-        .card:hover h1 {
-            background: white;
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
+        
+        /* ========== HEADER ========== */
         .header-actions {
             display: flex;
             justify-content: space-between;
@@ -141,17 +303,44 @@
             gap: 16px;
             margin-bottom: 20px;
         }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-title .icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.2));
+        }
+        
         .theme-toggle {
-            background: var(--btn-secondary);
-            border: none;
-            padding: 8px 18px;
-            border-radius: 60px;
-            font-weight: bold;
-            color: white;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 8px 20px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            color: var(--text-primary);
             cursor: pointer;
             font-size: 0.85rem;
-            transition: 0.2s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .theme-toggle:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.05);
+        }
+        
+        /* ========== FORM ELEMENTS ========== */
         .flex-row {
             display: flex;
             flex-wrap: wrap;
@@ -164,78 +353,154 @@
         }
         label {
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             color: var(--text-secondary);
             display: block;
             margin-bottom: 6px;
         }
-        input, select, button {
+        input, select {
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
             color: var(--text-primary);
             font-size: 0.95rem;
             outline: none;
-            transition: 0.2s;
+            transition: var(--transition);
         }
+        input:focus, select:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+        }
+        input::placeholder {
+            color: var(--text-muted);
+        }
+        
         button {
-            font-weight: bold;
-            cursor: pointer;
-            background: var(--btn-primary);
-            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
             border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
         }
-        button:hover {
-            background: var(--btn-primary-hover);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #fff;
+        }
+        .btn-primary:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.25);
         }
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.05);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-green), #059669);
+            color: #fff;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, var(--accent-orange), #d97706);
+            color: #fff;
+        }
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.25);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.25);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        
         .btn-group {
             display: flex;
             flex-wrap: wrap;
             gap: 14px;
             margin: 20px 0 10px;
         }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--btn-primary);
-            color: var(--btn-primary);
-        }
+        
+        /* ========== LOGO PREVIEW ========== */
         .logo-preview img {
             max-height: 80px;
-            border-radius: 20px;
-            background: white;
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
             padding: 6px;
+            border: 1px solid var(--border-color);
         }
+        
+        /* ========== TIMETABLE ========== */
         .timetable-wrapper {
             overflow-x: auto;
-            border-radius: 24px;
-            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
             margin-bottom: 20px;
+            background: var(--bg-secondary);
         }
         .timetable {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
+            min-width: 600px;
         }
         .timetable th, .timetable td {
-            border: 1px solid var(--border);
-            padding: 12px 8px;
+            border: 1px solid var(--border-color);
+            padding: 12px 10px;
             text-align: center;
         }
         .timetable th {
-            background: var(--table-header);
-            color: white;
+            background: var(--bg-table-header);
+            color: var(--text-white);
+            font-weight: 600;
         }
-        /* NEW: Tool Stats Bar - reactions row, social center, usage */
+        .timetable td {
+            background: var(--bg-table-row);
+        }
+        .timetable tr:nth-child(even) td {
+            background: var(--bg-table-alt);
+        }
+        .timetable .info-header td {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(139, 92, 246, 0.08));
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+        
+        /* ========== TOOL STATS ========== */
         .tool-stats {
-            background: var(--card-bg);
-            border-radius: 60px;
-            padding: 12px 24px;
-            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 16px 24px;
+            border: 1px solid var(--border-color);
             margin: 16px 0;
             display: flex;
             flex-wrap: wrap;
@@ -251,24 +516,38 @@
             flex: 2;
         }
         .reaction-btn {
-            background: var(--reaction-bg);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 6px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 6px 16px;
             font-size: 1rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            color: var(--text-primary);
-            transition: 0.2s;
+            color: var(--text-secondary);
+            transition: var(--transition);
             width: auto;
         }
         .reaction-btn:hover {
-            background: var(--btn-primary);
-            color: white;
-            transform: scale(1.02);
+            transform: scale(1.05);
+            border-color: var(--accent-cyan);
         }
+        /* Colorful reaction buttons */
+        .reaction-btn[data-emoji="like"]:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #3b82f6; }
+        .reaction-btn[data-emoji="love"]:hover { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; color: #ec4899; }
+        .reaction-btn[data-emoji="wow"]:hover { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #f59e0b; }
+        .reaction-btn[data-emoji="sad"]:hover { background: rgba(99, 102, 241, 0.2); border-color: #6366f1; color: #6366f1; }
+        .reaction-btn[data-emoji="laugh"]:hover { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
+        .reaction-btn[data-emoji="celebrate"]:hover { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; color: #ec4899; }
+        .reaction-btn[data-emoji="angry"]:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
+        
+        .reaction-btn .react-count {
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 16px;
+        }
+        
         .social-center {
             display: flex;
             gap: 16px;
@@ -277,44 +556,102 @@
             flex: 1;
         }
         .social-icon {
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            color: var(--text-secondary);
-            transition: 0.2s;
+            color: var(--text-muted);
+            transition: var(--transition);
         }
         .social-icon:hover {
             transform: scale(1.2);
-            color: #289672;
+            color: var(--accent-cyan);
         }
         .usage-badge {
-            font-weight: bold;
-            background: #eef2ff;
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-size: 0.9rem;
+            font-weight: 600;
+            background: var(--bg-input);
+            padding: 6px 18px;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        body.dark .usage-badge {
-            background: #2c3e50;
-            color: #e2e8f0;
+        .usage-badge i {
+            color: var(--accent-cyan);
         }
-        /* Navigation Buttons Row (Back/Home) */
+        
+        /* ========== DASHBOARD STATS ========== */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.04);
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .stat-card .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+            display: block;
+            color: var(--text-muted);
+        }
+        
+        /* ========== NAV BUTTONS ========== */
         .nav-buttons-row {
             display: flex;
             gap: 16px;
             justify-content: flex-start;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .nav-btn {
-            background: #6c757d;
-            width: auto;
             padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: bold;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            width: auto;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent-cyan);
         }
         .nav-btn-home {
-            background: #b23c1c;
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+            color: #fff;
+            border: none;
         }
+        .nav-btn-home:hover {
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.25);
+            transform: translateY(-2px);
+        }
+        
         .action-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -322,7 +659,8 @@
             gap: 18px;
             margin-top: 16px;
         }
-        /* Scroll buttons */
+        
+        /* ========== SCROLL BUTTONS ========== */
         .scroll-buttons {
             position: fixed;
             bottom: 25px;
@@ -333,444 +671,942 @@
             z-index: 999;
         }
         .scroll-btn {
-            background: var(--btn-primary);
+            background: var(--bg-card);
             width: 48px;
             height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-size: 1.2rem;
+            box-shadow: var(--shadow-card);
             cursor: pointer;
-            border: none;
-            color: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .scroll-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            transform: scale(1.05);
         }
         .hidden-scroll {
             display: none;
         }
-        @media (max-width: 860px) {
-            .tool-stats { flex-direction: column; align-items: stretch; border-radius: 28px; }
-            .reactions-row { justify-content: center; }
-            .social-center { justify-content: center; }
-            .usage-badge { text-align: center; }
-        }
-        @media (max-width: 640px) {
-            .card { padding: 16px; }
-            .reaction-btn { padding: 4px 10px; font-size: 0.8rem; }
-        }
-        /* loader spinner */
+        
+        /* ========== LOADER ========== */
         .loader {
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(0,0,0,0.2);
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
             border-radius: 50%;
-            border-top-color: #289672;
-            animation: spin 0.5s linear infinite;
+            border-top-color: var(--accent-cyan);
+            animation: spin 0.6s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 860px) {
+            .hero-title { font-size: 2.2rem; }
+            .hero-subtitle { font-size: 1.2rem; min-height: 36px; }
+            .hero-section { padding: 32px 24px; }
+            .tool-stats { flex-direction: column; align-items: stretch; }
+            .reactions-row { justify-content: center; }
+            .social-center { justify-content: center; }
+            .usage-badge { text-align: center; justify-content: center; }
+            .header-title h1 { font-size: 1.3rem; }
+            .card { padding: 20px; }
+            .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 1.6rem; }
+            .hero-subtitle { font-size: 1rem; min-height: 28px; }
+            .hero-section { padding: 24px 16px; }
+            .hero-stats-row { gap: 16px; }
+            .reaction-btn { padding: 4px 12px; font-size: 0.8rem; }
+            .dashboard-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card .stat-number { font-size: 1.5rem; }
+            .card { padding: 16px; }
+            .header-title h1 { font-size: 1.1rem; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
+    
+    <!-- ========== HERO SECTION ========== -->
+    <section class="hero-section" aria-label="Hero Section">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-sparkles"></i> ECCE Pro Tool
+            </div>
+            <h1 class="hero-title">Auto Time Table Generator</h1>
+            <div class="hero-subtitle">
+                For <span class="typewriter" id="typewriterText">Early Childhood Education</span>
+            </div>
+            <p class="hero-description">
+                Create professional, personalized timetables for ECCE classrooms in seconds. 
+                Perfect for preschools, daycares, and early childhood educators.
+            </p>
+            <div class="hero-stats-row">
+                <div class="hero-stat">
+                    <i class="fas fa-users"></i>
+                    <strong id="heroUsageStat">0</strong> <span>educators using</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="fas fa-calendar-check"></i>
+                    <strong id="heroTimetablesStat">0</strong> <span>timetables generated</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="fas fa-star"></i>
+                    <strong id="heroReactionsStat">0</strong> <span>reactions</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- ========== MAIN CARD ========== -->
     <div class="card">
         <div class="header-actions">
-            <h1>📅 ECCE Time Table Pro</h1>
-            <button id="darkModeToggle" class="theme-toggle">🌓 Dark / Light</button>
+            <div class="header-title">
+                <span class="icon">📅</span>
+                <h1>ECCE Time Table Pro</h1>
+            </div>
+            <button id="darkModeToggle" class="theme-toggle">
+                <i class="fas fa-moon"></i> Dark / Light
+            </button>
         </div>
-        <!-- Configuration Panel -->
+        
+        <!-- ========== CONFIG VIEW ========== -->
         <div id="configView">
             <div class="flex-row">
-                <div class="input-group"><label>🏫 School Name</label><input type="text" id="schoolName" placeholder="e.g., Little Gems ECCE"></div>
-                <div class="input-group"><label>👩‍🏫 Teacher Name</label><input type="text" id="teacherName" placeholder="Ms. Fatima / Mr. Ahmed"></div>
-                <div class="input-group"><label>📖 Class / Section</label><input type="text" id="className" placeholder="Playgroup / Nursery"></div>
+                <div class="input-group">
+                    <label><i class="fas fa-school"></i> School Name</label>
+                    <input type="text" id="schoolName" placeholder="e.g., Little Gems ECCE">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-user-tie"></i> Teacher Name</label>
+                    <input type="text" id="teacherName" placeholder="Ms. Fatima / Mr. Ahmed">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-book-open"></i> Class / Section</label>
+                    <input type="text" id="className" placeholder="Playgroup / Nursery">
+                </div>
             </div>
             <div class="flex-row">
-                <div class="input-group"><label>⏰ School Timing</label><select id="timing"><option value="8:00 - 12:30">8:00 AM - 12:30 PM</option><option value="9:00 - 1:30">9:00 AM - 1:30 PM</option><option value="7:30 - 12:00">7:30 AM - 12:00 PM</option></select></div>
-                <div class="input-group"><label>⏱️ Period Duration (mins)</label><input type="number" id="periodDuration" value="45" step="5"></div>
-                <div class="input-group"><label>🖼️ Upload Logo</label><input type="file" id="logoUpload" accept="image/*"></div>
+                <div class="input-group">
+                    <label><i class="fas fa-clock"></i> School Timing</label>
+                    <select id="timing">
+                        <option value="8:00 - 12:30">8:00 AM - 12:30 PM</option>
+                        <option value="9:00 - 1:30">9:00 AM - 1:30 PM</option>
+                        <option value="7:30 - 12:00">7:30 AM - 12:00 PM</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-hourglass-half"></i> Period Duration (mins)</label>
+                    <input type="number" id="periodDuration" value="45" step="5" min="20" max="90">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-image"></i> Upload Logo</label>
+                    <input type="file" id="logoUpload" accept="image/*">
+                </div>
             </div>
             <div class="logo-preview" id="logoPreviewContainer"></div>
-            <div class="btn-group"><button id="generateBtn">✨ Generate Time Table</button><button id="printBtn" class="btn-outline">🖨️ Print Timetable</button></div>
-        </div>
-        <!-- Timetable Display Area -->
-        <div id="timetableView" style="display: none;">
-            <!-- Back & Home buttons row (fixed layout) -->
-            <div class="nav-buttons-row">
-                <button id="backToConfigBtn" class="nav-btn">🔙 Back (Edit)</button>
-                <button id="homeResetBtn" class="nav-btn nav-btn-home">🏠 Home / New</button>
+            <div class="btn-group">
+                <button id="generateBtn" class="btn-primary"><i class="fas fa-wand-magic-sparkles"></i> Generate Time Table</button>
+                <button id="printBtn" class="btn-secondary"><i class="fas fa-print"></i> Print</button>
             </div>
+        </div>
+        
+        <!-- ========== TIMETABLE VIEW ========== -->
+        <div id="timetableView" style="display: none;">
+            <div class="nav-buttons-row">
+                <button id="backToConfigBtn" class="nav-btn"><i class="fas fa-arrow-left"></i> Back (Edit)</button>
+                <button id="homeResetBtn" class="nav-btn nav-btn-home"><i class="fas fa-home"></i> Home / New</button>
+            </div>
+            
+            <!-- Dashboard Stats -->
+            <div class="dashboard-stats" id="dashboardStats">
+                <div class="stat-card">
+                    <span class="stat-icon"><i class="fas fa-eye"></i></span>
+                    <div class="stat-number" id="statViews">0</div>
+                    <div class="stat-label">Views</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon"><i class="fas fa-users"></i></span>
+                    <div class="stat-number" id="statUsage">0</div>
+                    <div class="stat-label">Total Usage</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon"><i class="fas fa-share-alt"></i></span>
+                    <div class="stat-number" id="statShares">0</div>
+                    <div class="stat-label">Shares</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon"><i class="fas fa-heart"></i></span>
+                    <div class="stat-number" id="statFollowers">0</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+            </div>
+            
             <div class="timetable-wrapper">
                 <table class="timetable" id="timetable">
-                    <thead><tr><th>Day</th><th>Time</th><th>Activity / Subject</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Activity / Subject</th>
+                        </tr>
+                    </thead>
                     <tbody id="timetableBody"></tbody>
                 </table>
             </div>
-            <!-- Tool Stats: Reactions (row style) + Social Icons (center) + Usage Counter -->
+            
+            <!-- Tool Stats: Reactions + Social + Usage -->
             <div class="tool-stats" id="toolStatsArea" data-tool-id="ecce_timetool">
                 <div class="reactions-row" id="reactionsContainer"></div>
                 <div class="social-center" id="socialShareContainer"></div>
-                <div class="usage-badge" id="usageCountDisplay">🔁 Used 0 times</div>
+                <div class="usage-badge" id="usageCountDisplay">
+                    <i class="fas fa-rotate-right"></i> Used <span id="usageNumber">0</span> times
+                </div>
             </div>
-            <div class="action-buttons"><button id="pdfDownloadBtn">📄 Download PDF</button><button id="docDownloadBtn">📝 Download DOC</button><button id="printTableBtn">🖨️ Print Table</button></div>
+            
+            <div class="action-buttons">
+                <button id="pdfDownloadBtn" class="btn-primary"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <button id="docDownloadBtn" class="btn-secondary"><i class="fas fa-file-word"></i> Download DOC</button>
+                <button id="printTableBtn" class="btn-secondary"><i class="fas fa-print"></i> Print Table</button>
+            </div>
         </div>
     </div>
 </div>
-<div class="scroll-buttons"><button id="scrollUpBtn" class="scroll-btn hidden-scroll"><i class="fas fa-arrow-up"></i></button><button id="scrollDownBtn" class="scroll-btn"><i class="fas fa-arrow-down"></i></button></div>
 
+<!-- ========== SCROLL BUTTONS ========== -->
+<div class="scroll-buttons">
+    <button id="scrollUpBtn" class="scroll-btn hidden-scroll"><i class="fas fa-arrow-up"></i></button>
+    <button id="scrollDownBtn" class="scroll-btn"><i class="fas fa-arrow-down"></i></button>
+</div>
+
+<!-- ========== JAVASCRIPT ========== -->
 <script>
-    // --------------------------------------------------------------
-    //  Complete Feature Implementation:
-    //  - User Counter (usage)
-    //  - 7 Emoji Reactions (one per user per emoji via sessionStorage)
-    //  - Social Share Icons (Facebook, Twitter, LinkedIn, WhatsApp, Email)
-    //  - Page Sharing Button (copies URL)
-    //  - Scroll Up/Down Buttons
-    //  - Hover effect (card lift, gradient, white text)
-    //  - Mobile responsive
-    //  - Auto-count logic (tools & usage fully persisted in localStorage)
-    //  - Admin Panel features are integrated via localStorage simulation
-    // --------------------------------------------------------------
+// ============================================================
+// ECCE Time Table Generator - Cloudflare Workers API Integration
+// ============================================================
+
+// ---------- CONFIGURATION ----------
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'ecce-time-table-generator',
+    TOOL_NAME: 'ECCE Auto Time Table Generator',
+    CATEGORY: 'ECCE'
+};
+
+// ---------- STORAGE KEYS ----------
+const STORAGE = {
+    TOOLS: 'ecce_all_tools_master',
+    REACTIONS: 'ecce_reactions_v2',
+    USAGE: 'ecce_usage_counts',
+    SHARES: 'ecce_shares_v2',
+    VIEWS: 'ecce_views_v2'
+};
+
+// ---------- STATE ----------
+let toolId = 'ecce_timetool';
+let statsData = {
+    views: 0,
+    usage: 0,
+    shares: 0,
+    followers: 0
+};
+
+// ============================================================
+// 1. TOAST NOTIFICATION
+// ============================================================
+function showToast(msg, duration = 3000) {
+    let existing = document.querySelector('.toast-notify');
+    if (existing) existing.remove();
+    let toast = document.createElement('div');
+    toast.className = 'toast-notify';
+    toast.innerHTML = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
+}
+
+// ============================================================
+// 2. TYPEWRITER ANIMATION
+// ============================================================
+function initTypewriter() {
+    const words = [
+        'Early Childhood Education',
+        'Preschool Teachers',
+        'Daycare Centers',
+        'Nursery Classes',
+        'Kindergarten',
+        'Playgroup Sessions'
+    ];
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById('typewriterText');
     
-    // ---------- DATA MODELS (localStorage as TiDB simulation) ----------
-    const STORAGE = {
-        TOOLS: "ecce_all_tools_master",
-        REACTIONS: "ecce_reactions_v2",
-        USAGE: "ecce_usage_counts" // integrated in tools
+    function typeEffect() {
+        const currentWord = words[wordIndex];
+        if (isDeleting) {
+            element.textContent = currentWord.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentWord.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        if (!isDeleting && charIndex === currentWord.length) {
+            isDeleting = true;
+            setTimeout(typeEffect, 2000);
+            return;
+        }
+        if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            setTimeout(typeEffect, 500);
+            return;
+        }
+        setTimeout(typeEffect, isDeleting ? 50 : 100);
+    }
+    typeEffect();
+}
+
+// ============================================================
+// 3. LOCAL STORAGE HELPERS
+// ============================================================
+function getStorageData(key, defaultVal = {}) {
+    try {
+        let data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : defaultVal;
+    } catch {
+        return defaultVal;
+    }
+}
+
+function setStorageData(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (e) {
+        console.warn('Storage write failed:', e);
+    }
+}
+
+// ============================================================
+// 4. CLOUDFLARE API CALLS
+// ============================================================
+async function callAPI(endpoint, method = 'GET', body = null) {
+    const url = `${CONFIG.API_BASE}${endpoint}`;
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': CONFIG.API_KEY
     };
+    const options = { method, headers };
+    if (body) options.body = JSON.stringify(body);
     
-    // Initialize base tools (includes the timetable tool)
-    function getMasterTools() {
-        let tools = [
-            { id: "ecce_timetool", name: "ECCE Auto Time Table Generator", category: "ecce", description: "Generate dynamic ECCE timetable with logo, subjects, circle time", icon: "fa-calendar-alt", usageCount: 124, createdAt: new Date().toISOString() },
-            { id: "ecce_songs", name: "Circle Time Songs", category: "ecce", description: "Nursery rhymes & songs", icon: "fa-music", usageCount: 45, createdAt: new Date().toISOString() },
-            { id: "ecce_sensory", name: "Sensory Play Ideas", category: "ecce", description: "Explore textures", icon: "fa-hand-peace", usageCount: 32, createdAt: new Date().toISOString() }
-        ];
-        // adding more dummy to meet ecce count but fine
-        return tools;
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed:', error);
+        return null;
     }
-    
-    function loadTools() {
-        let stored = localStorage.getItem(STORAGE.TOOLS);
-        if (!stored) {
-            let initial = getMasterTools();
-            localStorage.setItem(STORAGE.TOOLS, JSON.stringify(initial));
-            return initial;
+}
+
+// ============================================================
+// 5. USAGE COUNTER
+// ============================================================
+async function incrementUsage() {
+    try {
+        // Try API first
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            tool_name: CONFIG.TOOL_NAME,
+            category: CONFIG.CATEGORY
+        });
+        
+        if (result && result.success) {
+            statsData.usage = result.usage_count || 0;
+            updateUsageUI();
+            return;
         }
-        return JSON.parse(stored);
+        // Fallback: LocalStorage
+        let usage = getStorageData(STORAGE.USAGE, {});
+        usage[CONFIG.TOOL_SLUG] = (usage[CONFIG.TOOL_SLUG] || 0) + 1;
+        setStorageData(STORAGE.USAGE, usage);
+        statsData.usage = usage[CONFIG.TOOL_SLUG];
+        updateUsageUI();
+    } catch (e) {
+        // Fallback: LocalStorage
+        let usage = getStorageData(STORAGE.USAGE, {});
+        usage[CONFIG.TOOL_SLUG] = (usage[CONFIG.TOOL_SLUG] || 0) + 1;
+        setStorageData(STORAGE.USAGE, usage);
+        statsData.usage = usage[CONFIG.TOOL_SLUG];
+        updateUsageUI();
     }
+}
+
+function updateUsageUI() {
+    const usageSpan = document.getElementById('usageNumber');
+    const usageDisplay = document.getElementById('usageCountDisplay');
+    const heroUsage = document.getElementById('heroUsageStat');
     
-    function saveTools(tools) {
-        localStorage.setItem(STORAGE.TOOLS, JSON.stringify(tools));
+    if (usageSpan) usageSpan.textContent = statsData.usage || 0;
+    if (heroUsage) heroUsage.textContent = statsData.usage || 0;
+    if (usageDisplay) {
+        usageDisplay.innerHTML = `<i class="fas fa-rotate-right"></i> Used <span id="usageNumber">${statsData.usage || 0}</span> times`;
     }
-    
-    function getReactions() {
-        let r = localStorage.getItem(STORAGE.REACTIONS);
-        if (!r) return {};
-        return JSON.parse(r);
-    }
-    function saveReactions(reactions) {
-        localStorage.setItem(STORAGE.REACTIONS, JSON.stringify(reactions));
-    }
-    
-    // Increment usage for specific tool
-    function incrementUsage(toolId) {
-        let tools = loadTools();
-        let tool = tools.find(t => t.id === toolId);
-        if (tool) {
-            tool.usageCount = (tool.usageCount || 0) + 1;
-            saveTools(tools);
-            updateUsageUI(toolId);
-            showToast(`✅ Used! Count: ${tool.usageCount}`);
+}
+
+// ============================================================
+// 6. VIEWS COUNTER
+// ============================================================
+async function incrementViews() {
+    try {
+        // Try API first
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            tool_name: CONFIG.TOOL_NAME,
+            category: CONFIG.CATEGORY,
+            type: 'view'
+        });
+        if (result && result.success) {
+            statsData.views = result.views || 0;
+            updateStatsUI();
+            return;
         }
+        // Fallback
+        let views = getStorageData(STORAGE.VIEWS, {});
+        views[CONFIG.TOOL_SLUG] = (views[CONFIG.TOOL_SLUG] || 0) + 1;
+        setStorageData(STORAGE.VIEWS, views);
+        statsData.views = views[CONFIG.TOOL_SLUG];
+        updateStatsUI();
+    } catch (e) {
+        let views = getStorageData(STORAGE.VIEWS, {});
+        views[CONFIG.TOOL_SLUG] = (views[CONFIG.TOOL_SLUG] || 0) + 1;
+        setStorageData(STORAGE.VIEWS, views);
+        statsData.views = views[CONFIG.TOOL_SLUG];
+        updateStatsUI();
     }
-    
-    function updateUsageUI(toolId) {
-        let tools = loadTools();
-        let tool = tools.find(t => t.id === toolId);
-        let usageSpan = document.getElementById('usageCountDisplay');
-        if (usageSpan && tool) usageSpan.innerHTML = `🔁 Used ${tool.usageCount || 0} times`;
+}
+
+// ============================================================
+// 7. REACTIONS
+// ============================================================
+async function getReactions() {
+    try {
+        const result = await callAPI(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            return result.reactions || {};
+        }
+        return getStorageData(STORAGE.REACTIONS, {});
+    } catch {
+        return getStorageData(STORAGE.REACTIONS, {});
     }
-    
-    // Reactions logic: one reaction per user per emoji (sessionStorage)
-    function addReaction(toolId, emojiKey, emojiIcon) {
-        let reactions = getReactions();
-        if (!reactions[toolId]) reactions[toolId] = {};
-        if (!reactions[toolId][emojiKey]) reactions[toolId][emojiKey] = 0;
-        let userKey = `react_${toolId}_${emojiKey}`;
+}
+
+async function addReaction(emojiKey, emojiIcon) {
+    try {
+        // Check if user already reacted
+        const userKey = `react_${CONFIG.TOOL_SLUG}_${emojiKey}`;
         if (sessionStorage.getItem(userKey)) {
-            showToast(`⚠️ You already reacted with ${emojiIcon} !`);
+            showToast(`⚠️ You already reacted with ${emojiIcon}!`);
             return false;
         }
-        reactions[toolId][emojiKey] += 1;
-        sessionStorage.setItem(userKey, "true");
-        saveReactions(reactions);
-        renderReactions(toolId);
+        
+        // Try API first
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            reaction: emojiKey,
+            emoji: emojiIcon
+        });
+        
+        if (result && result.success) {
+            sessionStorage.setItem(userKey, 'true');
+            statsData.followers = (statsData.followers || 0) + 1;
+            await renderReactions();
+            updateStatsUI();
+            showToast(`${emojiIcon} Reaction added!`);
+            return true;
+        }
+        
+        // Fallback: LocalStorage
+        let reactions = getStorageData(STORAGE.REACTIONS, {});
+        if (!reactions[CONFIG.TOOL_SLUG]) reactions[CONFIG.TOOL_SLUG] = {};
+        if (!reactions[CONFIG.TOOL_SLUG][emojiKey]) reactions[CONFIG.TOOL_SLUG][emojiKey] = 0;
+        reactions[CONFIG.TOOL_SLUG][emojiKey] += 1;
+        setStorageData(STORAGE.REACTIONS, reactions);
+        sessionStorage.setItem(userKey, 'true');
+        statsData.followers = (statsData.followers || 0) + 1;
+        await renderReactions();
+        updateStatsUI();
+        showToast(`${emojiIcon} Reaction added!`);
+        return true;
+    } catch (e) {
+        // Fallback: LocalStorage
+        let reactions = getStorageData(STORAGE.REACTIONS, {});
+        if (!reactions[CONFIG.TOOL_SLUG]) reactions[CONFIG.TOOL_SLUG] = {};
+        if (!reactions[CONFIG.TOOL_SLUG][emojiKey]) reactions[CONFIG.TOOL_SLUG][emojiKey] = 0;
+        reactions[CONFIG.TOOL_SLUG][emojiKey] += 1;
+        setStorageData(STORAGE.REACTIONS, reactions);
+        const userKey = `react_${CONFIG.TOOL_SLUG}_${emojiKey}`;
+        sessionStorage.setItem(userKey, 'true');
+        statsData.followers = (statsData.followers || 0) + 1;
+        await renderReactions();
+        updateStatsUI();
         showToast(`${emojiIcon} Reaction added!`);
         return true;
     }
+}
+
+async function renderReactions() {
+    const container = document.getElementById('reactionsContainer');
+    if (!container) return;
     
-    function renderReactions(toolId) {
-        let container = document.getElementById('reactionsContainer');
-        if (!container) return;
-        let reactions = getReactions();
-        let toolReacts = reactions[toolId] || {};
-        const emojis = [
-            { key: "like", icon: "👍", label: "Like" },
-            { key: "love", icon: "❤️", label: "Love" },
-            { key: "wow", icon: "😮", label: "Wow" },
-            { key: "sad", icon: "😢", label: "Sad" },
-            { key: "angry", icon: "😠", label: "Angry" },
-            { key: "laugh", icon: "😂", label: "Laugh" },
-            { key: "celebrate", icon: "🎉", label: "Celebrate" }
-        ];
-        container.innerHTML = emojis.map(e => `
-            <button class="reaction-btn" data-emoji="${e.key}" data-icon="${e.icon}">
-                ${e.icon} <span class="react-count">${toolReacts[e.key] || 0}</span>
-            </button>
-        `).join('');
-        // attach events
-        document.querySelectorAll('#reactionsContainer .reaction-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                let emKey = btn.dataset.emoji;
-                let icon = btn.dataset.icon;
-                addReaction(toolId, emKey, icon);
-            });
+    let reactions = await getReactions();
+    let toolReacts = reactions[CONFIG.TOOL_SLUG] || {};
+    
+    const emojis = [
+        { key: 'like', icon: '👍', label: 'Like' },
+        { key: 'love', icon: '❤️', label: 'Love' },
+        { key: 'wow', icon: '😮', label: 'Wow' },
+        { key: 'sad', icon: '😢', label: 'Sad' },
+        { key: 'angry', icon: '😠', label: 'Angry' },
+        { key: 'laugh', icon: '😂', label: 'Laugh' },
+        { key: 'celebrate', icon: '🎉', label: 'Celebrate' }
+    ];
+    
+    container.innerHTML = emojis.map(e => `
+        <button class="reaction-btn" data-emoji="${e.key}" data-icon="${e.icon}">
+            ${e.icon} <span class="react-count">${toolReacts[e.key] || 0}</span>
+        </button>
+    `).join('');
+    
+    // Attach events
+    document.querySelectorAll('#reactionsContainer .reaction-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const emKey = btn.dataset.emoji;
+            const icon = btn.dataset.icon;
+            await addReaction(emKey, icon);
         });
-    }
-    
-    // Social Sharing (per tool)
-    function shareTool(toolId, platform) {
-        let url = encodeURIComponent(window.location.href);
-        let shareUrl = "";
-        if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-        else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}`;
-        else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}`;
-        else if (platform === 'whatsapp') shareUrl = `https://api.whatsapp.com/send?text=${url}`;
-        else if (platform === 'email') shareUrl = `mailto:?subject=ECCE Timetable Tool&body=Check this amazing timetable generator: ${url}`;
-        if (shareUrl) {
-            window.open(shareUrl, '_blank', 'width=600,height=400');
-            incrementUsage(toolId);
-            showToast(`📤 Shared on ${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+    });
+}
+
+// ============================================================
+// 8. SHARES
+// ============================================================
+async function recordShare(platform) {
+    try {
+        const result = await callAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform
+        });
+        if (result && result.success) {
+            statsData.shares = result.shares || 0;
+            updateStatsUI();
+            return;
         }
+        // Fallback
+        let shares = getStorageData(STORAGE.SHARES, {});
+        shares[CONFIG.TOOL_SLUG] = (shares[CONFIG.TOOL_SLUG] || 0) + 1;
+        setStorageData(STORAGE.SHARES, shares);
+        statsData.shares = shares[CONFIG.TOOL_SLUG];
+        updateStatsUI();
+    } catch (e) {
+        let shares = getStorageData(STORAGE.SHARES, {});
+        shares[CONFIG.TOOL_SLUG] = (shares[CONFIG.TOOL_SLUG] || 0) + 1;
+        setStorageData(STORAGE.SHARES, shares);
+        statsData.shares = shares[CONFIG.TOOL_SLUG];
+        updateStatsUI();
     }
-    
-    function renderSocialIcons(toolId) {
-        let container = document.getElementById('socialShareContainer');
-        if (!container) return;
-        container.innerHTML = `
-            <i class="fab fa-facebook social-icon" data-social="facebook" title="Facebook"></i>
-            <i class="fab fa-twitter social-icon" data-social="twitter" title="Twitter"></i>
-            <i class="fab fa-linkedin social-icon" data-social="linkedin" title="LinkedIn"></i>
-            <i class="fab fa-whatsapp social-icon" data-social="whatsapp" title="WhatsApp"></i>
-            <i class="fas fa-envelope social-icon" data-social="email" title="Email"></i>
-        `;
-        document.querySelectorAll('#socialShareContainer .social-icon').forEach(icon => {
-            icon.addEventListener('click', (e) => {
-                let platform = icon.dataset.social;
-                shareTool(toolId, platform);
-            });
-        });
+}
+
+// ============================================================
+// 9. DASHBOARD STATS
+// ============================================================
+async function loadStats() {
+    try {
+        const result = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            statsData.views = result.views || 0;
+            statsData.usage = result.usage || 0;
+            statsData.shares = result.shares || 0;
+            statsData.followers = result.followers || 0;
+            updateStatsUI();
+            updateUsageUI();
+            return;
+        }
+        // Fallback: Load from localStorage
+        let usage = getStorageData(STORAGE.USAGE, {});
+        let views = getStorageData(STORAGE.VIEWS, {});
+        let shares = getStorageData(STORAGE.SHARES, {});
+        let reactions = getStorageData(STORAGE.REACTIONS, {});
+        let toolReacts = reactions[CONFIG.TOOL_SLUG] || {};
+        let totalReactions = Object.values(toolReacts).reduce((a, b) => a + b, 0);
+        
+        statsData.usage = usage[CONFIG.TOOL_SLUG] || 0;
+        statsData.views = views[CONFIG.TOOL_SLUG] || 0;
+        statsData.shares = shares[CONFIG.TOOL_SLUG] || 0;
+        statsData.followers = totalReactions || 0;
+        updateStatsUI();
+        updateUsageUI();
+    } catch (e) {
+        // Fallback
+        let usage = getStorageData(STORAGE.USAGE, {});
+        let views = getStorageData(STORAGE.VIEWS, {});
+        let shares = getStorageData(STORAGE.SHARES, {});
+        let reactions = getStorageData(STORAGE.REACTIONS, {});
+        let toolReacts = reactions[CONFIG.TOOL_SLUG] || {};
+        let totalReactions = Object.values(toolReacts).reduce((a, b) => a + b, 0);
+        
+        statsData.usage = usage[CONFIG.TOOL_SLUG] || 0;
+        statsData.views = views[CONFIG.TOOL_SLUG] || 0;
+        statsData.shares = shares[CONFIG.TOOL_SLUG] || 0;
+        statsData.followers = totalReactions || 0;
+        updateStatsUI();
+        updateUsageUI();
     }
+}
+
+function updateStatsUI() {
+    document.getElementById('statViews').textContent = statsData.views || 0;
+    document.getElementById('statUsage').textContent = statsData.usage || 0;
+    document.getElementById('statShares').textContent = statsData.shares || 0;
+    document.getElementById('statFollowers').textContent = statsData.followers || 0;
     
-    // Page Share Button (copies entire page URL)
-    function addPageShareButton() {
-        let headerDiv = document.querySelector('.header-actions');
-        if (headerDiv && !document.getElementById('pageShareBtn')) {
-            let pageShareBtn = document.createElement('button');
-            pageShareBtn.id = "pageShareBtn";
-            pageShareBtn.innerText = "🔗 Share this Page";
-            pageShareBtn.style.background = "#2c7a4d";
-            pageShareBtn.style.padding = "8px 18px";
-            pageShareBtn.style.borderRadius = "40px";
-            pageShareBtn.style.marginLeft = "auto";
-            pageShareBtn.style.cursor = "pointer";
-            pageShareBtn.style.border = "none";
-            pageShareBtn.style.color = "white";
-            headerDiv.appendChild(pageShareBtn);
-            pageShareBtn.addEventListener('click', () => {
+    const heroTimetables = document.getElementById('heroTimetablesStat');
+    const heroReactions = document.getElementById('heroReactionsStat');
+    if (heroTimetables) heroTimetables.textContent = statsData.usage || 0;
+    if (heroReactions) heroReactions.textContent = statsData.followers || 0;
+}
+
+// ============================================================
+// 10. SOCIAL SHARING
+// ============================================================
+function shareTool(platform) {
+    let url = encodeURIComponent(window.location.href);
+    let shareUrl = '';
+    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=Check%20out%20this%20ECCE%20Timetable%20Generator!`;
+    else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}`;
+    else if (platform === 'whatsapp') shareUrl = `https://api.whatsapp.com/send?text=Check%20out%20this%20ECCE%20Timetable%20Generator!%20${url}`;
+    else if (platform === 'email') shareUrl = `mailto:?subject=ECCE Timetable Tool&body=Check this amazing timetable generator: ${url}`;
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        recordShare(platform);
+        showToast(`📤 Shared on ${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
+    }
+}
+
+function renderSocialIcons() {
+    const container = document.getElementById('socialShareContainer');
+    if (!container) return;
+    container.innerHTML = `
+        <i class="fab fa-facebook social-icon" data-social="facebook" title="Facebook"></i>
+        <i class="fab fa-twitter social-icon" data-social="twitter" title="Twitter"></i>
+        <i class="fab fa-linkedin social-icon" data-social="linkedin" title="LinkedIn"></i>
+        <i class="fab fa-whatsapp social-icon" data-social="whatsapp" title="WhatsApp"></i>
+        <i class="fas fa-envelope social-icon" data-social="email" title="Email"></i>
+        <i class="fas fa-link social-icon" data-social="copy" title="Copy Link"></i>
+    `;
+    document.querySelectorAll('#socialShareContainer .social-icon').forEach(icon => {
+        icon.addEventListener('click', () => {
+            let platform = icon.dataset.social;
+            if (platform === 'copy') {
                 navigator.clipboard.writeText(window.location.href);
-                showToast("🔗 Page link copied to clipboard!");
-                incrementUsage("ecce_timetool");
-            });
-        }
-    }
-    
-    // Scroll buttons logic
-    function initScrollButtons() {
-        const upBtn = document.getElementById('scrollUpBtn');
-        const downBtn = document.getElementById('scrollDownBtn');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 200) upBtn.classList.remove('hidden-scroll');
-            else upBtn.classList.add('hidden-scroll');
-        });
-        upBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        downBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-    }
-    
-    // Toast Notifications
-    function showToast(msg, duration = 2500) {
-        let existing = document.querySelector('.toast-notify');
-        if (existing) existing.remove();
-        let toast = document.createElement('div');
-        toast.className = 'toast-notify';
-        toast.innerText = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), duration);
-    }
-    
-    // ---------- TIMETABLE GENERATION (original core) ----------
-    const COMPULSORY_SUBJECTS = [{ name: "Language and Literacy - Urdu", type: "Compulsory" }, { name: "Basic Mathematical Concepts", type: "Compulsory" }];
-    const ELECTIVE_SUBJECTS = ["Personal, Social, and Emotional Development", "Health, Hygiene and Safety", "Physical Development (Gross Motor)", "Creative Arts (Music/Drawing)", "World Around Us (Science & Social)", "Moral & Ethical Values", "Sensory Play & Exploration"].map(s => ({ name: s, type: "Elective" }));
-    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    
-    function timeToMinutes(t) { let [h, m] = t.split(":").map(Number); return h * 60 + m; }
-    function minutesToTime(m) { let h = Math.floor(m / 60); let min = m % 60; return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`; }
-    function addMinutes(t, add) { let total = timeToMinutes(t) + add; return minutesToTime(total); }
-    function getSnackTime(start, end) { let mid = (timeToMinutes(start) + timeToMinutes(end)) / 2; let r = Math.round(mid / 5) * 5; return minutesToTime(r); }
-    function getSubjectsForDay() { let comp = [...COMPULSORY_SUBJECTS]; let electives = [...ELECTIVE_SUBJECTS]; for (let i = electives.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [electives[i], electives[j]] = [electives[j], electives[i]]; } let selected = electives.slice(0, 3); return [...comp, ...selected]; }
-    
-    function generateFullTimetableHTML(school, teacher, classNameVal, timingRange, periodMins) {
-        let [startTime, endTime] = timingRange.split(" - ");
-        let snackMoment = getSnackTime(startTime, endTime);
-        let circleDuration = 20;
-        let periodLen = periodMins;
-        let headerInfo = `🏫 ${school || 'ECCE School'}  |  👩‍🏫 ${teacher || 'Teacher'}  |  📖 ${classNameVal || 'Early Years'}  |  ⏰ ${timingRange}`;
-        let html = `<tr class="info-header"><td colspan="3" style="background:#ffe6e3; font-weight:bold;">📌 ${headerInfo}</td></tr>`;
-        for (let day of DAYS) {
-            let currentTime = startTime;
-            let circleEnd = addMinutes(currentTime, circleDuration);
-            html += `<tr><td rowspan="7">${day}</td><td>${currentTime} - ${circleEnd}</td><td>🎵 Circle Time (Morning assembly & greetings)</td></tr>`;
-            currentTime = circleEnd;
-            let dailySubjects = getSubjectsForDay();
-            let snackInserted = false;
-            for (let idx = 0; idx < dailySubjects.length; idx++) {
-                let subject = dailySubjects[idx];
-                let currentM = timeToMinutes(currentTime);
-                let snackM = timeToMinutes(snackMoment);
-                if (!snackInserted && (idx === 2 || (currentM >= snackM - 5 && currentM <= snackM + 5))) {
-                    let snackEnd = addMinutes(currentTime, 20);
-                    html += `<tr><td>${currentTime} - ${snackEnd}</td><td>🍎 Snack Time & Free Play</td></tr>`;
-                    currentTime = snackEnd;
-                    snackInserted = true;
-                }
-                let subjectEnd = addMinutes(currentTime, periodLen);
-                html += `<tr><td>${currentTime} - ${subjectEnd}</td><td>📘 ${subject.name}</td></tr>`;
-                currentTime = subjectEnd;
+                showToast('🔗 Link copied to clipboard!');
+                recordShare('copy');
+                return;
             }
-            if (!snackInserted) { let snackEnd = addMinutes(currentTime, 20); html += `<tr><td>${currentTime} - ${snackEnd}</td><td>🥪 Snack Break</td></tr>`; }
-        }
-        return html;
-    }
-    
-    function renderTimetable() {
-        let school = document.getElementById('schoolName').value.trim() || "Bright Future ECCE";
-        let teacher = document.getElementById('teacherName').value.trim() || "Lead Educator";
-        let classNameVal = document.getElementById('className').value.trim() || "Early Years";
-        let timing = document.getElementById('timing').value;
-        let periodMins = parseInt(document.getElementById('periodDuration').value) || 45;
-        let htmlContent = generateFullTimetableHTML(school, teacher, classNameVal, timing, periodMins);
-        document.getElementById('timetableBody').innerHTML = htmlContent;
-    }
-    
-    function generateAndShow() {
-        renderTimetable();
-        document.getElementById('configView').style.display = 'none';
-        document.getElementById('timetableView').style.display = 'block';
-        incrementUsage('ecce_timetool');
-        renderReactions('ecce_timetool');
-        renderSocialIcons('ecce_timetool');
-        updateUsageUI('ecce_timetool');
-        showToast("✨ Timetable generated successfully!");
-    }
-    
-    function backToConfig() {
-        document.getElementById('configView').style.display = 'block';
-        document.getElementById('timetableView').style.display = 'none';
-    }
-    
-    function homeReset() {
-        localStorage.removeItem(STORAGE.TOOLS);
-        localStorage.removeItem(STORAGE.REACTIONS);
-        sessionStorage.clear();
-        location.reload();
-    }
-    
-    // PDF / DOC / Print functions
-    async function downloadPDF() {
-        const element = document.getElementById('timetable');
-        try {
-            const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgWidth = 190;
-            const pageHeight = 277;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-            pdf.save(`ECCE_Timetable.pdf`);
-            showToast("PDF Downloaded");
-        } catch(e) { showToast("PDF error"); }
-    }
-    function downloadDOC() {
-        let tableHtml = document.getElementById('timetable').outerHTML;
-        let style = '<style>table{border-collapse:collapse;} td,th{border:1px solid black;padding:6px;}</style>';
-        let blob = new Blob([`<html>${style}<body>${tableHtml}</body></html>`], { type: 'application/msword' });
-        saveAs(blob, 'Timetable.doc');
-        showToast("DOC saved");
-    }
-    function printTimetable() { window.print(); }
-    
-    // Logo preview
-    document.getElementById('logoUpload')?.addEventListener('change', (e) => {
-        if (e.target.files[0]) {
-            let reader = new FileReader();
-            reader.onload = ev => { document.getElementById('logoPreviewContainer').innerHTML = `<img src="${ev.target.result}" style="max-height:70px;">`; };
-            reader.readAsDataURL(e.target.files[0]);
-        }
+            shareTool(platform);
+        });
     });
-    
-    // Dark Mode
-    function initTheme() {
-        let stored = localStorage.getItem('ecce_theme');
-        if (stored === 'dark') { document.body.classList.add('dark'); document.body.classList.remove('light'); }
-        else { document.body.classList.add('light'); document.body.classList.remove('dark'); }
+}
+
+// ============================================================
+// 11. TIMETABLE GENERATION
+// ============================================================
+const COMPULSORY_SUBJECTS = [
+    { name: 'Language and Literacy - Urdu', type: 'Compulsory' },
+    { name: 'Basic Mathematical Concepts', type: 'Compulsory' }
+];
+const ELECTIVE_SUBJECTS = [
+    'Personal, Social, and Emotional Development',
+    'Health, Hygiene and Safety',
+    'Physical Development (Gross Motor)',
+    'Creative Arts (Music/Drawing)',
+    'World Around Us (Science & Social)',
+    'Moral & Ethical Values',
+    'Sensory Play & Exploration'
+].map(s => ({ name: s, type: 'Elective' }));
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+function timeToMinutes(t) {
+    let [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+}
+function minutesToTime(m) {
+    let h = Math.floor(m / 60);
+    let min = m % 60;
+    return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+}
+function addMinutes(t, add) {
+    let total = timeToMinutes(t) + add;
+    return minutesToTime(total);
+}
+function getSnackTime(start, end) {
+    let mid = (timeToMinutes(start) + timeToMinutes(end)) / 2;
+    let r = Math.round(mid / 5) * 5;
+    return minutesToTime(r);
+}
+function getSubjectsForDay() {
+    let comp = [...COMPULSORY_SUBJECTS];
+    let electives = [...ELECTIVE_SUBJECTS];
+    for (let i = electives.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [electives[i], electives[j]] = [electives[j], electives[i]];
     }
-    document.getElementById('darkModeToggle')?.addEventListener('click', () => {
-        if (document.body.classList.contains('light')) {
-            document.body.classList.remove('light'); document.body.classList.add('dark');
-            localStorage.setItem('ecce_theme', 'dark');
-        } else {
-            document.body.classList.remove('dark'); document.body.classList.add('light');
-            localStorage.setItem('ecce_theme', 'light');
+    let selected = electives.slice(0, 3);
+    return [...comp, ...selected];
+}
+
+function generateFullTimetableHTML(school, teacher, classNameVal, timingRange, periodMins) {
+    let [startTime, endTime] = timingRange.split(' - ');
+    let snackMoment = getSnackTime(startTime, endTime);
+    let circleDuration = 20;
+    let periodLen = periodMins;
+    let headerInfo = `🏫 ${school || 'ECCE School'} | 👩‍🏫 ${teacher || 'Teacher'} | 📖 ${classNameVal || 'Early Years'} | ⏰ ${timingRange}`;
+    let html = `<tr class="info-header"><td colspan="3" style="background:rgba(0,212,255,0.08); font-weight:600; color: #00d4ff;">📌 ${headerInfo}</td></tr>`;
+    
+    for (let day of DAYS) {
+        let currentTime = startTime;
+        let circleEnd = addMinutes(currentTime, circleDuration);
+        html += `<tr><td rowspan="7">${day}</td><td>${currentTime} - ${circleEnd}</td><td>🎵 Circle Time (Morning assembly & greetings)</td></tr>`;
+        currentTime = circleEnd;
+        let dailySubjects = getSubjectsForDay();
+        let snackInserted = false;
+        
+        for (let idx = 0; idx < dailySubjects.length; idx++) {
+            let subject = dailySubjects[idx];
+            let currentM = timeToMinutes(currentTime);
+            let snackM = timeToMinutes(snackMoment);
+            if (!snackInserted && (idx === 2 || (currentM >= snackM - 5 && currentM <= snackM + 5))) {
+                let snackEnd = addMinutes(currentTime, 20);
+                html += `<tr><td>${currentTime} - ${snackEnd}</td><td>🍎 Snack Time & Free Play</td></tr>`;
+                currentTime = snackEnd;
+                snackInserted = true;
+            }
+            let subjectEnd = addMinutes(currentTime, periodLen);
+            html += `<tr><td>${currentTime} - ${subjectEnd}</td><td>📘 ${subject.name}</td></tr>`;
+            currentTime = subjectEnd;
         }
-        showToast("Theme changed");
+        if (!snackInserted) {
+            let snackEnd = addMinutes(currentTime, 20);
+            html += `<tr><td>${currentTime} - ${snackEnd}</td><td>🥪 Snack Break</td></tr>`;
+        }
+    }
+    return html;
+}
+
+function renderTimetable() {
+    let school = document.getElementById('schoolName').value.trim() || 'Bright Future ECCE';
+    let teacher = document.getElementById('teacherName').value.trim() || 'Lead Educator';
+    let classNameVal = document.getElementById('className').value.trim() || 'Early Years';
+    let timing = document.getElementById('timing').value;
+    let periodMins = parseInt(document.getElementById('periodDuration').value) || 45;
+    let htmlContent = generateFullTimetableHTML(school, teacher, classNameVal, timing, periodMins);
+    document.getElementById('timetableBody').innerHTML = htmlContent;
+}
+
+async function generateAndShow() {
+    renderTimetable();
+    document.getElementById('configView').style.display = 'none';
+    document.getElementById('timetableView').style.display = 'block';
+    
+    await incrementUsage();
+    await renderReactions();
+    renderSocialIcons();
+    await loadStats();
+    showToast('✨ Timetable generated successfully!');
+}
+
+function backToConfig() {
+    document.getElementById('configView').style.display = 'block';
+    document.getElementById('timetableView').style.display = 'none';
+}
+
+function homeReset() {
+    localStorage.removeItem(STORAGE.TOOLS);
+    localStorage.removeItem(STORAGE.REACTIONS);
+    localStorage.removeItem(STORAGE.USAGE);
+    localStorage.removeItem(STORAGE.SHARES);
+    localStorage.removeItem(STORAGE.VIEWS);
+    sessionStorage.clear();
+    location.reload();
+}
+
+// ============================================================
+// 12. PDF / DOC / PRINT
+// ============================================================
+async function downloadPDF() {
+    const element = document.getElementById('timetable');
+    try {
+        showToast('⏳ Generating PDF...');
+        const canvas = await html2canvas(element, { 
+            scale: 2, 
+            backgroundColor: '#0a0e17',
+            logging: false
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 190;
+        const pageHeight = 277;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.save(`ECCE_Timetable.pdf`);
+        showToast('✅ PDF Downloaded');
+    } catch(e) {
+        showToast('❌ PDF error: ' + e.message);
+    }
+}
+
+function downloadDOC() {
+    let tableHtml = document.getElementById('timetable').outerHTML;
+    let style = '<style>table{border-collapse:collapse;} td,th{border:1px solid #333;padding:8px;background:#fff;color:#000;}</style>';
+    let blob = new Blob([`<html>${style}<body>${tableHtml}</body></html>`], { type: 'application/msword' });
+    saveAs(blob, 'ECCE_Timetable.doc');
+    showToast('✅ DOC saved');
+}
+
+function printTimetable() { 
+    window.print(); 
+}
+
+// ============================================================
+// 13. LOGO PREVIEW
+// ============================================================
+document.getElementById('logoUpload')?.addEventListener('change', (e) => {
+    if (e.target.files[0]) {
+        let reader = new FileReader();
+        reader.onload = ev => {
+            document.getElementById('logoPreviewContainer').innerHTML = 
+                `<img src="${ev.target.result}" style="max-height:70px; border-radius:12px; border:1px solid var(--border-color);">`;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+});
+
+// ============================================================
+// 14. DARK MODE
+// ============================================================
+function initTheme() {
+    let stored = localStorage.getItem('ecce_theme');
+    if (stored === 'light') {
+        document.body.style.setProperty('--bg-primary', '#f0f2f5');
+        document.body.style.setProperty('--bg-secondary', '#ffffff');
+        document.body.style.setProperty('--bg-card', '#ffffff');
+        document.body.style.setProperty('--bg-input', '#f8fafc');
+        document.body.style.setProperty('--bg-table-row', '#ffffff');
+        document.body.style.setProperty('--bg-table-alt', '#f8fafc');
+        document.body.style.setProperty('--text-primary', '#1e2a3e');
+        document.body.style.setProperty('--text-secondary', '#475569');
+        document.body.style.setProperty('--text-muted', '#94a3b8');
+        document.body.style.setProperty('--border-color', '#dce4ec');
+        document.body.style.setProperty('--border-light', '#e2e8f0');
+        document.getElementById('darkModeToggle').innerHTML = '<i class="fas fa-sun"></i> Light / Dark';
+    } else {
+        // Dark (default)
+        document.body.style.setProperty('--bg-primary', '#0a0e17');
+        document.body.style.setProperty('--bg-secondary', '#111927');
+        document.body.style.setProperty('--bg-card', '#151f2e');
+        document.body.style.setProperty('--bg-input', '#0d1520');
+        document.body.style.setProperty('--bg-table-row', '#0f1a28');
+        document.body.style.setProperty('--bg-table-alt', '#152235');
+        document.body.style.setProperty('--text-primary', '#e8edf5');
+        document.body.style.setProperty('--text-secondary', '#94a3b8');
+        document.body.style.setProperty('--text-muted', '#64748b');
+        document.body.style.setProperty('--border-color', '#1e3347');
+        document.body.style.setProperty('--border-light', '#2a4058');
+        document.getElementById('darkModeToggle').innerHTML = '<i class="fas fa-moon"></i> Dark / Light';
+    }
+}
+
+document.getElementById('darkModeToggle')?.addEventListener('click', () => {
+    let current = localStorage.getItem('ecce_theme') || 'dark';
+    let next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ecce_theme', next);
+    initTheme();
+    showToast('🎨 Theme changed to ' + next);
+});
+
+// ============================================================
+// 15. SCROLL BUTTONS
+// ============================================================
+function initScrollButtons() {
+    const upBtn = document.getElementById('scrollUpBtn');
+    const downBtn = document.getElementById('scrollDownBtn');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 200) upBtn.classList.remove('hidden-scroll');
+        else upBtn.classList.add('hidden-scroll');
     });
-    
-    // Event listeners
-    document.getElementById('generateBtn')?.addEventListener('click', generateAndShow);
-    document.getElementById('backToConfigBtn')?.addEventListener('click', backToConfig);
-    document.getElementById('homeResetBtn')?.addEventListener('click', homeReset);
-    document.getElementById('pdfDownloadBtn')?.addEventListener('click', downloadPDF);
-    document.getElementById('docDownloadBtn')?.addEventListener('click', downloadDOC);
-    document.getElementById('printTableBtn')?.addEventListener('click', printTimetable);
-    document.getElementById('printBtn')?.addEventListener('click', () => { if (document.getElementById('timetableBody').innerHTML) printTimetable(); else showToast("Generate first"); });
-    
-    // Load saved fields
-    ['schoolName', 'teacherName', 'className', 'timing', 'periodDuration'].forEach(id => {
-        let el = document.getElementById(id);
-        let saved = localStorage.getItem(`ecce_${id}`);
-        if (saved && el) el.value = saved;
-        if (el) el.addEventListener('input', () => localStorage.setItem(`ecce_${id}`, el.value));
-    });
-    
+    upBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    downBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+}
+
+// ============================================================
+// 16. SAVE FORM FIELDS
+// ============================================================
+['schoolName', 'teacherName', 'className', 'timing', 'periodDuration'].forEach(id => {
+    let el = document.getElementById(id);
+    let saved = localStorage.getItem(`ecce_${id}`);
+    if (saved && el) el.value = saved;
+    if (el) el.addEventListener('input', () => localStorage.setItem(`ecce_${id}`, el.value));
+});
+
+// ============================================================
+// 17. EVENT LISTENERS
+// ============================================================
+document.getElementById('generateBtn')?.addEventListener('click', generateAndShow);
+document.getElementById('backToConfigBtn')?.addEventListener('click', backToConfig);
+document.getElementById('homeResetBtn')?.addEventListener('click', homeReset);
+document.getElementById('pdfDownloadBtn')?.addEventListener('click', downloadPDF);
+document.getElementById('docDownloadBtn')?.addEventListener('click', downloadDOC);
+document.getElementById('printTableBtn')?.addEventListener('click', printTimetable);
+document.getElementById('printBtn')?.addEventListener('click', () => {
+    if (document.getElementById('timetableBody').innerHTML) printTimetable();
+    else showToast('⚠️ Generate a timetable first');
+});
+
+// ============================================================
+// 18. INITIALIZATION
+// ============================================================
+async function init() {
     initTheme();
     initScrollButtons();
-    addPageShareButton();
-    loadTools();
-    updateUsageUI('ecce_timetool');
+    initTypewriter();
+    await loadStats();
+    await renderReactions();
+    renderSocialIcons();
+    updateUsageUI();
+    
+    // Increment view on load
+    await incrementViews();
+}
+
+// Start the app
+init();
+
+console.log('🚀 ECCE Time Table Generator initialized with Cloudflare API');
+console.log('📊 Tool Slug:', CONFIG.TOOL_SLUG);
+console.log('🌐 API Base:', CONFIG.API_BASE);
 </script>
 </body>
 </html>
