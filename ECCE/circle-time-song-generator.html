@@ -1,662 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- ==================== FULL SEO ==================== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Circle Time Song Generator | ECCE Tool | MagicRills.com</title>
-    <!-- Font Awesome 6 (free) -->
+    
+    <!-- Primary Meta Tags -->
+    <title>Circle Time Song Generator | AI-Powered ECCE Tool | MagicRills</title>
+    <meta name="title" content="Circle Time Song Generator | AI-Powered ECCE Tool | MagicRills">
+    <meta name="description" content="Generate educational songs for early childhood education with AI. Support English, Urdu & more. Perfect for teachers, parents & ECCE professionals.">
+    <meta name="keywords" content="circle time song generator, ECCE tool, AI song generator, educational songs, early childhood education, Urdu songs, English songs, magicrills">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="MagicRills">
+    <link rel="canonical" href="https://magicrills.com/tools/circle-time-song-generator">
+    <link rel="alternate" hreflang="en" href="https://magicrills.com/tools/circle-time-song-generator">
+    <link rel="alternate" hreflang="ur" href="https://magicrills.com/tools/circle-time-song-generator/ur">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills.com/tools/circle-time-song-generator">
+    <meta property="og:title" content="Circle Time Song Generator | AI-Powered ECCE Tool">
+    <meta property="og:description" content="Generate educational songs for early childhood education with AI. Support English, Urdu & more.">
+    <meta property="og:image" content="https://magicrills.com/assets/og-circle-time-song.jpg">
+    <meta property="og:site_name" content="MagicRills">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://magicrills.com/tools/circle-time-song-generator">
+    <meta property="twitter:title" content="Circle Time Song Generator | AI-Powered ECCE Tool">
+    <meta property="twitter:description" content="Generate educational songs for early childhood education with AI. Support English, Urdu & more.">
+    <meta property="twitter:image" content="https://magicrills.com/assets/og-circle-time-song.jpg">
+    
+    <!-- Schema Markup (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Circle Time Song Generator",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All",
+        "description": "AI-powered tool for generating educational circle time songs for early childhood education.",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "MagicRills",
+            "url": "https://magicrills.com"
+        },
+        "about": {
+            "@type": "Thing",
+            "name": "Early Childhood Education"
+        },
+        "audience": {
+            "@type": "EducationalAudience",
+            "educationalRole": "Teacher, Parent, ECCE Professional"
+        }
+    }
+    </script>
+    
+    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- jsPDF -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-
-        /* CSS Variables + Light Mode */
-        :root {
-            --bg-page: #f4f7fc;
-            --card-bg: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #334155;
-            --border-light: #e2e8f0;
-            --shadow-sm: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.02);
-            --shadow-md: 0 20px 25px -12px rgba(0,0,0,0.1);
-            --primary-ecce: #10b981;
-            --primary-dark: #059669;
-        }
-
-        body {
-            background: var(--bg-page);
-            color: var(--text-primary);
-            padding: 24px 16px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Header & category badge */
-        .tool-header {
-            margin-bottom: 32px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-        .title-section h1 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, #10b981, #34d399);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-        .category-badge {
-            background: #10b98110;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            color: #0f6e48;
-            border: 1px solid #10b98130;
-        }
-        .stats-row {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .usage-card {
-            background: white;
-            padding: 10px 20px;
-            border-radius: 60px;
-            box-shadow: var(--shadow-sm);
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-        }
-        .usage-card i {
-            font-size: 1.3rem;
-            color: #10b981;
-        }
-
-        /* TWO COLUMN LAYOUT (options + preview) */
-        .two-columns {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 28px;
-            margin-bottom: 40px;
-        }
-        .options-panel {
-            flex: 1.2;
-            min-width: 280px;
-            background: var(--card-bg);
-            border-radius: 32px;
-            padding: 28px 24px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-light);
-        }
-        .preview-panel {
-            flex: 2;
-            min-width: 320px;
-            background: var(--card-bg);
-            border-radius: 32px;
-            padding: 28px 24px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-light);
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: block;
-            color: var(--text-secondary);
-        }
-        select, input, textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 24px;
-            border: 1.5px solid var(--border-light);
-            background: white;
-            transition: 0.2s;
-        }
-        select:focus, input:focus, textarea:focus {
-            outline: none;
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px #10b98120;
-        }
-        button {
-            background: #10b981;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 40px;
-            font-weight: 700;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-right: 8px;
-            margin-top: 8px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        button i { font-size: 1rem; }
-        button:hover {
-            background: #059669;
-            transform: translateY(-2px);
-        }
-        .btn-outline {
-            background: #eef2ff;
-            color: #1e293b;
-        }
-        .btn-outline:hover { background: #e2e8f0; }
-
-        /* Song preview */
-        .song-preview {
-            background: #f9fafb;
-            border-radius: 24px;
-            padding: 24px;
-            margin-top: 20px;
-            min-height: 380px;
-            border: 1px solid var(--border-light);
-        }
-        .song-title {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: #0f6e48;
-            border-left: 6px solid #10b981;
-            padding-left: 20px;
-        }
-        .song-content {
-            line-height: 1.7;
-            white-space: pre-line;
-            font-size: 1rem;
-        }
-        .urdu-text {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', serif;
-            direction: rtl;
-            text-align: right;
-        }
-
-        /* REACTIONS + SOCIAL + USAGE SECTION */
-        .tool-engagement {
-            background: var(--card-bg);
-            border-radius: 32px;
-            padding: 24px;
-            margin-top: 28px;
-            box-shadow: var(--shadow-sm);
-        }
-        .reactions-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: center;
-            margin-bottom: 28px;
-            border-bottom: 1px solid var(--border-light);
-            padding-bottom: 20px;
-        }
-        .reaction-btn {
-            background: #f1f5f9;
-            color: #1e293b;
-            border-radius: 60px;
-            padding: 8px 18px;
-            font-size: 1.2rem;
-            gap: 8px;
-            transition: 0.2s;
-        }
-        .reaction-btn i { font-size: 1.2rem; }
-        .reaction-btn:hover { background: #e2e8f0; transform: scale(1.03);}
-        .reaction-count { font-weight: 700; margin-left: 6px; }
-        .social-share {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            align-items: center;
-            margin-top: 10px;
-        }
-        .social-icon {
-            background: #eef2ff;
-            padding: 8px 14px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .social-icon i { margin-right: 6px; }
-        .social-icon:hover { background: #cbd5e1; transform: translateY(-2px);}
-        .page-share {
-            background: #0f172a;
-            color: white;
-            padding: 8px 18px;
-        }
-
-        /* Scroll buttons */
-        .scroll-buttons {
-            position: fixed;
-            bottom: 28px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 999;
-        }
-        .scroll-btn {
-            background: #10b981;
-            width: 48px;
-            height: 48px;
-            border-radius: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .scroll-btn:hover { background: #059669; transform: scale(1.05);}
-        .toast-msg {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e293b;
-            color: white;
-            padding: 10px 24px;
-            border-radius: 60px;
-            font-weight: 500;
-            z-index: 1100;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            animation: fadeUp 2s forwards;
-        }
-        @keyframes fadeUp {
-            0% { opacity: 0; bottom: 0; }
-            15% { opacity: 1; bottom: 30px; }
-            85% { opacity: 1; bottom: 30px; }
-            100% { opacity: 0; bottom: 0; visibility: hidden; }
-        }
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 24px;
-            border-top: 1px solid var(--border-light);
-            color: #475569;
-        }
-        @media (max-width: 768px) {
-            .two-columns { flex-direction: column; }
-            .reactions-row { gap: 8px; }
-            .reaction-btn { padding: 6px 12px; font-size: 1rem; }
-            button { width: auto; }
-            .title-section h1 { font-size: 1.6rem; }
-        }
-        @media (max-width: 480px) {
-            body { padding: 12px; }
-            .options-panel, .preview-panel { padding: 20px; }
-        }
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="circle-time-song-generator.css">
 </head>
 <body>
+
 <div class="container">
-    <!-- Header -->
-    <div class="tool-header">
-        <div class="title-section">
-            <h1><i class="fas fa-music"></i> Circle Time Song Generator</h1>
-            <p>Fun, educational songs for Early Childhood (ECCE)</p>
-        </div>
-        <div class="category-badge"><i class="fas fa-chalkboard-user"></i> ECCE Tool · 22+ Themes</div>
-    </div>
-
-    <!-- Stats row: usage counter + global -->
-    <div class="stats-row">
-        <div class="usage-card" id="usageCounterDisplay">
-            <i class="fas fa-eye"></i> <span id="usageCount">0</span> times used
-        </div>
-        <div class="usage-card">
-            <i class="fas fa-heart"></i> <span id="totalReactionsSpan">0</span> total reactions
-        </div>
-    </div>
-
-    <!-- Main two column -->
-    <div class="two-columns">
-        <div class="options-panel">
-            <h3><i class="fas fa-sliders-h"></i> Song Options</h3>
-            <div class="form-group">
-                <label>🌐 Language</label>
-                <select id="language"><option value="english">English</option><option value="urdu">Urdu</option></select>
+    <!-- ==================== HERO SECTION ==================== -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <i class="fas fa-circle"></i>
+                    <span>AI-Powered · ECCE Tool</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    Circle Time <br><span class="highlight">Song Generator</span>
+                </h1>
+                
+                <div class="typewriter-wrapper">
+                    <span class="static-text">Generate </span>
+                    <span class="dynamic-text" id="typewriterText">educational songs</span>
+                </div>
+                
+                <p class="hero-description">
+                    Create engaging, educational songs for early childhood education with AI. 
+                    Support for <strong>English</strong>, <strong>Urdu</strong>, and more languages.
+                    Perfect for teachers, parents, and ECCE professionals.
+                </p>
+                
+                <!-- Hero Stats - Live Data -->
+                <div class="hero-stats" id="heroStats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="heroUsage">0</span>
+                        <span class="stat-label">Total Uses</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="heroReactions">0</span>
+                        <span class="stat-label">Reactions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="heroShares">0</span>
+                        <span class="stat-label">Shares</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="heroFollowers">0</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group"><label>📚 Category</label><select id="category"></select></div>
-            <div class="form-group"><label>🎯 Topic</label><select id="topic"></select></div>
-            <div class="form-group"><label>🎵 Tune (optional)</label><input type="text" id="tune" placeholder="e.g., Twinkle Twinkle"></div>
-            <div class="form-group"><label>✏️ Custom Line</label><input type="text" id="customLine" placeholder="Add your own verse"></div>
-            <div>
-                <button id="generateBtn"><i class="fas fa-magic"></i> Generate Song</button>
-                <button id="listenBtn" style="background:#8b5cf6"><i class="fas fa-volume-up"></i> Listen</button>
-                <button id="saveFavBtn" style="background:#f59e0b"><i class="fas fa-star"></i> Save Favorite</button>
+            
+            <div class="hero-visual">
+                <div class="hero-glow-ring">
+                    <i class="fas fa-music hero-icon-large"></i>
+                    <div class="floating-badge" style="top: 5%; right: -5%;">
+                        <span class="badge-icon green"><i class="fas fa-microphone"></i></span>
+                        <span>AI Generated</span>
+                    </div>
+                    <div class="floating-badge" style="bottom: 10%; left: -10%;">
+                        <span class="badge-icon blue"><i class="fas fa-language"></i></span>
+                        <span>Multi-Language</span>
+                    </div>
+                    <div class="floating-badge" style="bottom: 30%; right: -8%;">
+                        <span class="badge-icon purple"><i class="fas fa-star"></i></span>
+                        <span>ECCE Ready</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group" style="margin-top: 16px;">
-                <label>⭐ My Favorites</label>
-                <select id="favSelect"><option value="">-- Load Favorite --</option></select>
-                <button id="deleteFavBtn" style="background:#ef4444; margin-top: 8px;"><i class="fas fa-trash-alt"></i> Delete All</button>
+        </div>
+    </section>
+
+    <!-- ==================== TOOL SECTION ==================== -->
+    <section class="tool-section">
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-group">
+                <div class="stat-item-sm">
+                    <i class="fas fa-eye"></i>
+                    <span>Uses: <span class="num" id="usageCount">0</span></span>
+                </div>
+                <div class="stat-item-sm">
+                    <i class="fas fa-heart"></i>
+                    <span>Reactions: <span class="num" id="totalReactionsSpan">0</span></span>
+                </div>
+                <div class="stat-item-sm">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Shares: <span class="num" id="shareCountDisplay">0</span></span>
+                </div>
+                <div class="stat-item-sm">
+                    <i class="fas fa-users"></i>
+                    <span>Followers: <span class="num" id="followersCount">0</span></span>
+                </div>
             </div>
-            <div class="export-buttons" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
-                <button id="pdfBtn" style="background:#dc2626"><i class="fas fa-file-pdf"></i> PDF</button>
-                <button id="wordBtn" style="background:#16a34a"><i class="fas fa-file-word"></i> Word</button>
-                <button id="copyBtn"><i class="fas fa-copy"></i> Copy</button>
-                <button id="printBtn"><i class="fas fa-print"></i> Print</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); padding: 4px 12px; background: rgba(255,255,255,0.04); border-radius: 20px;">
+                    <i class="fas fa-cloud"></i> Live
+                </span>
             </div>
         </div>
 
-        <div class="preview-panel">
-            <h3><i class="fas fa-microphone-alt"></i> Song Preview</h3>
-            <div class="song-preview">
-                <div class="song-title" id="songTitle">Circle Time Melody</div>
-                <div class="song-content" id="songOutput">Choose options & click Generate ✨</div>
+        <!-- Two Columns -->
+        <div class="two-columns">
+            <!-- Options Panel -->
+            <div class="options-panel">
+                <div class="panel-title">
+                    <i class="fas fa-sliders-h"></i> Song Options
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-globe"></i> Language</label>
+                    <select id="language">
+                        <option value="english">English</option>
+                        <option value="urdu">Urdu</option>
+                        <option value="spanish">Spanish</option>
+                        <option value="french">French</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-book"></i> Category</label>
+                    <select id="category"></select>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Topic</label>
+                    <select id="topic"></select>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-music"></i> Tune (optional)</label>
+                    <input type="text" id="tune" placeholder="e.g., Twinkle Twinkle">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-pen"></i> Custom Line</label>
+                    <input type="text" id="customLine" placeholder="Add your own verse">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="generateBtn">
+                        <i class="fas fa-magic"></i> AI Generate
+                    </button>
+                    <button class="btn btn-purple" id="listenBtn">
+                        <i class="fas fa-volume-up"></i> Listen
+                    </button>
+                    <button class="btn btn-yellow" id="saveFavBtn">
+                        <i class="fas fa-star"></i> Save
+                    </button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                    <label><i class="fas fa-bookmark"></i> My Favorites</label>
+                    <select id="favSelect">
+                        <option value="">-- Load Favorite --</option>
+                    </select>
+                    <button class="btn btn-red btn-sm" id="deleteFavBtn" style="margin-top: 8px;">
+                        <i class="fas fa-trash-alt"></i> Delete All
+                    </button>
+                </div>
+                
+                <div class="export-group">
+                    <button class="btn-export btn-pdf" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn-export btn-word" id="wordBtn"><i class="fas fa-file-word"></i> Word</button>
+                    <button class="btn-export btn-copy" id="copyBtn"><i class="fas fa-copy"></i> Copy</button>
+                    <button class="btn-export btn-print" id="printBtn"><i class="fas fa-print"></i> Print</button>
+                </div>
+            </div>
+            
+            <!-- Preview Panel -->
+            <div class="preview-panel">
+                <div class="panel-title">
+                    <i class="fas fa-microphone-alt"></i> Song Preview
+                </div>
+                <div class="song-preview">
+                    <div class="song-title" id="songTitle">Circle Time Melody</div>
+                    <div class="song-content" id="songOutput">
+                        <div class="empty-state">
+                            <i class="fas fa-music"></i>
+                            <p>Choose options & click <strong>AI Generate</strong> ✨</p>
+                            <p style="font-size:0.8rem; margin-top:8px; opacity:0.6;">AI will create a custom song for you</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- REACTIONS + SOCIAL SHARE (tool-specific) -->
-    <div class="tool-engagement">
-        <div class="reactions-row" id="reactionsContainer">
-            <!-- Dynamically injected 7 emojis -->
+        <!-- ==================== ENGAGEMENT SECTION ==================== -->
+        <div class="engagement-section">
+            <!-- Reactions -->
+            <div class="reactions-row" id="reactionsContainer">
+                <!-- Injected by JS -->
+            </div>
+            
+            <!-- Social Share -->
+            <div class="social-share">
+                <div class="social-icon" data-platform="facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </div>
+                <div class="social-icon" data-platform="twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </div>
+                <div class="social-icon" data-platform="linkedin">
+                    <i class="fab fa-linkedin-in"></i> LinkedIn
+                </div>
+                <div class="social-icon" data-platform="whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </div>
+                <div class="social-icon" data-platform="email">
+                    <i class="fas fa-envelope"></i> Email
+                </div>
+                <div class="social-icon page-share" id="pageShareBtn">
+                    <i class="fas fa-share-alt"></i> Share Page
+                </div>
+            </div>
+            
+            <div class="share-count-display">
+                <i class="fas fa-share-alt"></i> Shared <span id="shareCountDisplay2">0</span> times
+            </div>
         </div>
-        <div class="social-share">
-            <div class="social-icon" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</div>
-            <div class="social-icon" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</div>
-            <div class="social-icon" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</div>
-            <div class="social-icon" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</div>
-            <div class="social-icon" data-platform="email"><i class="fas fa-envelope"></i> Email</div>
-            <div class="social-icon page-share" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share this Page</div>
-        </div>
-        <div style="font-size: 0.75rem; text-align: center; margin-top: 16px;" id="shareCountDisplay">📤 Shared 0 times</div>
-    </div>
+    </section>
 
-    <footer>
-        <p>🎵 Circle Time Song Generator © 2025 · ECCE Classroom resource · magicrills.com</p>
+    <!-- Footer -->
+    <footer class="footer">
+        <p>
+            <i class="fas fa-music" style="color: var(--neon-green);"></i>
+            Circle Time Song Generator © 2025 · 
+            <a href="https://magicrills.com">MagicRills.com</a> · 
+            AI-Powered ECCE Resource
+        </p>
     </footer>
 </div>
 
-<!-- Scroll buttons -->
+<!-- Scroll Buttons -->
 <div class="scroll-buttons">
     <div class="scroll-btn" id="scrollUpBtn"><i class="fas fa-chevron-up"></i></div>
     <div class="scroll-btn" id="scrollDownBtn"><i class="fas fa-chevron-down"></i></div>
 </div>
 
-<script>
-    // ----------------------------------------------
-    // 1. DATABASE (localStorage simulation + TiDB-ready)
-    // For full integration we keep localStorage as fallback but also maintain API-like structure
-    // Since we need auto-count + reactions + share counts that persist, we'll use localStorage + sync object
-    // This ensures all features work offline-first, and can be upgraded to real TiDB.
-    // ----------------------------------------------
-    const TOOL_ID = "circle_time_song_generator_ecce";
-    let usageCount = 0;
-    let reactions = { "👍":0, "❤️":0, "😮":0, "😢":0, "😠":0, "😂":0, "🎉":0 };
-    let userReactions = {}; // store which emojis user already clicked (per tool)
-    let shareCountTotal = 0;
-
-    function loadStats() {
-        const storedUsage = localStorage.getItem(`tool_usage_${TOOL_ID}`);
-        if(storedUsage) usageCount = parseInt(storedUsage) || 0;
-        document.getElementById('usageCount').innerText = usageCount;
-
-        const storedReactions = localStorage.getItem(`tool_reactions_${TOOL_ID}`);
-        if(storedReactions) reactions = JSON.parse(storedReactions);
-        const storedUserReact = localStorage.getItem(`tool_user_react_${TOOL_ID}`);
-        if(storedUserReact) userReactions = JSON.parse(storedUserReact);
-        const storedShare = localStorage.getItem(`tool_share_${TOOL_ID}`);
-        if(storedShare) shareCountTotal = parseInt(storedShare) || 0;
-        document.getElementById('shareCountDisplay').innerHTML = `📤 Shared ${shareCountTotal} times`;
-        updateReactionsUI();
-        updateTotalReactionsUI();
-    }
-
-    function incrementUsage() {
-        usageCount++;
-        localStorage.setItem(`tool_usage_${TOOL_ID}`, usageCount);
-        document.getElementById('usageCount').innerText = usageCount;
-        showToast("✨ Tool used! +1 count");
-    }
-
-    function addReaction(emoji) {
-        if(userReactions[emoji]) {
-            showToast(`You already reacted with ${emoji}`, "info");
-            return;
-        }
-        userReactions[emoji] = true;
-        reactions[emoji] = (reactions[emoji] || 0) + 1;
-        localStorage.setItem(`tool_reactions_${TOOL_ID}`, JSON.stringify(reactions));
-        localStorage.setItem(`tool_user_react_${TOOL_ID}`, JSON.stringify(userReactions));
-        updateReactionsUI();
-        updateTotalReactionsUI();
-        showToast(`Reaction ${emoji} added!`, "success");
-    }
-
-    function updateReactionsUI() {
-        const container = document.getElementById('reactionsContainer');
-        const emojiList = ["👍","❤️","😮","😢","😠","😂","🎉"];
-        container.innerHTML = emojiList.map(emoji => `
-            <button class="reaction-btn" data-emoji="${emoji}">
-                <span>${emoji}</span> <span class="reaction-count">${reactions[emoji] || 0}</span>
-            </button>
-        `).join('');
-        document.querySelectorAll('.reaction-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                addReaction(btn.getAttribute('data-emoji'));
-            });
-        });
-    }
-
-    function updateTotalReactionsUI() {
-        const total = Object.values(reactions).reduce((a,b)=>a+b,0);
-        document.getElementById('totalReactionsSpan').innerText = total;
-    }
-
-    function incrementShareCount() {
-        shareCountTotal++;
-        localStorage.setItem(`tool_share_${TOOL_ID}`, shareCountTotal);
-        document.getElementById('shareCountDisplay').innerHTML = `📤 Shared ${shareCountTotal} times`;
-    }
-
-    // Social share handlers
-    function shareTool(platform) {
-        const url = encodeURIComponent(window.location.href);
-        const title = encodeURIComponent("Circle Time Song Generator - ECCE Tool");
-        let shareLink = "";
-        if(platform === 'facebook') shareLink = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-        else if(platform === 'twitter') shareLink = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
-        else if(platform === 'linkedin') shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-        else if(platform === 'whatsapp') shareLink = `https://wa.me/?text=${title}%20${url}`;
-        else if(platform === 'email') shareLink = `mailto:?subject=${title}&body=Check%20out%20this%20tool%20${url}`;
-        if(shareLink) window.open(shareLink, '_blank', 'width=600,height=400');
-        incrementShareCount();
-        showToast(`Shared on ${platform}`);
-    }
-
-    function copyPageUrl() {
-        navigator.clipboard.writeText(window.location.href);
-        incrementShareCount();
-        showToast("🔗 Page link copied!");
-    }
-
-    // Song database (same as original but enhanced)
-    const categoriesList = ["Alphabet","Phonics","Digraph","Vowel Sounds","Trigraph","Sight Words","Counting","Shapes","Colors","Days of Week","Months","Fruits","Vegetables","Animals","Body Parts","Emotions","Weather","Transportation","Actions","Hygiene","Family","Opposites"];
-    const topicsData = {
-        Animals: ["Lion","Elephant","Cat","Dog"], "Body Parts": ["Eyes","Nose","Hands","Ears"], Emotions:["Happy","Sad","Angry","Excited"], Weather:["Sunny","Rainy","Cloudy","Snowy"], Transportation:["Car","Bus","Train","Bicycle"], Actions:["Run","Jump","Clap","Dance"], Hygiene:["Wash Hands","Brush Teeth","Take Bath"], Family:["Mother","Father","Brother","Sister"], Opposites:["Big/Small","Hot/Cold","Fast/Slow"],
-        Alphabet:["A","B","C"], Phonics:["C","SH","TH"], Digraph:["CH","SH","TH"], "Vowel Sounds":["A","E","I"], Trigraph:["IGH","TCH","DGE"], "Sight Words":["THE","AND","FOR"], Counting:["1-5","1-10"], Shapes:["Circle","Square","Triangle"], Colors:["Red","Blue","Yellow"], "Days of Week":["Monday","Tuesday"], Months:["January","May"], Fruits:["Apple","Banana"], Vegetables:["Carrot","Tomato"]
-    };
-    function getSong(lang, category, topic, tune, customLine) {
-        let base = `🎵 ${category} - ${topic} Song 🎵\n\nLet's sing about ${topic} today,\nClap your hands and shout hooray!\nLearning is fun, come along,\nWith a happy circle time song!`;
-        if(lang === 'english' && category === 'Animals' && topic === 'Lion') base = "🦁 The Lion Song 🦁\n\nLion has a mighty roar, roar roar roar!\nHe's the king of the jungle floor...";
-        if(lang === 'urdu') base = `🎵 اردو گیت: ${topic}\n\nآؤ مل کر گائیں، سب خوشیاں منائیں!`;
-        let song = base;
-        if(tune) song = `♪ To the tune of: ${tune} ♪\n\n${song}`;
-        if(customLine) song += `\n\n✏️ ${customLine}`;
-        return song;
-    }
-
-    function populateCategories() {
-        const catSel = document.getElementById('category');
-        catSel.innerHTML = categoriesList.map(c => `<option value="${c}">${c}</option>`).join('');
-        catSel.addEventListener('change', ()=>populateTopics());
-        populateTopics();
-    }
-    function populateTopics() {
-        const cat = document.getElementById('category').value;
-        const topics = topicsData[cat] || ["Explore"];
-        const topicSel = document.getElementById('topic');
-        topicSel.innerHTML = topics.map(t=>`<option value="${t}">${t}</option>`).join('');
-    }
-    let currentSongObj = {};
-    function updateSong() {
-        const lang = document.getElementById('language').value;
-        const cat = document.getElementById('category').value;
-        const topic = document.getElementById('topic').value;
-        const tune = document.getElementById('tune').value;
-        const custom = document.getElementById('customLine').value;
-        const songText = getSong(lang, cat, topic, tune, custom);
-        document.getElementById('songOutput').innerHTML = songText.replace(/\n/g, '<br>');
-        document.getElementById('songTitle').innerText = `${cat} - ${topic} Song`;
-        if(lang === 'urdu') document.getElementById('songOutput').classList.add('urdu-text');
-        else document.getElementById('songOutput').classList.remove('urdu-text');
-        currentSongObj = { lang, cat, topic, tune, custom, songText };
-        incrementUsage();   // AUTO USAGE COUNTER when song generated!
-    }
-
-    // Favorites
-    function saveFavorite() {
-        if(!currentSongObj.cat) return showToast("Generate a song first!");
-        let favs = JSON.parse(localStorage.getItem('circleFavs') || '[]');
-        favs.push(currentSongObj);
-        localStorage.setItem('circleFavs', JSON.stringify(favs));
-        loadFavDropdown();
-        showToast("⭐ Saved to favorites");
-    }
-    function loadFavDropdown() {
-        let favs = JSON.parse(localStorage.getItem('circleFavs') || '[]');
-        const sel = document.getElementById('favSelect');
-        sel.innerHTML = '<option value="">-- Load Favorite --</option>' + favs.map((f,i)=>`<option value="${i}">${f.cat} - ${f.topic}</option>`).join('');
-    }
-    function loadFavorite(idx) {
-        let favs = JSON.parse(localStorage.getItem('circleFavs') || '[]');
-        if(favs[idx]){
-            const f = favs[idx];
-            document.getElementById('language').value = f.lang;
-            document.getElementById('category').value = f.cat;
-            populateTopics();
-            setTimeout(()=>{
-                document.getElementById('topic').value = f.topic;
-                document.getElementById('tune').value = f.tune || '';
-                document.getElementById('customLine').value = f.custom || '';
-                updateSong();
-            },30);
-        }
-    }
-    function deleteAllFavs() { localStorage.removeItem('circleFavs'); loadFavDropdown(); showToast("All favorites removed"); }
-
-    // Export functions
-    function exportPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const title = document.getElementById('songTitle').innerText;
-        const content = document.getElementById('songOutput').innerText;
-        doc.setFontSize(18); doc.text(title, 105, 20, { align: 'center' });
-        doc.setFontSize(11); doc.text(doc.splitTextToSize(content, 180), 15, 35);
-        doc.save('song.pdf');
-        showToast("PDF exported");
-    }
-    function exportWord() {
-        const html = `<html><body><h1>${document.getElementById('songTitle').innerText}</h1><pre>${document.getElementById('songOutput').innerText}</pre></body></html>`;
-        const blob = new Blob([html], {type:'application/msword'});
-        const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='song.doc'; a.click();
-        showToast("Word exported");
-    }
-    function copySong() { navigator.clipboard.writeText(document.getElementById('songOutput').innerText); showToast("Copied!"); }
-    function printSong() { window.print(); }
-
-    function listenSong() {
-        const text = document.getElementById('songOutput').innerText;
-        if('speechSynthesis' in window){
-            speechSynthesis.cancel();
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.lang = document.getElementById('language').value === 'urdu' ? 'ur-PK' : 'en-US';
-            speechSynthesis.speak(utter);
-        } else alert("Speech not supported");
-    }
-
-    // Scroll & toast
-    function showToast(msg, type="success") {
-        let toast = document.createElement('div');
-        toast.className = 'toast-msg';
-        toast.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'info-circle'}"></i> ${msg}`;
-        document.body.appendChild(toast);
-        setTimeout(()=>toast.remove(), 2000);
-    }
-
-    // Init scroll visibility
-    function initScrollButtons() {
-        const upBtn = document.getElementById('scrollUpBtn');
-        const downBtn = document.getElementById('scrollDownBtn');
-        window.addEventListener('scroll', ()=>{
-            if(window.scrollY > 200) upBtn.style.display = 'flex';
-            else upBtn.style.display = 'none';
-        });
-        upBtn.style.display = 'none';
-        upBtn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
-        downBtn.addEventListener('click', ()=> window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}));
-    }
-
-    // Page share button + social icons
-    function bindSocialEvents(){
-        document.querySelectorAll('.social-icon[data-platform]').forEach(el=>{
-            el.addEventListener('click', (e)=>{
-                const platform = el.getAttribute('data-platform');
-                shareTool(platform);
-            });
-        });
-        document.getElementById('pageShareBtn').addEventListener('click', copyPageUrl);
-    }
-
-    // EVENT LISTENERS
-    document.getElementById('generateBtn').addEventListener('click', updateSong);
-    document.getElementById('listenBtn').addEventListener('click', listenSong);
-    document.getElementById('saveFavBtn').addEventListener('click', saveFavorite);
-    document.getElementById('deleteFavBtn').addEventListener('click', deleteAllFavs);
-    document.getElementById('pdfBtn').addEventListener('click', exportPDF);
-    document.getElementById('wordBtn').addEventListener('click', exportWord);
-    document.getElementById('copyBtn').addEventListener('click', copySong);
-    document.getElementById('printBtn').addEventListener('click', printSong);
-    document.getElementById('favSelect').addEventListener('change', (e)=> { if(e.target.value !== "") loadFavorite(parseInt(e.target.value)); });
-    document.getElementById('language').addEventListener('change', updateSong);
-    
-    // Load all
-    populateCategories();
-    loadStats();
-    loadFavDropdown();
-    bindSocialEvents();
-    initScrollButtons();
-    updateSong(); // initial generate
-    // Ensure reactions and hover effects exist (CSS handled)
-</script>
+<!-- ============================================================ -->
+<!-- ==================== JAVASCRIPT ============================= -->
+<!-- ============================================================ -->
+<script src="circle-time-song-generator.js"></script>
 </body>
 </html>
