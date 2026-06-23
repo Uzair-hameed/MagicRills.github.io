@@ -1,890 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Advanced Developmental Milestone Checker | Child Development Tracker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    
+    <!-- ===== PRIMARY SEO TAGS ===== -->
+    <title>Developmental Milestone Checker | AI-Powered Child Development Tracker 2025</title>
+    <meta name="description" content="Track your child's developmental milestones across 6 domains with AI-powered insights. Free, comprehensive milestone checker for ages 2-10 years." />
+    <meta name="keywords" content="developmental milestones, child development tracker, milestone checker, child growth, early childhood development, ECCE, parenting tool, AI child development" />
+    <link rel="canonical" href="https://magicrills.com/tools/developmental-milestone-checker" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="MagicRills" />
+    
+    <!-- ===== OPEN GRAPH / FACEBOOK ===== -->
+    <meta property="og:title" content="Developmental Milestone Checker | AI Child Development Tracker" />
+    <meta property="og:description" content="Track developmental milestones across 6 domains: Physical, Cognitive, Language, Social, Behavioral & Moral. Free AI-powered tool for ages 2-10." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://magicrills.com/tools/developmental-milestone-checker" />
+    <meta property="og:image" content="https://magicrills.com/assets/og-milestone-checker.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="MagicRills" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- ===== TWITTER CARDS ===== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Developmental Milestone Checker | AI Child Development Tracker" />
+    <meta name="twitter:description" content="Track your child's developmental milestones across 6 domains with AI-powered insights. Free tool for ages 2-10." />
+    <meta name="twitter:image" content="https://magicrills.com/assets/og-milestone-checker.jpg" />
+    <meta name="twitter:site" content="@magicrills" />
+    
+    <!-- ===== JSON-LD STRUCTURED DATA ===== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Developmental Milestone Checker",
+      "description": "AI-powered child developmental milestone tracker covering 6 domains for ages 2-10 years.",
+      "url": "https://magicrills.com/tools/developmental-milestone-checker",
+      "applicationCategory": "Educational Application",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "MagicRills"
+      }
+    }
+    </script>
+    
+    <!-- ===== BREADCRUMB JSON-LD ===== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://magicrills.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://magicrills.com/tools" },
+        { "@type": "ListItem", "position": 3, "name": "Developmental Milestone Checker" }
+      ]
+    }
+    </script>
+    
+    <!-- ===== FONTS & ICONS ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
+    <!-- ===== EXTERNAL SCRIPTS ===== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #4a6fa5;
-            --secondary: #6b8cbc;
-            --accent: #ff9e4a;
-            --light: #f5f7fa;
-            --dark: #2c3e50;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --physical-color: #e74c3c;
-            --cognitive-color: #3498db;
-            --language-color: #2ecc71;
-            --social-color: #f39c12;
-            --behavioral-color: #9b59b6;
-            --moral-color: #1abc9c;
-            --text: #333;
-            --text-light: #777;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 20px 30px -8px rgba(0, 0, 0, 0.2);
-            --radius: 12px;
-            --card-radius: 24px;
-            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: var(--text);
-            line-height: 1.6;
-            padding: 20px;
-        }
-
-        body.dark-mode {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --text: #e0e0e0;
-            --text-light: #aaa;
-            --light: #2a2a4a;
-            --dark: #e0e0e0;
-        }
-
-        body.dark-mode .card,
-        body.dark-mode .stat-card,
-        body.dark-mode .milestone-item {
-            background: #2a2a4a;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode input,
-        body.dark-mode select {
-            background: #1a1a2e;
-            color: #e0e0e0;
-            border-color: #444;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast {
-            background: white;
-            color: var(--text);
-            padding: 16px 24px;
-            border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideInToast 0.3s ease;
-            min-width: 250px;
-            backdrop-filter: blur(10px);
-            border-left: 6px solid var(--primary);
-        }
-
-        .toast.success { border-left-color: var(--success); }
-        .toast.error { border-left-color: var(--danger); }
-
-        @keyframes slideInToast {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Scroll Buttons */
-        .scroll-buttons {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 1000;
-        }
-
-        .scroll-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: white;
-            color: var(--primary);
-            border: none;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            transition: var(--transition);
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .scroll-btn.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .scroll-btn:hover {
-            transform: scale(1.1);
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Fixed Buttons */
-        .fixed-buttons-left {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            z-index: 999;
-            display: flex;
-            gap: 15px;
-        }
-
-        .page-share-btn, .back-home-btn {
-            background: white;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 50px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text);
-        }
-
-        .page-share-btn:hover, .back-home-btn:hover {
-            transform: translateY(-3px);
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Header */
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 30px;
-            border-radius: var(--card-radius);
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .header-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .header-controls button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        /* Tool Interactions */
-        .tool-interactions {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .usage-counter {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-        }
-
-        .reactions-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .reaction-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 1.1rem;
-            transition: var(--transition);
-            color: white;
-        }
-
-        .reaction-btn:hover {
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .reaction-btn.active {
-            background: white;
-            color: var(--primary);
-        }
-
-        .social-share {
-            display: flex;
-            gap: 10px;
-        }
-
-        .social-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .social-icon:hover {
-            transform: translateY(-3px) scale(1.1);
-        }
-
-        .fb { background: #1877f2; }
-        .tw { background: #1da1f2; }
-        .li { background: #0077b5; }
-        .wa { background: #25d366; }
-        .em { background: #ea4335; }
-
-        /* Dashboard */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 25px;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .profile-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-avatar input {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .child-info {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-weight: 600;
-            color: inherit;
-        }
-
-        input, select {
-            padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.3s;
-        }
-
-        .profile-section input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .profile-section select option {
-            background: var(--primary);
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: white;
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-success { background: var(--success); }
-        .btn-warning { background: var(--warning); }
-        .btn-danger { background: var(--danger); }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: var(--card-radius);
-            padding: 15px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .stat-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-        }
-
-        .stat-card p {
-            opacity: 0.9;
-            font-size: 0.8rem;
-        }
-
-        .progress-section {
-            margin: 20px 0;
-        }
-
-        .progress-bar {
-            height: 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success), var(--accent));
-            border-radius: 6px;
-            transition: width 0.5s ease;
-        }
-
-        .age-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            overflow-x: auto;
-            padding: 5px;
-        }
-
-        .age-tab {
-            padding: 12px 24px;
-            background: white;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            box-shadow: var(--shadow);
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-
-        .age-tab:hover {
-            transform: translateY(-2px);
-        }
-
-        .age-tab.active {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-
-        /* Milestone Grid Layout - 3x2 */
-        .milestone-grid-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .milestone-category-card {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .milestone-category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .category-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-            border-bottom: 3px solid;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .category-header.physical { border-color: var(--physical-color); color: var(--physical-color); }
-        .category-header.cognitive { border-color: var(--cognitive-color); color: var(--cognitive-color); }
-        .category-header.language { border-color: var(--language-color); color: var(--language-color); }
-        .category-header.social { border-color: var(--social-color); color: var(--social-color); }
-        .category-header.behavioral { border-color: var(--behavioral-color); color: var(--behavioral-color); }
-        .category-header.moral { border-color: var(--moral-color); color: var(--moral-color); }
-
-        .milestone-items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .milestone-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: var(--light);
-            border-radius: 12px;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .milestone-item:hover {
-            transform: translateX(5px);
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
-
-        .milestone-item.completed {
-            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
-        }
-
-        .milestone-checkbox {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--success);
-        }
-
-        .milestone-text {
-            flex: 1;
-            font-size: 0.9rem;
-        }
-
-        .category-progress {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
-        }
-
-        .category-progress .progress-bar {
-            height: 8px;
-            background: rgba(0,0,0,0.1);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        /* Charts */
-        .charts-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        /* Report Modal - Landscape Style */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content.landscape {
-            background: white;
-            border-radius: var(--card-radius);
-            width: 95%;
-            max-width: 1400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .report-landscape-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .report-category-card {
-            border-radius: 16px;
-            padding: 20px;
-            color: white;
-        }
-
-        .report-category-card.physical { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .report-category-card.cognitive { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .report-category-card.language { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-        .report-category-card.social { background: linear-gradient(135deg, #f39c12, #e67e22); }
-        .report-category-card.behavioral { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .report-category-card.moral { background: linear-gradient(135deg, #1abc9c, #16a085); }
-
-        .report-category-card h3 {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255,255,255,0.3);
-        }
-
-        .report-milestone-list {
-            list-style: none;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .report-milestone-list li {
-            padding: 5px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
-
-        /* Multi-profile selector */
-        .multi-profile-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .profile-chip {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-chip.active {
-            background: white;
-            color: var(--primary);
-        }
-
-        /* AI Chat */
-        .ai-chat-section {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 350px;
-            background: white;
-            border-radius: var(--card-radius);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-            z-index: 1000;
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .chat-body {
-            height: 400px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            max-width: 80%;
-        }
-
-        .message.user {
-            background: var(--primary);
-            color: white;
-            margin-left: auto;
-        }
-
-        .message.ai {
-            background: var(--light);
-            margin-right: auto;
-        }
-
-        .chat-input {
-            display: flex;
-            padding: 15px;
-            gap: 10px;
-            border-top: 1px solid #ddd;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            background: white;
-            color: var(--text);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: white;
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .milestone-grid-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 968px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            .report-landscape-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .milestone-grid-container {
-                grid-template-columns: 1fr;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
-            .report-landscape-grid {
-                grid-template-columns: 1fr;
-            }
-            .fixed-buttons-left {
-                flex-direction: column;
-                bottom: 100px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            header h1 {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
+    
+    <!-- ===== CUSTOM CSS ===== -->
+    <link rel="stylesheet" href="developmental-milestone-checker.css" />
 </head>
 <body>
+    
+    <!-- ===== TOAST CONTAINER ===== -->
     <div class="toast-container" id="toastContainer"></div>
-
+    
+    <!-- ===== SCROLL BUTTONS ===== -->
     <div class="scroll-buttons">
-        <button class="scroll-btn" id="scrollUpBtn" title="Scroll to top"><i class="fas fa-arrow-up"></i></button>
-        <button class="scroll-btn" id="scrollDownBtn" title="Scroll to bottom"><i class="fas fa-arrow-down"></i></button>
+        <button class="scroll-btn" id="scrollUpBtn" title="Scroll to top"><i class="fas fa-chevron-up"></i></button>
+        <button class="scroll-btn" id="scrollDownBtn" title="Scroll to bottom"><i class="fas fa-chevron-down"></i></button>
     </div>
-
+    
+    <!-- ===== FIXED ACTION BUTTONS ===== -->
     <div class="fixed-buttons-left">
-        <button class="page-share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
-        <button class="back-home-btn" id="backHomeBtn"><i class="fas fa-home"></i> Home</button>
+        <button class="action-btn share-page-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share</button>
+        <button class="action-btn home-btn" id="backHomeBtn"><i class="fas fa-home"></i> Home</button>
     </div>
-
+    
+    <!-- ===== MAIN CONTAINER ===== -->
     <div class="container">
-        <header>
-            <div class="header-controls">
-                <button id="darkModeToggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+        
+        <!-- ===== HERO SECTION ===== -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-sparkles"></i> AI-Powered 2025
+                </div>
+                <h1 class="hero-title">
+                    Track Your Child's<br />
+                    <span class="typewriter-text" id="typewriterText"></span>
+                </h1>
+                <p class="hero-desc">
+                    Comprehensive developmental milestone tracker covering <strong>6 domains</strong> 
+                    for children aged <strong>2–10 years</strong>. Powered by AI for personalized insights.
+                </p>
+                <div class="hero-cta">
+                    <button class="btn-primary" id="scrollToTool"><i class="fas fa-rocket"></i> Start Tracking</button>
+                    <button class="btn-secondary" id="learnMoreBtn"><i class="fas fa-play-circle"></i> Learn More</button>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="stat-number" id="heroUsage">0</span>
+                        <span class="stat-label">Total Uses</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="stat-number" id="heroChildren">0</span>
+                        <span class="stat-label">Children Tracked</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="stat-number" id="heroMilestones">0</span>
+                        <span class="stat-label">Milestones</span>
+                    </div>
+                </div>
             </div>
-            <h1>🌟 Developmental Milestone Checker</h1>
-            <p>Comprehensive tracking for children aged 2-10 years | 6 Developmental Domains | AI-Powered</p>
-            
-            <div class="tool-interactions">
-                <div class="usage-counter">
-                    <i class="fas fa-users"></i>
-                    <span id="usageCount">0</span> uses
+            <div class="hero-visual">
+                <div class="hero-animation">
+                    <div class="floating-element e1">🧠</div>
+                    <div class="floating-element e2">🏃</div>
+                    <div class="floating-element e3">🗣️</div>
+                    <div class="floating-element e4">❤️</div>
+                    <div class="floating-element e5">🎨</div>
+                    <div class="floating-element e6">⭐</div>
+                    <div class="hero-illustration">
+                        <svg viewBox="0 0 400 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="200" cy="175" r="140" fill="url(#grad1)" opacity="0.15" />
+                            <circle cx="200" cy="175" r="100" fill="url(#grad2)" opacity="0.10" />
+                            <circle cx="200" cy="175" r="60" fill="url(#grad3)" opacity="0.08" />
+                            <!-- Kids Art Style Figures -->
+                            <g transform="translate(120, 140)">
+                                <circle cx="20" cy="20" r="18" fill="#FF6B6B" />
+                                <rect x="5" y="38" width="30" height="35" rx="5" fill="#FF9F43" />
+                                <rect x="0" y="73" width="12" height="25" rx="3" fill="#FF9F43" />
+                                <rect x="28" y="73" width="12" height="25" rx="3" fill="#FF9F43" />
+                                <circle cx="14" cy="18" r="3" fill="#fff" />
+                                <circle cx="26" cy="18" r="3" fill="#fff" />
+                                <path d="M16 26 Q20 30 24 26" stroke="#fff" stroke-width="2" fill="none" />
+                            </g>
+                            <g transform="translate(220, 120)">
+                                <circle cx="20" cy="20" r="18" fill="#4ECDC4" />
+                                <rect x="5" y="38" width="30" height="35" rx="5" fill="#45B7D1" />
+                                <rect x="0" y="73" width="12" height="25" rx="3" fill="#45B7D1" />
+                                <rect x="28" y="73" width="12" height="25" rx="3" fill="#45B7D1" />
+                                <circle cx="14" cy="18" r="3" fill="#fff" />
+                                <circle cx="26" cy="18" r="3" fill="#fff" />
+                                <path d="M16 26 Q20 30 24 26" stroke="#fff" stroke-width="2" fill="none" />
+                            </g>
+                            <g transform="translate(160, 220)">
+                                <circle cx="20" cy="20" r="16" fill="#FFD93D" />
+                                <rect x="6" y="36" width="28" height="30" rx="5" fill="#F9CA24" />
+                                <rect x="2" y="66" width="10" height="22" rx="3" fill="#F9CA24" />
+                                <rect x="26" y="66" width="10" height="22" rx="3" fill="#F9CA24" />
+                                <circle cx="14" cy="17" r="2.5" fill="#2d3436" />
+                                <circle cx="26" cy="17" r="2.5" fill="#2d3436" />
+                                <path d="M16 24 Q20 28 24 24" stroke="#2d3436" stroke-width="2" fill="none" />
+                            </g>
+                            <defs>
+                                <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#667eea" />
+                                    <stop offset="100%" stop-color="#764ba2" />
+                                </linearGradient>
+                                <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#f093fb" />
+                                    <stop offset="100%" stop-color="#f5576c" />
+                                </linearGradient>
+                                <linearGradient id="grad3" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#4facfe" />
+                                    <stop offset="100%" stop-color="#00f2fe" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
                 </div>
-                <div class="reactions-container" id="reactionsContainer"></div>
-                <div class="social-share">
-                    <div class="social-icon fb" data-platform="facebook"><i class="fab fa-facebook-f"></i></div>
-                    <div class="social-icon tw" data-platform="twitter"><i class="fab fa-twitter"></i></div>
-                    <div class="social-icon li" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></div>
-                    <div class="social-icon wa" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></div>
-                    <div class="social-icon em" data-platform="email"><i class="fas fa-envelope"></i></div>
-                </div>
+            </div>
+        </section>
+        
+        <!-- ===== HEADER ===== -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="logo-icon">🌟</span>
+                <span class="logo-text">Milestone Tracker</span>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" id="darkModeToggle" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
             </div>
         </header>
-
+        
+        <!-- ===== TOOL INTERACTIONS ===== -->
+        <div class="tool-interactions">
+            <div class="usage-counter">
+                <i class="fas fa-eye"></i>
+                <span id="usageCount">0</span>
+                <span class="label">views</span>
+            </div>
+            <div class="reactions-container" id="reactionsContainer"></div>
+            <div class="social-share">
+                <button class="social-icon fb" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                <button class="social-icon tw" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                <button class="social-icon li" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                <button class="social-icon wa" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                <button class="social-icon copy" data-platform="copy"><i class="fas fa-link"></i></button>
+            </div>
+        </div>
+        
+        <!-- ===== DASHBOARD ===== -->
         <div class="dashboard">
-            <div class="profile-section card">
+            <div class="profile-section card glass">
                 <div class="profile-header">
                     <div class="profile-avatar" id="avatarUpload">
-                        <i class="fas fa-child"></i>
-                        <input type="file" id="avatarInput" accept="image/*">
+                        <i class="fas fa-user-circle"></i>
+                        <input type="file" id="avatarInput" accept="image/*" />
                     </div>
                     <div>
                         <h2 id="displayChildName">Child's Name</h2>
-                        <p id="displayChildInfo">Age: Select</p>
+                        <p id="displayChildInfo">Age: Not set</p>
                     </div>
                 </div>
-
+                
                 <div class="multi-profile-selector" id="profileSelector"></div>
-
+                
                 <div class="child-info">
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Child's Name</label>
-                        <input type="text" id="childName" placeholder="Enter name">
+                        <input type="text" id="childName" placeholder="Enter name" />
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-calendar"></i> Age (Years)</label>
@@ -892,1063 +251,158 @@
                             <option value="2">2 Years</option><option value="3">3 Years</option>
                             <option value="4">4 Years</option><option value="5">5 Years</option>
                             <option value="6">6 Years</option><option value="7">7 Years</option>
-                            <option value="8">8 Years</option><option value="9">9 Years</option><option value="10">10 Years</option>
+                            <option value="8">8 Years</option><option value="9">9 Years</option>
+                            <option value="10">10 Years</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-venus-mars"></i> Gender</label>
                         <select id="childGender">
-                            <option value="male">Male</option><option value="female">Female</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
-                    <button id="saveChildInfo"><i class="fas fa-save"></i> Save Information</button>
-                    <button id="addNewProfile" class="btn-success"><i class="fas fa-plus"></i> New Profile</button>
+                    <div class="form-actions">
+                        <button class="btn-primary btn-sm" id="saveChildInfo"><i class="fas fa-save"></i> Save</button>
+                        <button class="btn-secondary btn-sm" id="addNewProfile"><i class="fas fa-plus"></i> New</button>
+                    </div>
                 </div>
             </div>
-
+            
             <div class="stats-section">
                 <div class="stats-grid">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);"><i class="fas fa-running fa-2x"></i><h3 id="physicalProgress">0%</h3><p>Physical</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #3498db, #2980b9);"><i class="fas fa-brain fa-2x"></i><h3 id="cognitiveProgress">0%</h3><p>Cognitive</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #2ecc71, #27ae60);"><i class="fas fa-comments fa-2x"></i><h3 id="languageProgress">0%</h3><p>Language</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #f39c12, #e67e22);"><i class="fas fa-users fa-2x"></i><h3 id="socialProgress">0%</h3><p>Social</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);"><i class="fas fa-heart fa-2x"></i><h3 id="behavioralProgress">0%</h3><p>Behavioral</p></div>
-                    <div class="stat-card" style="background: linear-gradient(135deg, #1abc9c, #16a085);"><i class="fas fa-balance-scale fa-2x"></i><h3 id="moralProgress">0%</h3><p>Moral</p></div>
+                    <div class="stat-card" style="--stat-color: #ff6b6b;">
+                        <i class="fas fa-running"></i>
+                        <h3 id="physicalProgress">0%</h3>
+                        <p>Physical</p>
+                    </div>
+                    <div class="stat-card" style="--stat-color: #4ecdc4;">
+                        <i class="fas fa-brain"></i>
+                        <h3 id="cognitiveProgress">0%</h3>
+                        <p>Cognitive</p>
+                    </div>
+                    <div class="stat-card" style="--stat-color: #45b7d1;">
+                        <i class="fas fa-comments"></i>
+                        <h3 id="languageProgress">0%</h3>
+                        <p>Language</p>
+                    </div>
+                    <div class="stat-card" style="--stat-color: #f9ca24;">
+                        <i class="fas fa-users"></i>
+                        <h3 id="socialProgress">0%</h3>
+                        <p>Social</p>
+                    </div>
+                    <div class="stat-card" style="--stat-color: #a29bfe;">
+                        <i class="fas fa-heart"></i>
+                        <h3 id="behavioralProgress">0%</h3>
+                        <p>Behavioral</p>
+                    </div>
+                    <div class="stat-card" style="--stat-color: #fd79a8;">
+                        <i class="fas fa-balance-scale"></i>
+                        <h3 id="moralProgress">0%</h3>
+                        <p>Moral</p>
+                    </div>
                 </div>
                 <div class="progress-section">
-                    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
-                    <p style="margin-top: 10px; color: white; text-align: center;">Overall Progress: <span id="overallProgress">0%</span></p>
+                    <div class="progress-label">
+                        <span>Overall Progress</span>
+                        <span id="overallProgress">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="age-tabs">
-            <div class="age-tab active" data-age="2">2 Years</div><div class="age-tab" data-age="3">3 Years</div>
-            <div class="age-tab" data-age="4">4 Years</div><div class="age-tab" data-age="5">5 Years</div>
-            <div class="age-tab" data-age="6">6 Years</div><div class="age-tab" data-age="7">7 Years</div>
-            <div class="age-tab" data-age="8">8 Years</div><div class="age-tab" data-age="9">9 Years</div>
-            <div class="age-tab" data-age="10">10 Years</div>
+        
+        <!-- ===== AGE TABS ===== -->
+        <div class="age-tabs" id="ageTabs">
+            <button class="age-tab active" data-age="2">2 Yr</button>
+            <button class="age-tab" data-age="3">3 Yr</button>
+            <button class="age-tab" data-age="4">4 Yr</button>
+            <button class="age-tab" data-age="5">5 Yr</button>
+            <button class="age-tab" data-age="6">6 Yr</button>
+            <button class="age-tab" data-age="7">7 Yr</button>
+            <button class="age-tab" data-age="8">8 Yr</button>
+            <button class="age-tab" data-age="9">9 Yr</button>
+            <button class="age-tab" data-age="10">10 Yr</button>
         </div>
-
+        
+        <!-- ===== CHARTS ===== -->
         <div class="charts-container">
-            <div class="chart-card"><h3>📊 Progress by Domain</h3><canvas id="categoryChart"></canvas></div>
-            <div class="chart-card"><h3>📈 Progress Over Time</h3><canvas id="progressChart"></canvas></div>
+            <div class="chart-card glass">
+                <h3><i class="fas fa-chart-radar"></i> Progress by Domain</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="chart-card glass">
+                <h3><i class="fas fa-chart-line"></i> Progress Over Time</h3>
+                <canvas id="progressChart"></canvas>
+            </div>
         </div>
-
-        <!-- 3x2 Milestone Grid -->
+        
+        <!-- ===== MILESTONE GRID ===== -->
         <div class="milestone-grid-container" id="milestoneGridContainer"></div>
-
+        
+        <!-- ===== ACTION BUTTONS ===== -->
         <div class="action-buttons">
-            <button class="btn-warning" id="generateReport"><i class="fas fa-chart-pie"></i> Generate Full Report</button>
-            <button class="btn-success" id="downloadWord"><i class="fas fa-file-word"></i> Download Word Report</button>
-            <button class="btn-danger" id="resetChecklist"><i class="fas fa-redo"></i> Reset Checklist</button>
-            <button id="shareReport" class="btn-success"><i class="fas fa-share-alt"></i> Share Report</button>
+            <button class="btn-primary" id="generateReport"><i class="fas fa-file-alt"></i> Full Report</button>
+            <button class="btn-success" id="downloadWord"><i class="fas fa-file-word"></i> Word Report</button>
+            <button class="btn-warning" id="shareReport"><i class="fas fa-share-alt"></i> Share Report</button>
+            <button class="btn-danger" id="resetChecklist"><i class="fas fa-redo"></i> Reset</button>
         </div>
-
-        <footer>
-            <p>© 2025 Advanced Developmental Milestone Checker | 6 Developmental Domains | AI-Powered</p>
+        
+        <!-- ===== FOOTER ===== -->
+        <footer class="app-footer">
+            <p>© 2025 <strong>MagicRills</strong> — Developmental Milestone Checker v2.0</p>
+            <p class="footer-tagline">Empowering parents with AI-driven child development insights</p>
         </footer>
     </div>
-
-    <!-- AI Chat Assistant -->
+    
+    <!-- ===== AI CHAT ===== -->
     <div class="ai-chat-section" id="aiChat">
         <div class="chat-header" id="chatHeader">
             <span><i class="fas fa-robot"></i> AI Assistant</span>
             <div>
-                <button id="minimizeChat" style="background: none; padding: 5px;"><i class="fas fa-minus"></i></button>
-                <button id="closeChat" style="background: none; padding: 5px;"><i class="fas fa-times"></i></button>
+                <button class="chat-minimize" id="minimizeChat"><i class="fas fa-minus"></i></button>
+                <button class="chat-close" id="closeChat"><i class="fas fa-times"></i></button>
             </div>
         </div>
         <div class="chat-body" id="chatBody">
             <div class="chat-messages" id="chatMessages">
-                <div class="message ai"><i class="fas fa-robot"></i> Hello! Ask me about your child's development!</div>
+                <div class="message ai">
+                    <i class="fas fa-robot"></i> Hello! 👋 Ask me about child development milestones, parenting tips, or how to use this tracker!
+                </div>
             </div>
             <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Type your question...">
+                <input type="text" id="chatInput" placeholder="Type your question..." />
                 <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
-                <button id="voiceInput" class="voice-input-btn"><i class="fas fa-microphone"></i></button>
+                <button id="voiceInput"><i class="fas fa-microphone"></i></button>
             </div>
         </div>
     </div>
-
-    <!-- Report Modal - Landscape Style -->
+    
+    <!-- ===== REPORT MODAL ===== -->
     <div class="modal" id="reportModal">
-        <div class="modal-content landscape">
+        <div class="modal-content landscape glass">
             <div class="modal-header">
-                <h2 class="modal-title"><i class="fas fa-chart-pie"></i> Developmental Progress Report</h2>
+                <h2><i class="fas fa-chart-pie"></i> Developmental Report</h2>
                 <button class="close-modal" id="closeModal">&times;</button>
             </div>
-            <div class="report-summary" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+            <div class="report-summary">
                 <h2 id="reportChildName">Child's Name</h2>
                 <p id="reportDate"></p>
                 <h3 id="modalCompletionRate">0% Complete</h3>
             </div>
-            
-            <!-- 3x2 Report Grid -->
             <div class="report-landscape-grid" id="reportGrid"></div>
-            
             <div class="action-buttons">
                 <button class="btn-success" id="modalDownloadWord"><i class="fas fa-file-word"></i> Download Word</button>
-                <button id="printReport" class="btn-warning"><i class="fas fa-print"></i> Print Report</button>
+                <button class="btn-warning" id="printReport"><i class="fas fa-print"></i> Print</button>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script>
-        // ==================== ENHANCED MILESTONE DATA (10-15 per category, 6 domains) ====================
-        const milestoneData = {
-            "2": {
-                physical: [
-                    "Walks alone confidently", "Pulls toys while walking", "Begins to run stiffly", 
-                    "Kicks a ball forward", "Climbs onto furniture without help", "Walks up/down stairs with support",
-                    "Stands on tiptoes", "Throws ball overhand", "Scribbles spontaneously",
-                    "Builds tower of 4+ blocks", "Turns pages one at a time", "Drinks from open cup"
-                ],
-                cognitive: [
-                    "Finds hidden objects easily", "Sorts by shapes and colors", "Begins make-believe play",
-                    "Builds towers of 4+ blocks", "Completes sentences in familiar books", "Points to named objects in book",
-                    "Follows 2-step instructions", "Names items in picture book", "Matches objects to pictures",
-                    "Understands object permanence", "Imitates adult actions", "Solves simple problems",
-                    "Remembers where toys are kept", "Shows interest in new experiences"
-                ],
-                language: [
-                    "Points to named body parts", "Knows names of familiar people", "Says 2-4 word sentences",
-                    "Follows simple instructions", "Repeats overheard words", "Names common objects",
-                    "Uses 50+ words", "Asks for items by name", "Sings simple songs",
-                    "Uses pronouns (I, me, you)", "Describes events using words", "Answers simple questions",
-                    "Uses words to express needs", "Engages in short conversations", "Imitates animal sounds"
-                ],
-                social: [
-                    "Imitates adults and peers", "Shows growing independence", "Enjoys company of other children",
-                    "Shows defiant behavior", "Plays simple pretend games", "Shows affection to familiar people",
-                    "Takes turns with prompting", "Shows excitement with peers", "Expresses range of emotions",
-                    "Shows empathy when others hurt", "Parallel play alongside others", "Begins to share toys",
-                    "Recognizes self in mirror/photos", "Shows separation anxiety", "Seeks comfort from caregivers"
-                ],
-                behavioral: [
-                    "Follows simple routines", "Helps with simple tasks", "Shows frustration when unable to do tasks",
-                    "Begins to test limits", "Has temper tantrums", "Shows preference for certain activities",
-                    "Can wait briefly for needs", "Responds to redirection", "Shows pride in accomplishments",
-                    "Begins toilet training readiness", "Follows simple rules", "Cleans up with assistance",
-                    "Shows attachment to objects", "Transitions between activities", "Demonstrates emerging self-control"
-                ],
-                moral: [
-                    "Shows early signs of empathy", "Understands 'no' and simple rules", "Distinguishes between allowed/not allowed",
-                    "Shows guilt after misbehavior", "Comforts others in distress", "Begins to understand sharing",
-                    "Follows simple commands", "Shows preference for fairness", "Recognizes others' emotions",
-                    "Begins to understand consequences", "Shows concern for crying peers", "Responds to praise/scolding",
-                    "Learns from simple corrections", "Shows emerging sense of right/wrong", "Begins to take turns"
-                ]
-            },
-            "3": {
-                physical: [
-                    "Climbs well on playground equipment", "Runs easily without falling", "Pedals a tricycle",
-                    "Walks up/down stairs alternating feet", "Kicks and throws a small ball", "Hops on one foot briefly",
-                    "Catches large ball with arms", "Draws circles and lines", "Strings large beads",
-                    "Turns rotating handles", "Uses scissors with help", "Dresses with assistance",
-                    "Stacks 6+ blocks", "Jumps with both feet", "Pours from small pitcher"
-                ],
-                cognitive: [
-                    "Works toys with buttons/levers", "Plays make-believe with dolls", "Does 3-4 piece puzzles",
-                    "Understands concept of 'two'", "Copies a circle with crayon", "Names 4+ colors",
-                    "Understands counting to 5", "Sorts objects by size/shape", "Understands day/night",
-                    "Recalls parts of stories", "Follows 3-step instructions", "Understands 'same' and 'different'",
-                    "Engages in fantasy play", "Draws person with 2-3 parts", "Completes simple patterns"
-                ],
-                language: [
-                    "Follows 2-3 step instructions", "Names most familiar things", "Says first name, age, gender",
-                    "Understands prepositions (in, on, under)", "Speaks clearly most of the time", "Uses 3-4 word sentences",
-                    "Tells simple stories", "Knows 250-500 words", "Asks 'what/where/who' questions",
-                    "Uses plural words", "Sings nursery rhymes", "Uses past tense",
-                    "Describes what happened today", "Carries on conversations", "Understands 'big' vs 'little'"
-                ],
-                social: [
-                    "Takes turns in games", "Shows concern for crying friend", "Understands 'mine' and 'yours'",
-                    "Shows wide range of emotions", "Separates easily from parents", "Plays cooperatively with others",
-                    "Initiates play with peers", "Shows affection without prompting", "Follows simple group rules",
-                    "Expresses feelings verbally", "Plays dress-up and pretend", "Shows preference for certain friends",
-                    "Negotiates solutions to conflicts", "Shows pride in achievements", "Understands basic emotions in others"
-                ],
-                behavioral: [
-                    "Follows routines independently", "Helps with simple chores", "Waits turn with reminders",
-                    "Accepts redirection calmly", "Shows increasing self-control", "Uses words to express frustration",
-                    "Follows 2-3 rules consistently", "Transitions between activities smoothly", "Shows persistence with tasks",
-                    "Cleans up toys independently", "Shows table manners", "Uses toilet independently (day)",
-                    "Shows understanding of schedules", "Accepts 'no' without major tantrums", "Demonstrates emerging independence"
-                ],
-                moral: [
-                    "Shows empathy toward others", "Understands basic rules", "Apologizes with prompting",
-                    "Shows concern for fairness", "Distinguishes right from wrong", "Helps others in need",
-                    "Follows simple moral rules", "Shows guilt for misbehavior", "Shares with encouragement",
-                    "Understands 'taking turns'", "Shows kindness to younger children", "Follows instructions from authority",
-                    "Understands consequences", "Begins to understand honesty", "Shows emerging conscience"
-                ]
-            },
-            "4": {
-                physical: [
-                    "Hops on one foot multiple times", "Catches bounced ball most times", "Uses scissors to cut lines",
-                    "Draws person with 4+ body parts", "Pours and cuts with supervision", "Skips with practice",
-                    "Dresses independently", "Uses fork and spoon properly", "Draws squares and crosses",
-                    "Threads small beads", "Climbs with confidence", "Kicks ball with accuracy",
-                    "Runs smoothly with direction changes", "Builds complex block structures", "Uses pencil with proper grip"
-                ],
-                cognitive: [
-                    "Names 10+ colors", "Counts to 20", "Remembers parts of stories",
-                    "Understands 'same' and 'different'", "Plays board/card games", "Draws person with 6+ parts",
-                    "Understands time concepts (morning/afternoon)", "Follows 4-step instructions", "Sorts by multiple attributes",
-                    "Understands patterns", "Tells what comes next", "Engages in complex pretend play",
-                    "Understands quantity concepts", "Recalls 4-5 items", "Solves age-appropriate puzzles"
-                ],
-                language: [
-                    "Sings songs from memory", "Tells detailed stories", "Says first and last name",
-                    "Uses future tense", "Can say name and address", "Uses 1000+ words",
-                    "Speaks in 5-6 word sentences", "Uses 'and' and 'because'", "Tells jokes",
-                    "Asks 'why' questions", "Follows complex directions", "Describes events in detail",
-                    "Uses correct grammar mostly", "Rhymes words", "Participates in conversations"
-                ],
-                social: [
-                    "Enjoys new experiences", "Plays 'Mom' and 'Dad'", "Cooperates with other children",
-                    "Creative in make-believe play", "Prefers playing with others", "Negotiates with peers",
-                    "Shows understanding of others' feelings", "Takes turns without prompting", "Shows leadership in play",
-                    "Resolves conflicts verbally", "Shows empathy consistently", "Makes friends easily",
-                    "Understands social rules", "Shows pride in helping", "Plays complex group games"
-                ],
-                behavioral: [
-                    "Follows classroom rules", "Completes tasks independently", "Shows good self-regulation",
-                    "Manages frustration appropriately", "Follows multi-step routines", "Shows responsibility for belongings",
-                    "Demonstrates patience", "Accepts consequences", "Shows self-discipline",
-                    "Helps without being asked", "Shows persistence with challenges", "Follows safety rules",
-                    "Shows good hygiene habits", "Transitions easily between activities", "Demonstrates emerging leadership"
-                ],
-                moral: [
-                    "Understands fairness deeply", "Shows genuine empathy", "Tells truth (with reminders)",
-                    "Respects others' property", "Follows rules consistently", "Shows remorse for misbehavior",
-                    "Helps others spontaneously", "Understands concept of sharing", "Shows kindness to all",
-                    "Distinguishes fantasy from reality", "Understands consequences of actions", "Shows emerging sense of justice",
-                    "Respects authority figures", "Understands basic morality", "Shows conscience development"
-                ]
-            },
-            "5": {
-                physical: [
-                    "Stands on one foot 10+ seconds", "Hops and skips", "Uses fork, spoon, and knife",
-                    "Swings and climbs confidently", "May ride bike with training wheels", "Somersaults",
-                    "Draws detailed person", "Prints some letters/numbers", "Copies triangle and diamond",
-                    "Cuts with precision", "Ties shoelaces (with practice)", "Catches small ball",
-                    "Kicks ball with control", "Dresses completely independently", "Shows hand dominance"
-                ],
-                cognitive: [
-                    "Counts 20+ objects", "Draws person with 8+ body parts", "Prints letters and numbers",
-                    "Copies triangle shapes", "Understands time concepts (yesterday/tomorrow)", "Counts to 100",
-                    "Understands simple addition/subtraction", "Names days of week", "Identifies coins",
-                    "Understands left and right", "Follows 5-step directions", "Tells time to the hour",
-                    "Understands cause and effect", "Plans play sequences", "Shows logical thinking"
-                ],
-                language: [
-                    "Speaks very clearly", "Tells stories with full sentences", "Says name and full address",
-                    "Identifies all coins", "Answers questions about stories", "Uses 2000+ words",
-                    "Uses complex sentences", "Describes objects in detail", "Uses correct verb tenses",
-                    "Understands jokes and riddles", "Recites phone number", "Uses future and past tense correctly",
-                    "Engages in detailed conversations", "Tells jokes", "Understands 5000+ words"
-                ],
-                social: [
-                    "Wants to please friends", "Agrees with rules", "Likes to sing, dance, act",
-                    "Aware of gender differences", "Distinguishes real from make-believe", "Shows strong friendships",
-                    "Cooperates in groups", "Shows empathy consistently", "Resolves conflicts independently",
-                    "Shows leadership skills", "Understands social expectations", "Plays complex group games",
-                    "Shows concern for others", "Negotiates effectively", "Shows confidence in social settings"
-                ],
-                behavioral: [
-                    "Follows complex rules", "Shows good self-control", "Completes chores independently",
-                    "Manages emotions well", "Shows responsibility", "Follows multi-step routines without reminders",
-                    "Demonstrates patience", "Accepts disappointment appropriately", "Shows good classroom behavior",
-                    "Helps others willingly", "Shows persistence with difficult tasks", "Follows safety rules independently",
-                    "Shows good hygiene habits", "Manages time appropriately", "Demonstrates leadership behavior"
-                ],
-                moral: [
-                    "Understands right from wrong clearly", "Shows strong sense of fairness", "Tells truth consistently",
-                    "Respects others' property and rights", "Follows rules without reminders", "Shows genuine remorse",
-                    "Helps those in need", "Understands concept of justice", "Shows kindness to all",
-                    "Understands consequences deeply", "Shows strong conscience", "Makes moral judgments",
-                    "Respects authority appropriately", "Understands honesty importance", "Shows emerging moral reasoning"
-                ]
-            },
-            "6": {
-                physical: [
-                    "Jumps rope", "Rides bicycle independently", "Improved handwriting legibility",
-                    "Sports skills developing", "Good coordination in activities", "Runs with speed and control",
-                    "Hops on one foot easily", "Catches various ball sizes", "Uses tools with precision",
-                    "Draws with detail", "Writes letters and numbers correctly", "Dresses quickly",
-                    "Shows good balance", "Participates in organized sports", "Demonstrates fine motor control"
-                ],
-                cognitive: [
-                    "Beginning reading independently", "Simple math (addition/subtraction)", "Understands cause and effect deeply",
-                    "Improved memory recall", "Follows multi-step directions", "Reads simple books",
-                    "Writes simple sentences", "Counts to 100+", "Understands time to half-hour",
-                    "Sorts by multiple attributes", "Solves complex puzzles", "Understands seasons and holidays",
-                    "Shows logical reasoning", "Plans ahead for activities", "Understands simple fractions"
-                ],
-                language: [
-                    "Uses complex sentences", "Tells complete stories with sequence", "Answers questions appropriately",
-                    "Expanding vocabulary rapidly", "Uses correct grammar", "Reads 100+ sight words",
-                    "Writes complete sentences", "Follows complex instructions", "Understands figurative language",
-                    "Participates in discussions", "Retells stories accurately", "Uses descriptive language",
-                    "Understands 10000+ words", "Asks thoughtful questions", "Expresses ideas clearly"
-                ],
-                social: [
-                    "Understands teamwork", "Friendships very important", "Follows rules consistently",
-                    "Emotional control improving", "Shows deep empathy", "Works well in groups",
-                    "Shows leadership naturally", "Resolves peer conflicts", "Understands social hierarchies",
-                    "Shows loyalty to friends", "Cooperates in team activities", "Understands others' perspectives",
-                    "Shows appropriate assertiveness", "Makes and keeps friends", "Navigates social situations well"
-                ],
-                behavioral: [
-                    "Follows classroom rules independently", "Shows strong self-regulation", "Completes homework with minimal help",
-                    "Manages time appropriately", "Shows responsibility for actions", "Demonstrates good study habits",
-                    "Accepts constructive criticism", "Shows persistence with challenges", "Follows safety rules consistently",
-                    "Helps without being asked", "Shows good organizational skills", "Manages emotions maturely",
-                    "Demonstrates self-discipline", "Follows through on commitments", "Shows emerging independence"
-                ],
-                moral: [
-                    "Strong sense of right and wrong", "Shows deep empathy and compassion", "Honest in most situations",
-                    "Respects others' rights and property", "Follows rules even when unsupervised", "Shows genuine guilt for wrongdoing",
-                    "Helps others spontaneously", "Strong sense of fairness and justice", "Shows kindness consistently",
-                    "Understands moral consequences", "Strong conscience development", "Makes moral decisions independently",
-                    "Respects authority figures", "Understands importance of honesty", "Shows mature moral reasoning"
-                ]
-            },
-            "7": {
-                physical: [
-                    "Sports proficiency increasing", "Neat handwriting", "Uses tools properly and safely",
-                    "Good physical coordination", "Increased stamina", "Rides bike skillfully",
-                    "Swims with instruction", "Participates in team sports", "Shows good balance and agility",
-                    "Draws with perspective", "Writes in cursive (with practice)", "Ties shoes quickly",
-                    "Shows rhythm in movement", "Good hand-eye coordination", "Demonstrates physical confidence"
-                ],
-                cognitive: [
-                    "Reading fluency improving", "Math problem solving", "Logical thinking emerging",
-                    "Increased curiosity", "Organizes thoughts and materials", "Reads chapter books",
-                    "Writes paragraphs", "Understands multiplication concepts", "Tells time accurately",
-                    "Understands money concepts", "Solves multi-step problems", "Shows abstract thinking",
-                    "Plans and executes projects", "Understands cause and effect relationships", "Shows critical thinking"
-                ],
-                language: [
-                    "Speaks in different styles", "Detailed storytelling", "Understands humor and sarcasm",
-                    "Expresses opinions clearly", "Follows complex instructions", "Reads fluently",
-                    "Writes organized paragraphs", "Uses proper punctuation", "Participates in debates",
-                    "Understands idioms", "Gives oral presentations", "Uses persuasive language",
-                    "Vocabulary 20000+ words", "Understands multiple meanings", "Communicates effectively"
-                ],
-                social: [
-                    "Works well in diverse groups", "Shows leadership abilities", "Empathetic to others",
-                    "Problem solves with peers", "Understands fairness deeply", "Maintains close friendships",
-                    "Navigates social conflicts", "Shows awareness of others' feelings", "Cooperates in team settings",
-                    "Shows appropriate independence", "Understands social norms", "Shows loyalty in friendships",
-                    "Respects differences in others", "Demonstrates social confidence", "Shows emerging maturity"
-                ],
-                behavioral: [
-                    "Strong self-regulation", "Completes tasks independently", "Shows good time management",
-                    "Follows rules consistently", "Demonstrates responsibility", "Shows good study habits",
-                    "Manages frustration well", "Accepts feedback positively", "Shows organizational skills",
-                    "Helps others willingly", "Shows persistence with difficult tasks", "Follows safety rules",
-                    "Demonstrates self-discipline", "Shows good decision making", "Takes responsibility for actions"
-                ],
-                moral: [
-                    "Strong moral compass", "Shows deep empathy", "Honest and trustworthy",
-                    "Respects diversity", "Follows rules even when unsupervised", "Shows strong conscience",
-                    "Helps those in need", "Strong sense of justice", "Shows kindness to all",
-                    "Understands ethical concepts", "Makes moral judgments", "Respects authority",
-                    "Understands consequences of actions", "Shows integrity", "Emerging ethical reasoning"
-                ]
-            },
-            "8": {
-                physical: [
-                    "Competitive in sports", "Learns new physical skills quickly", "High energy levels",
-                    "Fine motor skills refined", "Growing independence in self-care", "Participates in organized sports",
-                    "Shows good coordination", "Writes neatly and quickly", "Uses tools skillfully",
-                    "Draws with detail and accuracy", "Shows good physical stamina", "Demonstrates athletic abilities",
-                    "Good balance and agility", "Participates in physical activities enthusiastically", "Shows hand dominance clearly"
-                ],
-                cognitive: [
-                    "Analytical thinking", "Plans ahead effectively", "Strong memory skills",
-                    "Creative expression", "Abstract concepts emerging", "Reads complex texts",
-                    "Writes multi-paragraph essays", "Understands fractions and decimals", "Solves complex problems",
-                    "Shows logical reasoning", "Conducts simple research", "Understands multiple perspectives",
-                    "Shows critical thinking", "Organizes information well", "Demonstrates independent learning"
-                ],
-                language: [
-                    "Engages in debates", "Discusses various topics knowledgeably", "Understands complex jokes",
-                    "Follows complex directions", "Writes organized paragraphs", "Reads at advanced level",
-                    "Uses sophisticated vocabulary", "Gives detailed presentations", "Understands figurative language",
-                    "Uses persuasive techniques", "Participates in group discussions", "Expresses complex ideas",
-                    "Understands multiple meanings", "Uses appropriate tone", "Communicates with confidence"
-                ],
-                social: [
-                    "Peer relationships crucial", "Understands social norms deeply", "Self-esteem developing",
-                    "Cooperative skills advanced", "Accepts responsibility", "Maintains multiple friendships",
-                    "Navigates complex social situations", "Shows leadership in groups", "Understands social dynamics",
-                    "Shows empathy consistently", "Resolves conflicts independently", "Respects others' opinions",
-                    "Shows loyalty in friendships", "Demonstrates social maturity", "Understands group dynamics"
-                ],
-                behavioral: [
-                    "Excellent self-regulation", "Completes complex tasks independently", "Shows strong time management",
-                    "Follows rules without reminders", "Demonstrates responsibility consistently", "Shows excellent study habits",
-                    "Manages emotions maturely", "Accepts criticism constructively", "Shows strong organizational skills",
-                    "Helps others proactively", "Shows grit and persistence", "Follows safety protocols",
-                    "Demonstrates strong self-discipline", "Makes good decisions", "Shows leadership in behavior"
-                ],
-                moral: [
-                    "Well-developed moral compass", "Shows deep and consistent empathy", "Trustworthy and honest",
-                    "Respects all individuals", "Follows rules based on understanding", "Strong conscience",
-                    "Helps others selflessly", "Deep sense of fairness and justice", "Shows consistent kindness",
-                    "Understands complex ethical issues", "Makes principled decisions", "Respects legitimate authority",
-                    "Understands long-term consequences", "Shows strong integrity", "Demonstrates ethical reasoning"
-                ]
-            },
-            "9": {
-                physical: [
-                    "Athletic skills improving", "Increased endurance", "Tries new physical activities",
-                    "Early puberty signs possible", "Good body control", "Excels in specific sports",
-                    "Shows physical confidence", "Fine motor skills excellent", "Uses tools with precision",
-                    "Draws and writes with skill", "Shows good physical coordination", "Participates in competitive sports",
-                    "Demonstrates physical strength", "Shows good balance", "Takes care of personal hygiene independently"
-                ],
-                cognitive: [
-                    "Critical thinking developed", "Research skills improving", "Completes projects independently",
-                    "Abstract reasoning strong", "Problem solving strategies advanced", "Reads and analyzes complex texts",
-                    "Writes well-structured essays", "Understands advanced math concepts", "Solves multi-step problems",
-                    "Shows strong logical reasoning", "Conducts independent research", "Understands multiple viewpoints",
-                    "Shows advanced critical thinking", "Organizes complex information", "Demonstrates self-directed learning"
-                ],
-                language: [
-                    "Effective communication", "Writing proficiency advanced", "Learns from multiple sources",
-                    "Gives polished presentations", "Persuasive speaking", "Reads at advanced level",
-                    "Uses sophisticated vocabulary", "Understands complex texts", "Participates in debates skillfully",
-                    "Uses language appropriately in contexts", "Expresses complex ideas clearly", "Understands nuanced language",
-                    "Writes creatively and analytically", "Uses proper grammar consistently", "Communicates with confidence and clarity"
-                ],
-                social: [
-                    "Identity exploration", "Group belonging important", "Takes responsibility for actions",
-                    "Emotional ups and downs", "Strong friendships", "Navigates peer pressure",
-                    "Shows leadership in groups", "Understands complex social dynamics", "Shows empathy consistently",
-                    "Resolves conflicts maturely", "Respects diverse perspectives", "Shows loyalty in friendships",
-                    "Demonstrates social awareness", "Understands social hierarchies", "Shows emerging maturity in relationships"
-                ],
-                behavioral: [
-                    "Excellent self-regulation", "Completes complex projects independently", "Shows strong time management skills",
-                    "Follows rules consistently", "Demonstrates responsibility", "Shows excellent organizational skills",
-                    "Manages emotions maturely", "Accepts feedback constructively", "Shows strong self-discipline",
-                    "Helps others proactively", "Shows persistence with challenges", "Makes good decisions independently",
-                    "Demonstrates leadership behavior", "Follows through on commitments", "Shows strong work ethic"
-                ],
-                moral: [
-                    "Strong moral compass", "Shows deep empathy consistently", "Trustworthy and honest",
-                    "Respects diversity and inclusion", "Follows rules based on understanding", "Strong conscience",
-                    "Helps others selflessly", "Deep sense of justice", "Shows consistent kindness to all",
-                    "Understands complex ethical dilemmas", "Makes principled decisions", "Respects authority appropriately",
-                    "Understands consequences deeply", "Shows strong integrity", "Demonstrates mature ethical reasoning"
-                ]
-            },
-            "10": {
-                physical: [
-                    "Early puberty signs common", "Competitive in sports", "Uses energy appropriately",
-                    "Learns complex physical skills", "Good coordination", "Excels in chosen sports",
-                    "Shows physical confidence", "Fine motor skills highly refined", "Uses tools expertly",
-                    "Draws and writes with skill", "Shows excellent physical coordination", "Participates in competitive activities",
-                    "Demonstrates physical strength", "Shows good balance and agility", "Maintains personal hygiene independently"
-                ],
-                cognitive: [
-                    "Solves complex problems", "Long-term planning abilities", "Analyzes information critically",
-                    "Decision making improved", "Independent learning strong", "Reads and analyzes advanced texts",
-                    "Writes sophisticated essays", "Understands advanced mathematics", "Solves multi-step complex problems",
-                    "Shows excellent logical reasoning", "Conducts thorough research", "Understands multiple perspectives deeply",
-                    "Shows advanced critical thinking", "Organizes complex information efficiently", "Demonstrates self-directed learning mastery"
-                ],
-                language: [
-                    "Effective discussions on complex topics", "Mature writing style", "Debates various topics skillfully",
-                    "Persuasive skills advanced", "Comprehends complex texts", "Reads at advanced level",
-                    "Uses sophisticated vocabulary extensively", "Understands nuanced language", "Gives polished presentations",
-                    "Uses language appropriately in all contexts", "Expresses complex ideas eloquently", "Understands figurative language deeply",
-                    "Writes creatively and analytically", "Uses proper grammar consistently", "Communicates with confidence and sophistication"
-                ],
-                social: [
-                    "Deep friendships important", "Moral values developing", "Independence growing",
-                    "Social awareness strong", "Peer influence significant", "Navigates complex social situations",
-                    "Shows leadership in multiple contexts", "Understands social dynamics deeply", "Shows consistent empathy",
-                    "Resolves conflicts maturely", "Respects diverse perspectives", "Shows strong loyalty in friendships",
-                    "Demonstrates social maturity", "Understands group dynamics", "Shows emerging adult-like relationships"
-                ],
-                behavioral: [
-                    "Excellent self-regulation", "Completes complex long-term projects independently", "Shows strong time management",
-                    "Follows rules consistently", "Demonstrates high responsibility", "Shows excellent organizational skills",
-                    "Manages emotions maturely", "Accepts criticism constructively", "Shows strong self-discipline",
-                    "Helps others proactively and consistently", "Shows exceptional persistence", "Makes sound decisions independently",
-                    "Demonstrates leadership behavior consistently", "Follows through on all commitments", "Shows excellent work ethic"
-                ],
-                moral: [
-                    "Strong moral compass well-developed", "Shows deep and consistent empathy", "Highly trustworthy and honest",
-                    "Deeply respects diversity and inclusion", "Follows rules based on strong understanding", "Strong conscience guides actions",
-                    "Helps others selflessly and consistently", "Deep commitment to justice", "Shows consistent kindness to everyone",
-                    "Understands complex ethical dilemmas deeply", "Makes principled decisions consistently", "Respects legitimate authority appropriately",
-                    "Understands long-term consequences thoroughly", "Shows exceptional integrity", "Demonstrates mature ethical reasoning"
-                ]
-            }
-        };
-
-        // ==================== GLOBAL VARIABLES ====================
-        let currentProfile = null;
-        let profiles = [];
-        let categoryChart = null;
-        let progressChart = null;
-        let recognition = null;
-
-        const categories = ['physical', 'cognitive', 'language', 'social', 'behavioral', 'moral'];
-        const categoryNames = {
-            physical: 'Physical Development',
-            cognitive: 'Cognitive Development',
-            language: 'Language Development',
-            social: 'Social & Emotional',
-            behavioral: 'Behavioral Development',
-            moral: 'Moral Development'
-        };
-        const categoryIcons = {
-            physical: 'fa-running',
-            cognitive: 'fa-brain',
-            language: 'fa-comments',
-            social: 'fa-users',
-            behavioral: 'fa-heart',
-            moral: 'fa-balance-scale'
-        };
-
-        // ==================== HELPER FUNCTIONS ====================
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProfiles();
-            initializeCharts();
-            attachEventListeners();
-            initializeVoiceRecognition();
-            initReactions();
-            initScrollButtons();
-            
-            if (profiles.length) {
-                loadProfile(profiles[0].id);
-            } else {
-                loadMilestones();
-                updateStats();
-            }
-            
-            showToast('✨ Welcome! Track milestones across 6 developmental domains.');
-        });
-
-        function initScrollButtons() {
-            const scrollUpBtn = document.getElementById('scrollUpBtn');
-            const scrollDownBtn = document.getElementById('scrollDownBtn');
-            window.addEventListener('scroll', () => {
-                scrollUpBtn.classList.toggle('visible', window.scrollY > 200);
-                scrollDownBtn.classList.toggle('visible', true);
-            });
-            scrollUpBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-            scrollDownBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-        }
-
-        function initReactions() {
-            const container = document.getElementById('reactionsContainer');
-            const reactions = ['👍','❤️','😮','😢','😠','😂','🎉'];
-            const toolId = 'milestone-checker';
-            const stored = JSON.parse(localStorage.getItem(`reactions_${toolId}`) || '{}');
-            
-            reactions.forEach(emoji => {
-                const count = stored[emoji] || 0;
-                const userReacted = localStorage.getItem(`user_reacted_${toolId}_${emoji}`) === 'true';
-                const btn = document.createElement('button');
-                btn.className = `reaction-btn ${userReacted ? 'active' : ''}`;
-                btn.innerHTML = `${emoji} <span class="count">${count}</span>`;
-                btn.addEventListener('click', () => {
-                    if (localStorage.getItem(`user_reacted_${toolId}_${emoji}`)) {
-                        showToast('You already reacted!', 'error');
-                        return;
-                    }
-                    btn.querySelector('.count').textContent = count + 1;
-                    btn.classList.add('active');
-                    localStorage.setItem(`user_reacted_${toolId}_${emoji}`, 'true');
-                    stored[emoji] = count + 1;
-                    localStorage.setItem(`reactions_${toolId}`, JSON.stringify(stored));
-                    showToast(`Reacted with ${emoji}`);
-                });
-                container.appendChild(btn);
-            });
-        }
-
-        function loadProfiles() {
-            const saved = localStorage.getItem('childProfiles');
-            if (saved) { profiles = JSON.parse(saved); renderProfileSelector(); }
-        }
-
-        function saveProfiles() {
-            localStorage.setItem('childProfiles', JSON.stringify(profiles));
-        }
-
-        function renderProfileSelector() {
-            const selector = document.getElementById('profileSelector');
-            selector.innerHTML = '';
-            profiles.forEach(profile => {
-                const chip = document.createElement('div');
-                chip.className = `profile-chip ${currentProfile === profile.id ? 'active' : ''}`;
-                chip.innerHTML = `<i class="fas fa-child"></i><span>${profile.name}</span><i class="fas fa-times" onclick="deleteProfile('${profile.id}')" style="margin-left:5px;"></i>`;
-                chip.onclick = (e) => { if (!e.target.classList.contains('fa-times')) loadProfile(profile.id); };
-                selector.appendChild(chip);
-            });
-        }
-
-        function loadProfile(profileId) {
-            const profile = profiles.find(p => p.id === profileId);
-            if (profile) {
-                currentProfile = profileId;
-                document.getElementById('childName').value = profile.name;
-                document.getElementById('childAge').value = profile.age;
-                document.getElementById('childGender').value = profile.gender;
-                document.getElementById('displayChildName').textContent = profile.name;
-                document.getElementById('displayChildInfo').textContent = `Age: ${profile.age} years`;
-                if (profile.avatar) document.querySelector('.profile-avatar').innerHTML = `<img src="${profile.avatar}">`;
-                loadMilestones();
-                updateStats();
-                renderProfileSelector();
-                updateCharts();
-            }
-        }
-
-        window.deleteProfile = function(profileId) {
-            if (confirm('Delete this profile?')) {
-                profiles = profiles.filter(p => p.id !== profileId);
-                saveProfiles();
-                for (let age = 2; age <= 10; age++) {
-                    categories.forEach(cat => {
-                        milestoneData[age]?.[cat]?.forEach((_, i) => {
-                            localStorage.removeItem(`profile-${profileId}-milestone-${age}-${cat}-${i}`);
-                        });
-                    });
-                }
-                profiles.length ? loadProfile(profiles[0].id) : (currentProfile = null, location.reload());
-            }
-        };
-
-        function initializeCharts() {
-            const ctx1 = document.getElementById('categoryChart').getContext('2d');
-            const ctx2 = document.getElementById('progressChart').getContext('2d');
-            
-            categoryChart = new Chart(ctx1, {
-                type: 'radar',
-                data: {
-                    labels: Object.values(categoryNames),
-                    datasets: [{
-                        label: 'Completion Rate (%)',
-                        data: [0, 0, 0, 0, 0, 0],
-                        backgroundColor: 'rgba(74, 111, 165, 0.2)',
-                        borderColor: 'rgba(74, 111, 165, 1)',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    scales: { r: { beginAtZero: true, max: 100 } }
-                }
-            });
-            
-            progressChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Progress Over Time (%)',
-                        data: [],
-                        borderColor: '#9b59b6',
-                        backgroundColor: 'rgba(155, 89, 182, 0.2)',
-                        tension: 0.4
-                    }]
-                }
-            });
-        }
-
-        function loadMilestones() {
-            const age = document.getElementById('childAge').value;
-            document.querySelectorAll('.age-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.age === age));
-            
-            const container = document.getElementById('milestoneGridContainer');
-            container.innerHTML = '';
-            
-            categories.forEach(cat => {
-                const card = document.createElement('div');
-                card.className = 'milestone-category-card';
-                card.innerHTML = `
-                    <div class="category-header ${cat}">
-                        <i class="fas ${categoryIcons[cat]}"></i> ${categoryNames[cat]}
-                    </div>
-                    <div class="milestone-items-list" id="${cat}Milestones"></div>
-                    <div class="category-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="${cat}ProgressFill" style="width:0%"></div>
-                        </div>
-                        <p style="margin-top:8px; text-align:center; font-size:0.9rem;">
-                            <span id="${cat}Completed">0</span>/<span id="${cat}Total">0</span> completed
-                        </p>
-                    </div>
-                `;
-                container.appendChild(card);
-                
-                const listContainer = document.getElementById(`${cat}Milestones`);
-                milestoneData[age]?.[cat]?.forEach((milestone, i) => {
-                    const key = currentProfile ? `profile-${currentProfile}-milestone-${age}-${cat}-${i}` : `milestone-${age}-${cat}-${i}`;
-                    const isCompleted = localStorage.getItem(key) === 'true';
-                    const item = document.createElement('div');
-                    item.className = `milestone-item ${isCompleted ? 'completed' : ''}`;
-                    item.innerHTML = `
-                        <input type="checkbox" class="milestone-checkbox" id="${key}" ${isCompleted ? 'checked' : ''}>
-                        <label class="milestone-text" for="${key}">${milestone}</label>
-                    `;
-                    listContainer.appendChild(item);
-                });
-            });
-            
-            updateStats();
-            if (currentProfile) updateCharts();
-        }
-
-        function updateStats() {
-            const age = document.getElementById('childAge').value;
-            let totalCompleted = 0, totalMilestones = 0;
-            const categoryRates = {};
-            
-            categories.forEach(cat => {
-                let completed = 0;
-                const total = milestoneData[age]?.[cat]?.length || 0;
-                milestoneData[age]?.[cat]?.forEach((_, i) => {
-                    const key = currentProfile ? `profile-${currentProfile}-milestone-${age}-${cat}-${i}` : `milestone-${age}-${cat}-${i}`;
-                    if (localStorage.getItem(key) === 'true') completed++;
-                });
-                
-                totalCompleted += completed;
-                totalMilestones += total;
-                const rate = total ? Math.round((completed / total) * 100) : 0;
-                categoryRates[cat] = rate;
-                
-                document.getElementById(`${cat}Progress`).textContent = `${rate}%`;
-                document.getElementById(`${cat}Completed`).textContent = completed;
-                document.getElementById(`${cat}Total`).textContent = total;
-                document.getElementById(`${cat}ProgressFill`).style.width = `${rate}%`;
-            });
-            
-            const overallRate = totalMilestones ? Math.round((totalCompleted / totalMilestones) * 100) : 0;
-            document.getElementById('overallProgress').textContent = `${overallRate}%`;
-            document.getElementById('progressFill').style.width = `${overallRate}%`;
-            
-            if (currentProfile) {
-                const history = JSON.parse(localStorage.getItem(`profile-${currentProfile}-history`) || '[]');
-                const today = new Date().toLocaleDateString();
-                if (!history.length || history[history.length-1].date !== today) {
-                    history.push({ date: today, rate: overallRate });
-                    if (history.length > 30) history.shift();
-                    localStorage.setItem(`profile-${currentProfile}-history`, JSON.stringify(history));
-                }
-            }
-        }
-
-        function updateCharts() {
-            if (!currentProfile) return;
-            const age = document.getElementById('childAge').value;
-            const data = categories.map(cat => {
-                let completed = 0;
-                milestoneData[age]?.[cat]?.forEach((_, i) => {
-                    if (localStorage.getItem(`profile-${currentProfile}-milestone-${age}-${cat}-${i}`) === 'true') completed++;
-                });
-                return milestoneData[age]?.[cat]?.length ? (completed / milestoneData[age][cat].length) * 100 : 0;
-            });
-            
-            categoryChart.data.datasets[0].data = data;
-            categoryChart.update();
-            
-            const history = JSON.parse(localStorage.getItem(`profile-${currentProfile}-history`) || '[]');
-            if (history.length) {
-                progressChart.data.labels = history.map(h => h.date);
-                progressChart.data.datasets[0].data = history.map(h => h.rate);
-                progressChart.update();
-            }
-        }
-
-        function attachEventListeners() {
-            document.getElementById('pageShareBtn').addEventListener('click', async () => {
-                try {
-                    await navigator.clipboard.writeText(window.location.href);
-                    showToast('🔗 Page link copied!');
-                } catch { prompt('Copy this link:', window.location.href); }
-            });
-            
-            document.getElementById('backHomeBtn').addEventListener('click', () => window.location.href = '/');
-            
-            document.querySelectorAll('.social-icon').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const platform = this.dataset.platform;
-                    const url = encodeURIComponent(window.location.href);
-                    const text = encodeURIComponent('Developmental Milestone Checker - 6 Domains!');
-                    let shareUrl = '';
-                    switch(platform) {
-                        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
-                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`; break;
-                        case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`; break;
-                        case 'whatsapp': shareUrl = `https://wa.me/?text=${text}%20${url}`; break;
-                        case 'email': shareUrl = `mailto:?subject=${text}&body=${url}`; break;
-                    }
-                    if (shareUrl) { window.open(shareUrl, '_blank', 'width=600,height=400'); showToast(`Shared on ${platform}!`); }
-                });
-            });
-            
-            document.getElementById('saveChildInfo').addEventListener('click', () => {
-                const name = document.getElementById('childName').value.trim();
-                if (!name) return showToast('Please enter name', 'error');
-                const age = document.getElementById('childAge').value;
-                const gender = document.getElementById('childGender').value;
-                
-                if (currentProfile) {
-                    const p = profiles.find(p => p.id === currentProfile);
-                    if (p) { p.name = name; p.age = age; p.gender = gender; }
-                } else {
-                    const np = { id: Date.now().toString(), name, age, gender };
-                    profiles.push(np);
-                    currentProfile = np.id;
-                }
-                saveProfiles();
-                document.getElementById('displayChildName').textContent = name;
-                document.getElementById('displayChildInfo').textContent = `Age: ${age} years`;
-                renderProfileSelector();
-                showToast('Profile saved!');
-            });
-            
-            document.getElementById('addNewProfile').addEventListener('click', () => {
-                document.getElementById('childName').value = '';
-                currentProfile = null;
-                document.getElementById('displayChildName').textContent = "Child's Name";
-                document.querySelector('.profile-avatar').innerHTML = '<i class="fas fa-child"></i><input type="file" id="avatarInput" accept="image/*">';
-                loadMilestones();
-            });
-            
-            document.querySelectorAll('.age-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.getElementById('childAge').value = this.dataset.age;
-                    loadMilestones();
-                });
-            });
-            
-            document.addEventListener('change', e => {
-                if (e.target.classList.contains('milestone-checkbox')) {
-                    localStorage.setItem(e.target.id, e.target.checked);
-                    e.target.closest('.milestone-item').classList.toggle('completed', e.target.checked);
-                    updateStats();
-                    if (currentProfile) updateCharts();
-                }
-            });
-            
-            document.getElementById('resetChecklist').addEventListener('click', () => {
-                if (confirm('Reset all milestones?')) {
-                    const age = document.getElementById('childAge').value;
-                    categories.forEach(cat => {
-                        milestoneData[age]?.[cat]?.forEach((_, i) => {
-                            const key = currentProfile ? `profile-${currentProfile}-milestone-${age}-${cat}-${i}` : `milestone-${age}-${cat}-${i}`;
-                            localStorage.removeItem(key);
-                        });
-                    });
-                    loadMilestones();
-                    showToast('Checklist reset');
-                }
-            });
-            
-            document.getElementById('generateReport').addEventListener('click', generateFullReport);
-            document.getElementById('downloadWord').addEventListener('click', generateWordReport);
-            
-            document.getElementById('closeModal').addEventListener('click', () => {
-                document.getElementById('reportModal').style.display = 'none';
-            });
-            
-            document.getElementById('modalDownloadWord').addEventListener('click', () => {
-                generateWordReport();
-                document.getElementById('reportModal').style.display = 'none';
-            });
-            
-            document.getElementById('printReport').addEventListener('click', () => window.print());
-            
-            document.getElementById('darkModeToggle').addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                this.querySelector('i').classList.toggle('fa-moon');
-                this.querySelector('i').classList.toggle('fa-sun');
-            });
-            
-            document.getElementById('avatarUpload').addEventListener('click', () => document.getElementById('avatarInput').click());
-            document.getElementById('avatarInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = ev => {
-                        document.querySelector('.profile-avatar').innerHTML = `<img src="${ev.target.result}">`;
-                        if (currentProfile) {
-                            const p = profiles.find(p => p.id === currentProfile);
-                            if (p) { p.avatar = ev.target.result; saveProfiles(); }
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            
-            document.getElementById('sendMessage').addEventListener('click', sendChatMessage);
-            document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChatMessage(); });
-            document.getElementById('chatHeader').addEventListener('click', e => { if (!e.target.closest('button')) document.getElementById('aiChat').classList.toggle('minimized'); });
-            document.getElementById('closeChat').addEventListener('click', () => document.getElementById('aiChat').style.display = 'none');
-            
-            document.getElementById('shareReport').addEventListener('click', () => {
-                generateFullReport();
-                setTimeout(() => document.getElementById('reportModal').style.display = 'flex', 100);
-            });
-        }
-
-        function initializeVoiceRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = 'en-US';
-                recognition.onresult = e => {
-                    document.getElementById('chatInput').value = e.results[0][0].transcript;
-                    sendChatMessage();
-                };
-            }
-            
-            document.getElementById('voiceInput').addEventListener('click', function() {
-                if (recognition) {
-                    this.classList.add('recording');
-                    recognition.start();
-                    setTimeout(() => this.classList.remove('recording'), 2000);
-                } else {
-                    showToast('Voice not supported', 'error');
-                }
-            });
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const msg = input.value.trim();
-            if (!msg) return;
-            
-            const msgs = document.getElementById('chatMessages');
-            msgs.innerHTML += `<div class="message user"><i class="fas fa-user"></i> ${msg}</div>`;
-            input.value = '';
-            msgs.scrollTop = msgs.scrollHeight;
-            
-            setTimeout(() => {
-                msgs.innerHTML += `<div class="message ai"><i class="fas fa-robot"></i> I'm here to help with developmental milestones! Check the 6 domains above.</div>`;
-                msgs.scrollTop = msgs.scrollHeight;
-            }, 500);
-        }
-
-        function generateFullReport() {
-            if (!currentProfile) return showToast('Save profile first', 'error');
-            
-            const profile = profiles.find(p => p.id === currentProfile);
-            const age = profile.age;
-            
-            document.getElementById('reportChildName').textContent = `${profile.name}'s Developmental Report (${age} years)`;
-            document.getElementById('reportDate').textContent = `Date: ${new Date().toLocaleDateString()}`;
-            
-            const reportGrid = document.getElementById('reportGrid');
-            reportGrid.innerHTML = '';
-            
-            let totalCompleted = 0, totalMilestones = 0;
-            
-            categories.forEach(cat => {
-                let completed = 0;
-                const total = milestoneData[age]?.[cat]?.length || 0;
-                const completedItems = [];
-                const pendingItems = [];
-                
-                milestoneData[age]?.[cat]?.forEach((m, i) => {
-                    const key = `profile-${currentProfile}-milestone-${age}-${cat}-${i}`;
-                    if (localStorage.getItem(key) === 'true') {
-                        completed++;
-                        completedItems.push(m);
-                    } else {
-                        pendingItems.push(m);
-                    }
-                });
-                
-                totalCompleted += completed;
-                totalMilestones += total;
-                
-                const card = document.createElement('div');
-                card.className = `report-category-card ${cat}`;
-                card.innerHTML = `
-                    <h3><i class="fas ${categoryIcons[cat]}"></i> ${categoryNames[cat]}</h3>
-                    <p><strong>${completed}/${total} completed (${total ? Math.round(completed/total*100) : 0}%)</strong></p>
-                    <h4 style="margin-top:15px;">✓ Completed:</h4>
-                    <ul class="report-milestone-list">${completedItems.map(m => `<li><i class="fas fa-check-circle"></i> ${m}</li>`).join('') || '<li>None yet</li>'}</ul>
-                    <h4 style="margin-top:15px;">○ Pending:</h4>
-                    <ul class="report-milestone-list">${pendingItems.map(m => `<li><i class="far fa-circle"></i> ${m}</li>`).join('') || '<li>All completed!</li>'}</ul>
-                `;
-                reportGrid.appendChild(card);
-            });
-            
-            const overallRate = totalMilestones ? Math.round((totalCompleted / totalMilestones) * 100) : 0;
-            document.getElementById('modalCompletionRate').textContent = `${overallRate}% Overall Complete`;
-            
-            document.getElementById('reportModal').style.display = 'flex';
-        }
-
-        function generateWordReport() {
-            if (!currentProfile) return showToast('Save profile first', 'error');
-            
-            const profile = profiles.find(p => p.id === currentProfile);
-            const age = profile.age;
-            
-            let content = `DEVELOPMENTAL MILESTONE REPORT\n`;
-            content += `Child: ${profile.name} | Age: ${age} years | Gender: ${profile.gender}\n`;
-            content += `Date: ${new Date().toLocaleDateString()}\n`;
-            content += `=${'='.repeat(60)}\n\n`;
-            
-            let totalCompleted = 0, totalMilestones = 0;
-            
-            categories.forEach(cat => {
-                let completed = 0;
-                const total = milestoneData[age]?.[cat]?.length || 0;
-                
-                content += `${categoryNames[cat].toUpperCase()}\n${'-'.repeat(40)}\n`;
-                
-                milestoneData[age]?.[cat]?.forEach((m, i) => {
-                    const key = `profile-${currentProfile}-milestone-${age}-${cat}-${i}`;
-                    const isDone = localStorage.getItem(key) === 'true';
-                    if (isDone) completed++;
-                    content += `${isDone ? '[✓]' : '[ ]'} ${m}\n`;
-                });
-                
-                totalCompleted += completed;
-                totalMilestones += total;
-                content += `\nProgress: ${completed}/${total} (${total ? Math.round(completed/total*100) : 0}%)\n\n`;
-            });
-            
-            content += `\n${'='.repeat(60)}\n`;
-            content += `OVERALL PROGRESS: ${totalCompleted}/${totalMilestones} (${totalMilestones ? Math.round(totalCompleted/totalMilestones*100) : 0}%)\n`;
-            
-            const blob = new Blob([content], { type: 'application/msword' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${profile.name}-developmental-report.doc`;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            
-            showToast('Word report downloaded!');
-        }
-    </script>
+    
+    <!-- ===== JAVASCRIPT ===== -->
+    <script src="developmental-milestone-checker.js"></script>
+    
 </body>
 </html>
