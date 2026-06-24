@@ -1,542 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- ============================================================
+    META CHARSET & VIEWPORT
+    ============================================================ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ECCE Observation Tool - Student Progress Report | MagicRills</title>
     
-    <!-- Required Libraries -->
+    <!-- ============================================================
+    TITLE - Primary SEO
+    ============================================================ -->
+    <title>ECCE Student Observation Tool - Early Childhood Education Progress Report | MagicRills</title>
+    
+    <!-- ============================================================
+    META DESCRIPTION
+    ============================================================ -->
+    <meta name="description" content="Free ECCE Student Observation Tool for early childhood education. Track student progress, assess learning domains, generate reports. Perfect for teachers and administrators.">
+    
+    <!-- ============================================================
+    META KEYWORDS
+    ============================================================ -->
+    <meta name="keywords" content="ECCE, Early Childhood Education, Student Observation, Progress Report, Teacher Tool, Assessment, Child Development, Learning Domains, ECCE Tool, MagicRills">
+    
+    <!-- ============================================================
+    ROBOTS & CANONICAL
+    ============================================================ -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://magicrills.com/tools/ecce-observation-tool">
+    
+    <!-- ============================================================
+    OPEN GRAPH / FACEBOOK
+    ============================================================ -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ECCE Student Observation Tool - Early Childhood Education Progress Report">
+    <meta property="og:description" content="Free ECCE Student Observation Tool for early childhood education. Track student progress, assess learning domains, generate reports.">
+    <meta property="og:url" content="https://magicrills.com/tools/ecce-observation-tool">
+    <meta property="og:site_name" content="MagicRills">
+    <meta property="og:image" content="https://magicrills.com/assets/images/og-ecce-tool.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- ============================================================
+    TWITTER CARDS
+    ============================================================ -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ECCE Student Observation Tool - Early Childhood Education Progress Report">
+    <meta name="twitter:description" content="Free ECCE Student Observation Tool for early childhood education. Track student progress, assess learning domains, generate reports.">
+    <meta name="twitter:image" content="https://magicrills.com/assets/images/og-ecce-tool.jpg">
+    <meta name="twitter:site" content="@magicrills">
+    
+    <!-- ============================================================
+    JSON-LD SCHEMA MARKUP
+    ============================================================ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "ECCE Student Observation Tool",
+        "description": "Free ECCE Student Observation Tool for early childhood education. Track student progress, assess learning domains, generate reports.",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "MagicRills"
+        }
+    }
+    </script>
+    
+    <!-- ============================================================
+    EXTERNAL LIBRARIES
+    ============================================================ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     
-    <!-- Toastify CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- ============================================================
+    CUSTOM CSS
+    ============================================================ -->
+    <link rel="stylesheet" href="ecce-observation-tool-development.css">
     
-    <style>
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #2ecc71;
-            --warning-color: #f39c12;
-            --info-color: #1abc9c;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* Tool Card Styles for ECCE Category */
-        .tool-card {
-            background: white;
-            border-radius: 24px;
-            padding: 0;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-        
-        /* ECCE Category Hover Effect - Green to Teal Gradient */
-        .tool-card:hover {
-            transform: translateY(-8px);
-            background: linear-gradient(135deg, #10b981, #14b8a6);
-            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
-        }
-        
-        .tool-card:hover .tool-card-content,
-        .tool-card:hover .assessment-section,
-        .tool-card:hover .section-title,
-        .tool-card:hover .assessment-table th,
-        .tool-card:hover .assessment-table td,
-        .tool-card:hover .remark-item,
-        .tool-card:hover .remark-label,
-        .tool-card:hover .progress-summary h3,
-        .tool-card:hover .progress-label span {
-            color: white !important;
-            background: transparent !important;
-        }
-        
-        .tool-card:hover .performance-select {
-            background: rgba(255,255,255,0.9) !important;
-        }
-        
-        .tool-card:hover .btn {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(5px);
-        }
-        
-        .tool-card-content {
-            padding: 25px;
-            transition: all 0.3s ease;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            border-radius: 24px 24px 0 0;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        
-        /* Usage Counter */
-        .usage-counter {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        
-        .usage-counter i {
-            font-size: 16px;
-        }
-        
-        /* Reactions Section */
-        .reactions-section {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 60px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .reaction-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 40px;
-            transition: all 0.2s ease;
-            font-size: 20px;
-        }
-        
-        .reaction-btn:hover {
-            transform: scale(1.1);
-            background: #f0f0f0;
-        }
-        
-        .reaction-count {
-            font-size: 12px;
-            color: #666;
-            font-weight: 600;
-        }
-        
-        /* Social Share Icons */
-        .social-share {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-        
-        .share-icon {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 40px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-        }
-        
-        .share-icon i {
-            font-size: 16px;
-        }
-        
-        .share-icon:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-        
-        .share-fb { background: #1877f2; }
-        .share-twitter { background: #1da1f2; }
-        .share-linkedin { background: #0077b5; }
-        .share-whatsapp { background: #25d366; }
-        .share-email { background: #ea4335; }
-        
-        /* Page Share Button */
-        .page-share-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin: 10px;
-            border: none;
-        }
-        
-        .page-share-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-        }
-        
-        /* Scroll Buttons */
-        .scroll-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .scroll-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .scroll-down {
-            bottom: 80px;
-        }
-        
-        .scroll-up {
-            bottom: 140px;
-            display: none;
-        }
-        
-        /* Student Info Grid */
-        .student-info {
-            background-color: white;
-            padding: 25px;
-            border-radius: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-        }
-        
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-            gap: 15px;
-        }
-        
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: var(--dark-color);
-            font-size: 14px;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 16px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
-        }
-        
-        .assessment-section {
-            background-color: white;
-            padding: 25px;
-            border-radius: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-        }
-        
-        .section-title {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            color: white;
-            padding: 12px 20px;
-            margin: -25px -25px 20px -25px;
-            border-radius: 24px 24px 0 0;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .assessment-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .assessment-table th, .assessment-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .assessment-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-        
-        .performance-select {
-            padding: 8px 12px;
-            border-radius: 12px;
-            border: 2px solid #e0e0e0;
-            background-color: white;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        .performance-select.NI { background-color: #f8d7da; color: #721c24; }
-        .performance-select.E { background-color: #fff3cd; color: #856404; }
-        .performance-select.D { background-color: #cce5ff; color: #004085; }
-        .performance-select.S { background-color: #d4edda; color: #155724; }
-        
-        .progress-summary {
-            background-color: white;
-            padding: 25px;
-            border-radius: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-        }
-        
-        .progress-bar {
-            height: 12px;
-            background-color: #e9ecef;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-color), var(--info-color));
-            transition: width 0.5s ease;
-            border-radius: 6px;
-        }
-        
-        .actions {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .btn {
-            padding: 14px 30px;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
-        .btn-success { background: linear-gradient(135deg, var(--success-color), #27ae60); color: white; }
-        .btn-warning { background: linear-gradient(135deg, var(--warning-color), #e67e22); color: white; }
-        .btn-danger { background: linear-gradient(135deg, var(--accent-color), #c0392b); color: white; }
-        .btn-info { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .loading-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 24px;
-            text-align: center;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 1024px) {
-            .container { padding: 15px; }
-            .assessment-table th, .assessment-table td { padding: 8px; font-size: 13px; }
-        }
-        
-        @media (max-width: 768px) {
-            .form-group { flex: 100%; }
-            .reactions-section { border-radius: 24px; }
-            .reaction-btn { padding: 5px 8px; font-size: 18px; }
-            .social-share { gap: 8px; }
-            .share-icon { padding: 6px 12px; font-size: 12px; }
-            .btn { padding: 10px 20px; font-size: 14px; }
-            .scroll-btn { width: 40px; height: 40px; font-size: 20px; }
-        }
-        
-        @media (max-width: 480px) {
-            h1 { font-size: 22px; }
-            .section-title { font-size: 16px; }
-            .reaction-btn span:first-child { font-size: 16px; }
-        }
-        
-        .student-ledger {
-            background: white;
-            padding: 20px;
-            border-radius: 24px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .student-select {
-            flex: 1;
-            min-width: 250px;
-            padding: 12px 15px;
-            border-radius: 16px;
-        }
-        
-        .teacher-remarks {
-            background: white;
-            padding: 25px;
-            border-radius: 24px;
-            margin-bottom: 20px;
-        }
-        
-        .remarks-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-        }
-        
-        .remark-item {
-            border: 1px solid #e0e0e0;
-            border-radius: 16px;
-            padding: 15px;
-            background: #fafafa;
-        }
-        
-        .remark-input {
-            min-height: 60px;
-            resize: vertical;
-        }
-        
-        .legend {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 60px;
-            margin-bottom: 20px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .legend-color {
-            width: 24px;
-            height: 24px;
-            border-radius: 8px;
-        }
-        
-        /* Toast Customization */
-        .toastify {
-            border-radius: 40px !important;
-            font-weight: 500 !important;
-        }
-    </style>
+    <!-- ============================================================
+    FAVICON
+    ============================================================ -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
 </head>
 <body>
+    <!-- ============================================================
+    LOADING OVERLAY
+    ============================================================ -->
     <div class="loading" id="loading">
         <div class="loading-content">
             <div class="spinner"></div>
@@ -544,29 +101,247 @@
         </div>
     </div>
     
+    <!-- ============================================================
+    MAIN CONTAINER
+    ============================================================ -->
     <div class="container">
-        <!-- Tool Card Wrapper for ECCE Category Hover Effect -->
+        
+        <!-- ============================================================
+        TOOL CARD
+        ============================================================ -->
         <div class="tool-card">
             <div class="tool-card-content">
-                <header>
-                    <h1>📋 ECCE Student Observation Tool</h1>
-                    <p>ABC School - Early Childhood Care and Education Progress Report</p>
+                
+                <!-- ============================================================
+                HERO SECTION
+                ============================================================ -->
+                <section class="hero-section" aria-label="Tool Hero Section">
+                    <!-- Animated Background Orbs -->
+                    <div class="hero-orbs">
+                        <div class="orb orb-1"></div>
+                        <div class="orb orb-2"></div>
+                        <div class="orb orb-3"></div>
+                    </div>
+                    
+                    <div class="hero-content">
+                        <!-- Left: Text -->
+                        <div class="hero-text">
+                            <span class="hero-badge">✨ ECCE Tool</span>
+                            <h1 class="hero-title">ECCE Student Observation Tool</h1>
+                            
+                            <div class="typewriter-container">
+                                <span class="typewriter-text" id="typewriterText"></span>
+                            </div>
+                            
+                            <p class="hero-description">
+                                Track early childhood education progress across 7 learning domains. 
+                                Generate comprehensive reports, assess student development, and save profiles.
+                            </p>
+                            
+                            <!-- Hero Stats - Real Data (Updated by JS) -->
+                            <div class="hero-stats">
+                                <div class="hero-stat">
+                                    <div class="hero-stat-number" id="statUsage">0</div>
+                                    <div class="hero-stat-label">Uses</div>
+                                </div>
+                                <div class="hero-stat">
+                                    <div class="hero-stat-number" id="statViews">0</div>
+                                    <div class="hero-stat-label">Views</div>
+                                </div>
+                                <div class="hero-stat">
+                                    <div class="hero-stat-number" id="statShares">0</div>
+                                    <div class="hero-stat-label">Shares</div>
+                                </div>
+                                <div class="hero-stat">
+                                    <div class="hero-stat-number" id="statFollowers">0</div>
+                                    <div class="hero-stat-label">Followers</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Animated Kids Art -->
+                        <div class="hero-art" aria-label="Animated illustration of children">
+                            <div class="art-container">
+                                <!-- Sun -->
+                                <div class="sun"></div>
+                                
+                                <!-- Clouds -->
+                                <div class="cloud cloud-1"></div>
+                                <div class="cloud cloud-2"></div>
+                                <div class="cloud cloud-3"></div>
+                                
+                                <!-- Sparkles -->
+                                <div class="sparkle sparkle-1"></div>
+                                <div class="sparkle sparkle-2"></div>
+                                <div class="sparkle sparkle-3"></div>
+                                <div class="sparkle sparkle-4"></div>
+                                <div class="sparkle sparkle-5"></div>
+                                
+                                <!-- Floating Shapes -->
+                                <div class="shape shape-1"></div>
+                                <div class="shape shape-2"></div>
+                                <div class="shape shape-3"></div>
+                                
+                                <!-- Kid 1 -->
+                                <div class="kid kid-1">
+                                    <div class="kid-body">
+                                        <div class="kid-head">
+                                            <div class="eye eye-l"></div>
+                                            <div class="eye eye-r"></div>
+                                            <div class="mouth"></div>
+                                        </div>
+                                        <div class="torso" style="background:#3b82f6;"></div>
+                                        <div class="arm arm-l" style="background:#f59e0b;"></div>
+                                        <div class="arm arm-r" style="background:#f59e0b;"></div>
+                                        <div class="leg leg-l" style="background:#f59e0b;"></div>
+                                        <div class="leg leg-r" style="background:#f59e0b;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Kid 2 -->
+                                <div class="kid kid-2">
+                                    <div class="kid-body">
+                                        <div class="kid-head">
+                                            <div class="eye eye-l"></div>
+                                            <div class="eye eye-r"></div>
+                                            <div class="mouth"></div>
+                                        </div>
+                                        <div class="torso" style="background:#ec4899;"></div>
+                                        <div class="arm arm-l" style="background:#f59e0b;"></div>
+                                        <div class="arm arm-r" style="background:#f59e0b;"></div>
+                                        <div class="leg leg-l" style="background:#f59e0b;"></div>
+                                        <div class="leg leg-r" style="background:#f59e0b;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Kid 3 -->
+                                <div class="kid kid-3">
+                                    <div class="kid-body">
+                                        <div class="kid-head">
+                                            <div class="eye eye-l"></div>
+                                            <div class="eye eye-r"></div>
+                                            <div class="mouth"></div>
+                                        </div>
+                                        <div class="torso" style="background:#10b981;"></div>
+                                        <div class="arm arm-l" style="background:#f59e0b;"></div>
+                                        <div class="arm arm-r" style="background:#f59e0b;"></div>
+                                        <div class="leg leg-l" style="background:#f59e0b;"></div>
+                                        <div class="leg leg-r" style="background:#f59e0b;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Rainbow -->
+                                <div class="rainbow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ============================================================
+                USAGE COUNTER
+                ============================================================ -->
+                <div style="text-align:center;margin:16px 0;">
                     <div class="usage-counter" id="usageCounter">
                         <i class="fas fa-chart-line"></i>
                         <span id="usageCount">0</span> times used
                     </div>
-                </header>
+                </div>
                 
-                <!-- Page Share Button -->
-                <div style="text-align: center; margin-bottom: 20px;">
+                <!-- ============================================================
+                STATS DASHBOARD
+                ============================================================ -->
+                <div class="stats-dashboard no-print">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-number" id="statUsage2">0</div>
+                        <div class="stat-label">Total Uses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👁️</div>
+                        <div class="stat-number" id="statViews2">0</div>
+                        <div class="stat-label">Total Views</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📤</div>
+                        <div class="stat-number" id="statShares2">0</div>
+                        <div class="stat-label">Total Shares</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">❤️</div>
+                        <div class="stat-number" id="statFollowers2">0</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                </div>
+                
+                <!-- ============================================================
+                PAGE SHARE BUTTON
+                ============================================================ -->
+                <div style="text-align:center;margin:16px 0;" class="no-print">
                     <button class="page-share-btn" id="pageShareBtn">
                         <i class="fas fa-share-alt"></i> Share This Page
                     </button>
                 </div>
                 
-                <!-- Student Ledger -->
+                <!-- ============================================================
+                REACTIONS SECTION
+                ============================================================ -->
+                <div class="reactions-section no-print">
+                    <button class="reaction-btn" data-reaction="like" aria-label="Like">
+                        <span class="reaction-emoji">👍</span>
+                        <span class="reaction-count" id="reaction-like">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="love" aria-label="Love">
+                        <span class="reaction-emoji">❤️</span>
+                        <span class="reaction-count" id="reaction-love">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="wow" aria-label="Wow">
+                        <span class="reaction-emoji">😮</span>
+                        <span class="reaction-count" id="reaction-wow">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="sad" aria-label="Sad">
+                        <span class="reaction-emoji">😢</span>
+                        <span class="reaction-count" id="reaction-sad">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="angry" aria-label="Angry">
+                        <span class="reaction-emoji">😠</span>
+                        <span class="reaction-count" id="reaction-angry">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="laugh" aria-label="Laugh">
+                        <span class="reaction-emoji">😂</span>
+                        <span class="reaction-count" id="reaction-laugh">0</span>
+                    </button>
+                    <button class="reaction-btn" data-reaction="celebrate" aria-label="Celebrate">
+                        <span class="reaction-emoji">🎉</span>
+                        <span class="reaction-count" id="reaction-celebrate">0</span>
+                    </button>
+                </div>
+                
+                <!-- ============================================================
+                SOCIAL SHARE
+                ============================================================ -->
+                <div class="social-share no-print">
+                    <button class="share-icon share-fb" data-share="facebook" aria-label="Share on Facebook">
+                        <i class="fab fa-facebook-f"></i> Share
+                    </button>
+                    <button class="share-icon share-twitter" data-share="twitter" aria-label="Share on Twitter">
+                        <i class="fab fa-twitter"></i> Tweet
+                    </button>
+                    <button class="share-icon share-linkedin" data-share="linkedin" aria-label="Share on LinkedIn">
+                        <i class="fab fa-linkedin-in"></i> Share
+                    </button>
+                    <button class="share-icon share-whatsapp" data-share="whatsapp" aria-label="Share on WhatsApp">
+                        <i class="fab fa-whatsapp"></i> Send
+                    </button>
+                    <button class="share-icon share-email" data-share="email" aria-label="Share via Email">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                </div>
+                
+                <!-- ============================================================
+                STUDENT LEDGER
+                ============================================================ -->
                 <div class="student-ledger no-print">
-                    <select class="student-select" id="studentSelect">
+                    <select class="student-select" id="studentSelect" aria-label="Select Student Profile">
                         <option value="">-- Select a Student Profile --</option>
                         <option value="new">+ Create New Student Profile</option>
                     </select>
@@ -575,87 +350,157 @@
                     <button class="btn btn-danger" id="deleteStudentBtn">🗑️ Delete Profile</button>
                 </div>
                 
-                <!-- Student Information -->
+                <!-- ============================================================
+                STUDENT INFORMATION
+                ============================================================ -->
                 <div class="student-info">
                     <div class="form-row">
-                        <div class="form-group"><label>School</label><input id="school" readonly value="ABC School"></div>
-                        <div class="form-group"><label>Class</label><input id="class" placeholder="e.g., Kindergarten A"></div>
-                        <div class="form-group"><label>Term</label><input id="term" placeholder="e.g., Spring 2026"></div>
+                        <div class="form-group">
+                            <label for="school">School</label>
+                            <input id="school" readonly value="ABC School">
+                        </div>
+                        <div class="form-group">
+                            <label for="class">Class</label>
+                            <input id="class" placeholder="e.g., Kindergarten A">
+                        </div>
+                        <div class="form-group">
+                            <label for="term">Term</label>
+                            <input id="term" placeholder="e.g., Spring 2026">
+                        </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>Child's Name</label><input id="childName" placeholder="Full name"></div>
-                        <div class="form-group"><label>Father's Name</label><input id="fatherName" placeholder="Father's full name"></div>
+                        <div class="form-group">
+                            <label for="childName">Child's Name</label>
+                            <input id="childName" placeholder="Full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="fatherName">Father's Name</label>
+                            <input id="fatherName" placeholder="Father's full name">
+                        </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>Age</label><input id="age" placeholder="e.g., 4 years"></div>
-                        <div class="form-group"><label>Registration #</label><input id="regNumber" placeholder="Registration number"></div>
-                        <div class="form-group"><label>Class Teacher</label><input id="teacherName" placeholder="Teacher's name"></div>
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input id="age" placeholder="e.g., 4 years">
+                        </div>
+                        <div class="form-group">
+                            <label for="regNumber">Registration #</label>
+                            <input id="regNumber" placeholder="Registration number">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacherName">Class Teacher</label>
+                            <input id="teacherName" placeholder="Teacher's name">
+                        </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>Total Working Days</label><input id="workingDays" type="number" placeholder="e.g., 60"></div>
-                        <div class="form-group"><label>Days Attended</label><input id="daysAttended" type="number" placeholder="e.g., 55"></div>
-                        <div class="form-group"><label>Attendance %</label><input id="attendancePercentage" readonly></div>
+                        <div class="form-group">
+                            <label for="workingDays">Total Working Days</label>
+                            <input id="workingDays" type="number" placeholder="e.g., 60">
+                        </div>
+                        <div class="form-group">
+                            <label for="daysAttended">Days Attended</label>
+                            <input id="daysAttended" type="number" placeholder="e.g., 55">
+                        </div>
+                        <div class="form-group">
+                            <label for="attendancePercentage">Attendance %</label>
+                            <input id="attendancePercentage" readonly>
+                        </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>From Date</label><input id="fromDate" type="date"></div>
-                        <div class="form-group"><label>To Date</label><input id="toDate" type="date"></div>
-                        <div class="form-group"><label>Report Date</label><input id="reportDate" type="date"></div>
+                        <div class="form-group">
+                            <label for="fromDate">From Date</label>
+                            <input id="fromDate" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label for="toDate">To Date</label>
+                            <input id="toDate" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label for="reportDate">Report Date</label>
+                            <input id="reportDate" type="date">
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Reactions Section -->
-                <div class="reactions-section">
-                    <button class="reaction-btn" data-reaction="like">👍 <span class="reaction-count" id="reaction-like">0</span></button>
-                    <button class="reaction-btn" data-reaction="love">❤️ <span class="reaction-count" id="reaction-love">0</span></button>
-                    <button class="reaction-btn" data-reaction="wow">😮 <span class="reaction-count" id="reaction-wow">0</span></button>
-                    <button class="reaction-btn" data-reaction="sad">😢 <span class="reaction-count" id="reaction-sad">0</span></button>
-                    <button class="reaction-btn" data-reaction="angry">😠 <span class="reaction-count" id="reaction-angry">0</span></button>
-                    <button class="reaction-btn" data-reaction="laugh">😂 <span class="reaction-count" id="reaction-laugh">0</span></button>
-                    <button class="reaction-btn" data-reaction="celebrate">🎉 <span class="reaction-count" id="reaction-celebrate">0</span></button>
-                </div>
-                
-                <!-- Social Share Icons -->
-                <div class="social-share">
-                    <button class="share-icon share-fb" data-share="facebook"><i class="fab fa-facebook-f"></i> Share</button>
-                    <button class="share-icon share-twitter" data-share="twitter"><i class="fab fa-twitter"></i> Tweet</button>
-                    <button class="share-icon share-linkedin" data-share="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
-                    <button class="share-icon share-whatsapp" data-share="whatsapp"><i class="fab fa-whatsapp"></i> Send</button>
-                    <button class="share-icon share-email" data-share="email"><i class="fas fa-envelope"></i> Email</button>
-                </div>
-                
-                <!-- Legend -->
+                <!-- ============================================================
+                LEGEND
+                ============================================================ -->
                 <div class="legend no-print">
-                    <div class="legend-item"><div class="legend-color" style="background:#f8d7da;"></div><span>NI - Not Introduced</span></div>
-                    <div class="legend-item"><div class="legend-color" style="background:#fff3cd;"></div><span>E - Emerging</span></div>
-                    <div class="legend-item"><div class="legend-color" style="background:#cce5ff;"></div><span>D - Developing</span></div>
-                    <div class="legend-item"><div class="legend-color" style="background:#d4edda;"></div><span>S - Secure</span></div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#ef4444;"></div>
+                        <span>NI - Not Introduced</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#f59e0b;"></div>
+                        <span>E - Emerging</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#3b82f6;"></div>
+                        <span>D - Developing</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#10b981;"></div>
+                        <span>S - Secure</span>
+                    </div>
                 </div>
                 
-                <!-- Progress Summary -->
+                <!-- ============================================================
+                PROGRESS SUMMARY
+                ============================================================ -->
                 <div class="progress-summary no-print">
                     <h3>📊 Progress Summary</h3>
                     <div id="progressBars"></div>
                 </div>
                 
-                <!-- Assessment Sections -->
+                <!-- ============================================================
+                ASSESSMENT SECTIONS
+                ============================================================ -->
                 <div id="assessmentSections"></div>
                 
-                <!-- Teacher Remarks -->
+                <!-- ============================================================
+                TEACHER REMARKS
+                ============================================================ -->
                 <div class="teacher-remarks no-print">
                     <div class="remarks-title">📝 Teacher's Observations & Remarks</div>
                     <div class="remarks-grid">
-                        <div class="remark-item"><div class="remark-label">Personal, Social & Emotional</div><textarea class="remark-input" id="remark1"></textarea></div>
-                        <div class="remark-item"><div class="remark-label">Language and Literacy</div><textarea class="remark-input" id="remark2"></textarea></div>
-                        <div class="remark-item"><div class="remark-label">Mathematical Concepts</div><textarea class="remark-input" id="remark3"></textarea></div>
-                        <div class="remark-item"><div class="remark-label">Health Hygiene and Safety</div><textarea class="remark-input" id="remark4"></textarea></div>
-                        <div class="remark-item"><div class="remark-label">Physical Development</div><textarea class="remark-input" id="remark5"></textarea></div>
-                        <div class="remark-item"><div class="remark-label">Creative Arts</div><textarea class="remark-input" id="remark6"></textarea></div>
-                        <div class="remark-item"><div class="remark-label">World Around Us</div><textarea class="remark-input" id="remark7"></textarea></div>
+                        <div class="remark-item">
+                            <div class="remark-label">Personal, Social & Emotional</div>
+                            <textarea class="remark-input" id="remark1" placeholder="Enter observations..."></textarea>
+                        </div>
+                        <div class="remark-item">
+                            <div class="remark-label">Language and Literacy</div>
+                            <textarea class="remark-input" id="remark2" placeholder="Enter observations..."></textarea>
+                        </div>
+                        <div class="remark-item">
+                            <div class="remark-label">Mathematical Concepts</div>
+                            <textarea class="remark-input" id="remark3" placeholder="Enter observations..."></textarea>
+                        </div>
+                        <div class="remark-item">
+                            <div class="remark-label">Health Hygiene and Safety</div>
+                            <textarea class="remark-input" id="remark4" placeholder="Enter observations..."></textarea>
+                        </div>
+                        <div class="remark-item">
+                            <div class="remark-label">Physical Development</div>
+                            <textarea class="remark-input" id="remark5" placeholder="Enter observations..."></textarea>
+                        </div>
+                        <div class="remark-item">
+                            <div class="remark-label">Creative Arts</div>
+                            <textarea class="remark-input" id="remark6" placeholder="Enter observations..."></textarea>
+                        </div>
+                        <div class="remark-item">
+                            <div class="remark-label">World Around Us</div>
+                            <textarea class="remark-input" id="remark7" placeholder="Enter observations..."></textarea>
+                        </div>
                     </div>
-                    <div class="general-remarks"><label>General Comments</label><textarea id="generalRemarks"></textarea></div>
+                    <div class="general-remarks">
+                        <label for="generalRemarks">General Comments</label>
+                        <textarea id="generalRemarks" placeholder="Enter general comments about the student's overall progress..."></textarea>
+                    </div>
                 </div>
                 
-                <!-- Action Buttons -->
+                <!-- ============================================================
+                ACTION BUTTONS
+                ============================================================ -->
                 <div class="actions no-print">
                     <button class="btn btn-primary" id="saveProgressBtn">💾 Save Progress</button>
                     <button class="btn btn-info" id="exportExcelBtn">📊 Export Excel</button>
@@ -663,490 +508,25 @@
                     <button class="btn btn-primary" id="downloadWordBtn">📝 Download Word</button>
                     <button class="btn btn-warning" id="resetFormBtn">🔄 Reset Form</button>
                 </div>
+                
             </div>
         </div>
+        
     </div>
     
-    <!-- Scroll Buttons -->
-    <button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
-    <button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
-
-    <script>
-        // ============================================================
-        // TOOL ID (for tracking)
-        // ============================================================
-        const TOOL_ID = 'ecce-observation-tool';
-        const TOOL_NAME = 'ECCE Student Observation Tool';
-        const TOOL_CATEGORY = 'ecce';
-        
-        // ============================================================
-        // LOCALSTORAGE KEYS (Mock Database)
-        // ============================================================
-        const STORAGE_KEYS = {
-            USAGE: 'magicrills_usage_' + TOOL_ID,
-            REACTIONS: 'magicrills_reactions_' + TOOL_ID,
-            SHARES: 'magicrills_shares_' + TOOL_ID
-        };
-        
-        // ============================================================
-        // INITIALIZE DATA
-        // ============================================================
-        function initData() {
-            if (!localStorage.getItem(STORAGE_KEYS.USAGE)) {
-                localStorage.setItem(STORAGE_KEYS.USAGE, JSON.stringify({ count: 0, lastUpdated: new Date().toISOString() }));
-            }
-            if (!localStorage.getItem(STORAGE_KEYS.REACTIONS)) {
-                localStorage.setItem(STORAGE_KEYS.REACTIONS, JSON.stringify({
-                    like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0,
-                    userReactions: {} // Store which emojis user has clicked
-                }));
-            }
-            if (!localStorage.getItem(STORAGE_KEYS.SHARES)) {
-                localStorage.setItem(STORAGE_KEYS.SHARES, JSON.stringify({ count: 0, lastShared: null }));
-            }
-        }
-        
-        // ============================================================
-        // USAGE COUNTER
-        // ============================================================
-        function incrementUsage() {
-            const usageData = JSON.parse(localStorage.getItem(STORAGE_KEYS.USAGE));
-            usageData.count++;
-            usageData.lastUpdated = new Date().toISOString();
-            localStorage.setItem(STORAGE_KEYS.USAGE, JSON.stringify(usageData));
-            updateUsageDisplay();
-            showToast('✓ Tool usage recorded!', 'success');
-        }
-        
-        function updateUsageDisplay() {
-            const usageData = JSON.parse(localStorage.getItem(STORAGE_KEYS.USAGE));
-            document.getElementById('usageCount').textContent = usageData.count;
-        }
-        
-        // ============================================================
-        // REACTIONS
-        // ============================================================
-        function getReactionEmoji(reaction) {
-            const emojis = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
-            return emojis[reaction] || '👍';
-        }
-        
-        function addReaction(reaction) {
-            const reactionsData = JSON.parse(localStorage.getItem(STORAGE_KEYS.REACTIONS));
-            const userId = getUserId();
-            
-            if (!reactionsData.userReactions[userId]) {
-                reactionsData.userReactions[userId] = [];
-            }
-            
-            if (reactionsData.userReactions[userId].includes(reaction)) {
-                showToast(`You already reacted with ${getReactionEmoji(reaction)}!`, 'info');
-                return false;
-            }
-            
-            reactionsData.userReactions[userId].push(reaction);
-            reactionsData[reaction]++;
-            localStorage.setItem(STORAGE_KEYS.REACTIONS, JSON.stringify(reactionsData));
-            updateReactionsDisplay();
-            showToast(`${getReactionEmoji(reaction)} Reaction added!`, 'success');
-            return true;
-        }
-        
-        function updateReactionsDisplay() {
-            const reactionsData = JSON.parse(localStorage.getItem(STORAGE_KEYS.REACTIONS));
-            document.getElementById('reaction-like').textContent = reactionsData.like;
-            document.getElementById('reaction-love').textContent = reactionsData.love;
-            document.getElementById('reaction-wow').textContent = reactionsData.wow;
-            document.getElementById('reaction-sad').textContent = reactionsData.sad;
-            document.getElementById('reaction-angry').textContent = reactionsData.angry;
-            document.getElementById('reaction-laugh').textContent = reactionsData.laugh;
-            document.getElementById('reaction-celebrate').textContent = reactionsData.celebrate;
-        }
-        
-        function getUserId() {
-            let userId = localStorage.getItem('magicrills_user_id');
-            if (!userId) {
-                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('magicrills_user_id', userId);
-            }
-            return userId;
-        }
-        
-        // ============================================================
-        // SOCIAL SHARE
-        // ============================================================
-        function incrementShareCount() {
-            const sharesData = JSON.parse(localStorage.getItem(STORAGE_KEYS.SHARES));
-            sharesData.count++;
-            sharesData.lastShared = new Date().toISOString();
-            localStorage.setItem(STORAGE_KEYS.SHARES, JSON.stringify(sharesData));
-        }
-        
-        function shareOnPlatform(platform) {
-            const url = encodeURIComponent(window.location.href);
-            const title = encodeURIComponent(document.title);
-            let shareUrl = '';
-            
-            switch(platform) {
-                case 'facebook':
-                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-                    break;
-                case 'twitter':
-                    shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
-                    break;
-                case 'linkedin':
-                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-                    break;
-                case 'whatsapp':
-                    shareUrl = `https://wa.me/?text=${title}%20${url}`;
-                    break;
-                case 'email':
-                    shareUrl = `mailto:?subject=${title}&body=Check%20out%20this%20tool%3A%20${url}`;
-                    break;
-                default:
-                    return;
-            }
-            
-            incrementShareCount();
-            showToast(`📤 Shared on ${platform.charAt(0).toUpperCase() + platform.slice(1)}!`, 'success');
-            window.open(shareUrl, '_blank', 'width=600,height=400');
-        }
-        
-        function copyPageUrl() {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                incrementShareCount();
-                showToast('🔗 Link copied to clipboard!', 'success');
-            }).catch(() => {
-                showToast('Failed to copy link', 'error');
-            });
-        }
-        
-        // ============================================================
-        // TOAST NOTIFICATIONS
-        // ============================================================
-        function showToast(message, type = 'success') {
-            let backgroundColor = '#10b981';
-            if (type === 'error') backgroundColor = '#ef4444';
-            if (type === 'info') backgroundColor = '#3b82f6';
-            if (type === 'warning') backgroundColor = '#f59e0b';
-            
-            Toastify({
-                text: message,
-                duration: 3000,
-                gravity: 'bottom',
-                position: 'right',
-                style: { background: backgroundColor, borderRadius: '40px' }
-            }).showToast();
-        }
-        
-        // ============================================================
-        // SCROLL BUTTONS
-        // ============================================================
-        function setupScrollButtons() {
-            const scrollUpBtn = document.getElementById('scrollUpBtn');
-            const scrollDownBtn = document.getElementById('scrollDownBtn');
-            
-            scrollDownBtn.addEventListener('click', () => {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            });
-            
-            scrollUpBtn.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 200) {
-                    scrollUpBtn.style.display = 'flex';
-                } else {
-                    scrollUpBtn.style.display = 'none';
-                }
-            });
-        }
-        
-        // ============================================================
-        // ASSESSMENT DATA (from original)
-        // ============================================================
-        const assessmentData = {
-            section1: { title: "Step A: Personal, Social, and Emotional Development", items: ["Identifies occasions when she/he feels happy, sad, scared, loved, angry, excited and bored","Chooses and talks about an activity/work that she/he enjoys doing the most in class","Expresses likes and dislikes and talks about strengths","Demonstrates how to dress up","Demonstrates eating habits","Demonstrates proper posture while walking, talking and sitting","Takes care of his/her and others' belongings","Asks for help when needed","Demonstrates problem solving skills while participating in different activities","Works cooperatively, shares materials and ideas with peers, teachers, and others","Recognizes historical and cultural places"] },
-            section2: { title: "Step B: Language and Literacy", items: ["Listens attentively in small and large groups","Shares views in small and large groups about everyday events and special occasions","Responds to others in appropriate verbal and non-verbal ways","Shares her/his experiences and feelings using complete sentences","Responds to and verbally expresses feelings (joy, sorrow, wonder, anger)","Waits for her/his turn to speak and does not interrupt others","Initiates conversations with peers and adults","Recognises letters with her/his initial sounds","Recognises and differentiates between sounds in the environment","Understands and follows instructions","Uses correct pronunciation"], readingItems: ["Holds, opens and turns pages of a book with care","Enjoys skimming/scanning through age appropriate books","Predicts the story by looking at the cover page","Predicts what comes next in stories","Asks open ended questions about the story","Repeats simple repetitive sequences in stories","Tells a simple story by looking at pictures","Retells a favourite story in correct sequence","Differentiates between parts of a book (cover, title, end)","Knows that some books tell stories and others give information","Knows that Urdu is read from right to left","Knows that English is read from left to right","Recognises her/his name in print (English)","Recognises her/his name in print (Urdu)","Recognises letters of the English alphabet"], writingItems: ["Makes marks and scribbles to communicate meaning","Uses English letters in writing to communicate meaning","Uses Urdu letters in writing to communicate meaning","Draws pictures to communicate meaning","Holds writing tools properly with comfortable grip","Colours a simple picture keeping within designated space","Traces, copies, draws and colours different shapes","Traces and draws different lines and simple patterns","Traces, copies and writes letters of Urdu alphabet","Traces, copies and writes letters of English alphabet","Writes own name in English with appropriate case","Writes own name in Urdu","Writes a word or sentence while describing a picture"] },
-            section3: { title: "Step C: Basic Mathematical Concepts", items: ["Recognises, names and differentiates between colours","Differentiates objects based on size, weight, length, width, texture","Matches and compares objects","Sorts and groups objects","Observes, identifies and extends patterns with concrete materials","Observes, identifies and extends picture/symbol patterns","Identifies and differentiates between broad and narrow","Identifies and differentiates between some and all","Identifies and differentiates between more, less and equal","Identifies and differentiates between half and full","Creates own patterns and explains them","Identifies the 'odd one out' and explains answer"], shapesItems: ["Recognises, names, draws 2D shapes and explains features","Recognises, names, draws 3D shapes and explains features","Identifies shapes in the environment","Draws objects using various shapes","Describes position and order using position words"], measurementItems: ["Describes and compares objects using measurement attributes","Observes objects and estimates weight and length","Verifies estimations using simple tools","Recognises informal time units","Sequences events in time and anticipates events"], numberItems: ["Understands one-to-one correspondence","Counts up to 50 orally","Uses numbers to represent quantities in daily life","Compares quantities of objects","Demonstrates understanding of concept of zero","Identifies and writes numerals from 0-50","Sequences numerals correctly from 0-50","Identifies which numeral represents bigger/smaller quantity","Identifies ordinal numbers up to ten"] },
-            section4: { title: "Step D: Health, Hygiene and Safety", items: ["Demonstrates understanding of private body parts (good/bad touch)","Understands to report inappropriate touching to parents/teacher","Understands not to talk to or go with strangers","Explores ways of dealing with issues through role play","Understands how to cross a road carefully","Recognises and follows basic safety rules","Expresses needs and feelings (hungry, thirsty, toilet)","Keeps self safe and knows what to do in emergency"] },
-            section5: { title: "Step E: Physical Development", items: ["Moves in various ways (running, jumping, skipping, hopping)","Climbs, balances, walks on straight/curved/zigzag lines","Moves through spaces with consideration of others","Shows respect for others' personal space while playing","Handles materials safely with control and confidence","Manipulates small objects with ease","Differentiates between smells (good, bad, strong, fruity)","Differentiates between tastes (sweet, bitter, salty, sour)","Differentiates between textures (smooth, rough, soft, hard)"] },
-            section6: { title: "Step F: Creative Arts", items: ["Holds crayon, pencil, brush, scissors with safe use","Uses variety of mediums to express thoughts and feelings","Practices art work using technology","Shares ideas for creating objects from low/no cost material","Uses art techniques (drawing, colouring, collage, printing)","Produces sound patterns/rhythms by counting beats","Explores sounds made by various musical instruments","Performs poems with actions","Explores and enacts a variety of roles"] },
-            section7: { title: "Step G: World Around Us", items: ["Recognizes pictures, objects and events in daily life","Describes focus concept/theme using relevant terms","Groups pictures, objects related to concept and explains","Compares pictures, objects related to concept","Uses non-standard units to record observations","Makes predictions about the focus concept/theme","Explores answers using variety of resources","Handles materials carefully while exploring","Demonstrates care while handling materials"] }
-        };
-        
-        let studentsList = [];
-        
-        // ============================================================
-        // POPULATE ASSESSMENT SECTIONS
-        // ============================================================
-        function populateAssessmentSections() {
-            const container = document.getElementById('assessmentSections');
-            container.innerHTML = '';
-            
-            for (let i = 1; i <= 7; i++) {
-                const section = assessmentData[`section${i}`];
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'assessment-section';
-                
-                let html = `<div class="section-title">${section.title}</div>`;
-                html += '<table class="assessment-table"><thead><tr><th width="70%">Assessment Focus</th><th width="30%">Performance</th></tr></thead><tbody>';
-                
-                section.items.forEach((item, idx) => {
-                    html += `<tr><td>${item}</td><td><select class="performance-select" data-section="${i}" data-item="${i}-${idx}"><option value="NI">NI</option><option value="E">E</option><option value="D">D</option><option value="S">S</option></select></td></tr>`;
-                });
-                
-                if (section.readingItems) {
-                    html += `</tbody></table><h3 style="margin-top:20px;">Reading Skills</h3><table class="assessment-table"><thead><tr><th width="70%">Assessment Focus</th><th width="30%">Performance</th></tr></thead><tbody>`;
-                    section.readingItems.forEach((item, idx) => {
-                        html += `<tr><td>${item}</td><td><select class="performance-select" data-section="${i}" data-item="${i}-reading-${idx}"><option value="NI">NI</option><option value="E">E</option><option value="D">D</option><option value="S">S</option></select></td></tr>`;
-                    });
-                }
-                
-                if (section.writingItems) {
-                    html += `</tbody></table><h3 style="margin-top:20px;">Writing Skills</h3><table class="assessment-table"><thead><tr><th width="70%">Assessment Focus</th><th width="30%">Performance</th></tr></thead><tbody>`;
-                    section.writingItems.forEach((item, idx) => {
-                        html += `<tr><td>${item}</td><td><select class="performance-select" data-section="${i}" data-item="${i}-writing-${idx}"><option value="NI">NI</option><option value="E">E</option><option value="D">D</option><option value="S">S</option></select></td></tr>`;
-                    });
-                }
-                
-                if (section.shapesItems) {
-                    html += `</tbody></table><h3 style="margin-top:20px;">Shapes and Position</h3><table class="assessment-table"><thead><tr><th width="70%">Assessment Focus</th><th width="30%">Performance</th></tr></thead><tbody>`;
-                    section.shapesItems.forEach((item, idx) => {
-                        html += `<tr><td>${item}</td><td><select class="performance-select" data-section="${i}" data-item="${i}-shapes-${idx}"><option value="NI">NI</option><option value="E">E</option><option value="D">D</option><option value="S">S</option></select></td></tr>`;
-                    });
-                }
-                
-                if (section.measurementItems) {
-                    html += `</tbody></table><h3 style="margin-top:20px;">Measurement</h3><table class="assessment-table"><thead><tr><th width="70%">Assessment Focus</th><th width="30%">Performance</th></tr></thead><tbody>`;
-                    section.measurementItems.forEach((item, idx) => {
-                        html += `<tr><td>${item}</td><td><select class="performance-select" data-section="${i}" data-item="${i}-measure-${idx}"><option value="NI">NI</option><option value="E">E</option><option value="D">D</option><option value="S">S</option></select></td></tr>`;
-                    });
-                }
-                
-                if (section.numberItems) {
-                    html += `</tbody></table><h3 style="margin-top:20px;">Quantity, Counting and Number Operations</h3><table class="assessment-table"><thead><tr><th width="70%">Assessment Focus</th><th width="30%">Performance</th></tr></thead><tbody>`;
-                    section.numberItems.forEach((item, idx) => {
-                        html += `<tr><td>${item}</td><td><select class="performance-select" data-section="${i}" data-item="${i}-number-${idx}"><option value="NI">NI</option><option value="E">E</option><option value="D">D</option><option value="S">S</option></select></td></tr>`;
-                    });
-                }
-                
-                html += '</tbody></table>';
-                sectionDiv.innerHTML = html;
-                container.appendChild(sectionDiv);
-            }
-            
-            document.querySelectorAll('.performance-select').forEach(select => {
-                select.addEventListener('change', function() { updateSelectColor(this); calculateProgress(); });
-            });
-        }
-        
-        function updateSelectColor(select) {
-            select.classList.remove('NI', 'E', 'D', 'S');
-            if (select.value) select.classList.add(select.value);
-        }
-        
-        function calculateProgress() {
-            for (let s = 1; s <= 7; s++) {
-                const selects = document.querySelectorAll(`.performance-select[data-section="${s}"]`);
-                let total = selects.length;
-                let scores = { NI: 0, E: 25, D: 50, S: 100 };
-                let weightedSum = 0;
-                selects.forEach(select => weightedSum += scores[select.value] || 0);
-                const percentage = total > 0 ? Math.round(weightedSum / total) : 0;
-                const progressEl = document.getElementById(`progress-${s}`);
-                const progressBar = document.getElementById(`progress-bar-${s}`);
-                if (progressEl) progressEl.textContent = percentage + '%';
-                if (progressBar) progressBar.style.width = percentage + '%';
-            }
-        }
-        
-        function createProgressBars() {
-            const container = document.getElementById('progressBars');
-            const domains = ['Personal, Social, and Emotional Development', 'Language and Literacy', 'Basic Mathematical Concepts', 'Health Hygiene and Safety', 'Physical Development', 'Creative Arts', 'World Around Us'];
-            container.innerHTML = '';
-            for (let i = 1; i <= 7; i++) {
-                container.innerHTML += `
-                    <div class="progress-item">
-                        <div class="progress-label"><span>${domains[i-1]}</span><span id="progress-${i}">0%</span></div>
-                        <div class="progress-bar"><div class="progress-fill" id="progress-bar-${i}" style="width:0%"></div></div>
-                    </div>`;
-            }
-        }
-        
-        function calculateAttendance() {
-            const workingDays = parseInt(document.getElementById('workingDays').value) || 0;
-            const daysAttended = parseInt(document.getElementById('daysAttended').value) || 0;
-            if (workingDays > 0) document.getElementById('attendancePercentage').value = Math.round((daysAttended / workingDays) * 100) + '%';
-            else document.getElementById('attendancePercentage').value = '';
-        }
-        
-        function collectFormData() {
-            calculateProgress();
-            const data = {
-                school: document.getElementById('school').value, class: document.getElementById('class').value, term: document.getElementById('term').value,
-                childName: document.getElementById('childName').value, fatherName: document.getElementById('fatherName').value,
-                age: document.getElementById('age').value, regNumber: document.getElementById('regNumber').value,
-                teacherName: document.getElementById('teacherName').value, workingDays: document.getElementById('workingDays').value,
-                daysAttended: document.getElementById('daysAttended').value, attendancePercentage: document.getElementById('attendancePercentage').value,
-                fromDate: document.getElementById('fromDate').value, toDate: document.getElementById('toDate').value,
-                reportDate: document.getElementById('reportDate').value || new Date().toISOString().split('T')[0],
-                remarks: { remark1: document.getElementById('remark1').value, remark2: document.getElementById('remark2').value, remark3: document.getElementById('remark3').value, remark4: document.getElementById('remark4').value, remark5: document.getElementById('remark5').value, remark6: document.getElementById('remark6').value, remark7: document.getElementById('remark7').value, general: document.getElementById('generalRemarks').value },
-                percentages: {},
-                performance: {}
-            };
-            for (let i = 1; i <= 7; i++) {
-                const selects = document.querySelectorAll(`.performance-select[data-section="${i}"]`);
-                let total = selects.length;
-                let scores = { NI: 0, E: 25, D: 50, S: 100 };
-                let weightedSum = 0;
-                selects.forEach(select => weightedSum += scores[select.value] || 0);
-                data.percentages[i] = total > 0 ? Math.round(weightedSum / total) : 0;
-            }
-            document.querySelectorAll('.performance-select').forEach((select, idx) => { data.performance[`select-${idx}`] = select.value; });
-            return data;
-        }
-        
-        function loadDataToForm(data) {
-            document.getElementById('class').value = data.class || '';
-            document.getElementById('term').value = data.term || '';
-            document.getElementById('childName').value = data.childName || '';
-            document.getElementById('fatherName').value = data.fatherName || '';
-            document.getElementById('age').value = data.age || '';
-            document.getElementById('regNumber').value = data.regNumber || '';
-            document.getElementById('teacherName').value = data.teacherName || '';
-            document.getElementById('workingDays').value = data.workingDays || '';
-            document.getElementById('daysAttended').value = data.daysAttended || '';
-            document.getElementById('fromDate').value = data.fromDate || '';
-            document.getElementById('toDate').value = data.toDate || '';
-            document.getElementById('reportDate').value = data.reportDate || '';
-            calculateAttendance();
-            if (data.remarks) {
-                document.getElementById('remark1').value = data.remarks.remark1 || '';
-                document.getElementById('remark2').value = data.remarks.remark2 || '';
-                document.getElementById('remark3').value = data.remarks.remark3 || '';
-                document.getElementById('remark4').value = data.remarks.remark4 || '';
-                document.getElementById('remark5').value = data.remarks.remark5 || '';
-                document.getElementById('remark6').value = data.remarks.remark6 || '';
-                document.getElementById('remark7').value = data.remarks.remark7 || '';
-                document.getElementById('generalRemarks').value = data.remarks.general || '';
-            }
-            if (data.performance) {
-                document.querySelectorAll('.performance-select').forEach((select, idx) => {
-                    if (data.performance[`select-${idx}`]) { select.value = data.performance[`select-${idx}`]; updateSelectColor(select); }
-                });
-            }
-            calculateProgress();
-        }
-        
-        function saveCurrentProgress() { localStorage.setItem('ecceCurrentSession', JSON.stringify(collectFormData())); showToast('💾 Progress saved!', 'success'); }
-        function loadLastSession() { const saved = localStorage.getItem('ecceCurrentSession'); if (saved) loadDataToForm(JSON.parse(saved)); }
-        function loadStudentsList() { const saved = localStorage.getItem('ecceStudentsList'); if (saved) studentsList = JSON.parse(saved); updateStudentSelect(); }
-        function updateStudentSelect() {
-            const select = document.getElementById('studentSelect');
-            select.innerHTML = '<option value="">-- Select a Student Profile --</option>';
-            studentsList.forEach((student, idx) => { select.innerHTML += `<option value="${idx}">${student.childName || 'Unnamed'} (${student.regNumber || 'No ID'})</option>`; });
-            select.innerHTML += '<option value="new">+ Create New Student Profile</option>';
-        }
-        function loadSelectedStudent() { const val = document.getElementById('studentSelect').value; if (val === 'new') { resetForm(); return; } if (val !== '') loadDataToForm(studentsList[parseInt(val)]); }
-        function saveAsNewStudent() { const data = collectFormData(); if (!data.childName) { showToast('Please enter child name', 'error'); return; } studentsList.push(data); localStorage.setItem('ecceStudentsList', JSON.stringify(studentsList)); updateStudentSelect(); showToast('Student profile saved!', 'success'); }
-        function deleteSelectedStudent() { const val = document.getElementById('studentSelect').value; if (val === '' || val === 'new') return; if (confirm('Delete this student?')) { studentsList.splice(parseInt(val), 1); localStorage.setItem('ecceStudentsList', JSON.stringify(studentsList)); updateStudentSelect(); resetForm(); showToast('Profile deleted', 'success'); } }
-        function resetForm() { if (confirm('Reset all data?')) { document.querySelectorAll('input, textarea, select').forEach(el => { if (el.id !== 'school') el.value = ''; }); document.querySelectorAll('.performance-select').forEach(select => { select.value = 'NI'; updateSelectColor(select); }); calculateProgress(); showToast('Form reset', 'info'); } }
-        
-        function generateAISummary(data) {
-            const childName = data.childName || 'The student';
-            const avg = Math.round((data.percentages[1] + data.percentages[2] + data.percentages[3] + data.percentages[4] + data.percentages[5] + data.percentages[6] + data.percentages[7]) / 7);
-            let summary = `${childName} `;
-            if (avg >= 70) summary += `demonstrates secure development across all learning domains (Overall: ${avg}%). `;
-            else if (avg >= 50) summary += `shows developing skills with steady progress (Overall: ${avg}%). `;
-            else summary += `is building foundational skills (Overall: ${avg}%). `;
-            summary += `Attendance: ${data.attendancePercentage || 'N/A'}. `;
-            if (data.remarks?.general) summary += `Notes: ${data.remarks.general.substring(0, 150)}`;
-            return summary;
-        }
-        
-        function generateReportCardHTML(data) {
-            const getLevel = (s) => { if (s >= 75) return 'Secure'; if (s >= 50) return 'Developing'; if (s >= 25) return 'Emerging'; return 'Not Introduced'; };
-            return `<div style="max-width:1200px;margin:0 auto;padding:30px;font-family:'Segoe UI',Arial;background:white;"><div style="text-align:center;border-bottom:3px solid #3498db;padding-bottom:20px;margin-bottom:30px;"><h1>${data.school}</h1><h2>ECCE Progress Report</h2></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;background:#f8f9fa;padding:20px;border-radius:10px;"><div><strong>Child:</strong> ${data.childName}</div><div><strong>Father:</strong> ${data.fatherName}</div><div><strong>Age:</strong> ${data.age}</div><div><strong>Class:</strong> ${data.class}</div><div><strong>Term:</strong> ${data.term}</div><div><strong>Reg #:</strong> ${data.regNumber}</div><div><strong>Teacher:</strong> ${data.teacherName}</div><div><strong>Period:</strong> ${data.fromDate} to ${data.toDate}</div><div><strong>Attendance:</strong> ${data.attendancePercentage}</div></div><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#3498db;color:white;"><th>Domain</th><th>Score</th><th>Level</th></tr></thead><tbody>${[1,2,3,4,5,6,7].map(i => `<tr><td>Domain ${i}</td><td>${data.percentages[i] || 0}%</td><td>${getLevel(data.percentages[i] || 0)}</td></tr>`).join('')}</tbody></table><div style="background:#667eea;color:white;padding:20px;border-radius:10px;margin:20px 0;"><h3>Summary</h3><p>${generateAISummary(data)}</p></div><div style="margin-top:50px;display:flex;justify-content:space-between;"><div><div style="border-top:1px solid #333;padding-top:10px;">Class Teacher</div><div>${data.teacherName}</div></div><div><div style="border-top:1px solid #333;padding-top:10px;">Principal</div><div>_____________</div></div><div><div style="border-top:1px solid #333;padding-top:10px;">Parent</div><div>_____________</div></div></div></div>`;
-        }
-        
-        function generatePDFReport() {
-            const data = collectFormData();
-            if (!data.childName) { showToast('Please enter child name', 'error'); return; }
-            showLoading(true, 'Preparing PDF...');
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'absolute'; tempContainer.style.top = '0'; tempContainer.style.left = '0';
-            tempContainer.style.width = '100%'; tempContainer.style.backgroundColor = 'white'; tempContainer.style.padding = '30px';
-            tempContainer.innerHTML = generateReportCardHTML(data);
-            document.body.appendChild(tempContainer);
-            setTimeout(() => {
-                html2pdf().set({ margin: 0.5, filename: `ECCE_Report_${data.childName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(tempContainer).save().then(() => { document.body.removeChild(tempContainer); showLoading(false); showToast('PDF Downloaded!', 'success'); });
-            }, 500);
-        }
-        
-        function downloadAsWord() {
-            const data = collectFormData();
-            if (!data.childName) { showToast('Please enter child name', 'error'); return; }
-            const blob = new Blob([generateReportCardHTML(data)], { type: 'application/msword' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `ECCE_Report_${data.childName}.doc`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            showToast('Word document downloaded!', 'success');
-        }
-        
-        function exportToExcel() {
-            const data = collectFormData();
-            const excelData = [{ 'Child Name': data.childName, 'Father Name': data.fatherName, 'Class': data.class, 'Term': data.term, 'Attendance': data.attendancePercentage, 'Personal & Social': data.percentages[1] + '%', 'Language & Literacy': data.percentages[2] + '%', 'Mathematical Concepts': data.percentages[3] + '%', 'Health & Safety': data.percentages[4] + '%', 'Physical Development': data.percentages[5] + '%', 'Creative Arts': data.percentages[6] + '%', 'World Around Us': data.percentages[7] + '%' }];
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(excelData), 'ECCE Report');
-            XLSX.writeFile(wb, `ECCE_Report_${data.childName}.xlsx`);
-            showToast('Excel exported!', 'success');
-        }
-        
-        function showLoading(show, text = 'Processing...') {
-            document.getElementById('loading').style.display = show ? 'flex' : 'none';
-            if (text) document.getElementById('loadingText').textContent = text;
-        }
-        
-        // ============================================================
-        // EVENT LISTENERS
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            initData();
-            updateUsageDisplay();
-            updateReactionsDisplay();
-            createProgressBars();
-            populateAssessmentSections();
-            loadStudentsList();
-            loadLastSession();
-            setupScrollButtons();
-            
-            document.getElementById('workingDays').addEventListener('input', calculateAttendance);
-            document.getElementById('daysAttended').addEventListener('input', calculateAttendance);
-            document.getElementById('saveProgressBtn').addEventListener('click', saveCurrentProgress);
-            document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
-            document.getElementById('downloadPDFBtn').addEventListener('click', generatePDFReport);
-            document.getElementById('downloadWordBtn').addEventListener('click', downloadAsWord);
-            document.getElementById('resetFormBtn').addEventListener('click', resetForm);
-            document.getElementById('loadStudentBtn').addEventListener('click', loadSelectedStudent);
-            document.getElementById('saveAsNewBtn').addEventListener('click', saveAsNewStudent);
-            document.getElementById('deleteStudentBtn').addEventListener('click', deleteSelectedStudent);
-            document.getElementById('pageShareBtn').addEventListener('click', copyPageUrl);
-            
-            document.querySelectorAll('.reaction-btn').forEach(btn => {
-                btn.addEventListener('click', () => addReaction(btn.dataset.reaction));
-            });
-            
-            document.querySelectorAll('.share-icon').forEach(btn => {
-                btn.addEventListener('click', () => shareOnPlatform(btn.dataset.share));
-            });
-            
-            // Auto-increment usage on page load (simulate tool usage)
-            incrementUsage();
-        });
-    </script>
+    <!-- ============================================================
+    SCROLL BUTTONS
+    ============================================================ -->
+    <button class="scroll-btn scroll-up" id="scrollUpBtn" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="scroll-btn scroll-down" id="scrollDownBtn" aria-label="Scroll to bottom">
+        <i class="fas fa-arrow-down"></i>
+    </button>
+    
+    <!-- ============================================================
+    CUSTOM JAVASCRIPT
+    ============================================================ -->
+    <script src="ecce-observation-tool-development.js"></script>
 </body>
 </html>
