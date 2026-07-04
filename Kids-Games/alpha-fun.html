@@ -3,1584 +3,447 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🎮 Alpha Fun - Ultimate Alphabet Adventure</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        :root {
-            --primary: #ff6b35;
-            --primary-dark: #e55a2b;
-            --secondary: #4ecdc4;
-            --accent: #ffe66d;
-            --bg-dark: #0f0c29;
-            --bg-mid: #302b63;
-            --bg-light: #24243e;
-            --card-bg: rgba(255,255,255,0.1);
-            --text: #ffffff;
-            --success: #00e676;
-            --error: #ff3b30;
-            --gold: #ffd700;
-        }
-
-        body {
-            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
-            min-height: 100vh;
-            color: var(--text);
-            overflow-x: hidden;
-        }
-
-        /* Gaming Container */
-        .game-container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Animated Background */
-        .game-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .pixel {
-            position: absolute;
-            background: rgba(255,255,255,0.05);
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.5; }
-            90% { opacity: 0.5; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-
-        /* Header */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 25px;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-            animation: slideDown 0.5s ease;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            font-size: 40px;
-            animation: bounce 1s ease infinite;
-        }
-
-        @keyframes bounce {
-            0%,100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .logo h1 {
-            font-size: 28px;
-            background: linear-gradient(135deg, #ffd700, #ff6b35);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .logo span {
-            font-size: 14px;
-            color: #aaa;
-            display: block;
-        }
-
-        .stats-panel {
-            display: flex;
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: rgba(0,0,0,0.5);
-            padding: 8px 18px;
-            border-radius: 50px;
-            text-align: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .stat-card i {
-            font-size: 18px;
-            color: var(--gold);
-            margin-right: 8px;
-        }
-
-        .stat-card span {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        /* Story Card */
-        .story-card {
-            background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(78,205,196,0.2));
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-            animation: glow 3s infinite;
-        }
-
-        @keyframes glow {
-            0%,100% { box-shadow: 0 0 20px rgba(255,107,53,0.3); }
-            50% { box-shadow: 0 0 40px rgba(78,205,196,0.5); }
-        }
-
-        .story-avatar {
-            font-size: 60px;
-            animation: walk 2s ease-in-out infinite;
-        }
-
-        @keyframes walk {
-            0%,100% { transform: translateX(0); }
-            50% { transform: translateX(10px); }
-        }
-
-        .story-text h2 {
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
-
-        .story-text p {
-            color: #ddd;
-            font-size: 14px;
-        }
-
-        .progress-bar {
-            margin-left: auto;
-            width: 200px;
-        }
-
-        .progress-track {
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #ff6b35, #ffd700);
-            width: 0%;
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-text {
-            font-size: 12px;
-            margin-top: 5px;
-            text-align: center;
-        }
-
-        /* Level Selector */
-        .level-selector {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .level-btn {
-            background: rgba(0,0,0,0.5);
-            border: 2px solid rgba(255,255,255,0.2);
-            padding: 12px 24px;
-            border-radius: 50px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .level-btn:hover {
-            transform: translateY(-3px);
-            border-color: var(--primary);
-        }
-
-        .level-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(255,107,53,0.5);
-        }
-
-        .level-btn.locked {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Powerups Bar */
-        .powerups {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .powerup {
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .powerup:hover {
-            transform: scale(1.05);
-            background: rgba(255,107,53,0.3);
-            border-color: var(--primary);
-        }
-
-        .powerup i {
-            font-size: 20px;
-        }
-
-        .powerup span {
-            font-size: 14px;
-        }
-
-        .powerup small {
-            background: var(--primary);
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-
-        /* Game Board */
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-            perspective: 1000px;
-        }
-
-        @media (max-width: 768px) {
-            .game-board {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 10px;
-            }
-        }
-
-        @media (max-width: 500px) {
-            .game-board {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-        }
-
-        .card {
-            aspect-ratio: 1;
-            position: relative;
-            cursor: pointer;
-            transform-style: preserve-3d;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 12px;
-        }
-
-        .card:hover {
-            transform: scale(1.02);
-        }
-
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card.matched {
-            transform: rotateY(180deg);
-            animation: matchPop 0.3s ease;
-        }
-
-        @keyframes matchPop {
-            0% { transform: rotateY(180deg) scale(1); }
-            50% { transform: rotateY(180deg) scale(1.1); }
-            100% { transform: rotateY(180deg) scale(1); }
-        }
-
-        .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            font-weight: bold;
-        }
-
-        .card-front {
-            background: linear-gradient(135deg, #ff6b35, #e55a2b);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-
-        .card-front::after {
-            content: "?";
-            font-size: 40px;
-            color: white;
-            font-weight: bold;
-        }
-
-        .card-back {
-            background: white;
-            transform: rotateY(180deg);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            font-size: 48px;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 14px 32px;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ff6b35, #ff4757);
-            color: white;
-            box-shadow: 0 5px 20px rgba(255,107,53,0.4);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255,107,53,0.6);
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-        }
-
-        /* Reactions */
-        .reactions-card {
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .reactions-card h3 {
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .reactions {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .reaction {
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 8px 12px;
-            border-radius: 50px;
-        }
-
-        .reaction:hover {
-            transform: scale(1.2);
-            background: rgba(255,255,255,0.1);
-        }
-
-        .reaction-emoji {
-            font-size: 32px;
-        }
-
-        .reaction-count {
-            font-size: 12px;
-            display: block;
-        }
-
-        /* Share Buttons */
-        .share-card {
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .share-card h3 {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .share-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 20px;
-        }
-
-        .share-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-        }
-
-        .fb { background: #1877F2; color: white; }
-        .tw { background: #1DA1F2; color: white; }
-        .wa { background: #25D366; color: white; }
-        .li { background: #0077B5; color: white; }
-        .cp { background: #ff6b35; color: white; }
-
-        /* Usage Counter */
-        .usage-card {
-            text-align: center;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #aaa;
-            font-size: 12px;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Floating Notif */
-        .floating {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        }
-
-        .floating.show {
-            transform: translateX(0);
-        }
-
-        /* Scroll Buttons */
-        .scroll-btns {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .scroll-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .scroll-btn:hover {
-            background: var(--primary);
-            transform: scale(1.1);
-        }
-
-        /* Dark Mode Toggle */
-        .dark-toggle {
-            position: fixed;
-            left: 20px;
-            bottom: 20px;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            cursor: pointer;
-            z-index: 100;
-            transition: all 0.3s ease;
-        }
-
-        .dark-toggle:hover {
-            transform: rotate(30deg);
-            background: var(--primary);
-        }
-
-        /* Loading */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 2000;
-            display: none;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Win Modal */
-        .win-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1500;
-            display: none;
-        }
-
-        .win-content {
-            background: linear-gradient(135deg, #ff6b35, #ff4757);
-            padding: 40px;
-            border-radius: 30px;
-            text-align: center;
-            animation: bounceIn 0.5s ease;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Premium Modal */
-        .premium-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1600;
-            display: none;
-        }
-
-        .premium-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 400px;
-            text-align: center;
-            color: #333;
-        }
-
-        /* Confetti Canvas */
-        #confettiCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 999;
-        }
-    </style>
+    
+    <!-- Primary Meta Tags -->
+    <title>Alpha Fun - Ultimate Alphabet Adventure Game for Kids | Learn ABC with Fun</title>
+    <meta name="title" content="Alpha Fun - Ultimate Alphabet Adventure Game for Kids">
+    <meta name="description" content="Play the ultimate alphabet matching game for kids! Learn ABC with fun animations, dragons, and magic. Perfect for preschool and kindergarten learning.">
+    <meta name="keywords" content="alphabet game, kids learning, ABC game, preschool game, kindergarten, educational game, alphabet matching, letter recognition, kids educational game">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Alpha Fun Team">
+    <meta name="language" content="en">
+    <meta name="revisit-after" content="1 day">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Alpha Fun - Ultimate Alphabet Adventure Game for Kids">
+    <meta property="og:description" content="Play the ultimate alphabet matching game for kids! Learn ABC with fun animations, dragons, and magic.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://alpha-fun.uzairhameed01.workers.dev">
+    <meta property="og:image" content="https://alpha-fun.uzairhameed01.workers.dev/og-image.jpg">
+    <meta property="og:site_name" content="Alpha Fun">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Alpha Fun - Ultimate Alphabet Adventure Game for Kids">
+    <meta name="twitter:description" content="Play the ultimate alphabet matching game for kids! Learn ABC with fun animations, dragons, and magic.">
+    <meta name="twitter:image" content="https://alpha-fun.uzairhameed01.workers.dev/og-image.jpg">
+    
+    <!-- Schema Markup - Game -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Alpha Fun",
+        "description": "Ultimate alphabet matching adventure game for kids. Learn ABC with fun animations and magic.",
+        "genre": "Educational Game",
+        "educationalUse": "Alphabet Learning",
+        "audience": {
+            "@type": "Audience",
+            "educationalRole": "Student",
+            "ageRange": "3-8"
+        },
+        "applicationCategory": "Game",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires modern browser",
+        "gamePlatform": "Web Browser",
+        "playMode": "Single Player",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    
+    <!-- Schema Markup - Educational Resource -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalAudience",
+        "educationalRole": "Student",
+        "audienceType": "Preschool and Kindergarten Students"
+    }
+    </script>
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://alpha-fun.uzairhameed01.workers.dev">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://magicrills-api.uzairhameed01.workers.dev">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="alpha-fun.css">
 </head>
 <body>
-
-<div class="game-bg" id="gameBg"></div>
-<canvas id="confettiCanvas"></canvas>
-
-<div class="game-container">
-    <!-- Header -->
-    <div class="game-header">
-        <div class="logo">
-            <div class="logo-icon">🎮</div>
-            <div>
-                <h1>ALPHA <span style="color:#ff6b35">FUN</span></h1>
-                <span>Learn & Play</span>
+    <!-- ========== PRELOADER ========== -->
+    <div id="preloader" class="preloader">
+        <div class="preloader-content">
+            <div class="preloader-logo">🎮</div>
+            <div class="preloader-spinner"></div>
+            <p class="preloader-text">Loading Alpha Fun...</p>
+            <div class="preloader-progress">
+                <div class="preloader-progress-bar" id="preloaderProgress"></div>
             </div>
         </div>
-        <div class="stats-panel">
-            <div class="stat-card"><i class="fas fa-globe"></i> <span id="globalPlayCount">0</span></div>
-            <div class="stat-card"><i class="fas fa-chart-line"></i> <span id="toolPlayCount">0</span></div>
-        </div>
     </div>
 
-    <!-- Story Card -->
-    <div class="story-card">
-        <div class="story-avatar">🐉</div>
-        <div class="story-text">
-            <h2>✨ The Lost Alphabet Magic ✨</h2>
-            <p>Match letters to restore magic and turn the monster into a flying dragon!</p>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-            <div class="progress-text" id="progressText">0/0 Matched</div>
-        </div>
-    </div>
-
-    <!-- Game Info -->
-    <div style="display: grid; grid-template-columns: repeat(4,1fr); gap: 15px; margin-bottom: 25px;">
-        <div style="background:rgba(0,0,0,0.4); border-radius:15px; padding:12px; text-align:center;">
-            <i class="fas fa-clock" style="color:#ffd700"></i>
-            <div style="font-size:24px; font-weight:bold" id="timerDisplay">00:00</div>
-            <small>Time</small>
-        </div>
-        <div style="background:rgba(0,0,0,0.4); border-radius:15px; padding:12px; text-align:center;">
-            <i class="fas fa-star" style="color:#ffd700"></i>
-            <div style="font-size:24px; font-weight:bold" id="scoreDisplay">0</div>
-            <small>Score</small>
-        </div>
-        <div style="background:rgba(0,0,0,0.4); border-radius:15px; padding:12px; text-align:center;">
-            <i class="fas fa-bolt" style="color:#ffd700"></i>
-            <div style="font-size:24px; font-weight:bold" id="streakDisplay">0</div>
-            <small>Streak</small>
-        </div>
-        <div style="background:rgba(0,0,0,0.4); border-radius:15px; padding:12px; text-align:center;">
-            <i class="fas fa-trophy" style="color:#ffd700"></i>
-            <div style="font-size:24px; font-weight:bold" id="levelDisplay">1</div>
-            <small>Level</small>
-        </div>
-    </div>
-
-    <!-- Level Selector -->
-    <div class="level-selector">
-        <button class="level-btn" data-level="1">🌟 BASIC</button>
-        <button class="level-btn" data-level="2">🍎 EASY</button>
-        <button class="level-btn" data-level="3">🐱 NORMAL</button>
-        <button class="level-btn" data-level="4">🔥 HARD</button>
-        <button class="level-btn" data-level="5">👑 EXPERT</button>
-        <button class="level-btn locked" data-level="6">🔒 MASTER</button>
-    </div>
-
-    <!-- Powerups -->
-    <div class="powerups">
-        <div class="powerup" data-powerup="freeze">
-            <i class="fas fa-snowflake"></i>
-            <span>FREEZE</span>
-            <small id="freezeCount">3</small>
-        </div>
-        <div class="powerup" data-powerup="hint">
-            <i class="fas fa-lightbulb"></i>
-            <span>HINT</span>
-            <small id="hintCount">2</small>
-        </div>
-        <div class="powerup" data-powerup="shuffle">
-            <i class="fas fa-random"></i>
-            <span>SHUFFLE</span>
-            <small id="shuffleCount">1</small>
-        </div>
-        <div class="powerup premium-locked" data-powerup="xray">
-            <i class="fas fa-eye"></i>
-            <span>X-RAY</span>
-            <small>🔒</small>
-        </div>
-    </div>
-
-    <!-- Game Board -->
-    <div class="game-board" id="gameBoard"></div>
-
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-        <button class="btn btn-primary" id="startBtn"><i class="fas fa-play"></i> START GAME</button>
-        <button class="btn btn-secondary" id="shuffleBtn"><i class="fas fa-random"></i> SHUFFLE</button>
-        <button class="btn btn-secondary" id="resetBtn"><i class="fas fa-redo"></i> RESET</button>
-    </div>
-
-    <!-- Reactions -->
-    <div class="reactions-card">
-        <h3><i class="fas fa-heart" style="color:#ff6b35"></i> How do you like this game?</h3>
-        <div class="reactions">
-            <div class="reaction" data-reaction="like"><div class="reaction-emoji">👍</div><span class="reaction-count" id="likeCount">0</span></div>
-            <div class="reaction" data-reaction="love"><div class="reaction-emoji">❤️</div><span class="reaction-count" id="loveCount">0</span></div>
-            <div class="reaction" data-reaction="wow"><div class="reaction-emoji">😮</div><span class="reaction-count" id="wowCount">0</span></div>
-            <div class="reaction" data-reaction="sad"><div class="reaction-emoji">😢</div><span class="reaction-count" id="sadCount">0</span></div>
-            <div class="reaction" data-reaction="angry"><div class="reaction-emoji">😠</div><span class="reaction-count" id="angryCount">0</span></div>
-            <div class="reaction" data-reaction="laugh"><div class="reaction-emoji">😂</div><span class="reaction-count" id="laughCount">0</span></div>
-            <div class="reaction" data-reaction="celebrate"><div class="reaction-emoji">🎉</div><span class="reaction-count" id="celebrateCount">0</span></div>
-        </div>
-    </div>
-
-    <!-- Share -->
-    <div class="share-card">
-        <h3><i class="fas fa-share-alt"></i> Share & Challenge Friends!</h3>
-        <div class="share-buttons">
-            <button class="share-btn fb" data-share="facebook"><i class="fab fa-facebook-f"></i></button>
-            <button class="share-btn tw" data-share="twitter"><i class="fab fa-twitter"></i></button>
-            <button class="share-btn wa" data-share="whatsapp"><i class="fab fa-whatsapp"></i></button>
-            <button class="share-btn li" data-share="linkedin"><i class="fab fa-linkedin-in"></i></button>
-            <button class="share-btn cp" data-share="copy"><i class="fas fa-link"></i></button>
-        </div>
-    </div>
-
-    <!-- Usage -->
-    <div class="usage-card">
-        <i class="fas fa-chart-simple"></i> Played <span id="usageCount">0</span> times by amazing players!
-    </div>
-
-    <div class="footer">
-        <p>© 2025 Alpha Fun | Learn ABC the GAMING Way! 🎮</p>
-    </div>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="toast">Message</div>
-
-<!-- Floating Notification -->
-<div id="floatingNotif" class="floating">
-    <span>🎮</span> <span id="floatingText">Ready to play?</span>
-</div>
-
-<!-- Scroll Buttons -->
-<div class="scroll-btns">
-    <button class="scroll-btn" id="scrollUp"><i class="fas fa-arrow-up"></i></button>
-    <button class="scroll-btn" id="scrollDown"><i class="fas fa-arrow-down"></i></button>
-</div>
-
-<!-- Dark Mode -->
-<button class="dark-toggle" id="darkToggle"><i class="fas fa-moon"></i></button>
-
-<!-- Loading -->
-<div id="loading" class="loading">
-    <div class="spinner"></div>
-    <p style="margin-top:15px">Loading Game...</p>
-</div>
-
-<!-- Win Modal -->
-<div id="winModal" class="win-modal">
-    <div class="win-content">
-        <div style="font-size:60px">🏆</div>
-        <h2>LEVEL COMPLETE!</h2>
-        <p id="winScore">Score: 0</p>
-        <p id="winTime">Time: 00:00</p>
-        <button class="btn btn-primary" onclick="closeWinModal()" style="margin-top:15px">CONTINUE</button>
-    </div>
-</div>
-
-<!-- Premium Modal -->
-<div id="premiumModal" class="premium-modal">
-    <div class="premium-content">
-        <div style="font-size:50px">👑</div>
-        <h2>Unlock Premium</h2>
-        <p>Get X-Ray Powerup, Master Level & More!</p>
-        <button class="btn btn-primary" onclick="closePremiumModal()" style="margin-top:15px; width:100%">Upgrade Now</button>
-        <button onclick="closePremiumModal()" style="margin-top:10px; background:none; border:none; cursor:pointer">Close</button>
-    </div>
-</div>
-
-<script>
-// ============================================
-// ALPHA FUN - FULL GAMING INTERFACE
-// ALL BUTTONS WORKING - 84 FEATURES
-// ============================================
-
-// ---------- CONFIG ----------
-const TOOL_SLUG = 'alpha-fun';
-let userId = localStorage.getItem('alphaUserId') || 'user_' + Math.random().toString(36).substr(2, 9);
-localStorage.setItem('alphaUserId', userId);
-
-// ---------- GAME STATE ----------
-let gameActive = false;
-let currentLevel = 1;
-let score = 0;
-let streak = 0;
-let time = 0;
-let timerInterval = null;
-let cards = [];
-let flippedCards = [];
-let matchedPairs = 0;
-let totalPairs = 0;
-let frozen = false;
-let freezeTimeout = null;
-
-let powerups = {
-    freeze: 3,
-    hint: 2,
-    shuffle: 1,
-    xray: 0
-};
-
-// ---------- LETTERS (A-Z) ----------
-const lettersByLevel = {
-    1: ['A','B','C','D','E','F','G','H'],
-    2: ['A','B','C','D','E','F','G','H','I','J'],
-    3: ['A','B','C','D','E','F','G','H','I','J','K','L'],
-    4: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P'],
-    5: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-};
-
-const letterIcons = {
-    A:'🍎',B:'🐝',C:'🐱',D:'🐶',E:'🐘',F:'🐠',G:'🦒',H:'🏠',
-    I:'🍦',J:'🤡',K:'🪁',L:'🦁',M:'🐒',N:'📓',O:'🦉',P:'🐧',
-    Q:'👑',R:'🐇',S:'🐍',T:'🐯',U:'☔',V:'🏐',W:'🐳',X:'🎷',Y:'🪀',Z:'🦓'
-};
-
-// ---------- DOM Elements ----------
-const elements = {
-    gameBoard: document.getElementById('gameBoard'),
-    timerDisplay: document.getElementById('timerDisplay'),
-    scoreDisplay: document.getElementById('scoreDisplay'),
-    streakDisplay: document.getElementById('streakDisplay'),
-    levelDisplay: document.getElementById('levelDisplay'),
-    startBtn: document.getElementById('startBtn'),
-    shuffleBtn: document.getElementById('shuffleBtn'),
-    resetBtn: document.getElementById('resetBtn'),
-    progressFill: document.getElementById('progressFill'),
-    progressText: document.getElementById('progressText'),
-    toast: document.getElementById('toast'),
-    floating: document.getElementById('floatingNotif'),
-    floatingText: document.getElementById('floatingText'),
-    loading: document.getElementById('loading'),
-    usageCount: document.getElementById('usageCount'),
-    globalPlayCount: document.getElementById('globalPlayCount'),
-    toolPlayCount: document.getElementById('toolPlayCount')
-};
-
-// ---------- Helper Functions ----------
-function showToast(msg) {
-    const toast = elements.toast;
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-}
-
-function showFloating(msg) {
-    elements.floatingText.textContent = msg;
-    elements.floating.classList.add('show');
-    setTimeout(() => elements.floating.classList.remove('show'), 3000);
-}
-
-function showLoading(show) {
-    elements.loading.style.display = show ? 'flex' : 'none';
-}
-
-function formatTime(sec) {
-    let m = Math.floor(sec / 60);
-    let s = sec % 60;
-    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-}
-
-function updateUI() {
-    elements.scoreDisplay.textContent = score;
-    elements.streakDisplay.textContent = streak;
-    elements.levelDisplay.textContent = currentLevel;
-    let percent = totalPairs > 0 ? (matchedPairs / totalPairs) * 100 : 0;
-    elements.progressFill.style.width = percent + '%';
-    elements.progressText.textContent = `${matchedPairs}/${totalPairs} Matched`;
-}
-
-function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-// ---------- Sound Effects (Web Audio) ----------
-function playFlip() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 880;
-        gain.gain.value = 0.1;
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.1);
-        osc.stop(ctx.currentTime + 0.1);
-    } catch(e) {}
-}
-
-function playSuccess() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 523.25;
-        gain.gain.value = 0.15;
-        osc.start();
-        setTimeout(() => osc.frequency.value = 659.25, 100);
-        setTimeout(() => osc.frequency.value = 783.99, 200);
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-        osc.stop(ctx.currentTime + 0.5);
-    } catch(e) {}
-}
-
-function playError() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 440;
-        gain.gain.value = 0.1;
-        osc.start();
-        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.3);
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.4);
-        osc.stop(ctx.currentTime + 0.4);
-    } catch(e) {}
-}
-
-function playWin() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
-        notes.forEach((freq, i) => {
-            setTimeout(() => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.frequency.value = freq;
-                gain.gain.value = 0.1;
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
-                osc.stop(ctx.currentTime + 0.3);
-            }, i * 150);
-        });
-    } catch(e) {}
-}
-
-// ---------- Confetti ----------
-function createConfetti() {
-    const canvas = document.getElementById('confettiCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    let particles = [];
-    for (let i = 0; i < 80; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: -10,
-            size: Math.random() * 8 + 4,
-            speedY: Math.random() * 5 + 3,
-            speedX: (Math.random() - 0.5) * 3,
-            color: `hsl(${Math.random() * 360}, 70%, 60%)`
-        });
-    }
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        let active = false;
-        particles.forEach(p => {
-            p.y += p.speedY;
-            p.x += p.speedX;
-            if (p.y < canvas.height) active = true;
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-        });
-        if (active) requestAnimationFrame(animate);
-        else ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    animate();
-    setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 2500);
-}
-
-// ---------- Render Board ----------
-function renderBoard() {
-    elements.gameBoard.innerHTML = '';
-    cards.forEach((card, idx) => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        if (card.matched) cardDiv.classList.add('matched');
-        if (card.flipped) cardDiv.classList.add('flipped');
+    <!-- ========== HERO SECTION ========== -->
+    <section class="hero-section" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-particles" id="heroParticles"></div>
         
-        const front = document.createElement('div');
-        front.className = 'card-front';
-        const back = document.createElement('div');
-        back.className = 'card-back';
-        back.textContent = letterIcons[card.value] || card.value;
-        
-        cardDiv.appendChild(front);
-        cardDiv.appendChild(back);
-        cardDiv.addEventListener('click', () => flipCard(idx));
-        elements.gameBoard.appendChild(cardDiv);
-        cards[idx].element = cardDiv;
-    });
-}
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-icon">🌟</span>
+                    <span>Educational Game</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    <span class="title-gradient">Alpha Fun</span>
+                    <span class="typewriter-container">
+                        <span class="typewriter-text" id="typewriterText"></span>
+                        <span class="typewriter-cursor">|</span>
+                    </span>
+                </h1>
+                
+                <p class="hero-description">
+                    The ultimate alphabet adventure where learning meets magic! 
+                    Match letters, unlock dragons, and become a master of the alphabet.
+                    Perfect for kids aged 3-8.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="stat-number" id="heroPlayers">0</span>
+                        <span class="stat-label">Active Players</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="stat-number" id="heroGames">0</span>
+                        <span class="stat-label">Games Played</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="stat-number" id="heroStars">0</span>
+                        <span class="stat-label">Stars Earned</span>
+                    </div>
+                </div>
+                
+                <div class="hero-actions">
+                    <button class="hero-btn primary" id="heroStartBtn">
+                        <span class="btn-icon">🚀</span>
+                        Start Adventure
+                    </button>
+                    <button class="hero-btn secondary" id="heroLearnBtn">
+                        <span class="btn-icon">📖</span>
+                        How to Play
+                    </button>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="hero-animation">
+                    <div class="hero-animation-inner">
+                        <div class="floating-elements">
+                            <div class="floating-element" style="--delay:0s; --x:10%; --y:20%;">🍎</div>
+                            <div class="floating-element" style="--delay:1s; --x:80%; --y:10%;">🐉</div>
+                            <div class="floating-element" style="--delay:2s; --x:20%; --y:70%;">⭐</div>
+                            <div class="floating-element" style="--delay:0.5s; --x:70%; --y:60%;">📚</div>
+                            <div class="floating-element" style="--delay:1.5s; --x:50%; --y:5%;">🎯</div>
+                            <div class="floating-element" style="--delay:2.5s; --x:5%; --y:50%;">🌈</div>
+                        </div>
+                        <div class="hero-mascot">
+                            <span class="mascot-emoji">🐉</span>
+                            <div class="mascot-bubble">
+                                <span id="mascotMessage">Let's learn ABC!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-// ---------- Flip Card ----------
-function flipCard(idx) {
-    if (!gameActive) { showToast('Start a game first!'); return; }
-    if (frozen) { showToast('❄️ Game frozen! Wait...'); return; }
-    if (flippedCards.length >= 2) return;
-    
-    const card = cards[idx];
-    if (card.matched || card.flipped) return;
-    
-    card.flipped = true;
-    card.element.classList.add('flipped');
-    flippedCards.push(card);
-    playFlip();
-    
-    if (flippedCards.length === 2) {
-        setTimeout(checkMatch, 500);
-    }
-}
+    <!-- ========== GAME CONTAINER ========== -->
+    <div class="game-container" id="gameContainer">
+        <!-- Header -->
+        <div class="game-header">
+            <div class="logo">
+                <div class="logo-icon">🎮</div>
+                <div>
+                    <h1>ALPHA <span class="logo-highlight">FUN</span></h1>
+                    <span class="logo-subtitle">Learn & Play</span>
+                </div>
+            </div>
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <i class="fas fa-globe"></i>
+                    <span id="globalPlayCount">0</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="toolPlayCount">0</span>
+                </div>
+            </div>
+        </div>
 
-function checkMatch() {
-    const [c1, c2] = flippedCards;
-    if (c1.value === c2.value) {
-        c1.matched = true;
-        c2.matched = true;
-        matchedPairs++;
-        let points = 10 + (streak * 5);
-        score += points;
-        streak++;
-        playSuccess();
-        createConfetti();
-        showToast(`🎉 Match! +${points} points (${streak}x streak!)`);
-        
-        if (matchedPairs === totalPairs) {
-            endGame(true);
-        }
-    } else {
-        c1.flipped = false;
-        c2.flipped = false;
-        c1.element.classList.remove('flipped');
-        c2.element.classList.remove('flipped');
-        streak = 0;
-        score = Math.max(0, score - 2);
-        playError();
-        showToast(`❌ No match! -2 points`);
-    }
-    flippedCards = [];
-    updateUI();
-}
+        <!-- Story Card -->
+        <div class="story-card">
+            <div class="story-avatar">🐉</div>
+            <div class="story-text">
+                <h2>✨ The Lost Alphabet Magic ✨</h2>
+                <p id="storyMessage">Match letters to restore magic and turn the monster into a flying dragon!</p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0/0 Matched</div>
+            </div>
+        </div>
 
-// ---------- Start Game ----------
-function startGame() {
-    if (gameActive) { showToast('Game already running!'); return; }
-    
-    showLoading(true);
-    
-    // Increment usage
-    incrementUsage();
-    
-    // Reset state
-    if (timerInterval) clearInterval(timerInterval);
-    gameActive = true;
-    score = 0;
-    streak = 0;
-    time = 0;
-    matchedPairs = 0;
-    flippedCards = [];
-    frozen = false;
-    if (freezeTimeout) clearTimeout(freezeTimeout);
-    
-    // Get letters for level
-    let letters = lettersByLevel[currentLevel] || lettersByLevel[5];
-    totalPairs = letters.length;
-    
-    // Create deck
-    let deck = [...letters, ...letters];
-    deck = shuffleArray(deck);
-    
-    cards = deck.map((val, i) => ({
-        id: i,
-        value: val,
-        matched: false,
-        flipped: false,
-        element: null
-    }));
-    
-    renderBoard();
-    updateUI();
-    
-    // Timer
-    timerInterval = setInterval(() => {
-        if (!gameActive) return;
-        if (!frozen) {
-            time++;
-            elements.timerDisplay.textContent = formatTime(time);
-        }
-    }, 1000);
-    
-    showLoading(false);
-    showToast('🎮 Game Started! Match all pairs!');
-    showFloating('✨ Find matching letters! ✨');
-}
+        <!-- Game Info -->
+        <div class="game-stats-grid">
+            <div class="stat-item">
+                <i class="fas fa-clock stat-icon timer-icon"></i>
+                <div class="stat-value" id="timerDisplay">00:00</div>
+                <div class="stat-label">Time</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-star stat-icon score-icon"></i>
+                <div class="stat-value" id="scoreDisplay">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-bolt stat-icon streak-icon"></i>
+                <div class="stat-value" id="streakDisplay">0</div>
+                <div class="stat-label">Streak</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-trophy stat-icon level-icon"></i>
+                <div class="stat-value" id="levelDisplay">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+        </div>
 
-function endGame(isWin) {
-    if (timerInterval) clearInterval(timerInterval);
-    gameActive = false;
-    
-    if (isWin) {
-        playWin();
-        createHeavyConfetti();
-        document.getElementById('winScore').textContent = `Score: ${score}`;
-        document.getElementById('winTime').textContent = `Time: ${formatTime(time)}`;
-        document.getElementById('winModal').style.display = 'flex';
-        showToast('🎉 LEVEL COMPLETE! 🎉');
-        
-        // Unlock next level
-        if (currentLevel < 5) {
-            showFloating(`🎁 Level ${currentLevel+1} unlocked!`);
-        }
-    }
-}
+        <!-- Level Selector - 3D Style -->
+        <div class="level-selector-3d" id="levelSelector">
+            <div class="level-btn-3d active" data-level="1">
+                <span class="level-icon">🌟</span>
+                <span class="level-name">BASIC</span>
+                <span class="level-check">✓</span>
+            </div>
+            <div class="level-btn-3d" data-level="2">
+                <span class="level-icon">🍎</span>
+                <span class="level-name">EASY</span>
+                <span class="level-check">✓</span>
+            </div>
+            <div class="level-btn-3d" data-level="3">
+                <span class="level-icon">🐱</span>
+                <span class="level-name">NORMAL</span>
+                <span class="level-check">✓</span>
+            </div>
+            <div class="level-btn-3d" data-level="4">
+                <span class="level-icon">🔥</span>
+                <span class="level-name">HARD</span>
+                <span class="level-check">✓</span>
+            </div>
+            <div class="level-btn-3d" data-level="5">
+                <span class="level-icon">👑</span>
+                <span class="level-name">EXPERT</span>
+                <span class="level-check">✓</span>
+            </div>
+            <div class="level-btn-3d locked" data-level="6">
+                <span class="level-icon">🔒</span>
+                <span class="level-name">MASTER</span>
+                <span class="level-check">🔒</span>
+            </div>
+        </div>
 
-function createHeavyConfetti() {
-    for (let i = 0; i < 5; i++) {
-        setTimeout(() => createConfetti(), i * 200);
-    }
-}
+        <!-- Powerups -->
+        <div class="powerups">
+            <div class="powerup" data-powerup="freeze">
+                <i class="fas fa-snowflake"></i>
+                <span>FREEZE</span>
+                <small id="freezeCount">3</small>
+            </div>
+            <div class="powerup" data-powerup="hint">
+                <i class="fas fa-lightbulb"></i>
+                <span>HINT</span>
+                <small id="hintCount">2</small>
+            </div>
+            <div class="powerup" data-powerup="shuffle">
+                <i class="fas fa-random"></i>
+                <span>SHUFFLE</span>
+                <small id="shuffleCount">1</small>
+            </div>
+            <div class="powerup premium-locked" data-powerup="xray">
+                <i class="fas fa-eye"></i>
+                <span>X-RAY</span>
+                <small>🔒</small>
+            </div>
+        </div>
 
-function closeWinModal() {
-    document.getElementById('winModal').style.display = 'none';
-    if (currentLevel < 5) {
-        currentLevel++;
-        elements.levelDisplay.textContent = currentLevel;
-        // Update active level button
-        document.querySelectorAll('.level-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (parseInt(btn.dataset.level) === currentLevel) {
-                btn.classList.add('active');
-            }
-        });
-    }
-    startGame();
-}
+        <!-- Game Board -->
+        <div class="game-board" id="gameBoard"></div>
 
-// ---------- Powerups ----------
-function usePowerup(type) {
-    if (!gameActive) { showToast('Start a game first!'); return; }
-    if (frozen) { showToast('Cannot use powerups while frozen!'); return; }
-    
-    if (type === 'freeze') {
-        if (powerups.freeze <= 0) { showToast('No freeze left!'); return; }
-        powerups.freeze--;
-        frozen = true;
-        showToast('❄️ Game frozen for 5 seconds!');
-        if (freezeTimeout) clearTimeout(freezeTimeout);
-        freezeTimeout = setTimeout(() => {
-            frozen = false;
-            showToast('🔥 Game unfrozen!');
-        }, 5000);
-        document.getElementById('freezeCount').textContent = powerups.freeze;
-    }
-    else if (type === 'hint') {
-        if (powerups.hint <= 0) { showToast('No hint left!'); return; }
-        powerups.hint--;
-        // Find unmatched cards
-        let unmatched = cards.filter(c => !c.matched && !c.flipped);
-        for (let i = 0; i < unmatched.length; i++) {
-            for (let j = i+1; j < unmatched.length; j++) {
-                if (unmatched[i].value === unmatched[j].value) {
-                    unmatched[i].element.style.boxShadow = '0 0 20px gold';
-                    unmatched[j].element.style.boxShadow = '0 0 20px gold';
-                    setTimeout(() => {
-                        unmatched[i].element.style.boxShadow = '';
-                        unmatched[j].element.style.boxShadow = '';
-                    }, 2000);
-                    showToast('💡 Look at the glowing cards!');
-                    break;
-                }
-            }
-        }
-        document.getElementById('hintCount').textContent = powerups.hint;
-    }
-    else if (type === 'shuffle') {
-        if (powerups.shuffle <= 0) { showToast('No shuffle left!'); return; }
-        powerups.shuffle--;
-        // Shuffle unmatched cards
-        let unmatchedCards = cards.filter(c => !c.matched);
-        let matchedCards = cards.filter(c => c.matched);
-        let unmatchedVals = unmatchedCards.map(c => c.value);
-        unmatchedVals = shuffleArray(unmatchedVals);
-        unmatchedCards.forEach((c, idx) => {
-            c.value = unmatchedVals[idx];
-            if (c.element) {
-                let backDiv = c.element.querySelector('.card-back');
-                backDiv.textContent = letterIcons[c.value] || c.value;
-            }
-        });
-        // Reset flipped
-        flippedCards.forEach(c => {
-            c.flipped = false;
-            if (c.element) c.element.classList.remove('flipped');
-        });
-        flippedCards = [];
-        showToast('🔄 Board shuffled!');
-        document.getElementById('shuffleCount').textContent = powerups.shuffle;
-    }
-    else if (type === 'xray') {
-        showPremiumModal();
-    }
-    
-    localStorage.setItem('alphaPowerups', JSON.stringify(powerups));
-}
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="startBtn">
+                <i class="fas fa-play"></i> START GAME
+            </button>
+            <button class="btn btn-secondary" id="shuffleBtn">
+                <i class="fas fa-random"></i> SHUFFLE
+            </button>
+            <button class="btn btn-secondary" id="resetBtn">
+                <i class="fas fa-redo"></i> RESET
+            </button>
+        </div>
 
-function shuffleBoard() {
-    if (!gameActive) { showToast('Start a game first!'); return; }
-    if (frozen) { showToast('Cannot shuffle while frozen!'); return; }
-    
-    let unmatchedCards = cards.filter(c => !c.matched);
-    let matchedCards = cards.filter(c => c.matched);
-    let unmatchedVals = unmatchedCards.map(c => c.value);
-    unmatchedVals = shuffleArray(unmatchedVals);
-    unmatchedCards.forEach((c, idx) => {
-        c.value = unmatchedVals[idx];
-        if (c.element) {
-            let backDiv = c.element.querySelector('.card-back');
-            backDiv.textContent = letterIcons[c.value] || c.value;
-        }
-    });
-    flippedCards.forEach(c => {
-        c.flipped = false;
-        if (c.element) c.element.classList.remove('flipped');
-    });
-    flippedCards = [];
-    showToast('🔄 Board shuffled!');
-}
+        <!-- Reactions - Colorful Theme -->
+        <div class="reactions-card">
+            <h3><i class="fas fa-heart" style="color: #ff6b6b;"></i> How do you like this game?</h3>
+            <div class="reactions-grid" id="reactionsContainer">
+                <div class="reaction-btn" data-reaction="like" style="--reaction-color: #4ecdc4;">
+                    <span class="reaction-emoji">👍</span>
+                    <span class="reaction-count" id="likeCount">0</span>
+                </div>
+                <div class="reaction-btn" data-reaction="love" style="--reaction-color: #ff6b6b;">
+                    <span class="reaction-emoji">❤️</span>
+                    <span class="reaction-count" id="loveCount">0</span>
+                </div>
+                <div class="reaction-btn" data-reaction="wow" style="--reaction-color: #ffd93d;">
+                    <span class="reaction-emoji">😮</span>
+                    <span class="reaction-count" id="wowCount">0</span>
+                </div>
+                <div class="reaction-btn" data-reaction="sad" style="--reaction-color: #6c5ce7;">
+                    <span class="reaction-emoji">😢</span>
+                    <span class="reaction-count" id="sadCount">0</span>
+                </div>
+                <div class="reaction-btn" data-reaction="laugh" style="--reaction-color: #fdcb6e;">
+                    <span class="reaction-emoji">😂</span>
+                    <span class="reaction-count" id="laughCount">0</span>
+                </div>
+                <div class="reaction-btn" data-reaction="celebrate" style="--reaction-color: #00b894;">
+                    <span class="reaction-emoji">🎉</span>
+                    <span class="reaction-count" id="celebrateCount">0</span>
+                </div>
+                <div class="reaction-btn" data-reaction="angry" style="--reaction-color: #e17055;">
+                    <span class="reaction-emoji">😠</span>
+                    <span class="reaction-count" id="angryCount">0</span>
+                </div>
+            </div>
+        </div>
 
-function resetGame() {
-    if (timerInterval) clearInterval(timerInterval);
-    gameActive = false;
-    cards = [];
-    flippedCards = [];
-    elements.gameBoard.innerHTML = '';
-    elements.timerDisplay.textContent = '00:00';
-    elements.scoreDisplay.textContent = '0';
-    elements.streakDisplay.textContent = '0';
-    score = 0;
-    streak = 0;
-    time = 0;
-    matchedPairs = 0;
-    updateUI();
-    showToast('Game reset! Click START to play.');
-}
+        <!-- Share -->
+        <div class="share-card">
+            <h3><i class="fas fa-share-alt"></i> Share & Challenge Friends!</h3>
+            <div class="share-buttons">
+                <button class="share-btn fb" data-share="facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </button>
+                <button class="share-btn tw" data-share="twitter">
+                    <i class="fab fa-twitter"></i>
+                </button>
+                <button class="share-btn wa" data-share="whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                </button>
+                <button class="share-btn li" data-share="linkedin">
+                    <i class="fab fa-linkedin-in"></i>
+                </button>
+                <button class="share-btn cp" data-share="copy">
+                    <i class="fas fa-link"></i>
+                </button>
+            </div>
+        </div>
 
-// ---------- Level Selection ----------
-function initLevelButtons() {
-    document.querySelectorAll('.level-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            let level = parseInt(btn.dataset.level);
-            if (btn.classList.contains('locked')) {
-                showPremiumModal();
-                return;
-            }
-            currentLevel = level;
-            document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            elements.levelDisplay.textContent = currentLevel;
-            showToast(`Level ${currentLevel} selected!`);
-            if (!gameActive) resetGame();
-        });
-    });
-}
+        <!-- Usage -->
+        <div class="usage-card">
+            <i class="fas fa-chart-simple"></i>
+            Played <span id="usageCount">0</span> times by amazing players!
+        </div>
 
-// ---------- API Calls ----------
-async function callAPI(endpoint, method = 'GET', data = null) {
-    const url = `https://alpha-fun.uzairhameed01.workers.dev/api/${endpoint}`;
-    try {
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: data ? JSON.stringify(data) : null
-        });
-        return await res.json();
-    } catch(e) {
-        console.log('API Error:', e);
-        return { success: false };
-    }
-}
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Alpha Fun | Learn ABC the GAMING Way! 🎮</p>
+            <p class="footer-links">
+                <a href="#">Privacy Policy</a> | 
+                <a href="#">Terms of Service</a> | 
+                <a href="#">Contact Us</a>
+            </p>
+        </div>
+    </div>
 
-async function incrementUsage() {
-    const res = await callAPI('increment-usage', 'POST', {
-        tool_slug: TOOL_SLUG,
-        user_id: userId
-    });
-    if (res.success) {
-        elements.toolPlayCount.textContent = res.total_usage || 0;
-        elements.usageCount.textContent = res.total_usage || 0;
-    }
-    loadGlobalUsage();
-}
+    <!-- ========== TOAST ========== -->
+    <div id="toast" class="toast">Message</div>
 
-async function loadGlobalUsage() {
-    const res = await callAPI('global-stats', 'GET');
-    if (res.success) {
-        elements.globalPlayCount.textContent = res.totalUsage || 0;
-    }
-}
+    <!-- ========== FLOATING NOTIFICATION ========== -->
+    <div id="floatingNotif" class="floating">
+        <span>🎮</span>
+        <span id="floatingText">Ready to play?</span>
+    </div>
 
-async function addReaction(reaction) {
-    const res = await callAPI('add-reaction', 'POST', {
-        tool_slug: TOOL_SLUG,
-        emoji: reaction,
-        reaction_type: reaction,
-        user_id: userId
-    });
-    loadReactions();
-    showToast(`Thanks for your ${reaction} reaction! ❤️`);
-}
+    <!-- ========== SCROLL BUTTONS ========== -->
+    <div class="scroll-btns">
+        <button class="scroll-btn" id="scrollUp">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="scroll-btn" id="scrollDown">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
 
-async function loadReactions() {
-    const res = await callAPI(`reactions?tool_slug=${TOOL_SLUG}`, 'GET');
-    if (res.success && res.reactions) {
-        document.getElementById('likeCount').textContent = res.reactions.like || 0;
-        document.getElementById('loveCount').textContent = res.reactions.love || 0;
-        document.getElementById('wowCount').textContent = res.reactions.wow || 0;
-        document.getElementById('sadCount').textContent = res.reactions.sad || 0;
-        document.getElementById('angryCount').textContent = res.reactions.angry || 0;
-        document.getElementById('laughCount').textContent = res.reactions.laugh || 0;
-        document.getElementById('celebrateCount').textContent = res.reactions.celebrate || 0;
-    }
-}
+    <!-- ========== DARK MODE TOGGLE ========== -->
+    <button class="dark-toggle" id="darkToggle">
+        <i class="fas fa-moon"></i>
+    </button>
 
-async function shareGame(platform) {
-    const url = window.location.href;
-    const text = `I scored ${score} points on Alpha Fun! Can you beat me? 🎮✨`;
-    let shareUrl = '';
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
-    else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=Alpha%20Fun&summary=${encodeURIComponent(text)}`;
-    else if (platform === 'copy') {
-        await navigator.clipboard.writeText(url);
-        showToast('URL copied!');
-        return;
-    }
-    if (shareUrl) window.open(shareUrl, '_blank');
-    
-    await callAPI('add-share', 'POST', {
-        tool_slug: TOOL_SLUG,
-        platform: platform,
-        user_id: userId
-    });
-}
+    <!-- ========== LOADING ========== -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top:15px;">Loading Game...</p>
+    </div>
 
-// ---------- UI Helpers ----------
-function showPremiumModal() {
-    document.getElementById('premiumModal').style.display = 'flex';
-}
-function closePremiumModal() {
-    document.getElementById('premiumModal').style.display = 'none';
-}
+    <!-- ========== WIN MODAL ========== -->
+    <div id="winModal" class="win-modal">
+        <div class="win-content">
+            <div class="win-icon">🏆</div>
+            <h2>LEVEL COMPLETE!</h2>
+            <p id="winScore">Score: 0</p>
+            <p id="winTime">Time: 00:00</p>
+            <button class="btn btn-primary" onclick="closeWinModal()" style="margin-top:15px;">
+                CONTINUE
+            </button>
+        </div>
+    </div>
 
-// ---------- Dark Mode ----------
-function initDarkMode() {
-    const darkToggle = document.getElementById('darkToggle');
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    if (isDark) {
-        document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-        darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-    darkToggle.addEventListener('click', () => {
-        const nowDark = localStorage.getItem('darkMode') === 'true';
-        if (nowDark) {
-            document.body.style.filter = '';
-            localStorage.setItem('darkMode', 'false');
-            darkToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        } else {
-            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-            localStorage.setItem('darkMode', 'true');
-            darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        }
-    });
-}
+    <!-- ========== PREMIUM MODAL ========== -->
+    <div id="premiumModal" class="premium-modal">
+        <div class="premium-content">
+            <div style="font-size:50px;">👑</div>
+            <h2>Unlock Premium</h2>
+            <p>Get X-Ray Powerup, Master Level & More!</p>
+            <button class="btn btn-primary" onclick="closePremiumModal()" style="margin-top:15px; width:100%;">
+                Upgrade Now
+            </button>
+            <button onclick="closePremiumModal()" style="margin-top:10px; background:none; border:none; cursor:pointer; color:#666;">
+                Close
+            </button>
+        </div>
+    </div>
 
-// ---------- Background Animation ----------
-function createBackground() {
-    const bg = document.getElementById('gameBg');
-    for (let i = 0; i < 50; i++) {
-        const pixel = document.createElement('div');
-        pixel.className = 'pixel';
-        pixel.style.left = Math.random() * 100 + '%';
-        pixel.style.width = pixel.style.height = Math.random() * 4 + 2 + 'px';
-        pixel.style.animationDelay = Math.random() * 20 + 's';
-        pixel.style.animationDuration = Math.random() * 15 + 10 + 's';
-        bg.appendChild(pixel);
-    }
-}
+    <!-- ========== CONFETTI CANVAS ========== -->
+    <canvas id="confettiCanvas"></canvas>
 
-// ---------- Scroll ----------
-function initScroll() {
-    document.getElementById('scrollUp').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    document.getElementById('scrollDown').addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-}
-
-// ---------- Event Listeners ----------
-function initEventListeners() {
-    elements.startBtn.addEventListener('click', startGame);
-    elements.shuffleBtn.addEventListener('click', shuffleBoard);
-    elements.resetBtn.addEventListener('click', resetGame);
-    
-    document.querySelectorAll('.powerup').forEach(p => {
-        p.addEventListener('click', () => {
-            const type = p.dataset.powerup;
-            if (type) usePowerup(type);
-        });
-    });
-    
-    document.querySelectorAll('.reaction').forEach(r => {
-        r.addEventListener('click', () => {
-            const reaction = r.dataset.reaction;
-            if (reaction) addReaction(reaction);
-        });
-    });
-    
-    document.querySelectorAll('.share-btn').forEach(s => {
-        s.addEventListener('click', () => {
-            const platform = s.dataset.share;
-            if (platform) shareGame(platform);
-        });
-    });
-}
-
-// ---------- Load Powerups ----------
-function loadPowerups() {
-    const saved = localStorage.getItem('alphaPowerups');
-    if (saved) {
-        try {
-            const p = JSON.parse(saved);
-            powerups.freeze = p.freeze || 3;
-            powerups.hint = p.hint || 2;
-            powerups.shuffle = p.shuffle || 1;
-        } catch(e) {}
-    }
-    document.getElementById('freezeCount').textContent = powerups.freeze;
-    document.getElementById('hintCount').textContent = powerups.hint;
-    document.getElementById('shuffleCount').textContent = powerups.shuffle;
-}
-
-// ---------- INIT ----------
-async function init() {
-    createBackground();
-    initDarkMode();
-    initScroll();
-    initLevelButtons();
-    initEventListeners();
-    loadPowerups();
-    await loadGlobalUsage();
-    await loadReactions();
-    showFloating('🎮 Alpha Fun is ready! Click START!');
-    console.log('Game initialized - 84 Features Ready!');
-}
-
-init();
-</script>
+    <!-- ========== EXTERNAL JS ========== -->
+    <script src="alpha-fun.js"></script>
 </body>
 </html>
