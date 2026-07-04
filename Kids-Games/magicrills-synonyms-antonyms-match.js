@@ -1,21 +1,30 @@
 // ============================================
 // MAGICRILLS - AI POWERED SYNONYMS & ANTONYMS
-// 8 Learning Methods | Full AI Integration | 500+ Questions
+// 8 Learning Methods | Cloudflare API | 500+ Questions
 // ============================================
+
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'magicrills-synonyms-antonyms',
+    USE_AI: true,
+    DEBUG: false
+};
 
 // ============================================
 // GLOBAL VARIABLES
 // ============================================
-
 let currentMethod = null;
 let currentMode = 'synonyms';
 let soundEnabled = true;
-let aiEnabled = true;
 let userId = localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 9);
 let userReactions = JSON.parse(localStorage.getItem('userReactions') || '{}');
-let toolSlug = 'magicrills-synonyms-antonyms';
 let currentQuestions = [];
 let timerInterval = null;
+let statsCache = null;
 
 // Game specific variables
 let currentMCQIndex = 0, mcqScore = 0;
@@ -27,7 +36,6 @@ let matchingCards = [], matchedPairs = 0, selectedCardDiv = null, selectedCardDa
 // ============================================
 // COMPREHENSIVE WORD DATABASE (500+ WORDS)
 // ============================================
-
 const WORD_DB = {
     synonyms: [
         { word: "happy", match: "joyful", options: ["joyful", "sad", "angry", "tired"] },
@@ -135,131 +143,295 @@ const WORD_DB = {
 };
 
 // ============================================
-// API CALLS (TiDB + Grok AI Integration)
+// CLOUDFLARE API CALLS
 // ============================================
 
+/**
+ * Generic API call to Cloudflare Worker
+ */
 async function callAPI(endpoint, method = 'GET', data = null) {
     try {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
-        if (data) options.body = JSON.stringify(data);
-        const response = await fetch(`/api/${endpoint}`, options);
-        return await response.json();
+        const url = `${CONFIG.API_BASE}${endpoint}`;
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(url, options);
+        const result = await response.json();
+        
+        if (CONFIG.DEBUG) {
+            console.log(`API [${method}] ${endpoint}:`, result);
+        }
+        
+        return result;
     } catch (error) {
         console.error('API Error:', error);
         return { success: false, error: error.message };
     }
 }
 
+/**
+ * Increment usage counter
+ */
 async function incrementUsage() {
     try {
-        await callAPI('increment-usage', 'POST', { tool_slug: toolSlug, user_id: userId });
-        await getUsage();
-    } catch (e) { console.error(e); }
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: userId
+        });
+        
+        if (result.success) {
+            await fetchStats();
+        } else {
+            // Fallback: local storage
+            const localUsage = parseInt(localStorage.getItem('local_usage') || '0');
+            localStorage.setItem('local_usage', (localUsage + 1).toString());
+            updateStatsFromLocal();
+        }
+        return result;
+    } catch (e) {
+        console.error('Error incrementing usage:', e);
+        // Fallback
+        const localUsage = parseInt(localStorage.getItem('local_usage') || '0');
+        localStorage.setItem('local_usage', (localUsage + 1).toString());
+        updateStatsFromLocal();
+    }
 }
 
-async function getUsage() {
+/**
+ * Fetch all stats for the tool
+ */
+async function fetchStats() {
     try {
-        const result = await callAPI(`usage?tool_slug=${toolSlug}`, 'GET');
-        if (result.success) document.getElementById('globalUsage').textContent = result.count || 0;
-    } catch (e) { console.error(e); }
+        const result = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        
+        if (result.success && result.stats) {
+            statsCache = result.stats;
+            updateStatsUI(result.stats);
+        } else {
+            updateStatsFromLocal();
+        }
+        return result;
+    } catch (e) {
+        console.error('Error fetching stats:', e);
+        updateStatsFromLocal();
+    }
 }
 
+/**
+ * Update UI with stats data
+ */
+function updateStatsUI(stats) {
+    if (!stats) return;
+    
+    document.getElementById('globalUsage').textContent = stats.usage || 0;
+    document.getElementById('totalReactions').textContent = stats.total_reactions || 0;
+    document.getElementById('totalShares').textContent = stats.shares || 0;
+    
+    // Update individual reactions if available
+    if (stats.reactions) {
+        document.getElementById('likeCount').textContent = stats.reactions.like || 0;
+        document.getElementById('loveCount').textContent = stats.reactions.love || 0;
+        document.getElementById('wowCount').textContent = stats.reactions.wow || 0;
+        document.getElementById('sadCount').textContent = stats.reactions.sad || 0;
+        document.getElementById('angryCount').textContent = stats.reactions.angry || 0;
+        document.getElementById('laughCount').textContent = stats.reactions.laugh || 0;
+        document.getElementById('celebrateCount').textContent = stats.reactions.celebrate || 0;
+    }
+}
+
+/**
+ * Fallback: Update stats from localStorage
+ */
+function updateStatsFromLocal() {
+    const localUsage = parseInt(localStorage.getItem('local_usage') || '0');
+    const localReactions = JSON.parse(localStorage.getItem('local_reactions') || '{}');
+    const localShares = parseInt(localStorage.getItem('local_shares') || '0');
+    const localHighScore = parseInt(localStorage.getItem('highScore') || '0');
+    
+    document.getElementById('globalUsage').textContent = localUsage;
+    document.getElementById('totalShares').textContent = localShares;
+    document.getElementById('highScore').textContent = localHighScore;
+    
+    // Update reaction counts
+    const reactions = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+    let total = 0;
+    reactions.forEach(r => {
+        const count = localReactions[r] || 0;
+        document.getElementById(`${r}Count`).textContent = count;
+        total += count;
+    });
+    document.getElementById('totalReactions').textContent = total;
+}
+
+/**
+ * Add a reaction
+ */
 async function addReaction(reactionType) {
+    // Check if user already reacted
     if (userReactions[reactionType]) {
         showToast(`You already reacted with ${reactionType}`, 'warning');
         return;
     }
+    
     showLoading(true);
     try {
-        const result = await callAPI('add-reaction', 'POST', {
-            tool_slug: toolSlug, emoji: reactionType,
-            reaction_type: reactionType, user_id: userId
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            reaction_type: reactionType,
+            user_id: userId
         });
-        if (result.success || !result.already_reacted) {
+        
+        if (result.success) {
             userReactions[reactionType] = true;
             localStorage.setItem('userReactions', JSON.stringify(userReactions));
-            await getReactions();
-            showToast(`Thanks for your ${reactionType} reaction!`, 'success');
-        } else {
+            
+            // Update local storage
+            const localReactions = JSON.parse(localStorage.getItem('local_reactions') || '{}');
+            localReactions[reactionType] = (localReactions[reactionType] || 0) + 1;
+            localStorage.setItem('local_reactions', JSON.stringify(localReactions));
+            
+            await fetchStats();
+            showToast(`Thanks for your ${reactionType} reaction! 🎉`, 'success');
+        } else if (result.already_reacted) {
             showToast('You already reacted!', 'info');
+        } else {
+            showToast('Error adding reaction', 'error');
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error('Error adding reaction:', e);
+        // Fallback: local storage only
+        const localReactions = JSON.parse(localStorage.getItem('local_reactions') || '{}');
+        localReactions[reactionType] = (localReactions[reactionType] || 0) + 1;
+        localStorage.setItem('local_reactions', JSON.stringify(localReactions));
+        userReactions[reactionType] = true;
+        localStorage.setItem('userReactions', JSON.stringify(userReactions));
+        updateStatsFromLocal();
+        showToast(`Thanks for your ${reactionType} reaction! 🎉`, 'success');
+    }
     showLoading(false);
 }
 
-async function getReactions() {
-    try {
-        const result = await callAPI(`reactions?tool_slug=${toolSlug}`, 'GET');
-        if (result.success && result.reactions) {
-            document.getElementById('likeCount').textContent = result.reactions.like || 0;
-            document.getElementById('loveCount').textContent = result.reactions.love || 0;
-            document.getElementById('wowCount').textContent = result.reactions.wow || 0;
-            document.getElementById('sadCount').textContent = result.reactions.sad || 0;
-            document.getElementById('angryCount').textContent = result.reactions.angry || 0;
-            document.getElementById('laughCount').textContent = result.reactions.laugh || 0;
-            document.getElementById('celebrateCount').textContent = result.reactions.celebrate || 0;
-            const total = Object.values(result.reactions).reduce((a,b) => a + b, 0);
-            document.getElementById('totalReactions').textContent = total;
-        }
-    } catch (e) { console.error(e); }
-}
-
+/**
+ * Record a share
+ */
 async function addShare(platform) {
     try {
-        await callAPI('add-share', 'POST', { tool_slug: toolSlug, platform: platform, user_id: userId });
-        const shareCount = await getShares();
-        document.getElementById('totalShares').textContent = shareCount;
-    } catch (e) { console.error(e); }
+        const result = await callAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            user_id: userId
+        });
+        
+        if (result.success) {
+            // Update local storage
+            const localShares = parseInt(localStorage.getItem('local_shares') || '0');
+            localStorage.setItem('local_shares', (localShares + 1).toString());
+            await fetchStats();
+        } else {
+            // Fallback
+            const localShares = parseInt(localStorage.getItem('local_shares') || '0');
+            localStorage.setItem('local_shares', (localShares + 1).toString());
+            updateStatsFromLocal();
+        }
+    } catch (e) {
+        console.error('Error recording share:', e);
+        const localShares = parseInt(localStorage.getItem('local_shares') || '0');
+        localStorage.setItem('local_shares', (localShares + 1).toString());
+        updateStatsFromLocal();
+    }
 }
 
-async function getShares() {
-    try {
-        const result = await callAPI(`shares?tool_slug=${toolSlug}`, 'GET');
-        return result.shares || 0;
-    } catch (e) { return 0; }
-}
-
+/**
+ * Share on platform
+ */
 function shareOnPlatform(platform) {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('Check out MagicRills - Learn Synonyms & Antonyms with fun AI-powered games!');
+    const text = encodeURIComponent('Check out MagicRills - Learn Synonyms & Antonyms with fun AI-powered games! 🎮');
     let shareUrl = '';
+    
     switch(platform) {
-        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
-        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`; break;
-        case 'whatsapp': shareUrl = `https://wa.me/?text=${text}%20${url}`; break;
-        case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`; break;
-        case 'email': shareUrl = `mailto:?subject=MagicRills&body=${text}%20${url}`; break;
-        case 'copy': navigator.clipboard.writeText(window.location.href); showToast('Link copied!', 'success'); addShare('copy'); return;
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${text}%20${url}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+            break;
+        case 'email':
+            shareUrl = `mailto:?subject=MagicRills - AI Vocabulary Learning&body=${text}%20${url}`;
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    showToast('Link copied! 📋', 'success');
+                    addShare('copy');
+                })
+                .catch(() => {
+                    // Fallback
+                    const input = document.createElement('input');
+                    input.value = window.location.href;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showToast('Link copied! 📋', 'success');
+                    addShare('copy');
+                });
+            return;
+        default:
+            return;
     }
-    if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
-    addShare(platform);
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        addShare(platform);
+    }
 }
 
 // ============================================
-// AI QUESTION GENERATION (Grok API)
+// AI QUESTION GENERATION
 // ============================================
 
+/**
+ * Generate AI questions using Grok API via Cloudflare
+ */
 async function generateAIQuestions(count, mode) {
+    if (!CONFIG.USE_AI) return null;
+    
     try {
-        const response = await fetch('https://api.grok.ai/v1/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('grok_api_key') || ''}` },
-            body: JSON.stringify({
-                prompt: `Generate ${count} ${mode} questions for vocabulary learning. Format as JSON array with objects containing: word, match, and options array of 4 choices.`,
-                max_tokens: 2000,
-                temperature: 0.7
-            })
+        const result = await callAPI('/api/generate-questions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            count: count,
+            mode: mode,
+            user_id: userId
         });
-        if (response.ok) {
-            const data = await response.json();
-            return JSON.parse(data.choices[0].message.content);
+        
+        if (result.success && result.questions && result.questions.length > 0) {
+            return result.questions;
         }
+        return null;
     } catch (error) {
-        console.log('AI API failed, using local database');
+        console.log('AI generation failed, using local database');
+        return null;
     }
-    return null;
 }
 
+/**
+ * Get random questions from local database
+ */
 function getRandomQuestions(count) {
     const db = currentMode === 'synonyms' ? WORD_DB.synonyms : WORD_DB.antonyms;
     const shuffled = [...db];
@@ -277,7 +449,7 @@ function getRandomQuestions(count) {
 async function startMethod(method) {
     await incrementUsage();
     currentMethod = method;
-    currentMode = document.querySelector('.mode-tab.active').dataset.mode;
+    currentMode = document.querySelector('.mode-tab.active')?.dataset?.mode || 'synonyms';
     document.getElementById('modalTitle').textContent = `${method.toUpperCase()} - ${currentMode.toUpperCase()}`;
     document.getElementById('gameModal').style.display = 'flex';
     
@@ -473,40 +645,147 @@ function finishGame(gameName, score, total) {
     if (timerInterval) clearInterval(timerInterval);
     showToast(`${gameName} finished! Score: ${score}/${total}`, 'success');
     const highScoreKey = `${gameName.replace(/ /g, '_')}_${currentMode}_highscore`;
-    const currentHighScore = localStorage.getItem(highScoreKey) || 0;
-    if (score > currentHighScore) { localStorage.setItem(highScoreKey, score); document.getElementById('highScore').textContent = score; showToast('New High Score! 🏆', 'success'); }
+    const currentHighScore = parseInt(localStorage.getItem(highScoreKey) || '0');
+    if (score > currentHighScore) { localStorage.setItem(highScoreKey, score.toString()); document.getElementById('highScore').textContent = score; showToast('New High Score! 🏆', 'success'); }
     setTimeout(() => closeModal(), 2000);
 }
 
-function showToast(message, type = 'info') { const toast = document.getElementById('toastNotification'); document.getElementById('toastMessage').textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
-function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-function closeModal() { document.getElementById('gameModal').style.display = 'none'; if (timerInterval) clearInterval(timerInterval); selectedCardDiv = null; selectedCardData = null; }
+function showToast(message, type = 'info') { 
+    const toast = document.getElementById('toastNotification'); 
+    document.getElementById('toastMessage').textContent = message; 
+    toast.classList.add('show'); 
+    setTimeout(() => toast.classList.remove('show'), 3000); 
+}
+
+function showLoading(show) { 
+    document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; 
+}
+
+function closeModal() { 
+    document.getElementById('gameModal').style.display = 'none'; 
+    if (timerInterval) clearInterval(timerInterval); 
+    selectedCardDiv = null; 
+    selectedCardData = null; 
+}
+
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+
+function initTypewriter() {
+    const words = ['Synonyms', 'Antonyms', 'Vocabulary', 'English', 'Words'];
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById('typewriterText');
+    
+    function typeEffect() {
+        const currentWord = words[wordIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentWord.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentWord.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let speed = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && charIndex === currentWord.length) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            speed = 500;
+        }
+        
+        setTimeout(typeEffect, speed);
+    }
+    
+    typeEffect();
+}
 
 // ============================================
 // EVENT LISTENERS & INITIALIZATION
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await getUsage(); await getReactions();
-    document.getElementById('totalShares').textContent = await getShares();
-    document.getElementById('highScore').textContent = localStorage.getItem('highScore') || 0;
+    // Init typewriter
+    initTypewriter();
+    
+    // Initialize stats
+    await fetchStats();
+    await incrementUsage();
+    
+    // Set question count
     document.getElementById('questionCount').textContent = `${WORD_DB.synonyms.length + WORD_DB.antonyms.length}+`;
     
-    document.querySelectorAll('.reaction-item').forEach(el => { el.addEventListener('click', () => addReaction(el.dataset.reaction)); });
-    document.querySelectorAll('.share-btn').forEach(el => { el.addEventListener('click', () => shareOnPlatform(el.dataset.platform)); });
-    document.querySelectorAll('.mode-tab').forEach(el => { el.addEventListener('click', () => { document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); currentMode = el.dataset.mode; }); });
-    document.getElementById('themeToggleFloat').addEventListener('click', () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); });
-    document.getElementById('soundToggleBtn').addEventListener('click', () => { soundEnabled = !soundEnabled; document.getElementById('soundToggleBtn').innerHTML = soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>'; });
+    // High score
+    const highScore = parseInt(localStorage.getItem('highScore') || '0');
+    document.getElementById('highScore').textContent = highScore;
+    
+    // Reaction listeners
+    document.querySelectorAll('.reaction-item').forEach(el => {
+        el.addEventListener('click', () => addReaction(el.dataset.reaction));
+    });
+    
+    // Share listeners
+    document.querySelectorAll('.share-btn').forEach(el => {
+        el.addEventListener('click', () => shareOnPlatform(el.dataset.platform));
+    });
+    
+    // Mode tabs
+    document.querySelectorAll('.mode-tab').forEach(el => {
+        el.addEventListener('click', () => {
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            currentMode = el.dataset.mode;
+        });
+    });
+    
+    // Theme toggle
+    document.getElementById('themeToggleFloat').addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+    
+    // Sound toggle
+    document.getElementById('soundToggleBtn').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        document.getElementById('soundToggleBtn').innerHTML = soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    });
+    
+    // Scroll buttons
     document.getElementById('scrollUpBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     document.getElementById('scrollDownBtn').addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
     
-    const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'dark') document.body.classList.add('dark-mode');
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') document.body.classList.add('dark');
+    
+    // AI Status
+    document.getElementById('aiStatusText').textContent = 'AI Ready';
 });
 
-// Global functions
-window.startMethod = startMethod; window.closeModal = closeModal;
-window.selectMCQAnswer = selectMCQAnswer; window.nextMCQQuestion = nextMCQQuestion; window.prevMCQQuestion = prevMCQQuestion; window.submitMCQQuiz = submitMCQQuiz;
+// ============================================
+// GLOBAL FUNCTIONS
+// ============================================
+window.startMethod = startMethod;
+window.closeModal = closeModal;
+window.selectMCQAnswer = selectMCQAnswer;
+window.nextMCQQuestion = nextMCQQuestion;
+window.prevMCQQuestion = prevMCQQuestion;
+window.submitMCQQuiz = submitMCQQuiz;
 window.selectTimedAnswer = selectTimedAnswer;
-window.toggleFlashcard = toggleFlashcard; window.nextFlashcard = nextFlashcard; window.prevFlashcard = prevFlashcard;
-window.selectFillOption = selectFillOption; window.nextFillBlank = nextFillBlank; window.prevFillBlank = prevFillBlank; window.submitFillBlanks = submitFillBlanks;
-window.resetMatchingGame = resetMatchingGame; window.submitStory = submitStory; window.finishGame = finishGame;
+window.toggleFlashcard = toggleFlashcard;
+window.nextFlashcard = nextFlashcard;
+window.prevFlashcard = prevFlashcard;
+window.selectFillOption = selectFillOption;
+window.nextFillBlank = nextFillBlank;
+window.prevFillBlank = prevFillBlank;
+window.submitFillBlanks = submitFillBlanks;
+window.resetMatchingGame = resetMatchingGame;
+window.submitStory = submitStory;
+window.finishGame = finishGame;
