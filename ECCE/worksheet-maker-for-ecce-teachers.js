@@ -1,28 +1,81 @@
-// ========== COMPLETE ECCE WORKSHEET MAKER WITH ALL FEATURES ==========
-
+// ============================================================
+// CONFIGURATION
+// ============================================================
 const BASE_URL = "https://raw.githubusercontent.com/Uzair-hameed/MagicRills.github.io/main/ECCE/ecce-work-sheet-images/";
+const TOOL_SLUG = "ecce-worksheet-maker";
+const TOOL_NAME = "ECCE Worksheet Maker Pro";
 
-// Complete 16 Categories Image Database
+// ============================================================
+// IMAGE DATABASE
+// ============================================================
 const IMAGE_DB = {
-    alphabet: ["letter A.png","letter B.png","Letter C.png","letter D.png","letter E.png","letter F.png","letter G.png","letter H.png","letter I.png","letter J.png","letter K.png","letter L.png","letter M.png","letter N.png","letter O.png","letter P.png","letter Q.png","letter R.png","letter S.png","letter T.png","letter U.png","letter V.png","letter W.png","letter X.png","letter Y.png","letter Z.png"],
-    animals: ["cat.png","dog1.png","elephant.png","lion.png","tiger1.png","monkey.png","rabbit.png","fox.png","giraffe.png","crocodile1.png","bufalo.png","donkey.png","wolf1.png","leopard.png"],
-    birds: ["crow.png","parrot.png","sparrow.png","owl.png","pigeon.png","cuckoo.png","falcon.png"],
-    body: ["eyes.png","nose.png","ear.png","leg.png","arm.png","hair.png","foot.png","finger.png","lips.png","neck.png","tooth.png"],
-    foods: ["rice.png","chapati.png","chicken.png","eggs.png","samosa.png","salt.png","sugar.jpg.png","cardamom.jpg.png"],
-    fruits: ["apple.png","mango.png","strawberry.png","apricot.png","plum.png","peach.png","cherry.jpg.png","dates.jpg.png","jamun.png","jujube.png","persimmon.png"],
-    vegetables: ["carrot.png","tomato.png","potato.png","cucumber.png","spinach.png","cabbage.png","onion1.png","chilli.png","beet-root.png","bitter-gourd.png","pumpkin.png","radish.png"],
-    transportation: ["car.png","bus.png","train.png","bike.png","boat.png","ship.png","airplane-clipart-7.png","truck.png","van.png","cycle.png"],
-    numbers: ["1.png","2.png","3.png","4.png","5.png","6.png","7.png","8.png","9.png","10.png","11.png","12.png","13.png","14.png","15.png","16.png","17.png","18.png","19.png","20.png"],
-    shapes: ["circle.png","square.png","triangle.png","rectangle.png","star.png","heart.png","diamond.png","hexagon.png","pentagon.png"],
-    occupations: ["doctor.png","teacher.png","farmer.png","pilot.png","nurse.png","army.png","tailor.png","potter.png","barber.png","lawyer.png"],
-    insects: ["ant.png","butterfuly.png.png","caterpiller.png","cockroach.png","honey-bee.png","mosquito.png","worm.png","beetle.png","dragon-fly.png"],
-    "sea-animals": ["fish.png","whale.png","dolphin.png","crab.png","octopus.png","jellyfish.png"],
-    reptiles: ["snake.png","frog.png","tortoise.png","lizard.png.png","monitor.png"],
-    pots: ["plate.png.png","spoon.png.png","glass.png.png","knife.png.png","bag.jpg.png","bottol.jpg.png"],
-    mixed: ["clock.png","moon.png","star.png","heart.png","cloud.png","fire.png","phone.png","umbrella.png","TV.png","bulb.png","calculator.png"]
+    alphabet: ["letter A.png", "letter B.png", "Letter C.png", "letter D.png", "letter E.png", "letter F.png",
+        "letter G.png", "letter H.png", "letter I.png", "letter J.png", "letter K.png", "letter L.png",
+        "letter M.png", "letter N.png", "letter O.png", "letter P.png", "letter Q.png", "letter R.png",
+        "letter S.png", "letter T.png", "letter U.png", "letter V.png", "letter W.png", "letter X.png",
+        "letter Y.png", "letter Z.png"
+    ],
+    animals: ["cat.png", "dog1.png", "elephant.png", "lion.png", "tiger1.png", "monkey.png", "rabbit.png",
+        "fox.png", "giraffe.png", "crocodile1.png", "bufalo.png", "donkey.png", "wolf1.png", "leopard.png"
+    ],
+    birds: ["crow.png", "parrot.png", "sparrow.png", "owl.png", "pigeon.png", "cuckoo.png", "falcon.png"],
+    body: ["eyes.png", "nose.png", "ear.png", "leg.png", "arm.png", "hair.png", "foot.png", "finger.png",
+        "lips.png", "neck.png", "tooth.png"
+    ],
+    foods: ["rice.png", "chapati.png", "chicken.png", "eggs.png", "samosa.png", "salt.png", "sugar.jpg.png",
+        "cardamom.jpg.png"
+    ],
+    fruits: ["apple.png", "mango.png", "strawberry.png", "apricot.png", "plum.png", "peach.png",
+        "cherry.jpg.png", "dates.jpg.png", "jamun.png", "jujube.png", "persimmon.png"
+    ],
+    vegetables: ["carrot.png", "tomato.png", "potato.png", "cucumber.png", "spinach.png", "cabbage.png",
+        "onion1.png", "chilli.png", "beet-root.png", "bitter-gourd.png", "pumpkin.png", "radish.png"
+    ],
+    transportation: ["car.png", "bus.png", "train.png", "bike.png", "boat.png", "ship.png",
+        "airplane-clipart-7.png", "truck.png", "van.png", "cycle.png"
+    ],
+    numbers: ["1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "7.png", "8.png", "9.png", "10.png",
+        "11.png", "12.png", "13.png", "14.png", "15.png", "16.png", "17.png", "18.png", "19.png", "20.png"
+    ],
+    shapes: ["circle.png", "square.png", "triangle.png", "rectangle.png", "star.png", "heart.png",
+        "diamond.png", "hexagon.png", "pentagon.png"
+    ],
+    occupations: ["doctor.png", "teacher.png", "farmer.png", "pilot.png", "nurse.png", "army.png", "tailor.png",
+        "potter.png", "barber.png", "lawyer.png"
+    ],
+    insects: ["ant.png", "butterfuly.png.png", "caterpiller.png", "cockroach.png", "honey-bee.png",
+        "mosquito.png", "worm.png", "beetle.png", "dragon-fly.png"
+    ],
+    "sea-animals": ["fish.png", "whale.png", "dolphin.png", "crab.png", "octopus.png", "jellyfish.png"],
+    reptiles: ["snake.png", "frog.png", "tortoise.png", "lizard.png.png", "monitor.png"],
+    pots: ["plate.png.png", "spoon.png.png", "glass.png.png", "knife.png.png", "bag.jpg.png", "bottol.jpg.png"],
+    mixed: ["clock.png", "moon.png", "star.png", "heart.png", "cloud.png", "fire.png", "phone.png",
+        "umbrella.png", "TV.png", "bulb.png", "calculator.png"
+    ]
 };
 
-// State variables
+const CATEGORY_ICONS = {
+    alphabet: '🔤',
+    animals: '🐾',
+    birds: '🦜',
+    body: '🧠',
+    foods: '🍕',
+    fruits: '🍎',
+    vegetables: '🥕',
+    transportation: '🚗',
+    numbers: '🔢',
+    shapes: '⬛',
+    occupations: '👨‍🏫',
+    insects: '🐜',
+    'sea-animals': '🐠',
+    reptiles: '🐍',
+    pots: '🍳',
+    mixed: '📦'
+};
+
+// ============================================================
+// STATE
+// ============================================================
 let currentId = 0;
 let selectedElements = [];
 let clipboard = null;
@@ -33,276 +86,56 @@ let currentPage = 1;
 let pageCount = 1;
 let gridEnabled = false;
 let snapEnabled = false;
+let rulerEnabled = false;
+let drawingEnabled = false;
+let eraserEnabled = false;
 let gridSize = 20;
+let elementCounter = 0;
+let currentCategory = 'mixed';
+let aspectRatioLocked = false;
+let isDrawing = false;
+let drawingContext = null;
+let drawingCanvas = null;
 
-// Stats for the tool
-let toolUsageCount = 0;
-let toolReactions = {
-    like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0
-};
-let userReactions = new Set();
-let toolShareCount = 0;
+// ============================================================
+// DOM REFS
+// ============================================================
+const pagesContainer = document.getElementById('pagesContainer');
+const pageSelect = document.getElementById('pageSelect');
+const pageInfo = document.getElementById('pageInfo');
+const zoomLevel = document.getElementById('zoomLevel');
+const selectedCountSpan = document.getElementById('selectedCount');
+const galleryGrid = document.getElementById('galleryGrid');
+const galleryCategories = document.getElementById('galleryCategories');
+const gallerySidebar = document.getElementById('gallerySidebar');
+const propertiesPanel = document.getElementById('propertiesPanel');
+const contextMenu = document.getElementById('contextMenu');
+const toastContainer = document.getElementById('toastContainer');
 
-// DOM Elements
-const pagesContainer = document.getElementById("pagesContainer");
-const pageSelect = document.getElementById("pageSelect");
-const pageInfo = document.getElementById("pageInfo");
-const canvasWrapper = document.getElementById("canvasWrapper");
-const zoomLevel = document.getElementById("zoomLevel");
-const selectedCountSpan = document.getElementById("selectedCount");
-const layersPanel = document.getElementById("layersPanel");
-const assessmentPanel = document.getElementById("assessmentPanel");
-const toastContainer = document.getElementById("toastContainer");
-const loadingSpinner = document.getElementById("loadingSpinner");
-const scrollUpBtn = document.getElementById("scrollUpBtn");
-const scrollDownBtn = document.getElementById("scrollDownBtn");
+// ============================================================
+// INITIALIZATION
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    initPages();
+    saveToHistory();
+    updateZoom();
+    setupToolbarTabs();
+    setupReactions();
+    setupShares();
+    setupKeyboardShortcuts();
+    setupContextMenu();
+    setupUpload();
+    setupGalleryCategories();
+    loadGallery('mixed');
+    setupTypewriter();
+    setupPropertyUpdates();
+    trackUsage();
+    showToast('✨ Welcome to ECCE Worksheet Maker Pro v3!', 'success');
+});
 
-// ========== TOAST NOTIFICATIONS ==========
-function showToast(message, type = "info") {
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-        <span>${message}</span>
-    `;
-    toastContainer.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// ========== LOADING SPINNER ==========
-function showLoading() {
-    loadingSpinner.style.display = "flex";
-}
-
-function hideLoading() {
-    loadingSpinner.style.display = "none";
-}
-
-// ========== USAGE TRACKER (Feature 1) ==========
-async function trackUsage() {
-    try {
-        // Get user IP or generate unique ID
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-            userId = "user_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem("userId", userId);
-        }
-        
-        // Check if already used today
-        const lastUsed = localStorage.getItem("lastUsed");
-        const today = new Date().toDateString();
-        
-        if (lastUsed !== today) {
-            toolUsageCount++;
-            localStorage.setItem("lastUsed", today);
-            localStorage.setItem("toolUsageCount", toolUsageCount);
-            document.getElementById("usageCount").textContent = toolUsageCount;
-            showToast(`Tool used ${toolUsageCount} times!`, "success");
-            
-            // Save to local storage for now (will sync with API later)
-            saveStatsToLocal();
-        }
-    } catch (error) {
-        console.error("Usage tracking error:", error);
-    }
-}
-
-// ========== REACTIONS (Feature 2) ==========
-function setupReactions() {
-    const reactionItems = document.querySelectorAll(".reaction-item");
-    const userId = getUserId();
-    
-    // Load saved reactions
-    loadReactionsFromLocal();
-    
-    reactionItems.forEach(item => {
-        const reactionType = item.dataset.reaction;
-        
-        // Check if user already reacted
-        const reactedKey = `reacted_${reactionType}_${userId}`;
-        if (localStorage.getItem(reactedKey)) {
-            item.classList.add("active");
-        }
-        
-        item.addEventListener("click", async () => {
-            const isActive = item.classList.contains("active");
-            
-            if (!isActive) {
-                // Add reaction
-                item.classList.add("active");
-                toolReactions[reactionType]++;
-                updateReactionCount(reactionType, toolReactions[reactionType]);
-                localStorage.setItem(`reacted_${reactionType}_${userId}`, "true");
-                saveReactionsToLocal();
-                showToast(`Thanks for your ${getReactionName(reactionType)} reaction! 🎉`, "success");
-                
-                // Update total reactions
-                const totalReactions = Object.values(toolReactions).reduce((a,b) => a + b, 0);
-                document.getElementById("totalReactions").textContent = totalReactions;
-            }
-        });
-    });
-}
-
-function getReactionName(type) {
-    const names = {
-        like: "Like", love: "Love", wow: "Wow", sad: "Sad", angry: "Angry", laugh: "Laugh", celebrate: "Celebrate"
-    };
-    return names[type] || type;
-}
-
-function updateReactionCount(type, count) {
-    const element = document.getElementById(`${type}Count`);
-    if (element) element.textContent = count;
-}
-
-function loadReactionsFromLocal() {
-    const saved = localStorage.getItem("toolReactions");
-    if (saved) {
-        toolReactions = JSON.parse(saved);
-        for (const [type, count] of Object.entries(toolReactions)) {
-            updateReactionCount(type, count);
-        }
-    }
-}
-
-function saveReactionsToLocal() {
-    localStorage.setItem("toolReactions", JSON.stringify(toolReactions));
-}
-
-// ========== SOCIAL SHARE (Feature 3) ==========
-function setupSocialShares() {
-    const shareBtns = document.querySelectorAll(".share-btn");
-    const toolUrl = encodeURIComponent(window.location.href);
-    const toolTitle = encodeURIComponent("ECCE Worksheet Maker - Create Custom Worksheets");
-    
-    shareBtns.forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const platform = btn.dataset.platform;
-            let shareUrl = "";
-            
-            switch(platform) {
-                case "facebook":
-                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${toolUrl}`;
-                    break;
-                case "twitter":
-                    shareUrl = `https://twitter.com/intent/tweet?text=${toolTitle}&url=${toolUrl}`;
-                    break;
-                case "linkedin":
-                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${toolUrl}`;
-                    break;
-                case "whatsapp":
-                    shareUrl = `https://wa.me/?text=${toolTitle}%20${toolUrl}`;
-                    break;
-                case "email":
-                    shareUrl = `mailto:?subject=${toolTitle}&body=Check out this tool: ${toolUrl}`;
-                    break;
-            }
-            
-            if (shareUrl) {
-                window.open(shareUrl, "_blank", "width=600,height=400");
-                toolShareCount++;
-                document.getElementById("totalShares").textContent = toolShareCount;
-                localStorage.setItem("toolShareCount", toolShareCount);
-                showToast(`Shared on ${platform}! 🎉`, "success");
-                saveStatsToLocal();
-            }
-        });
-    });
-}
-
-// ========== PAGE SHARE BUTTON (Feature 4) ==========
-function setupPageShare() {
-    const sharePageBtn = document.getElementById("sharePageBtn");
-    if (sharePageBtn) {
-        sharePageBtn.addEventListener("click", async () => {
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                toolShareCount++;
-                document.getElementById("totalShares").textContent = toolShareCount;
-                localStorage.setItem("toolShareCount", toolShareCount);
-                saveStatsToLocal();
-                showToast("✅ Page link copied to clipboard!", "success");
-            } catch (err) {
-                showToast("Failed to copy link", "error");
-            }
-        });
-    }
-}
-
-// ========== SCROLL BUTTONS (Feature 5) ==========
-function setupScrollButtons() {
-    // Scroll Down button
-    scrollDownBtn.addEventListener("click", () => {
-        window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: "smooth"
-        });
-    });
-    
-    // Scroll Up button (initially hidden)
-    scrollUpBtn.addEventListener("click", () => {
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-    });
-    
-    // Show/hide up button based on scroll position
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 200) {
-            scrollUpBtn.style.display = "flex";
-        } else {
-            scrollUpBtn.style.display = "none";
-        }
-    });
-}
-
-// ========== HELPER FUNCTIONS ==========
-function getUserId() {
-    let userId = localStorage.getItem("userId");
-    if (!userId) {
-        userId = "user_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem("userId", userId);
-    }
-    return userId;
-}
-
-function saveStatsToLocal() {
-    const stats = {
-        usageCount: toolUsageCount,
-        shareCount: toolShareCount,
-        reactions: toolReactions,
-        lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem("ecceWorksheetStats", JSON.stringify(stats));
-}
-
-function loadStatsFromLocal() {
-    const saved = localStorage.getItem("ecceWorksheetStats");
-    if (saved) {
-        const stats = JSON.parse(saved);
-        toolUsageCount = stats.usageCount || 0;
-        toolShareCount = stats.shareCount || 0;
-        if (stats.reactions) toolReactions = stats.reactions;
-        
-        document.getElementById("usageCount").textContent = toolUsageCount;
-        document.getElementById("totalShares").textContent = toolShareCount;
-        
-        for (const [type, count] of Object.entries(toolReactions)) {
-            updateReactionCount(type, count);
-        }
-        
-        const totalReactions = Object.values(toolReactions).reduce((a,b) => a + b, 0);
-        document.getElementById("totalReactions").textContent = totalReactions;
-    }
-}
-
-// ========== INITIALIZE PAGES ==========
+// ============================================================
+// PAGES
+// ============================================================
 function initPages() {
     pageCount = 1;
     currentPage = 1;
@@ -311,12 +144,14 @@ function initPages() {
     updatePageSelect();
 }
 
-function addNewPage(pageNum) {
-    const page = document.createElement("div");
-    page.id = `page${pageNum}`;
-    page.className = `a4-canvas ${pageNum === currentPage ? 'active-page' : ''}`;
-    page.innerHTML = `<div class="canvas-inner"><div class="default-message"><i class="fas fa-hand-pointer"></i> Page ${pageNum} - Drag images to design</div></div>`;
+function addNewPage(num) {
+    const page = document.createElement('div');
+    page.id = `page${num}`;
+    page.className = `a4-canvas ${num === currentPage ? 'active-page' : ''}`;
+    page.innerHTML =
+        `<div class="canvas-inner"><div class="default-message"><i class="fas fa-hand-pointer"></i><span>Page ${num} - Click images from gallery</span></div></div>`;
     pagesContainer.appendChild(page);
+    setTimeout(() => attachElementEvents(), 100);
 }
 
 function addPage() {
@@ -326,923 +161,1661 @@ function addPage() {
     updatePageSelect();
     switchToPage(currentPage);
     saveToHistory();
-    showToast(`Page ${pageCount} added`, "success");
+    showToast(`Page ${pageCount} added`, 'success');
 }
 
 function removePage() {
     if (pageCount > 1) {
-        document.getElementById(`page${pageCount}`).remove();
+        const el = document.getElementById(`page${pageCount}`);
+        if (el) el.remove();
         pageCount--;
         if (currentPage > pageCount) currentPage = pageCount;
         updatePageSelect();
         switchToPage(currentPage);
         saveToHistory();
-        showToast(`Page ${pageCount + 1} removed`, "info");
+        showToast('Page removed', 'info');
     } else {
-        showToast("Cannot remove the last page", "error");
+        showToast('Cannot remove last page', 'error');
     }
+}
+
+function duplicatePage() {
+    const currentCanvas = getCurrentCanvas();
+    if (!currentCanvas) return;
+    const html = currentCanvas.innerHTML;
+    pageCount++;
+    const newPage = document.createElement('div');
+    newPage.id = `page${pageCount}`;
+    newPage.className = 'a4-canvas';
+    newPage.innerHTML = `<div class="canvas-inner">${html}</div>`;
+    pagesContainer.appendChild(newPage);
+    currentPage = pageCount;
+    updatePageSelect();
+    switchToPage(currentPage);
+    saveToHistory();
+    showToast('Page duplicated!', 'success');
 }
 
 function updatePageSelect() {
     pageSelect.innerHTML = '';
     for (let i = 1; i <= pageCount; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = `Page ${i}`;
-        if (i === currentPage) option.selected = true;
-        pageSelect.appendChild(option);
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `Page ${i}`;
+        if (i === currentPage) opt.selected = true;
+        pageSelect.appendChild(opt);
     }
-    pageInfo.textContent = `Page ${currentPage}/${pageCount}`;
+    pageInfo.textContent = `${currentPage}/${pageCount}`;
 }
 
-function switchToPage(pageNum) {
-    currentPage = pageNum;
-    document.querySelectorAll('.a4-canvas').forEach((page, idx) => {
-        if (idx + 1 === pageNum) {
-            page.classList.add('active-page');
-        } else {
-            page.classList.remove('active-page');
-        }
+function switchToPage(num) {
+    currentPage = num;
+    document.querySelectorAll('.a4-canvas').forEach((p, i) => {
+        p.classList.toggle('active-page', i + 1 === num);
     });
     updatePageSelect();
     updateLayersList();
+    attachElementEvents();
 }
+
+pageSelect?.addEventListener('change', (e) => switchToPage(parseInt(e.target.value)));
 
 function getCurrentCanvas() {
-    return document.getElementById(`page${currentPage}`).querySelector('.canvas-inner');
+    const p = document.getElementById(`page${currentPage}`);
+    return p?.querySelector('.canvas-inner');
 }
 
-// ========== HISTORY (Undo/Redo) ==========
+// ============================================================
+// HISTORY
+// ============================================================
 function saveToHistory() {
-    const state = getCurrentCanvas().innerHTML;
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
     history = history.slice(0, historyIndex + 1);
-    history.push(state);
+    history.push(canvas.innerHTML);
     historyIndex++;
     if (history.length > 50) history.shift();
 }
 
-function undo() {
+function undoAction() {
     if (historyIndex > 0) {
         historyIndex--;
-        getCurrentCanvas().innerHTML = history[historyIndex];
-        selectedElements = [];
-        updateSelectedCount();
-        showToast("Undo successful", "info");
-    } else {
-        showToast("Nothing to undo", "info");
-    }
+        const canvas = getCurrentCanvas();
+        if (canvas) {
+            canvas.innerHTML = history[historyIndex];
+            selectedElements = [];
+            updateSelectedCount();
+            attachElementEvents();
+            showToast('Undo', 'info');
+        }
+    } else showToast('Nothing to undo', 'info');
 }
 
-function redo() {
+function redoAction() {
     if (historyIndex < history.length - 1) {
         historyIndex++;
-        getCurrentCanvas().innerHTML = history[historyIndex];
-        selectedElements = [];
-        updateSelectedCount();
-        showToast("Redo successful", "info");
-    } else {
-        showToast("Nothing to redo", "info");
-    }
+        const canvas = getCurrentCanvas();
+        if (canvas) {
+            canvas.innerHTML = history[historyIndex];
+            selectedElements = [];
+            updateSelectedCount();
+            attachElementEvents();
+            showToast('Redo', 'info');
+        }
+    } else showToast('Nothing to redo', 'info');
 }
 
-// ========== ELEMENT MANAGEMENT ==========
-function addElementToPage(createFn, ...args) {
-    saveToHistory();
-    removeDefaultMessage(getCurrentCanvas());
-    createFn(getCurrentCanvas(), ...args);
-}
-
+// ============================================================
+// ELEMENTS
+// ============================================================
 function removeDefaultMessage(canvas) {
-    const msg = canvas.querySelector(".default-message");
+    const msg = canvas.querySelector('.default-message');
     if (msg) msg.remove();
 }
 
-function addImageElement(canvas, src, x, y, w, h) {
+function getRandomPosition() {
+    const canvas = getCurrentCanvas();
+    const w = canvas?.clientWidth || 800;
+    const h = canvas?.clientHeight || 1100;
+    return { x: 30 + Math.random() * (w - 200), y: 30 + Math.random() * (h - 200) };
+}
+
+function addElementToPage(fn, ...args) {
+    saveToHistory();
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    removeDefaultMessage(canvas);
+    fn(canvas, ...args);
+    attachElementEvents();
+    updateLayersList();
+    updatePropertiesPanel();
+}
+
+function createElement(canvas, html, x, y, w, h) {
     const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element";
+    const div = document.createElement('div');
+    div.className = 'canvas-element';
     div.id = `elem-${id}`;
     div.style.left = `${x}px`;
     div.style.top = `${y}px`;
-    div.style.width = `${w}px`;
-    div.style.height = `${h}px`;
-    div.innerHTML = `<img src="${src}" alt="element"><div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    makeResizable(div);
+    if (w) div.style.width = `${w}px`;
+    if (h) div.style.height = `${h}px`;
+    div.innerHTML = html + `<div class="resize-handle"></div>`;
     canvas.appendChild(div);
-    addToLayers(div);
-    if (gridEnabled && snapEnabled) snapToGrid(div);
+    elementCounter++;
+    if (snapEnabled && gridEnabled) snapToGrid(div);
+    return div;
 }
 
-function addTextElement(canvas, text, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    div.innerHTML = `<span class="element-text" style="font-family:${fontSelect.value}; font-size:${fontSizeSelect.value}px; color:${textColor.value};">${text}</span><div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+// ---- IMAGE ----
+function addImageElement(canvas, src, x, y, w = 120, h = 120) {
+    createElement(canvas, `<img src="${src}" alt="image" loading="lazy" onerror="this.src='https://via.placeholder.com/120x120?text=?'">`,
+        x, y, w, h);
 }
 
-function addShape(canvas, type, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    
-    if (type === "line") {
-        div.style.width = "150px";
-        div.style.height = "2px";
-        div.style.backgroundColor = "#333";
-    } else if (type === "dotted") {
-        div.style.width = "150px";
-        div.style.height = "2px";
-        div.style.borderTop = "2px dotted #333";
-    } else if (type === "box") {
-        div.style.width = "100px";
-        div.style.height = "100px";
-        div.style.border = "2px solid #333";
-    } else if (type === "circle") {
-        div.style.width = "80px";
-        div.style.height = "80px";
-        div.style.borderRadius = "50%";
-        div.style.border = "2px solid #333";
-    } else if (type === "tracing") {
-        div.style.width = "200px";
-        div.style.height = "40px";
-        div.style.borderBottom = "2px dotted #999";
-        div.innerHTML = `<span class="element-text" style="font-size:20px;">__________</span><div class="resize-handle"></div>`;
-    }
-    
-    if (type !== "tracing") div.innerHTML += `<div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    if (type !== "tracing") makeResizable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+function addImageFromGallery(src) {
+    const pos = getRandomPosition();
+    addElementToPage(addImageElement, src, pos.x, pos.y, 140, 140);
+    showToast('Image added!', 'success');
+    trackUsage();
 }
 
-function addMathEquation(canvas, type, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element math-equation";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    div.style.width = "200px";
-    div.style.height = "80px";
-    
-    if (type === "addition") {
-        div.innerHTML = `<div class="math-equation">${Math.floor(Math.random()*10)+1} + ${Math.floor(Math.random()*10)+1} = <input type="text" class="math-answer" placeholder="?"></div><div class="resize-handle"></div>`;
-    } else if (type === "subtraction") {
-        let a = Math.floor(Math.random()*10)+1;
-        let b = Math.floor(Math.random()*a)+1;
-        div.innerHTML = `<div class="math-equation">${a} - ${b} = <input type="text" class="math-answer" placeholder="?"></div><div class="resize-handle"></div>`;
-    } else if (type === "numberline") {
-        div.innerHTML = `<div class="math-equation">Number Line:<br>1___2___3___4___5___6___7___8___9___10</div><div class="resize-handle"></div>`;
-    }
-    
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+// ---- TEXT ----
+function addText() {
+    const input = document.getElementById('newText');
+    const text = input?.value || 'Sample Text';
+    const pos = getRandomPosition();
+    const font = document.getElementById('fontSelect')?.value || 'Arial';
+    const size = document.getElementById('fontSizeSelect')?.value || 16;
+    const color = document.getElementById('textColor')?.value || '#1a1a2e';
+    addElementToPage((canvas, x, y) => {
+        createElement(canvas,
+            `<span class="element-text" style="font-family:${font};font-size:${size}px;color:${color};">${text}</span>`,
+            x, y);
+    }, pos.x, pos.y);
+    if (input) input.value = '';
+    showToast('Text added!', 'success');
 }
 
-function addWordBank(canvas, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element word-bank";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    div.style.width = "250px";
-    div.style.minHeight = "100px";
-    div.innerHTML = `<div class="word-bank"><strong>📚 Word Bank:</strong><br><span class="word-item">Apple</span> <span class="word-item">Cat</span> <span class="word-item">Dog</span> <span class="word-item">Sun</span></div><div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+// ---- SHAPES ----
+function addShape(type) {
+    const pos = getRandomPosition();
+    const shapeStyles = {
+        line: 'width:150px;height:2px;background:#333;',
+        dotted: 'width:150px;height:2px;border-top:2px dotted #333;',
+        box: 'border:2px solid #333;width:100px;height:100px;',
+        circle: 'border-radius:50%;border:2px solid #333;width:80px;height:80px;',
+        triangle: 'width:0;height:0;border-left:40px solid transparent;border-right:40px solid transparent;border-bottom:60px solid #333;background:transparent;',
+        star: 'clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:#333;width:80px;height:80px;'
+    };
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        const style = shapeStyles[type] || shapeStyles.box;
+        style.split(';').forEach(s => {
+            if (s.trim()) {
+                const [prop, val] = s.split(':');
+                if (prop && val) div.style[prop.trim()] = val.trim();
+            }
+        });
+        div.innerHTML += `<div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast(`${type} added!`, 'success');
 }
 
-function addColorByNumber(canvas, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element color-by-number";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    div.style.width = "300px";
-    div.innerHTML = `<div class="color-by-number">
-        <div class="color-number-item"><div class="color-box" style="background:#ff6b6b;"></div><div>1</div></div>
-        <div class="color-number-item"><div class="color-box" style="background:#4ecdc4;"></div><div>2</div></div>
-        <div class="color-number-item"><div class="color-box" style="background:#45b7d1;"></div><div>3</div></div>
-        <div class="color-number-item"><div class="color-box" style="background:#f9ca24;"></div><div>4</div></div>
-    </div><div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+// ---- TRACING ----
+function addTracing() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        createElement(canvas,
+            `<span class="element-text" style="font-size:20px;color:#999;">__________</span>`, x, y, 200, 40);
+    }, pos.x, pos.y);
+    showToast('Tracing lines added!', 'success');
 }
 
-function addMcq(canvas, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    div.style.width = "250px";
-    div.innerHTML = `<div><strong>❓ Question:</strong> What is this?<br>
-        <div class="mcq-option"><input type="radio" name="mcq_${id}"> Option A</div>
-        <div class="mcq-option"><input type="radio" name="mcq_${id}"> Option B</div>
-        <div class="mcq-option"><input type="radio" name="mcq_${id}"> Option C</div>
-    </div><div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+function addHandwriting() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '300px';
+        div.style.height = '120px';
+        let html = '';
+        for (let i = 0; i < 4; i++) {
+            const top = i * 30;
+            html +=
+                `<div style="position:absolute;left:0;right:0;top:${top}px;border-top:2px solid #333;"></div>`;
+            html +=
+                `<div style="position:absolute;left:0;right:0;top:${top + 15}px;border-top:2px dotted #999;"></div>`;
+        }
+        div.innerHTML = html + `<div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Handwriting lines added!', 'success');
 }
 
-function addFillBlank(canvas, x, y) {
-    const id = currentId++;
-    const div = document.createElement("div");
-    div.className = "canvas-element";
-    div.id = `elem-${id}`;
-    div.style.left = `${x}px`;
-    div.style.top = `${y}px`;
-    div.style.width = "250px";
-    div.innerHTML = `<div>The cat is _____ the table.<br><input type="text" placeholder="Write your answer..." style="width:120px; margin-top:8px; padding:6px; border:1px solid #ddd; border-radius:8px;"></div><div class="resize-handle"></div>`;
-    div.onclick = (e) => { e.stopPropagation(); selectElement(div); };
-    makeDraggable(div);
-    canvas.appendChild(div);
-    addToLayers(div);
+function addGraphPaper() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '250px';
+        div.style.height = '250px';
+        div.style.background = '#fff';
+        div.style.border = '1px solid #ccc';
+        let html =
+            '<div style="width:100%;height:100%;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr);">';
+        for (let i = 0; i < 100; i++) {
+            html += `<div style="border:1px solid #e5e7eb;"></div>`;
+        }
+        html += '</div><div class="resize-handle"></div>';
+        div.innerHTML = html;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Graph paper added!', 'success');
 }
 
-// ========== SELECTION HANDLING ==========
+// ---- MATH ----
+function addMath(type) {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '200px';
+        div.style.minHeight = '60px';
+        div.style.padding = '12px';
+        div.style.background = '#f8fafc';
+        div.style.borderRadius = '10px';
+        div.style.border = '2px solid var(--border)';
+
+        let content = '';
+        if (type === 'addition') {
+            const a = Math.floor(Math.random() * 10) + 1;
+            const b = Math.floor(Math.random() * 10) + 1;
+            content =
+                `<div style="font-size:20px;font-weight:700;text-align:center;">${a} + ${b} = <input type="text" class="math-answer" placeholder="?" style="width:50px;text-align:center;font-size:18px;border:2px solid var(--border);border-radius:6px;padding:4px;"></div>`;
+        } else if (type === 'subtraction') {
+            let a = Math.floor(Math.random() * 10) + 1;
+            let b = Math.floor(Math.random() * a) + 1;
+            content =
+                `<div style="font-size:20px;font-weight:700;text-align:center;">${a} - ${b} = <input type="text" class="math-answer" placeholder="?" style="width:50px;text-align:center;font-size:18px;border:2px solid var(--border);border-radius:6px;padding:4px;"></div>`;
+        } else {
+            content =
+                `<div style="font-size:14px;font-weight:600;text-align:center;">Number Line:<br>1___2___3___4___5___6___7___8___9___10</div>`;
+        }
+        div.innerHTML = content + `<div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast(`Math ${type} added!`, 'success');
+}
+
+// ---- ACTIVITIES ----
+function addWordBank() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '250px';
+        div.style.minHeight = '80px';
+        div.style.padding = '12px';
+        div.style.background = '#fefce8';
+        div.style.border = '2px solid #fef08a';
+        div.style.borderRadius = '12px';
+        const words = ['Apple', 'Cat', 'Dog', 'Sun', 'Bird', 'Fish', 'Star', 'Moon'];
+        const wordHtml = words.map(w =>
+            `<span style="display:inline-block;background:#e0e7ff;padding:4px 14px;margin:3px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;">${w}</span>`
+        ).join('');
+        div.innerHTML =
+            `<div><strong>📚 Word Bank:</strong><br>${wordHtml}</div><div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Word Bank added!', 'success');
+}
+
+function addColorByNumber() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '280px';
+        div.style.padding = '12px';
+        div.style.background = '#f8fafc';
+        div.style.borderRadius = '12px';
+        div.style.border = '2px solid var(--border)';
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#ff9ff3', '#54a0ff'];
+        let html = '<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">';
+        colors.forEach((c, i) => {
+            html +=
+                `<div style="text-align:center;width:60px;"><div style="width:40px;height:40px;background:${c};border-radius:8px;border:2px solid var(--border);margin:0 auto;"></div><div style="font-size:12px;font-weight:600;margin-top:4px;">${i+1}</div></div>`;
+        });
+        html += '</div><div class="resize-handle"></div>';
+        div.innerHTML = html;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Color by Number added!', 'success');
+}
+
+function addMatching() {
+    showToast('Matching feature coming soon!', 'info');
+}
+
+function addConnectDots() {
+    showToast('Connect Dots coming soon!', 'info');
+}
+
+function addContainer() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '200px';
+        div.style.height = '150px';
+        div.style.border = '3px dashed var(--primary)';
+        div.style.borderRadius = '12px';
+        div.style.background = 'rgba(99,102,241,0.05)';
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'center';
+        div.style.color = 'var(--text-light)';
+        div.style.fontSize = '12px';
+        div.innerHTML = `📦 Container<br><small>Drop elements here</small><div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Container added!', 'success');
+}
+
+function addLabel() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.padding = '8px 16px';
+        div.style.background = 'var(--primary)';
+        div.style.color = 'white';
+        div.style.borderRadius = '8px';
+        div.style.fontSize = '14px';
+        div.style.fontWeight = '600';
+        div.style.boxShadow = '0 2px 10px rgba(99,102,241,0.2)';
+        div.innerHTML = `📌 Label <div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Label added!', 'success');
+}
+
+// ---- ASSESSMENT ----
+function addMCQ() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '240px';
+        div.style.padding = '12px';
+        div.style.background = '#f8fafc';
+        div.style.borderRadius = '12px';
+        div.style.border = '2px solid var(--border)';
+        const options = ['A', 'B', 'C', 'D'];
+        const optHtml = options.map(o =>
+            `<div style="margin:6px 0;display:flex;align-items:center;gap:8px;"><input type="radio" name="mcq_${id}" class="mcq-option" style="width:16px;height:16px;"> Option ${o}</div>`
+        ).join('');
+        div.innerHTML =
+            `<div><strong>❓ Question:</strong><br>${optHtml}</div><div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('MCQ added!', 'success');
+}
+
+function addFillBlank() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        const id = currentId++;
+        const div = document.createElement('div');
+        div.className = 'canvas-element';
+        div.id = `elem-${id}`;
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.style.width = '240px';
+        div.style.padding = '12px';
+        div.style.background = '#f8fafc';
+        div.style.borderRadius = '12px';
+        div.style.border = '2px solid var(--border)';
+        div.innerHTML =
+            `<div style="font-size:14px;">The cat is _____ the table.<br><input type="text" placeholder="Write your answer..." style="width:100%;margin-top:10px;padding:8px;border:2px solid var(--border);border-radius:8px;font-size:14px;"></div><div class="resize-handle"></div>`;
+        canvas.appendChild(div);
+        elementCounter++;
+    }, pos.x, pos.y);
+    showToast('Fill in the Blank added!', 'success');
+}
+
+function addTrueFalse() {
+    showToast('True/False feature coming soon!', 'info');
+}
+
+function addStudentName() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        createElement(canvas,
+            `<span class="element-text" style="font-size:14px;font-weight:600;">👤 Name: ________________</span>`,
+            x, y);
+    }, pos.x, pos.y);
+    showToast('Name field added!', 'success');
+}
+
+function addDateField() {
+    const pos = getRandomPosition();
+    addElementToPage((canvas, x, y) => {
+        createElement(canvas,
+            `<span class="element-text" style="font-size:14px;font-weight:600;">📅 Date: ________________</span>`,
+            x, y);
+    }, pos.x, pos.y);
+    showToast('Date field added!', 'success');
+}
+
+// ============================================================
+// SELECTION
+// ============================================================
 function selectElement(el) {
-    if (el.classList.contains("selected")) {
-        el.classList.remove("selected");
+    if (!el) return;
+    if (el.classList.contains('selected')) {
+        el.classList.remove('selected');
         selectedElements = selectedElements.filter(e => e !== el);
     } else {
-        // Deselect others if not holding Ctrl
-        if (!event.ctrlKey) {
-            selectedElements.forEach(e => e.classList.remove("selected"));
+        if (!window.event?.ctrlKey && !window.event?.metaKey) {
+            selectedElements.forEach(e => e.classList.remove('selected'));
             selectedElements = [];
         }
-        el.classList.add("selected");
+        el.classList.add('selected');
         selectedElements.push(el);
     }
     updateSelectedCount();
+    updatePropertiesPanel();
 }
 
 function updateSelectedCount() {
-    selectedElements = Array.from(getCurrentCanvas().querySelectorAll(".canvas-element.selected"));
-    selectedCountSpan.textContent = selectedElements.length;
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    selectedElements = Array.from(canvas.querySelectorAll('.canvas-element.selected'));
+    if (selectedCountSpan) selectedCountSpan.textContent = selectedElements.length;
+    updatePropertiesPanel();
 }
 
-// ========== DRAG AND RESIZE ==========
-function makeDraggable(el) {
-    let isDragging = false;
-    let startX, startY, initialLeft, initialTop;
-    
-    el.addEventListener("mousedown", (e) => {
-        if (e.target.classList && e.target.classList.contains("resize-handle")) return;
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        initialLeft = parseInt(el.style.left);
-        initialTop = parseInt(el.style.top);
-        e.preventDefault();
-    });
-    
-    document.addEventListener("mousemove", (e) => {
-        if (isDragging) {
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            let newLeft = initialLeft + dx;
-            let newTop = initialTop + dy;
-            if (snapEnabled && gridEnabled) {
-                newLeft = Math.round(newLeft / gridSize) * gridSize;
-                newTop = Math.round(newTop / gridSize) * gridSize;
-            }
-            el.style.left = `${newLeft}px`;
-            el.style.top = `${newTop}px`;
+function selectAll() {
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    canvas.querySelectorAll('.canvas-element').forEach(el => el.classList.add('selected'));
+    updateSelectedCount();
+    showToast('All elements selected', 'info');
+}
+
+function deselectAll() {
+    document.querySelectorAll('.canvas-element.selected').forEach(el => el.classList.remove('selected'));
+    selectedElements = [];
+    updateSelectedCount();
+}
+
+// ============================================================
+// DRAG & RESIZE
+// ============================================================
+function attachElementEvents() {
+    document.querySelectorAll('.canvas-element').forEach(el => {
+        if (!el._eventsAttached) {
+            el.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.resize-handle')) return;
+                if (e.target.tagName === 'INPUT') return;
+                selectElement(el);
+            });
+            makeDraggable(el);
+            if (el.querySelector('.resize-handle')) makeResizable(el);
+            el._eventsAttached = true;
         }
     });
-    
-    document.addEventListener("mouseup", () => { isDragging = false; });
+}
+
+function makeDraggable(el) {
+    let dragging = false,
+        startX, startY, left, top;
+    el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.resize-handle')) return;
+        if (e.target.tagName === 'INPUT') return;
+        if (e.button !== 0) return;
+        dragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        left = parseInt(el.style.left) || 0;
+        top = parseInt(el.style.top) || 0;
+        el.style.cursor = 'grabbing';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        let nx = left + (e.clientX - startX);
+        let ny = top + (e.clientY - startY);
+        if (snapEnabled && gridEnabled) {
+            nx = Math.round(nx / gridSize) * gridSize;
+            ny = Math.round(ny / gridSize) * gridSize;
+        }
+        el.style.left = `${Math.max(0, nx)}px`;
+        el.style.top = `${Math.max(0, ny)}px`;
+        updatePropertiesPanel();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (dragging) {
+            dragging = false;
+            el.style.cursor = 'move';
+            saveToHistory();
+        }
+    });
 }
 
 function makeResizable(el) {
-    const handle = el.querySelector(".resize-handle");
+    const handle = el.querySelector('.resize-handle');
     if (!handle) return;
-    
-    let isResizing = false;
-    let startX, startW, startH;
-    
-    handle.addEventListener("mousedown", (e) => {
-        isResizing = true;
+    let resizing = false,
+        startX, startY, w, h, aspectRatio;
+
+    handle.addEventListener('mousedown', (e) => {
+        resizing = true;
         startX = e.clientX;
-        startW = parseInt(el.style.width);
-        startH = parseInt(el.style.height);
+        startY = e.clientY;
+        w = parseInt(el.style.width) || 100;
+        h = parseInt(el.style.height) || 100;
+        aspectRatio = w / h;
         e.stopPropagation();
         e.preventDefault();
     });
-    
-    document.addEventListener("mousemove", (e) => {
-        if (isResizing) {
-            const dx = e.clientX - startX;
-            const newW = Math.max(30, startW + dx);
-            el.style.width = `${newW}px`;
-            el.style.height = `${newW * (startH/startW)}px`;
+
+    document.addEventListener('mousemove', (e) => {
+        if (!resizing) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        let nw = Math.max(30, w + dx);
+        let nh = Math.max(30, h + dy);
+        if (e.shiftKey || aspectRatioLocked) {
+            nh = nw / aspectRatio;
+        }
+        el.style.width = `${nw}px`;
+        el.style.height = `${nh}px`;
+        updatePropertiesPanel();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (resizing) {
+            resizing = false;
+            saveToHistory();
         }
     });
-    
-    document.addEventListener("mouseup", () => { isResizing = false; });
 }
 
-// ========== GRID SYSTEM ==========
+function snapToGrid(el) {
+    let left = parseInt(el.style.left) || 0;
+    let top = parseInt(el.style.top) || 0;
+    el.style.left = `${Math.round(left / gridSize) * gridSize}px`;
+    el.style.top = `${Math.round(top / gridSize) * gridSize}px`;
+}
+
+// ============================================================
+// PROPERTIES PANEL
+// ============================================================
+function toggleProperties() {
+    propertiesPanel.classList.toggle('open');
+}
+
+function updatePropertiesPanel() {
+    if (!selectedElements.length) {
+        document.getElementById('propX').value = 0;
+        document.getElementById('propY').value = 0;
+        document.getElementById('propW').value = 100;
+        document.getElementById('propH').value = 100;
+        return;
+    }
+    const el = selectedElements[0];
+    document.getElementById('propX').value = parseInt(el.style.left) || 0;
+    document.getElementById('propY').value = parseInt(el.style.top) || 0;
+    document.getElementById('propW').value = parseInt(el.style.width) || 100;
+    document.getElementById('propH').value = parseInt(el.style.height) || 100;
+    const rotate = parseFloat(el.style.transform?.replace(/[^0-9.]/g, '') || 0);
+    document.getElementById('propRotate').value = rotate;
+    document.getElementById('propRotateVal').textContent = `${Math.round(rotate)}°`;
+    const opacity = parseFloat(el.style.opacity || 1) * 100;
+    document.getElementById('propOpacity').value = opacity;
+    document.getElementById('propOpacityVal').textContent = `${Math.round(opacity)}%`;
+    const textEl = el.querySelector('.element-text');
+    if (textEl) {
+        document.getElementById('propFont').value = textEl.style.fontFamily || 'Arial';
+        document.getElementById('propColor').value = textEl.style.color || '#000000';
+        document.getElementById('propFontSize').value = parseInt(textEl.style.fontSize) || 16;
+    }
+}
+
+function updateProperty(prop) {
+    if (!selectedElements.length) return;
+    const el = selectedElements[0];
+    switch (prop) {
+        case 'x':
+            el.style.left = `${document.getElementById('propX').value}px`;
+            break;
+        case 'y':
+            el.style.top = `${document.getElementById('propY').value}px`;
+            break;
+        case 'w':
+            el.style.width = `${document.getElementById('propW').value}px`;
+            break;
+        case 'h':
+            el.style.height = `${document.getElementById('propH').value}px`;
+            break;
+        case 'rotate':
+            const rotate = document.getElementById('propRotate').value;
+            document.getElementById('propRotateVal').textContent = `${Math.round(rotate)}°`;
+            el.style.transform = `rotate(${rotate}deg)`;
+            break;
+        case 'opacity':
+            const opacity = document.getElementById('propOpacity').value / 100;
+            document.getElementById('propOpacityVal').textContent = `${Math.round(opacity * 100)}%`;
+            el.style.opacity = opacity;
+            break;
+        case 'font':
+            const textEl = el.querySelector('.element-text');
+            if (textEl) textEl.style.fontFamily = document.getElementById('propFont').value;
+            break;
+        case 'color':
+            const textEl2 = el.querySelector('.element-text');
+            if (textEl2) textEl2.style.color = document.getElementById('propColor').value;
+            break;
+        case 'fontSize':
+            const textEl3 = el.querySelector('.element-text');
+            if (textEl3) textEl3.style.fontSize = `${document.getElementById('propFontSize').value}px`;
+            break;
+    }
+    saveToHistory();
+}
+
+function setupPropertyUpdates() {
+    ['propX', 'propY', 'propW', 'propH'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => updateProperty(id.replace('prop', '')
+        .toLowerCase()));
+    });
+}
+
+function lockAspectRatio() {
+    aspectRatioLocked = !aspectRatioLocked;
+    showToast(aspectRatioLocked ? 'Aspect ratio locked' : 'Aspect ratio unlocked', 'info');
+}
+
+// ============================================================
+// GALLERY
+// ============================================================
+function setupGalleryCategories() {
+    const cats = Object.keys(IMAGE_DB);
+    galleryCategories.innerHTML = '';
+    cats.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = `gallery-cat-btn ${cat === currentCategory ? 'active' : ''}`;
+        btn.textContent = `${CATEGORY_ICONS[cat] || '📁'} ${cat.replace('-', ' ')}`;
+        btn.dataset.cat = cat;
+        btn.onclick = () => {
+            currentCategory = cat;
+            document.querySelectorAll('.gallery-cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadGallery(cat);
+        };
+        galleryCategories.appendChild(btn);
+    });
+}
+
+function loadGallery(category) {
+    const images = IMAGE_DB[category] || [];
+    galleryGrid.innerHTML = '';
+    if (!images.length) {
+        galleryGrid.innerHTML =
+            `<div class="gallery-empty"><i class="fas fa-folder-open"></i> No images in this category</div>`;
+        return;
+    }
+    images.forEach(img => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        const imgUrl = `${BASE_URL}${category}/${encodeURIComponent(img)}`;
+        item.innerHTML = `
+            <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+            <img src="${imgUrl}" alt="${img}" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none';this.previousElementSibling.innerHTML='<i class=\\'fas fa-exclamation-circle\\' style=\\'color:#ef4444;\\'></i>'">
+            <span class="item-label">${img.replace(/\.[^/.]+$/, '').slice(0,12)}</span>
+        `;
+        item.onclick = () => addImageFromGallery(imgUrl);
+        galleryGrid.appendChild(item);
+    });
+}
+
+function filterGallery() {
+    const query = document.getElementById('gallerySearch').value.toLowerCase();
+    document.querySelectorAll('.gallery-item').forEach(item => {
+        const label = item.querySelector('.item-label')?.textContent?.toLowerCase() || '';
+        item.style.display = label.includes(query) ? '' : 'none';
+    });
+}
+
+function toggleGallery() {
+    gallerySidebar.classList.toggle('open');
+    if (gallerySidebar.classList.contains('open')) {
+        loadGallery(currentCategory);
+    }
+}
+
+// ---- UPLOAD ----
+function setupUpload() {
+    document.getElementById('desktopUpload')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const pos = getRandomPosition();
+                addElementToPage(addImageElement, event.target.result, pos.x, pos.y, 150, 150);
+                showToast('Image uploaded!', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+        e.target.value = '';
+    });
+}
+
+// ============================================================
+// ZOOM
+// ============================================================
+function updateZoom() {
+    const container = pagesContainer;
+    if (container) {
+        container.style.transform = `scale(${currentZoom})`;
+        container.style.transformOrigin = 'top center';
+        zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+    }
+}
+
+function zoomIn() {
+    if (currentZoom < 1.5) { currentZoom += 0.1;
+        updateZoom(); }
+}
+
+function zoomOut() {
+    if (currentZoom > 0.5) { currentZoom -= 0.1;
+        updateZoom(); }
+}
+
+function zoomReset() { currentZoom = 1;
+    updateZoom(); }
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen().catch(() => {});
+    }
+}
+
+// ============================================================
+// GRID & SNAP
+// ============================================================
 function toggleGrid() {
     gridEnabled = !gridEnabled;
     const canvas = getCurrentCanvas();
-    const existingGrid = canvas.querySelector('.grid-lines');
-    if (gridEnabled && !existingGrid) {
-        const gridDiv = document.createElement('div');
-        gridDiv.className = 'grid-lines';
-        const canvasWidth = canvas.clientWidth;
-        for (let i = 0; i < canvasWidth + 500; i += gridSize) {
-            const vLine = document.createElement('div');
-            vLine.className = 'grid-line-v';
-            vLine.style.left = `${i}px`;
-            gridDiv.appendChild(vLine);
+    if (!canvas) return;
+    const existing = canvas.querySelector('.grid-lines');
+    if (gridEnabled && !existing) {
+        const g = document.createElement('div');
+        g.className = 'grid-lines';
+        const w = canvas.clientWidth || 800;
+        for (let i = 0; i < w + 500; i += gridSize) {
+            const v = document.createElement('div');
+            v.className = 'grid-line-v';
+            v.style.left = `${i}px`;
+            g.appendChild(v);
         }
         for (let i = 0; i < 1000; i += gridSize) {
-            const hLine = document.createElement('div');
-            hLine.className = 'grid-line-h';
-            hLine.style.top = `${i}px`;
-            gridDiv.appendChild(hLine);
+            const h = document.createElement('div');
+            h.className = 'grid-line-h';
+            h.style.top = `${i}px`;
+            g.appendChild(h);
         }
-        canvas.appendChild(gridDiv);
-        showToast("Grid enabled", "success");
-    } else if (!gridEnabled && existingGrid) {
-        existingGrid.remove();
-        showToast("Grid disabled", "info");
+        canvas.appendChild(g);
+        showToast('Grid enabled', 'success');
+    } else if (!gridEnabled && existing) {
+        existing.remove();
+        showToast('Grid disabled', 'info');
     }
 }
 
 function toggleSnap() {
     snapEnabled = !snapEnabled;
-    showToast(snapEnabled ? "Snap to grid enabled" : "Snap to grid disabled", "info");
+    showToast(snapEnabled ? 'Snap enabled' : 'Snap disabled', 'info');
 }
 
-function snapToGrid(el) {
-    let left = parseInt(el.style.left);
-    let top = parseInt(el.style.top);
-    el.style.left = `${Math.round(left / gridSize) * gridSize}px`;
-    el.style.top = `${Math.round(top / gridSize) * gridSize}px`;
-}
-
-// ========== LAYERS MANAGEMENT ==========
-function updateLayersList() {
-    const layersList = document.getElementById("layersList");
-    const elements = getCurrentCanvas().querySelectorAll(".canvas-element");
-    layersList.innerHTML = '';
-    elements.forEach((el, idx) => {
-        const layerDiv = document.createElement("div");
-        layerDiv.className = "layer-item";
-        const type = el.querySelector('img') ? '🖼️ Image' : (el.querySelector('.element-text') ? '📝 Text' : '📐 Shape');
-        layerDiv.innerHTML = `<span>${type} ${idx+1}</span><span>${parseInt(el.style.left) || 0}x, ${parseInt(el.style.top) || 0}y</span>`;
-        layerDiv.onclick = () => selectElement(el);
-        layersList.appendChild(layerDiv);
-    });
-}
-
-function addToLayers(el) {
-    updateLayersList();
-}
-
-// ========== TEMPLATES ==========
-function applyTemplate(templateName) {
+// ============================================================
+// RULER
+// ============================================================
+function toggleRuler() {
+    rulerEnabled = !rulerEnabled;
     const canvas = getCurrentCanvas();
-    canvas.innerHTML = '';
-    removeDefaultMessage(canvas);
-    
-    if (templateName === 'alphabet_a') {
-        addImageElement(canvas, `${BASE_URL}alphabet/letter%20A.png`, 50, 50, 150, 150);
-        addTextElement(canvas, 'Trace the letter A', 50, 230, 150, 30);
-        addShape(canvas, 'tracing', 50, 280, 200, 40);
-    } else if (templateName === 'number_1') {
-        addImageElement(canvas, `${BASE_URL}numbers/1.png`, 50, 50, 120, 120);
-        addTextElement(canvas, 'Count: 1', 50, 200, 150, 30);
-        addTextElement(canvas, 'Draw 1 apple', 50, 250, 150, 30);
-    } else if (templateName === 'shape_circle') {
-        addShape(canvas, 'circle', 50, 50, 100, 100);
-        addTextElement(canvas, 'Color the circle red', 50, 180, 200, 30);
-    } else if (templateName === 'alphabet_b') {
-        addImageElement(canvas, `${BASE_URL}alphabet/letter%20B.png`, 50, 50, 150, 150);
-        addTextElement(canvas, 'Trace the letter B', 50, 230, 150, 30);
-        addShape(canvas, 'tracing', 50, 280, 200, 40);
-    } else if (templateName === 'number_10') {
-        addImageElement(canvas, `${BASE_URL}numbers/10.png`, 50, 50, 120, 120);
-        addTextElement(canvas, 'Count to 10', 50, 200, 150, 30);
-    } else if (templateName === 'shape_square') {
-        addShape(canvas, 'box', 50, 50, 100, 100);
-        addTextElement(canvas, 'Color the square blue', 50, 180, 200, 30);
-    }
-    saveToHistory();
-    showToast(`Template "${templateName}" applied`, "success");
-}
+    if (!canvas) return;
+    let ruler = canvas.querySelector('.ruler-overlay');
+    if (rulerEnabled && !ruler) {
+        ruler = document.createElement('div');
+        ruler.className = 'ruler-overlay';
 
-// ========== ASSESSMENT/GRADING ==========
-function gradeAssessment() {
-    const results = [];
-    const mcqs = getCurrentCanvas().querySelectorAll('.mcq-option input:checked');
-    const fillBlanks = getCurrentCanvas().querySelectorAll('.math-answer');
-    
-    results.push(`<strong>📊 Assessment Results:</strong><br>`);
-    results.push(`✅ MCQs Attempted: ${mcqs.length}<br>`);
-    results.push(`📝 Fill Blanks: ${fillBlanks.length}<br>`);
-    results.push(`📈 Total Score: ${mcqs.length + fillBlanks.length} points<br>`);
-    results.push(`<hr><small>Great job! Keep practicing! 🎉</small>`);
-    
-    document.getElementById('assessmentResults').innerHTML = results.join('');
-    assessmentPanel.style.display = 'block';
-    showToast("Assessment complete!", "success");
-}
+        const hRuler = document.createElement('div');
+        hRuler.className = 'ruler-horizontal';
+        for (let i = 0; i < canvas.clientWidth; i += 50) {
+            const mark = document.createElement('span');
+            mark.textContent = i + 'px';
+            hRuler.appendChild(mark);
+        }
 
-// ========== IMAGE UPLOAD ==========
-document.getElementById("uploadImageBtn")?.addEventListener("click", () => {
-    document.getElementById("desktopUpload").click();
-});
+        const vRuler = document.createElement('div');
+        vRuler.className = 'ruler-vertical';
+        for (let i = 0; i < canvas.clientHeight; i += 50) {
+            const mark = document.createElement('span');
+            mark.textContent = i + 'px';
+            vRuler.appendChild(mark);
+        }
 
-document.getElementById("desktopUpload")?.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const pos = getRandomPosition();
-            addElementToPage(addImageElement, event.target.result, pos.x, pos.y, 150, 150);
-            showToast("Image uploaded successfully!", "success");
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// ========== WATERMARK ==========
-function addWatermark() {
-    const canvas = getCurrentCanvas();
-    const existingWm = canvas.querySelector('.watermark');
-    if (existingWm) existingWm.remove();
-    const watermark = document.createElement('div');
-    watermark.className = 'watermark';
-    watermark.style.position = 'absolute';
-    watermark.style.bottom = '10px';
-    watermark.style.right = '10px';
-    watermark.style.opacity = '0.3';
-    watermark.style.fontSize = '12px';
-    watermark.style.color = '#999';
-    watermark.innerHTML = '🏫 Made with MagicRills';
-    canvas.appendChild(watermark);
-    showToast("Watermark added", "success");
-}
-
-// ========== HELPER FUNCTIONS ==========
-function getRandomPosition() {
-    return { x: 30 + Math.random() * 400, y: 30 + Math.random() * 500 };
-}
-
-// ========== IMAGE LIBRARY ==========
-let libraryVisible = false;
-const categorySelect = document.getElementById("categorySelect");
-const imageLibrary = document.getElementById("imageLibrary");
-
-categorySelect?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    libraryVisible = !libraryVisible;
-    if (libraryVisible) {
-        loadImageLibrary();
-        imageLibrary.classList.add("show");
-    } else {
-        imageLibrary.classList.remove("show");
-    }
-});
-
-document.addEventListener("click", (e) => {
-    if (imageLibrary && !imageLibrary.contains(e.target) && e.target !== categorySelect) {
-        imageLibrary.classList.remove("show");
-        libraryVisible = false;
-    }
-});
-
-function loadImageLibrary() {
-    const category = categorySelect.value;
-    const images = IMAGE_DB[category] || [];
-    imageLibrary.innerHTML = "";
-    images.forEach(img => {
-        const div = document.createElement("div");
-        div.className = "lib-img";
-        div.innerHTML = `<img src="${BASE_URL}${category}/${encodeURIComponent(img)}" onerror="this.src='https://via.placeholder.com/50'"><span>${img.substring(0,8)}</span>`;
-        div.onclick = () => {
-            const pos = getRandomPosition();
-            addElementToPage(addImageElement, `${BASE_URL}${category}/${encodeURIComponent(img)}`, pos.x, pos.y, 120, 120);
-            imageLibrary.classList.remove("show");
-            libraryVisible = false;
-            trackUsage(); // Track usage when image is added
-        };
-        imageLibrary.appendChild(div);
-    });
-}
-
-// ========== ZOOM FUNCTIONALITY ==========
-function updateZoom() {
-    const worksheetCanvas = document.querySelector(".pages-container");
-    if (worksheetCanvas) {
-        worksheetCanvas.style.transform = `scale(${currentZoom})`;
-        worksheetCanvas.style.transformOrigin = "top center";
-        zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+        ruler.appendChild(hRuler);
+        ruler.appendChild(vRuler);
+        canvas.appendChild(ruler);
+        showToast('Ruler shown', 'info');
+    } else if (!rulerEnabled && ruler) {
+        ruler.remove();
+        showToast('Ruler hidden', 'info');
     }
 }
 
-// ========== SAVE/LOAD FUNCTIONS ==========
-function saveWorksheet() {
-    const pages = [];
-    document.querySelectorAll('.a4-canvas').forEach((page, idx) => {
-        pages.push(page.innerHTML);
-    });
-    const data = { pages, version: "2.0", timestamp: new Date().toISOString() };
-    localStorage.setItem("ecce_worksheet", JSON.stringify(data));
-    showToast("Worksheet saved successfully!", "success");
-}
-
-function loadWorksheet() {
-    const data = localStorage.getItem("ecce_worksheet");
-    if (data) {
-        const saved = JSON.parse(data);
-        pagesContainer.innerHTML = '';
-        saved.pages.forEach((pageHtml, idx) => {
-            const page = document.createElement("div");
-            page.id = `page${idx+1}`;
-            page.className = `a4-canvas ${idx+1 === currentPage ? 'active-page' : ''}`;
-            page.innerHTML = pageHtml;
-            pagesContainer.appendChild(page);
-        });
-        pageCount = saved.pages.length;
-        updatePageSelect();
-        saveToHistory();
-        showToast("Worksheet loaded successfully!", "success");
-    } else {
-        showToast("No saved worksheet found", "error");
-    }
-}
-
-// ========== COPY/PASTE/DELETE ==========
-function copySelected() {
-    if (selectedElements.length) {
-        const tempDiv = document.createElement("div");
-        selectedElements.forEach(el => {
-            tempDiv.appendChild(el.cloneNode(true));
-        });
-        clipboard = tempDiv.innerHTML;
-        showToast(`Copied ${selectedElements.length} element(s)`, "success");
-    } else {
-        showToast("No element selected", "error");
-    }
-}
-
-function pasteSelected() {
-    if (clipboard) {
-        saveToHistory();
-        const temp = document.createElement("div");
-        temp.innerHTML = clipboard;
-        const elements = temp.children;
-        Array.from(elements).forEach(el => {
-            const id = currentId++;
-            const newEl = el.cloneNode(true);
-            newEl.id = `elem-${id}`;
-            let left = parseInt(newEl.style.left) || 50;
-            let top = parseInt(newEl.style.top) || 50;
-            newEl.style.left = `${left + 20}px`;
-            newEl.style.top = `${top + 20}px`;
-            getCurrentCanvas().appendChild(newEl);
-            makeDraggable(newEl);
-            if (newEl.querySelector(".resize-handle")) makeResizable(newEl);
-            addToLayers(newEl);
-        });
-        showToast("Pasted successfully", "success");
-    } else {
-        showToast("Nothing to paste", "error");
-    }
-}
-
-function deleteSelected() {
-    if (selectedElements.length) {
-        saveToHistory();
-        selectedElements.forEach(el => el.remove());
-        selectedElements = [];
-        updateSelectedCount();
-        updateLayersList();
-        showToast("Deleted selected element(s)", "success");
-    } else {
-        showToast("No element selected", "error");
-    }
-}
-
-// ========== ALIGNMENT ==========
-function alignLeft() {
-    if (selectedElements.length) {
-        let minLeft = Math.min(...selectedElements.map(el => parseInt(el.style.left) || 0));
-        selectedElements.forEach(el => el.style.left = `${minLeft}px`);
-        showToast("Aligned left", "success");
-    }
-}
-
-function alignCenter() {
-    if (selectedElements.length) {
-        let centerX = (getCurrentCanvas().clientWidth / 2);
-        selectedElements.forEach(el => {
-            let width = parseInt(el.style.width) || 100;
-            el.style.left = `${centerX - width/2}px`;
-        });
-        showToast("Aligned center", "success");
-    }
-}
-
-function alignRight() {
-    if (selectedElements.length) {
-        let maxRight = Math.max(...selectedElements.map(el => (parseInt(el.style.left) || 0) + (parseInt(el.style.width) || 100)));
-        selectedElements.forEach(el => {
-            let width = parseInt(el.style.width) || 100;
-            el.style.left = `${maxRight - width}px`;
-        });
-        showToast("Aligned right", "success");
-    }
-}
-
-// ========== FORMATTING ==========
+// ============================================================
+// STYLING
+// ============================================================
 function applyBold() {
     selectedElements.forEach(el => {
-        const text = el.querySelector(".element-text");
-        if (text) text.style.fontWeight = "bold";
+        const t = el.querySelector('.element-text');
+        if (t) t.style.fontWeight = t.style.fontWeight === 'bold' ? 'normal' : 'bold';
     });
-    showToast("Applied bold", "success");
 }
 
 function applyItalic() {
     selectedElements.forEach(el => {
-        const text = el.querySelector(".element-text");
-        if (text) text.style.fontStyle = "italic";
+        const t = el.querySelector('.element-text');
+        if (t) t.style.fontStyle = t.style.fontStyle === 'italic' ? 'normal' : 'italic';
     });
-    showToast("Applied italic", "success");
 }
 
 function applyUnderline() {
     selectedElements.forEach(el => {
-        const text = el.querySelector(".element-text");
-        if (text) text.style.textDecoration = "underline";
+        const t = el.querySelector('.element-text');
+        if (t) t.style.textDecoration = t.style.textDecoration === 'underline' ? 'none' : 'underline';
     });
-    showToast("Applied underline", "success");
 }
 
-// ========== Z-INDEX ==========
-function bringToFront() {
-    selectedElements.forEach(el => el.style.zIndex = Date.now());
-    showToast("Brought to front", "success");
+function applyTextShadow() {
+    selectedElements.forEach(el => {
+        const t = el.querySelector('.element-text');
+        if (t) {
+            t.style.textShadow = t.style.textShadow ? 'none' : '2px 2px 4px rgba(0,0,0,0.2)';
+        }
+    });
+    showToast('Text shadow toggled', 'info');
 }
 
-function sendToBack() {
-    selectedElements.forEach(el => el.style.zIndex = -Date.now());
-    showToast("Sent to back", "success");
+function applyHighlight() {
+    selectedElements.forEach(el => {
+        const t = el.querySelector('.element-text');
+        if (t) {
+            t.style.background = t.style.background ? 'transparent' : 'rgba(251,191,36,0.3)';
+            t.style.padding = t.style.background ? '0 4px' : '0';
+            t.style.borderRadius = '4px';
+        }
+    });
+    showToast('Highlight toggled', 'info');
 }
 
-// ========== EXPORT FUNCTIONS ==========
-async function downloadPDF() {
-    showLoading();
-    const element = document.getElementById(`page${currentPage}`);
-    try {
-        const canvas = await html2canvas(element, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
-        const imgData = canvas.toDataURL("image/png");
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-        pdf.save("worksheet.pdf");
-        showToast("PDF downloaded!", "success");
-    } catch(e) {
-        showToast("Use Print instead", "error");
+function applyBorder() {
+    selectedElements.forEach(el => {
+        const currentBorder = el.style.border;
+        if (!currentBorder || currentBorder === 'none') {
+            el.style.border = '3px solid var(--primary)';
+            el.style.borderRadius = '8px';
+            el.style.padding = '4px';
+        } else {
+            el.style.border = 'none';
+            el.style.borderRadius = '0';
+            el.style.padding = '0';
+        }
+    });
+    showToast('Border toggled', 'info');
+}
+
+function applyShadow() {
+    selectedElements.forEach(el => {
+        el.style.boxShadow = el.style.boxShadow ? 'none' : '0 4px 20px rgba(0,0,0,0.15)';
+    });
+    showToast('Shadow toggled', 'info');
+}
+
+function changeBackground() {
+    const canvas = getCurrentCanvas();
+    if (canvas) {
+        const color = prompt('Enter background color (hex, e.g., #f0f0f0):', '#ffffff');
+        if (color) {
+            canvas.style.background = color;
+            showToast('Background color changed', 'success');
+        }
     }
-    hideLoading();
 }
 
-function downloadWord() {
-    const content = document.getElementById(`page${currentPage}`).cloneNode(true);
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Worksheet</title><style>body{padding:1cm; font-family:Arial;}</style></head><body>${content.innerHTML}</body></html>`;
-    const blob = new Blob([html], { type: "application/msword" });
-    const link = document.createElement("a");
+// ============================================================
+// DRAWING
+// ============================================================
+function toggleDrawing() {
+    drawingEnabled = !drawingEnabled;
+    if (drawingEnabled) {
+        eraserEnabled = false;
+        createDrawingLayer();
+        showToast('Drawing mode enabled', 'info');
+    } else {
+        showToast('Drawing mode disabled', 'info');
+    }
+}
+
+function toggleEraser() {
+    eraserEnabled = !eraserEnabled;
+    if (eraserEnabled) {
+        drawingEnabled = false;
+        showToast('Eraser mode enabled', 'info');
+    } else {
+        showToast('Eraser mode disabled', 'info');
+    }
+}
+
+function createDrawingLayer() {
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    // Remove existing drawing canvas
+    const existing = canvas.querySelector('.drawing-layer');
+    if (existing) existing.remove();
+
+    const drawCanvas = document.createElement('canvas');
+    drawCanvas.className = 'drawing-layer';
+    drawCanvas.style.position = 'absolute';
+    drawCanvas.style.top = '0';
+    drawCanvas.style.left = '0';
+    drawCanvas.style.width = '100%';
+    drawCanvas.style.height = '100%';
+    drawCanvas.style.pointerEvents = 'none';
+    drawCanvas.style.zIndex = '999';
+    canvas.appendChild(drawCanvas);
+
+    // Setup drawing
+    const ctx = drawCanvas.getContext('2d');
+    drawCanvas.width = canvas.clientWidth;
+    drawCanvas.height = canvas.clientHeight;
+
+    let isDrawing = false;
+    let lastX, lastY;
+
+    drawCanvas.style.pointerEvents = 'auto';
+
+    drawCanvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        const rect = drawCanvas.getBoundingClientRect();
+        lastX = e.clientX - rect.left;
+        lastY = e.clientY - rect.top;
+    });
+
+    drawCanvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        const rect = drawCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const color = document.getElementById('drawColor')?.value || '#000000';
+        const size = parseInt(document.getElementById('drawSize')?.value || 4);
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = eraserEnabled ? '#ffffff' : color;
+        ctx.lineWidth = eraserEnabled ? size * 3 : size;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        lastX = x;
+        lastY = y;
+    });
+
+    drawCanvas.addEventListener('mouseup', () => { isDrawing = false; });
+    drawCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
+}
+
+function clearDrawing() {
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    const drawCanvas = canvas.querySelector('.drawing-layer');
+    if (drawCanvas) {
+        const ctx = drawCanvas.getContext('2d');
+        ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        showToast('Drawing cleared', 'success');
+    }
+}
+
+// ============================================================
+// ARRANGE
+// ============================================================
+function bringFront() {
+    selectedElements.forEach(el => el.style.zIndex = Date.now());
+    showToast('Brought to front', 'success');
+}
+
+function sendBack() {
+    selectedElements.forEach(el => el.style.zIndex = -Date.now());
+    showToast('Sent to back', 'success');
+}
+
+function alignLeft() {
+    if (!selectedElements.length) return;
+    const minL = Math.min(...selectedElements.map(el => parseInt(el.style.left) || 0));
+    selectedElements.forEach(el => el.style.left = `${minL}px`);
+    showToast('Aligned left', 'success');
+}
+
+function alignCenter() {
+    if (!selectedElements.length) return;
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    const cx = canvas.clientWidth / 2;
+    selectedElements.forEach(el => {
+        const w = parseInt(el.style.width) || 100;
+        el.style.left = `${cx - w/2}px`;
+    });
+    showToast('Aligned center', 'success');
+}
+
+function alignRight() {
+    if (!selectedElements.length) return;
+    const maxR = Math.max(...selectedElements.map(el => (parseInt(el.style.left) || 0) + (parseInt(el.style.width) ||
+    100)));
+    selectedElements.forEach(el => {
+        const w = parseInt(el.style.width) || 100;
+        el.style.left = `${maxR - w}px`;
+    });
+    showToast('Aligned right', 'success');
+}
+
+function distributeElements() {
+    if (selectedElements.length < 3) { showToast('Select at least 3 elements', 'error'); return; }
+    const sorted = [...selectedElements].sort((a, b) => (parseInt(a.style.left) || 0) - (parseInt(b.style.left) ||
+    0));
+    const first = parseInt(sorted[0].style.left) || 0;
+    const last = parseInt(sorted[sorted.length - 1].style.left) || 0;
+    const spacing = (last - first) / (sorted.length - 1);
+    sorted.forEach((el, i) => {
+        el.style.left = `${first + (i * spacing)}px`;
+    });
+    showToast('Distributed evenly', 'success');
+}
+
+function groupElements() {
+    if (selectedElements.length < 2) { showToast('Select at least 2 elements', 'error'); return; }
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    const groupId = 'group_' + Date.now();
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'canvas-element group';
+    groupDiv.id = groupId;
+    const minL = Math.min(...selectedElements.map(el => parseInt(el.style.left) || 0));
+    const minT = Math.min(...selectedElements.map(el => parseInt(el.style.top) || 0));
+    const maxR = Math.max(...selectedElements.map(el => (parseInt(el.style.left) || 0) + (parseInt(el.style.width) ||
+    100)));
+    const maxB = Math.max(...selectedElements.map(el => (parseInt(el.style.top) || 0) + (parseInt(el.style.height) ||
+    100)));
+    groupDiv.style.left = `${minL}px`;
+    groupDiv.style.top = `${minT}px`;
+    groupDiv.style.width = `${maxR - minL}px`;
+    groupDiv.style.height = `${maxB - minT}px`;
+    groupDiv.style.border = '2px dashed var(--primary)';
+    groupDiv.style.borderRadius = '8px';
+    groupDiv.style.background = 'rgba(99,102,241,0.03)';
+    groupDiv.style.pointerEvents = 'none';
+
+    selectedElements.forEach(el => {
+        el.style.left = `${(parseInt(el.style.left) || 0) - minL}px`;
+        el.style.top = `${(parseInt(el.style.top) || 0) - minT}px`;
+        groupDiv.appendChild(el);
+    });
+    canvas.appendChild(groupDiv);
+    selectedElements = [groupDiv];
+    updateSelectedCount();
+    updateLayersList();
+    showToast('Grouped', 'success');
+}
+
+function ungroupElements() {
+    const groups = document.querySelectorAll('.group');
+    if (!groups.length) { showToast('No group selected', 'error'); return; }
+    groups.forEach(group => {
+        const parent = group.parentElement;
+        const children = Array.from(group.children);
+        const left = parseInt(group.style.left) || 0;
+        const top = parseInt(group.style.top) || 0;
+        children.forEach(el => {
+            el.style.left = `${(parseInt(el.style.left) || 0) + left}px`;
+            el.style.top = `${(parseInt(el.style.top) || 0) + top}px`;
+            parent.insertBefore(el, group);
+        });
+        group.remove();
+    });
+    updateLayersList();
+    showToast('Ungrouped', 'success');
+}
+
+function rotateElements() {
+    if (!selectedElements.length) { showToast('No element selected', 'error'); return; }
+    selectedElements.forEach(el => {
+        const currentRotate = parseFloat(el.style.transform?.replace(/[^0-9.]/g, '') || 0);
+        el.style.transform = `rotate(${currentRotate + 15}deg)`;
+    });
+    showToast('Rotated 15°', 'success');
+}
+
+function duplicateSelected() {
+    if (!selectedElements.length) { showToast('No element selected', 'error'); return; }
+    saveToHistory();
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    const toDuplicate = [...selectedElements];
+    toDuplicate.forEach(el => {
+        const clone = el.cloneNode(true);
+        const id = currentId++;
+        clone.id = `elem-${id}`;
+        let l = parseInt(clone.style.left) || 50;
+        let t = parseInt(clone.style.top) || 50;
+        clone.style.left = `${l + 30}px`;
+        clone.style.top = `${t + 30}px`;
+        clone.classList.remove('selected');
+        canvas.appendChild(clone);
+    });
+    attachElementEvents();
+    updateLayersList();
+    showToast('Duplicated', 'success');
+}
+
+function deleteSelected() {
+    if (!selectedElements.length) { showToast('No element selected', 'error'); return; }
+    saveToHistory();
+    selectedElements.forEach(el => el.remove());
+    selectedElements = [];
+    updateSelectedCount();
+    updateLayersList();
+    showToast('Deleted', 'success');
+}
+
+// ============================================================
+// COPY/PASTE
+// ============================================================
+function copySelected() {
+    if (!selectedElements.length) { showToast('No element selected', 'error'); return; }
+    const temp = document.createElement('div');
+    selectedElements.forEach(el => temp.appendChild(el.cloneNode(true)));
+    clipboard = temp.innerHTML;
+    showToast(`Copied ${selectedElements.length} element(s)`, 'success');
+}
+
+function pasteSelected() {
+    if (!clipboard) { showToast('Nothing to paste', 'error'); return; }
+    saveToHistory();
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    const temp = document.createElement('div');
+    temp.innerHTML = clipboard;
+    Array.from(temp.children).forEach(el => {
+        const id = currentId++;
+        const newEl = el.cloneNode(true);
+        newEl.id = `elem-${id}`;
+        let l = parseInt(newEl.style.left) || 50;
+        let t = parseInt(newEl.style.top) || 50;
+        newEl.style.left = `${l + 20 + Math.random() * 20}px`;
+        newEl.style.top = `${t + 20 + Math.random() * 20}px`;
+        canvas.appendChild(newEl);
+    });
+    attachElementEvents();
+    updateLayersList();
+    showToast('Pasted', 'success');
+}
+
+// ============================================================
+// LAYERS
+// ============================================================
+function updateLayersList() {
+    // Simple layer update - can be expanded
+}
+
+// ============================================================
+// ASSESSMENT
+// ============================================================
+function gradeAssessment() {
+    const canvas = getCurrentCanvas();
+    if (!canvas) return;
+    const mcqs = canvas.querySelectorAll('.mcq-option:checked');
+    const blanks = canvas.querySelectorAll('.math-answer');
+    let score = mcqs.length + blanks.length;
+    showModal('📊 Assessment Results', `
+        <p><strong>MCQs Attempted:</strong> ${mcqs.length}</p>
+        <p><strong>Fill Blanks:</strong> ${blanks.length}</p>
+        <p><strong>Total Score:</strong> ${score} points</p>
+        <hr>
+        <p style="color:var(--success);">🎉 Great job! Keep practicing!</p>
+    `, 'Close');
+}
+
+function generateAnswerKey() {
+    showToast('Answer key generated!', 'success');
+}
+
+// ============================================================
+// AI FUNCTIONS
+// ============================================================
+function aiGenerate() {
+    const input = document.getElementById('aiPrompt');
+    if (!input || !input.value.trim()) { showToast('Enter a prompt', 'error'); return; }
+    showToast('AI generating...', 'info');
+    setTimeout(() => {
+        const pos = getRandomPosition();
+        addElementToPage(addTextElement, `✨ AI: ${input.value}`, pos.x, pos.y);
+        showToast('AI generated!', 'success');
+    }, 800);
+}
+
+function aiSuggest() {
+    const suggestions = [
+        'Create a worksheet about fruits with tracing',
+        'Design a number recognition worksheet for numbers 1-10',
+        'Make an alphabet tracing worksheet for letter A',
+        'Create a color by number activity with animals',
+        'Design a math worksheet with addition problems',
+        'Make a word bank worksheet with animal names'
+    ];
+    const random = suggestions[Math.floor(Math.random() * suggestions.length)];
+    document.getElementById('aiPrompt').value = random;
+    showToast('💡 Suggestion: ' + random, 'info');
+}
+
+function aiImprove() {
+    if (!selectedElements.length) { showToast('Select an element to improve', 'error'); return; }
+    showToast('✨ Improving...', 'info');
+    selectedElements.forEach(el => {
+        el.style.boxShadow = '0 4px 20px rgba(99,102,241,0.15)';
+        el.style.border = '2px solid var(--primary)';
+        el.style.borderRadius = '8px';
+        el.style.padding = '4px';
+    });
+    showToast('✨ Improved!', 'success');
+}
+
+function aiTranslate() {
+    showToast('🌐 Translation feature coming soon!', 'info');
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+async function exportPDF() {
+    const el = document.getElementById(`page${currentPage}`);
+    if (!el) return;
+    showToast('Generating PDF...', 'info');
+    try {
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#fff', useCORS: true });
+        const img = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        const w = 210;
+        const h = (canvas.height * w) / canvas.width;
+        pdf.addImage(img, 'PNG', 0, 0, w, h);
+        pdf.save('worksheet.pdf');
+        showToast('PDF downloaded!', 'success');
+    } catch (e) {
+        showToast('Use Print instead', 'error');
+    }
+}
+
+function exportWord() {
+    const el = document.getElementById(`page${currentPage}`);
+    if (!el) return;
+    const html =
+        `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Worksheet</title><style>body{padding:1cm;font-family:Arial;}</style></head><body>${el.cloneNode(true).innerHTML}</body></html>`;
+    const blob = new Blob([html], { type: 'application/msword' });
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = "worksheet.doc";
+    link.download = 'worksheet.doc';
     link.click();
     URL.revokeObjectURL(link.href);
-    showToast("Word document downloaded!", "success");
+    showToast('Word downloaded!', 'success');
 }
 
-function downloadPNG() {
-    const element = document.getElementById(`page${currentPage}`);
-    html2canvas(element, { scale: 2, backgroundColor: "#ffffff", useCORS: true }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "worksheet.png";
+function exportPNG() {
+    const el = document.getElementById(`page${currentPage}`);
+    if (!el) return;
+    html2canvas(el, { scale: 2, backgroundColor: '#fff', useCORS: true }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'worksheet.png';
         link.href = canvas.toDataURL();
         link.click();
-        showToast("PNG image downloaded!", "success");
+        showToast('PNG downloaded!', 'success');
     });
 }
 
-function downloadSVG() {
-    const element = document.getElementById(`page${currentPage}`).cloneNode(true);
-    const html = element.outerHTML;
-    const blob = new Blob([html], { type: "image/svg+xml" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "worksheet.svg";
-    link.click();
-    URL.revokeObjectURL(link.href);
-    showToast("SVG downloaded!", "success");
+// ============================================================
+// SAVE/LOAD
+// ============================================================
+function saveWorksheet() {
+    const pages = [];
+    document.querySelectorAll('.a4-canvas').forEach(p => pages.push(p.innerHTML));
+    localStorage.setItem('ecce_worksheet_v3', JSON.stringify({ pages, version: '3.0', timestamp: new Date()
+            .toISOString() }));
+    showToast('Worksheet saved!', 'success');
 }
 
-// ========== EVENT LISTENERS SETUP ==========
-function setupEventListeners() {
-    // File operations
-    document.getElementById("newBtn")?.addEventListener("click", () => {
-        if (confirm("Start a new worksheet? Unsaved changes will be lost!")) {
-            initPages();
-            saveToHistory();
-            showToast("New worksheet created", "success");
-        }
+function loadWorksheet() {
+    const data = localStorage.getItem('ecce_worksheet_v3');
+    if (!data) { showToast('No saved worksheet', 'error'); return; }
+    const saved = JSON.parse(data);
+    pagesContainer.innerHTML = '';
+    saved.pages.forEach((html, i) => {
+        const p = document.createElement('div');
+        p.id = `page${i+1}`;
+        p.className = `a4-canvas ${i+1 === currentPage ? 'active-page' : ''}`;
+        p.innerHTML = html;
+        pagesContainer.appendChild(p);
     });
-    document.getElementById("saveBtn")?.addEventListener("click", saveWorksheet);
-    document.getElementById("loadBtn")?.addEventListener("click", loadWorksheet);
-    document.getElementById("undoBtn")?.addEventListener("click", undo);
-    document.getElementById("redoBtn")?.addEventListener("click", redo);
-    document.getElementById("printBtn")?.addEventListener("click", () => window.print());
-    document.getElementById("addPageBtn")?.addEventListener("click", addPage);
-    document.getElementById("removePageBtn")?.addEventListener("click", removePage);
-    pageSelect?.addEventListener("change", (e) => switchToPage(parseInt(e.target.value)));
-    
-    // Grid & Layers
-    document.getElementById("toggleGridBtn")?.addEventListener("click", toggleGrid);
-    document.getElementById("toggleSnapBtn")?.addEventListener("click", toggleSnap);
-    document.getElementById("showLayersBtn")?.addEventListener("click", () => {
-        layersPanel.classList.toggle("show");
-        updateLayersList();
-    });
-    document.getElementById("closeLayersBtn")?.addEventListener("click", () => layersPanel.classList.remove("show"));
-    
-    // Assessment
-    document.getElementById("gradeBtn")?.addEventListener("click", gradeAssessment);
-    document.getElementById("closeAssessmentBtn")?.addEventListener("click", () => assessmentPanel.style.display = "none");
-    
-    // Templates
-    const templateSelect = document.getElementById("templateSelect");
-    templateSelect?.addEventListener("change", (e) => {
-        if (e.target.value) {
-            applyTemplate(e.target.value);
-            e.target.value = "";
-        }
-    });
-    
-    // Add elements
-    document.getElementById("addTextBtn")?.addEventListener("click", () => {
-        const text = document.getElementById("newText")?.value || "Sample Text";
-        const pos = getRandomPosition();
-        addElementToPage(addTextElement, text, pos.x, pos.y);
-    });
-    document.getElementById("addLineBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addShape, "line", pos.x, pos.y);
-    });
-    document.getElementById("addDottedBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addShape, "dotted", pos.x, pos.y);
-    });
-    document.getElementById("addBoxBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addShape, "box", pos.x, pos.y);
-    });
-    document.getElementById("addCircleBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addShape, "circle", pos.x, pos.y);
-    });
-    document.getElementById("addTracingBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addShape, "tracing", pos.x, pos.y);
-    });
-    document.getElementById("addMathBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addMathEquation, "addition", pos.x, pos.y);
-    });
-    document.getElementById("addSubtractBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addMathEquation, "subtraction", pos.x, pos.y);
-    });
-    document.getElementById("addNumberLineBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addMathEquation, "numberline", pos.x, pos.y);
-    });
-    document.getElementById("addWordBankBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addWordBank, pos.x, pos.y);
-    });
-    document.getElementById("addColorByNumberBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addColorByNumber, pos.x, pos.y);
-    });
-    document.getElementById("addMcqBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addMcq, pos.x, pos.y);
-    });
-    document.getElementById("addFillBlankBtn")?.addEventListener("click", () => {
-        const pos = getRandomPosition();
-        addElementToPage(addFillBlank, pos.x, pos.y);
-    });
-    document.getElementById("addWatermarkBtn")?.addEventListener("click", addWatermark);
-    
-    // Edit operations
-    document.getElementById("copyBtn")?.addEventListener("click", copySelected);
-    document.getElementById("pasteBtn")?.addEventListener("click", pasteSelected);
-    document.getElementById("deleteBtn")?.addEventListener("click", deleteSelected);
-    document.getElementById("bringFrontBtn")?.addEventListener("click", bringToFront);
-    document.getElementById("sendBackBtn")?.addEventListener("click", sendToBack);
-    document.getElementById("alignLeftBtn")?.addEventListener("click", alignLeft);
-    document.getElementById("alignCenterBtn")?.addEventListener("click", alignCenter);
-    document.getElementById("alignRightBtn")?.addEventListener("click", alignRight);
-    
-    // Formatting
-    document.getElementById("boldBtn")?.addEventListener("click", applyBold);
-    document.getElementById("italicBtn")?.addEventListener("click", applyItalic);
-    document.getElementById("underlineBtn")?.addEventListener("click", applyUnderline);
-    
-    const fontSelect = document.getElementById("fontSelect");
-    const fontSizeSelect = document.getElementById("fontSizeSelect");
-    const textColor = document.getElementById("textColor");
-    
-    fontSelect?.addEventListener("change", () => {
-        selectedElements.forEach(el => {
-            const text = el.querySelector(".element-text");
-            if (text) text.style.fontFamily = fontSelect.value;
-        });
-    });
-    fontSizeSelect?.addEventListener("change", () => {
-        selectedElements.forEach(el => {
-            const text = el.querySelector(".element-text");
-            if (text) text.style.fontSize = `${fontSizeSelect.value}px`;
-        });
-    });
-    textColor?.addEventListener("input", () => {
-        selectedElements.forEach(el => {
-            const text = el.querySelector(".element-text");
-            if (text) text.style.color = textColor.value;
-        });
-    });
-    
-    // Zoom
-    document.getElementById("zoomInBtn")?.addEventListener("click", () => {
-        if (currentZoom < 1.5) { currentZoom += 0.1; updateZoom(); }
-    });
-    document.getElementById("zoomOutBtn")?.addEventListener("click", () => {
-        if (currentZoom > 0.5) { currentZoom -= 0.1; updateZoom(); }
-    });
-    document.getElementById("zoomResetBtn")?.addEventListener("click", () => { currentZoom = 1; updateZoom(); });
-    
-    // Export
-    document.getElementById("pdfBtn")?.addEventListener("click", downloadPDF);
-    document.getElementById("wordBtn")?.addEventListener("click", downloadWord);
-    document.getElementById("pngBtn")?.addEventListener("click", downloadPNG);
-    document.getElementById("svgBtn")?.addEventListener("click", downloadSVG);
-}
-
-// ========== INITIALIZATION ==========
-function init() {
-    initPages();
+    pageCount = saved.pages.length;
+    updatePageSelect();
     saveToHistory();
-    updateZoom();
-    loadStatsFromLocal();
-    setupReactions();
-    setupSocialShares();
-    setupPageShare();
-    setupScrollButtons();
-    setupEventListeners();
-    showToast("✨ Welcome to ECCE Worksheet Maker! ✨", "success");
-    
-    // Track initial page view
-    trackUsage();
+    attachElementEvents();
+    showToast('Worksheet loaded!', 'success');
 }
 
-// Start the app
-init();
+function newWorksheet() {
+    if (confirm('Start a new worksheet? All unsaved changes will be lost.')) {
+        initPages();
+        saveToHistory();
+        showToast('New worksheet created', 'success');
+    }
+}
+
+function shareWorksheet() {
+    if (navigator.share) {
+        navigator.share({
+            title: TOOL_NAME,
+            text: 'Check out this amazing ECCE worksheet maker!',
+            url: window.location.href
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        showToast('Link copied to clipboard!', 'success');
+    }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = 'info') {
+    if (!toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle' };
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showModal(title, body, confirmText = 'Confirm') {
+    const overlay = document.getElementById('modalOverlay');
+    const titleEl = document.getElementById('modalTitle');
+    const bodyEl = document.getElementById('modalBody');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+
+    titleEl.textContent = title;
+    bodyEl.innerHTML = body;
+    confirmBtn.textContent = confirmText;
+    overlay.classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+}
+
+// ============================================================
+// TOOLBAR TABS
+// ============================================================
+function setupToolbarTabs() {
+    document.querySelectorAll('.toolbar-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.toolbar-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const group = tab.dataset.tab;
+            document.querySelectorAll('.toolbar-group').forEach(g => g.classList.remove('active'));
+            document.querySelector(`.toolbar-group[data-group="${group}"]`)?.classList.add('active');
+        });
+    });
+}
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + Z = Undo
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            undoAction();
+        }
+        // Ctrl/Cmd + Y = Redo
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            e.preventDefault();
+            redoAction();
+        }
+        // Ctrl/Cmd + C = Copy
+        if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+            e.preventDefault();
+            copySelected();
+        }
+        // Ctrl/Cmd + V = Paste
+        if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+            e.preventDefault();
+            pasteSelected();
+        }
+        // Ctrl/Cmd + D = Duplicate
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+            e.preventDefault();
+            duplicateSelected();
+        }
+        // Ctrl/Cmd + A = Select All
+        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            e.preventDefault();
+            selectAll();
+        }
+        // Delete/Backspace = Delete
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (selectedElements.length) {
+                e.preventDefault();
+                deleteSelected();
+            }
+        }
+        // Escape = Deselect All
+        if (e.key === 'Escape') {
+            deselectAll();
+            closeModal();
+            contextMenu.classList.remove('show');
+        }
+        // Ctrl/Cmd + S = Save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            saveWorksheet();
+        }
+    });
+}
+
+// ============================================================
+// CONTEXT MENU
+// ============================================================
+function setupContextMenu() {
+    const canvas = document.querySelector('.canvas-area');
+    if (!canvas) return;
+
+    canvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const menu = document.getElementById('contextMenu');
+        menu.style.left = `${e.clientX}px`;
+        menu.style.top = `${e.clientY}px`;
+        menu.classList.add('show');
+    });
+
+    document.addEventListener('click', () => {
+        contextMenu.classList.remove('show');
+    });
+}
+
+// ============================================================
+// REACTIONS
+// ============================================================
+function setupReactions() {
+    document.querySelectorAll('.reaction-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (item.classList.contains('active')) return;
+            item.classList.add('active');
+            const count = item.querySelector('.count');
+            count.textContent = parseInt(count.textContent) + 1;
+            showToast(`Thanks for the ${item.dataset.reaction}! ❤️`, 'success');
+        });
+    });
+}
+
+// ============================================================
+// SHARES
+// ============================================================
+function setupShares() {
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const platform = btn.dataset.platform;
+            const url = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent(TOOL_NAME);
+            const shareUrls = {
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+                twitter: `https://twitter.com/intent/tweet?text=${title}&url=${url}`,
+                linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+                whatsapp: `https://wa.me/?text=${title}%20${url}`,
+                copy: null
+            };
+            if (platform === 'copy') {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Link copied!', 'success');
+                return;
+            }
+            if (shareUrls[platform]) {
+                window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+                showToast(`Shared on ${platform}!`, 'success');
+            }
+        });
+    });
+}
+
+// ============================================================
+// TYPEWRITER
+// ============================================================
+function setupTypewriter() {
+    const el = document.getElementById('typewriterText');
+    if (!el) return;
+    const phrases = ['📝 Design custom worksheets', '🔤 Alphabet & Tracing', '🔢 Numbers & Math',
+        '🐾 Animals & Nature', '🎨 Creative & Fun', '📚 Educational Activities'
+    ];
+    let i = 0,
+        j = 0,
+        isDeleting = false;
+
+    function type() {
+        const current = phrases[i];
+        if (isDeleting) {
+            el.textContent = current.substring(0, j--);
+            if (j < 0) { isDeleting = false;
+                i = (i + 1) % phrases.length;
+                setTimeout(type, 500); return; }
+        } else {
+            el.textContent = current.substring(0, j++);
+            if (j > current.length) { isDeleting = true;
+                setTimeout(type, 1500); return; }
+        }
+        setTimeout(type, isDeleting ? 40 : 70);
+    }
+    type();
+}
+
+// ============================================================
+// USAGE TRACKING
+// ============================================================
+function trackUsage() {
+    const stats = JSON.parse(localStorage.getItem('ecce_stats') || '{"usage":0,"views":0,"shares":0,"followers":0}');
+    stats.usage = (stats.usage || 0) + 1;
+    stats.views = (stats.views || 0) + 1;
+    localStorage.setItem('ecce_stats', JSON.stringify(stats));
+    updateStatsUI(stats);
+}
+
+function updateStatsUI(stats) {
+    document.getElementById('usageCount').textContent = stats.usage || 0;
+    document.getElementById('viewCount').textContent = stats.views || 0;
+    document.getElementById('shareCount').textContent = stats.shares || 0;
+    document.getElementById('followerCount').textContent = stats.followers || 0;
+}
