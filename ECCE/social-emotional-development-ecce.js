@@ -1,4 +1,16 @@
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'social-emotional-development-ecce',
+    TOOL_NAME: 'Social & Emotional Development Tracker'
+};
+
+// ============================================================
 // SEL INDICATORS (10 skills)
+// ============================================================
 const SEL_INDICATORS = [
     "Identifies own emotions",
     "Shows empathy towards peers",
@@ -12,7 +24,9 @@ const SEL_INDICATORS = [
     "Seeks help when needed"
 ];
 
+// ============================================================
 // 7 EMOJIS FOR REACTIONS
+// ============================================================
 const REACTIONS = [
     { emoji: '👍', name: 'like', label: 'Like' },
     { emoji: '❤️', name: 'love', label: 'Love' },
@@ -23,14 +37,97 @@ const REACTIONS = [
     { emoji: '🎉', name: 'celebrate', label: 'Celebrate' }
 ];
 
-// Global data storage
+// ============================================================
+// GLOBAL DATA STORAGE
+// ============================================================
 let students = [];
 let currentChecklistData = {};
 let stepUsage = { step1: 0, step2: 0, step3: 0, step4: 0, step5: 0 };
 let toolReactions = { step1: {}, step2: {}, step3: {}, step4: {}, step5: {} };
+let toolShares = { step1: {}, step2: {}, step3: {}, step4: {}, step5: {} };
 let currentUser = null;
+let lastAnalysis = null;
+let hero = null;
 
-// ========== TOAST NOTIFICATION ==========
+// ============================================================
+// TYPEWRITER ANIMATION
+// ============================================================
+const typewriterPhrases = [
+    "Track 10 SEL indicators daily 📊",
+    "Analyze weekly student progress 📈",
+    "AI-powered teacher plans 🤖",
+    "Send reports to parents 📱",
+    "Build emotional intelligence 🧠",
+    "Foster social skills ❤️",
+    "Empower every child 🌟"
+];
+
+let typewriterIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function typewriterEffect() {
+    const element = document.getElementById('typewriterText');
+    if (!element) return;
+    
+    const currentPhrase = typewriterPhrases[typewriterIndex];
+    
+    if (!isDeleting) {
+        element.textContent = currentPhrase.substring(0, charIndex + 1);
+        charIndex++;
+        
+        if (charIndex === currentPhrase.length) {
+            isDeleting = true;
+            setTimeout(typewriterEffect, 2500);
+            return;
+        }
+        setTimeout(typewriterEffect, 80);
+    } else {
+        element.textContent = currentPhrase.substring(0, charIndex - 1);
+        charIndex--;
+        
+        if (charIndex === 0) {
+            isDeleting = false;
+            typewriterIndex = (typewriterIndex + 1) % typewriterPhrases.length;
+            setTimeout(typewriterEffect, 500);
+            return;
+        }
+        setTimeout(typewriterEffect, 40);
+    }
+}
+
+// ============================================================
+// API HELPER FUNCTIONS
+// ============================================================
+async function callAPI(endpoint, method = 'GET', data = null) {
+    const url = `${CONFIG.API_BASE}${endpoint}`;
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': CONFIG.API_KEY
+        }
+    };
+    
+    if (data && (method === 'POST' || method === 'PUT')) {
+        options.body = JSON.stringify(data);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using localStorage fallback:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -56,7 +153,9 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// ========== GET USER ID ==========
+// ============================================================
+// USER ID MANAGEMENT
+// ============================================================
 function getUserId() {
     let userId = localStorage.getItem('sel_user_id');
     if (!userId) {
@@ -66,7 +165,9 @@ function getUserId() {
     return userId;
 }
 
-// ========== STEP NAVIGATION ==========
+// ============================================================
+// STEP NAVIGATION
+// ============================================================
 function showStep(stepNumber) {
     document.querySelectorAll('.step-content').forEach(content => {
         content.classList.remove('active');
@@ -93,7 +194,6 @@ function showStep(stepNumber) {
         }
     }
     
-    // Increment step usage counter
     incrementStepUsage(stepNumber);
 }
 
@@ -102,9 +202,15 @@ function incrementStepUsage(stepNumber) {
     stepUsage[stepKey] = (stepUsage[stepKey] || 0) + 1;
     localStorage.setItem('sel_step_usage', JSON.stringify(stepUsage));
     updateStepUsageDisplay(stepNumber);
+    updateHeroStats();
     
-    // Send to TiDB API
-    saveUsageToDatabase(stepKey);
+    // Send to Cloudflare API
+    callAPI('/api/usage', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        step: stepKey,
+        user_id: currentUser,
+        timestamp: new Date().toISOString()
+    });
 }
 
 function updateStepUsageDisplay(stepNumber) {
@@ -114,15 +220,6 @@ function updateStepUsageDisplay(stepNumber) {
     }
 }
 
-function saveUsageToDatabase(stepKey) {
-    // API call to TiDB
-    fetch('/api/usage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool: stepKey, userId: currentUser, timestamp: new Date().toISOString() })
-    }).catch(err => console.log('API offline, using local storage'));
-}
-
 function loadUsageFromStorage() {
     const saved = localStorage.getItem('sel_step_usage');
     if (saved) {
@@ -130,10 +227,32 @@ function loadUsageFromStorage() {
         for (let i = 1; i <= 5; i++) {
             updateStepUsageDisplay(i);
         }
+        updateHeroStats();
     }
 }
 
-// ========== FEATURE 2: REACTIONS (7 Emojis) ==========
+// ============================================================
+// HERO STATS
+// ============================================================
+function updateHeroStats() {
+    const totalUsage = Object.values(stepUsage).reduce((a, b) => a + b, 0);
+    const totalStudents = students.length;
+    const totalShares = Object.values(toolShares).reduce((sum, step) => {
+        return sum + Object.values(step).reduce((s, count) => s + count, 0);
+    }, 0);
+    const totalReactions = Object.values(toolReactions).reduce((sum, step) => {
+        return sum + Object.values(step).reduce((s, users) => s + Object.keys(users).length, 0);
+    }, 0);
+    
+    document.getElementById('statUsage').textContent = totalUsage || 0;
+    document.getElementById('statStudents').textContent = totalStudents || 0;
+    document.getElementById('statShares').textContent = totalShares || 0;
+    document.getElementById('statReactions').textContent = totalReactions || 0;
+}
+
+// ============================================================
+// REACTIONS (7 Emojis)
+// ============================================================
 function addReaction(stepNumber, reactionName) {
     const userId = getUserId();
     const stepKey = `step${stepNumber}`;
@@ -151,10 +270,16 @@ function addReaction(stepNumber, reactionName) {
     
     const count = Object.keys(toolReactions[stepKey][reactionName]).length;
     updateReactionDisplay(stepNumber, reactionName, count);
+    updateHeroStats();
     showToast(`${getReactionEmoji(reactionName)} Reaction added!`, 'success');
     
-    // Save to API
-    saveReactionToDatabase(stepKey, reactionName);
+    // Send to Cloudflare API
+    callAPI('/api/reactions', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        step: stepKey,
+        reaction: reactionName,
+        user_id: userId
+    });
 }
 
 function getReactionEmoji(reactionName) {
@@ -170,19 +295,10 @@ function updateReactionDisplay(stepNumber, reactionName, count) {
     }
 }
 
-function saveReactionToDatabase(stepKey, reactionName) {
-    fetch('/api/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool: stepKey, reaction: reactionName, userId: currentUser })
-    }).catch(err => console.log('API offline'));
-}
-
 function loadReactionsFromStorage() {
     const saved = localStorage.getItem('sel_tool_reactions');
     if (saved) {
         toolReactions = JSON.parse(saved);
-        // Update displays
         for (let step = 1; step <= 5; step++) {
             const stepKey = `step${step}`;
             if (toolReactions[stepKey]) {
@@ -191,14 +307,17 @@ function loadReactionsFromStorage() {
                 }
             }
         }
+        updateHeroStats();
     }
 }
 
-// ========== FEATURE 3: SOCIAL MEDIA SHARING ==========
+// ============================================================
+// SOCIAL MEDIA SHARING
+// ============================================================
 function shareTool(stepNumber, stepName, platform) {
     const url = window.location.href;
     const encodedUrl = encodeURIComponent(url);
-    const encodedTitle = encodeURIComponent(`Check out ${stepName} on SEL Teacher Tool! 🎯`);
+    const encodedTitle = encodeURIComponent(`Check out ${stepName} on ${CONFIG.TOOL_NAME}! 🎯`);
     
     let shareUrl = '';
     switch(platform) {
@@ -217,6 +336,13 @@ function shareTool(stepNumber, stepName, platform) {
         case 'email':
             shareUrl = `mailto:?subject=${encodedTitle}&body=Check%20out%20this%20tool%3A%20${encodedUrl}`;
             break;
+        case 'copy':
+            copyToClipboard(url);
+            showToast('🔗 Link copied to clipboard!', 'success');
+            incrementShareCount(stepNumber, platform);
+            return;
+        default:
+            return;
     }
     
     if (shareUrl) {
@@ -226,53 +352,67 @@ function shareTool(stepNumber, stepName, platform) {
     }
 }
 
-function incrementShareCount(stepNumber, platform) {
-    let shares = JSON.parse(localStorage.getItem('sel_shares') || '{}');
-    const key = `step${stepNumber}`;
-    if (!shares[key]) shares[key] = {};
-    shares[key][platform] = (shares[key][platform] || 0) + 1;
-    localStorage.setItem('sel_shares', JSON.stringify(shares));
-    
-    fetch('/api/shares', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool: `step${stepNumber}`, platform })
-    }).catch(err => console.log('API offline'));
-}
-
-// ========== FEATURE 4: PAGE SHARING BUTTON ==========
-async function shareCurrentPage() {
-    const url = window.location.href;
-    
-    try {
-        await navigator.clipboard.writeText(url);
-        showToast('🔗 Link copied to clipboard!', 'success');
-        incrementPageShareCount();
-    } catch (err) {
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+    } else {
         const textarea = document.createElement('textarea');
-        textarea.value = url;
+        textarea.value = text;
         document.body.appendChild(textarea);
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        showToast('🔗 Link copied to clipboard!', 'success');
-        incrementPageShareCount();
     }
+}
+
+function incrementShareCount(stepNumber, platform) {
+    const stepKey = `step${stepNumber}`;
+    if (!toolShares[stepKey]) toolShares[stepKey] = {};
+    toolShares[stepKey][platform] = (toolShares[stepKey][platform] || 0) + 1;
+    localStorage.setItem('sel_tool_shares', JSON.stringify(toolShares));
+    updateHeroStats();
+    
+    callAPI('/api/shares', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        step: stepKey,
+        platform: platform
+    });
+}
+
+function loadSharesFromStorage() {
+    const saved = localStorage.getItem('sel_tool_shares');
+    if (saved) {
+        toolShares = JSON.parse(saved);
+        updateHeroStats();
+    }
+}
+
+// ============================================================
+// PAGE SHARING
+// ============================================================
+async function shareCurrentPage() {
+    const url = window.location.href;
+    copyToClipboard(url);
+    showToast('🔗 Link copied to clipboard!', 'success');
+    incrementPageShareCount();
 }
 
 function incrementPageShareCount() {
     let pageShares = parseInt(localStorage.getItem('sel_page_shares') || '0');
     pageShares++;
     localStorage.setItem('sel_page_shares', pageShares);
+    updateHeroStats();
     
-    fetch('/api/page-share', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page: window.location.pathname })
-    }).catch(err => console.log('API offline'));
+    callAPI('/api/shares', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        step: 'page',
+        platform: 'copy'
+    });
 }
 
-// ========== FEATURE 5: SCROLL BUTTONS ==========
+// ============================================================
+// SCROLL BUTTONS
+// ============================================================
 function setupScrollButtons() {
     const scrollUpBtn = document.getElementById('scrollUpBtn');
     const scrollDownBtn = document.getElementById('scrollDownBtn');
@@ -296,31 +436,27 @@ function setupScrollButtons() {
     });
 }
 
-// ========== FEATURE 6 & 7: HOVER EFFECTS & RESPONSIVE (CSS handles) ==========
-
-// ========== FEATURE 8: FRIENDLY INTERFACE (Toast already implemented) ==========
-
-// ========== FEATURE 10: AUTO-COUNT LOGIC (Already in incrementStepUsage) ==========
-
-// ========== STUDENT MANAGEMENT ==========
+// ============================================================
+// STUDENT MANAGEMENT
+// ============================================================
 function loadStudents() {
     const saved = localStorage.getItem("sel_students");
     if (saved) {
         students = JSON.parse(saved);
     }
     renderStudentList();
+    updateHeroStats();
 }
 
 function saveStudentsToLocal() {
     localStorage.setItem("sel_students", JSON.stringify(students));
     renderStudentList();
+    updateHeroStats();
     
-    // Sync to API
-    fetch('/api/students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ students })
-    }).catch(err => console.log('API offline'));
+    callAPI('/api/students', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        students: students
+    });
 }
 
 function renderStudentList() {
@@ -335,7 +471,7 @@ function renderStudentList() {
     container.innerHTML = students.map((s, idx) => `
         <div class="student-tag">
             👧 ${escapeHtml(s.name)} | ${s.age} | 📱 ${s.parentWhatsapp}
-            <button onclick="removeStudent(${idx})">❌</button>
+            <button onclick="removeStudent(${idx})" aria-label="Remove student">❌</button>
         </div>
     `).join("");
 }
@@ -344,6 +480,7 @@ window.removeStudent = function(idx) {
     if (confirm(`Remove ${students[idx].name}?`)) {
         students.splice(idx, 1);
         saveStudentsToLocal();
+        showToast('Student removed successfully', 'info');
     }
 };
 
@@ -391,7 +528,9 @@ document.getElementById("clearAllStudentsBtn")?.addEventListener("click", () => 
     }
 });
 
-// ========== STEP 2: DAILY CHECKLIST ==========
+// ============================================================
+// STEP 2: DAILY CHECKLIST
+// ============================================================
 function getTodayDate() {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -534,7 +673,9 @@ document.getElementById("downloadChecklistBtn")?.addEventListener("click", () =>
     showToast(`Checklist saved & downloaded for ${date}`, "success");
 });
 
-// ========== STEP 3: ANALYZE ==========
+// ============================================================
+// STEP 3: ANALYZE
+// ============================================================
 function parseChecklistFile(content, fileName) {
     const lines = content.split('\n');
     const dateMatch = fileName.match(/\d{4}-\d{2}-\d{2}/);
@@ -624,7 +765,7 @@ document.getElementById("analyzeBtn")?.addEventListener("click", async () => {
     }
     
     studentReports.sort((a,b) => b.avgPercentage - a.avgPercentage);
-    const hero = studentReports[0];
+    hero = studentReports[0];
     
     let html = `<h3 style="color:#667eea; margin-bottom:15px;">📈 Analysis Complete (${files.length} files processed)</h3>`;
     
@@ -681,24 +822,34 @@ document.getElementById("analyzeBtn")?.addEventListener("click", async () => {
         });
     }
     
-    window.lastAnalysis = studentReports;
-    window.hero = hero;
-    
+    lastAnalysis = studentReports;
     renderParentCards();
     showToast("Analysis complete! Check the reports below.", "success");
+    
+    // Save to API
+    callAPI('/api/analysis', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        students: studentReports.map(r => ({
+            name: r.student.name,
+            score: Math.round(r.avgPercentage),
+            days: r.totalDays
+        }))
+    });
 });
 
-// ========== STEP 4: SEND TO PARENTS ==========
+// ============================================================
+// STEP 4: SEND TO PARENTS
+// ============================================================
 function renderParentCards() {
     const container = document.getElementById("parentCardsList");
-    if (!window.lastAnalysis || window.lastAnalysis.length === 0) {
+    if (!lastAnalysis || lastAnalysis.length === 0) {
         container.innerHTML = "<div class='empty-state'>👉 First, complete Step 3 (Analyze Reports) to see parent cards.</div>";
         return;
     }
     
-    const weakStudents = window.lastAnalysis.filter(r => r.avgPercentage < 60);
+    const weakStudents = lastAnalysis.filter(r => r.avgPercentage < 60);
     
-    container.innerHTML = window.lastAnalysis.map(report => {
+    container.innerHTML = lastAnalysis.map(report => {
         const performanceMsg = report.avgPercentage >= 70 ? "Excellent progress! 🌟" : 
                                report.avgPercentage >= 50 ? "Good, can improve 📈" : 
                                "Needs extra support and practice ⚠️";
@@ -716,12 +867,12 @@ function renderParentCards() {
         return `<div class="parent-item">
             <span><strong>👧 ${escapeHtml(report.student.name)}</strong><br><small>📱 ${report.student.parentWhatsapp}</small></span>
             <span style="font-weight:bold; color:${report.avgPercentage >= 70 ? '#4caf50' : report.avgPercentage >= 50 ? '#ff9800' : '#f44336'}">${Math.round(report.avgPercentage)}%</span>
-            <a href="${whatsappLink}" target="_blank">📲 Send Report</a>
+            <a href="${whatsappLink}" target="_blank" rel="noopener">📲 Send Report</a>
         </div>`;
     }).join("");
     
     container.innerHTML = `<div style="background:#f0f7ff; padding:12px; border-radius:12px; margin-bottom:15px;">
-        <strong>📊 Class Summary:</strong> ${window.lastAnalysis.length} students | 
+        <strong>📊 Class Summary:</strong> ${lastAnalysis.length} students | 
         ⚠️ Needs Support: ${weakStudents.length}
     </div>` + container.innerHTML;
 }
@@ -731,18 +882,20 @@ document.getElementById("sendAllToParentsBtn")?.addEventListener("click", () => 
     showToast("Parent report cards are ready! Click 'Send Report' next to each student.", "info");
 });
 
-// ========== STEP 5: TEACHER PLAN ==========
-document.getElementById("generateTeacherPlanBtn")?.addEventListener("click", () => {
-    if (!window.lastAnalysis || window.lastAnalysis.length === 0) {
+// ============================================================
+// STEP 5: TEACHER PLAN WITH AI
+// ============================================================
+document.getElementById("generateTeacherPlanBtn")?.addEventListener("click", async () => {
+    if (!lastAnalysis || lastAnalysis.length === 0) {
         showToast("Please analyze data first (Step 3 - upload files and click Analyze).", "error");
         return;
     }
     
-    const weakStudents = window.lastAnalysis.filter(r => r.avgPercentage < 60);
-    const mediumStudents = window.lastAnalysis.filter(r => r.avgPercentage >= 60 && r.avgPercentage < 80);
-    const strongStudents = window.lastAnalysis.filter(r => r.avgPercentage >= 80);
+    const weakStudents = lastAnalysis.filter(r => r.avgPercentage < 60);
+    const mediumStudents = lastAnalysis.filter(r => r.avgPercentage >= 60 && r.avgPercentage < 80);
+    const strongStudents = lastAnalysis.filter(r => r.avgPercentage >= 80);
     
-    let html = `<h3 style="color:#667eea;">🎯 Teacher's Action Plan</h3>`;
+    let html = `<h3 style="color:#667eea;">🎯 AI-Generated Teacher Action Plan</h3>`;
     html += `<div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:20px;">
         <div style="background:#ffebee; padding:12px; border-radius:12px; flex:1; text-align:center;">
             <strong>⚠️ Need Support</strong><br>
@@ -757,6 +910,29 @@ document.getElementById("generateTeacherPlanBtn")?.addEventListener("click", () 
             <span style="font-size:1.8rem; font-weight:bold; color:#4caf50;">${strongStudents.length}</span>
         </div>
     </div>`;
+    
+    // Try to get AI-generated plan from API
+    let aiPlan = null;
+    try {
+        const response = await callAPI('/api/ai-plan', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            weak_students: weakStudents.map(s => ({ name: s.student.name, score: Math.round(s.avgPercentage) })),
+            total_students: lastAnalysis.length,
+            weak_count: weakStudents.length
+        });
+        if (response && response.plan) {
+            aiPlan = response.plan;
+        }
+    } catch (error) {
+        console.warn('AI plan API failed, using fallback:', error);
+    }
+    
+    if (aiPlan) {
+        html += `<div class="ai-generated-plan" style="background:linear-gradient(135deg,#f0f7ff,#e8f0fe);padding:20px;border-radius:16px;margin:15px 0;border:2px solid #667eea;">
+            <h4 style="color:#667eea;">🤖 AI-Generated Recommendations</h4>
+            <div style="margin-top:10px;">${aiPlan}</div>
+        </div>`;
+    }
     
     if (weakStudents.length > 0) {
         html += `<h4>📋 Students Who Need Extra Support:</h4><ul style="margin-bottom:20px;">`;
@@ -793,15 +969,24 @@ document.getElementById("generateTeacherPlanBtn")?.addEventListener("click", () 
     html += `<div class="activity-item"><strong>Friday:</strong> Celebration - praise all students for their efforts</div>`;
     
     document.getElementById("teacherPlanContainer").innerHTML = html;
-    showToast("Teacher plan generated successfully!", "success");
+    showToast("AI Teacher plan generated successfully!", "success");
+    
+    // Save to API
+    callAPI('/api/teacher-plan', 'POST', {
+        tool_slug: CONFIG.TOOL_SLUG,
+        weak_count: weakStudents.length,
+        total_students: lastAnalysis.length
+    });
 });
 
-// ========== ADD REACTION BUTTONS TO EACH STEP ==========
-function addReactionButtonsToSteps() {
+// ============================================================
+// REACTION BUTTONS & SHARE ICONS INJECTION
+// ============================================================
+function addReactionAndShareButtons() {
     for (let step = 1; step <= 5; step++) {
         const stepCard = document.querySelector(`#step${step} .step-card`);
         if (stepCard && !stepCard.querySelector('.reaction-section')) {
-            // Create reaction section
+            // Reaction section
             const reactionSection = document.createElement('div');
             reactionSection.className = 'reaction-section';
             
@@ -809,24 +994,24 @@ function addReactionButtonsToSteps() {
                 const btn = document.createElement('button');
                 btn.className = 'reaction-btn';
                 btn.setAttribute('data-reaction', reaction.name);
-                btn.innerHTML = `<span>${reaction.emoji}</span><span class="reaction-count">0</span>`;
+                btn.innerHTML = `<span class="reaction-emoji">${reaction.emoji}</span><span class="reaction-count">0</span>`;
                 btn.onclick = () => addReaction(step, reaction.name);
                 reactionSection.appendChild(btn);
             });
             
-            // Create share icons section
+            // Share section
             const shareSection = document.createElement('div');
             shareSection.className = 'share-icons';
             const stepNames = ['Add Students', 'Daily Checklist', 'Analyze Reports', 'Send to Parents', 'Teacher Plan'];
             shareSection.innerHTML = `
-                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'facebook')"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'twitter')"><i class="fab fa-twitter"></i></a>
-                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'linkedin')"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'whatsapp')"><i class="fab fa-whatsapp"></i></a>
-                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'email')"><i class="fas fa-envelope"></i></a>
+                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'facebook')" aria-label="Share on Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'twitter')" aria-label="Share on Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'linkedin')" aria-label="Share on LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'whatsapp')" aria-label="Share on WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'email')" aria-label="Share via Email"><i class="fas fa-envelope"></i></a>
+                <a href="#" onclick="shareTool(${step}, '${stepNames[step-1]}', 'copy')" aria-label="Copy link"><i class="fas fa-copy"></i></a>
             `;
             
-            // Insert after step-actions or before footer
             const stepActions = stepCard.querySelector('.step-actions');
             if (stepActions) {
                 stepCard.insertBefore(reactionSection, stepActions);
@@ -839,7 +1024,9 @@ function addReactionButtonsToSteps() {
     }
 }
 
-// ========== SETUP NAVIGATION ==========
+// ============================================================
+// NAVIGATION SETUP
+// ============================================================
 function setupNavigation() {
     document.querySelectorAll('.step-nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -871,7 +1058,9 @@ function setupNavigation() {
     });
 }
 
-// ========== ESCAPE HTML ==========
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 function escapeHtml(str) {
     if (!str) return "";
     return str.replace(/[&<>]/g, function(m) {
@@ -882,12 +1071,61 @@ function escapeHtml(str) {
     });
 }
 
-// ========== INITIALIZATION ==========
-function init() {
+// ============================================================
+// LOAD STATS FROM API
+// ============================================================
+async function loadStatsFromAPI() {
+    try {
+        const response = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (response) {
+            if (response.usage) {
+                Object.keys(response.usage).forEach(key => {
+                    if (stepUsage[key] !== undefined) {
+                        stepUsage[key] = Math.max(stepUsage[key], response.usage[key]);
+                    }
+                });
+                localStorage.setItem('sel_step_usage', JSON.stringify(stepUsage));
+                for (let i = 1; i <= 5; i++) {
+                    updateStepUsageDisplay(i);
+                }
+            }
+            if (response.reactions) {
+                // Merge reactions
+                Object.keys(response.reactions).forEach(stepKey => {
+                    if (!toolReactions[stepKey]) toolReactions[stepKey] = {};
+                    Object.keys(response.reactions[stepKey]).forEach(reactionName => {
+                        if (!toolReactions[stepKey][reactionName]) toolReactions[stepKey][reactionName] = {};
+                        Object.keys(response.reactions[stepKey][reactionName]).forEach(userId => {
+                            toolReactions[stepKey][reactionName][userId] = true;
+                        });
+                    });
+                });
+                localStorage.setItem('sel_tool_reactions', JSON.stringify(toolReactions));
+                for (let step = 1; step <= 5; step++) {
+                    const stepKey = `step${step}`;
+                    if (toolReactions[stepKey]) {
+                        for (const [reactionName, users] of Object.entries(toolReactions[stepKey])) {
+                            updateReactionDisplay(step, reactionName, Object.keys(users).length);
+                        }
+                    }
+                }
+            }
+            updateHeroStats();
+        }
+    } catch (error) {
+        console.warn('Failed to load stats from API:', error);
+    }
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+async function init() {
     currentUser = getUserId();
     loadStudents();
     loadUsageFromStorage();
     loadReactionsFromStorage();
+    loadSharesFromStorage();
     
     document.getElementById("checklistDate").value = getTodayDate();
     if (students.length > 0) {
@@ -896,9 +1134,8 @@ function init() {
     
     setupNavigation();
     setupScrollButtons();
-    addReactionButtonsToSteps();
+    addReactionAndShareButtons();
     
-    // Page share button
     document.getElementById('pageShareBtn')?.addEventListener('click', shareCurrentPage);
     
     const lastStep = localStorage.getItem('currentStep');
@@ -908,8 +1145,16 @@ function init() {
         showStep(1);
     }
     
+    // Start typewriter
+    setTimeout(typewriterEffect, 500);
+    
+    // Load stats from API
+    await loadStatsFromAPI();
+    
     showToast("Welcome to SEL Teacher Tool! 🎉", "success");
 }
 
-// Start the app
-init();
+// ============================================================
+// START THE APP
+// ============================================================
+document.addEventListener('DOMContentLoaded', init);
