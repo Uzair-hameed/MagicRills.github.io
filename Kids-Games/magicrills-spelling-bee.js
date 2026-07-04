@@ -1,15 +1,17 @@
 /**
  * Magicrills Spelling Bee - Complete JavaScript
- * Redesigned with Poppins Font | All 45+ Features
- * Never Repeats Words | Full API Integration | TiDB | Reactions | Shares
- * Version: 3.0 - Production Ready
+ * Cloudflare Workers API Integration
+ * Dark Space Theme | All 45+ Features
+ * Never Repeats Words | Full API Integration | Reactions | Shares
+ * Version: 4.0 - Cloudflare API Ready
  */
 
 // ========== API CONFIGURATION ==========
-const API_BASE = '/api/spelling-bee';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'magicrills-spelling-bee';
-let SESSION_ID = localStorage.getItem('spelling_session_id');
 
+let SESSION_ID = localStorage.getItem('spelling_session_id');
 if (!SESSION_ID) {
     SESSION_ID = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
     localStorage.setItem('spelling_session_id', SESSION_ID);
@@ -161,111 +163,95 @@ let reactionCounts = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, cel
 let totalUsage = 0;
 let wordsCompleted = 0;
 
-// ========== API FUNCTIONS ==========
+// ========== CLOUDFLARE API FUNCTIONS ==========
 
 // Generic API caller with timeout
-async function callAPI(endpoint, method = 'GET', data = null, timeout = 10000) {
+async function callAPI(endpoint, method = 'GET', data = null, timeout = 15000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
         const options = {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY,
+                'X-Tool-Slug': TOOL_SLUG
+            },
             signal: controller.signal
         };
         if (data) options.body = JSON.stringify(data);
         
-        const response = await fetch(`${API_BASE}/${endpoint}`, options);
+        const url = `${API_BASE}${endpoint}`;
+        const response = await fetch(url, options);
         clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
         return result;
     } catch (error) {
         clearTimeout(timeoutId);
-        console.error(`API Error (${endpoint}):`, error);
+        console.warn(`API Warning (${endpoint}):`, error.message);
         return { success: false, error: error.message, offline: true };
     }
 }
 
-// 1. Health Check API
-async function checkHealth() {
-    try {
-        const result = await callAPI('health', 'GET', null, 5000);
-        if (result.success && result.status === 'healthy') {
-            document.getElementById('dbStatus').innerHTML = '<i class="fas fa-check-circle"></i> DB Connected';
-            document.getElementById('dbStatus').style.color = '#10B981';
-            return true;
-        } else {
-            document.getElementById('dbStatus').innerHTML = '<i class="fas fa-database"></i> Offline Mode';
-            document.getElementById('dbStatus').style.color = '#F59E0B';
-            return false;
-        }
-    } catch (error) {
-        document.getElementById('dbStatus').innerHTML = '<i class="fas fa-database"></i> Offline Mode';
-        document.getElementById('dbStatus').style.color = '#F59E0B';
-        return false;
-    }
-}
-
-// 2. Increment Usage Counter API
+// 1. Increment Usage Counter API
 async function incrementUsage() {
     try {
-        const result = await callAPI('usage', 'POST', { user_id: SESSION_ID, tool_slug: TOOL_SLUG });
+        const result = await callAPI('/api/usage', 'POST', {
+            user_id: SESSION_ID,
+            tool_slug: TOOL_SLUG
+        });
+        
         if (result.success) {
-            totalUsage = result.total_usage || result.count;
+            totalUsage = result.total_usage || result.count || 1;
             document.getElementById('usageCount').innerText = totalUsage;
             document.getElementById('globalUsageCount').innerText = totalUsage + 1200;
+            document.getElementById('heroLearners').innerText = (totalUsage + 1200).toLocaleString() + '+';
             localStorage.setItem('spelling_usage', totalUsage);
-            return result.count;
+            return totalUsage;
         }
     } catch (error) {
+        // Fallback to localStorage
         let localCount = parseInt(localStorage.getItem('spelling_usage')) || 0;
         localCount++;
         localStorage.setItem('spelling_usage', localCount);
         document.getElementById('usageCount').innerText = localCount;
         document.getElementById('globalUsageCount').innerText = localCount + 1200;
+        document.getElementById('heroLearners').innerText = (localCount + 1200).toLocaleString() + '+';
         return localCount;
     }
 }
 
-// 3. Get Usage Count API
-async function getUsageCount() {
-    try {
-        const result = await callAPI('usage', 'GET', null);
-        if (result.success) {
-            totalUsage = result.count;
-            document.getElementById('usageCount').innerText = totalUsage;
-            document.getElementById('globalUsageCount').innerText = totalUsage + 1200;
-        }
-    } catch (error) {
-        let localCount = localStorage.getItem('spelling_usage') || 0;
-        document.getElementById('usageCount').innerText = localCount;
-        document.getElementById('globalUsageCount').innerText = parseInt(localCount) + 1200;
-    }
-}
-
-// 4. Get Reactions API
+// 2. Get Reactions API
 async function getReactionsFromDB() {
     try {
-        const result = await callAPI('reactions', 'GET', null);
+        const result = await callAPI('/api/reactions', 'GET');
         if (result.success && result.reactions) {
             reactionCounts = result.reactions;
             updateReactionsUI();
             localStorage.setItem('spelling_reactions', JSON.stringify(reactionCounts));
+            return reactionCounts;
         }
     } catch (error) {
         const saved = localStorage.getItem('spelling_reactions');
         if (saved) {
-            reactionCounts = JSON.parse(saved);
-            updateReactionsUI();
+            try {
+                reactionCounts = JSON.parse(saved);
+                updateReactionsUI();
+            } catch (e) {}
         }
     }
 }
 
-// 5. Add Reaction API
+// 3. Add Reaction API
 async function addReactionToDB(reactionType, emoji) {
     try {
-        const result = await callAPI('reactions', 'POST', {
+        const result = await callAPI('/api/reactions', 'POST', {
             reaction_type: reactionType,
             emoji: emoji,
             user_id: SESSION_ID,
@@ -282,6 +268,7 @@ async function addReactionToDB(reactionType, emoji) {
             return false;
         }
     } catch (error) {
+        // Fallback to localStorage
         reactionCounts[reactionType] = (reactionCounts[reactionType] || 0) + 1;
         updateReactionsUI();
         localStorage.setItem('spelling_reactions', JSON.stringify(reactionCounts));
@@ -290,44 +277,51 @@ async function addReactionToDB(reactionType, emoji) {
     }
 }
 
-// 6. Record Share API
+// 4. Record Share API
 async function recordShare(platform) {
     try {
-        const result = await callAPI('share', 'POST', {
+        const result = await callAPI('/api/shares', 'POST', {
             platform: platform,
             user_id: SESSION_ID,
             tool_slug: TOOL_SLUG
         });
         if (result.success) {
             showToast(`Shared on ${platform}! 📤`, 'success');
+            return true;
         }
     } catch (error) {
         showToast(`Shared on ${platform}!`, 'success');
+        return true;
     }
 }
 
-// 7. Get Stats API
+// 5. Get Stats API
 async function getStats() {
     try {
-        const result = await callAPI('stats', 'GET', null);
+        const result = await callAPI('/api/stats', 'GET');
         if (result.success) {
             document.getElementById('globalUsageCount').innerText = (result.total_usage || 0) + 1200;
             document.getElementById('wordBankSize').innerText = result.unique_words || getTotalWordCount();
+            document.getElementById('heroLearners').innerText = ((result.total_usage || 0) + 1200).toLocaleString() + '+';
+            return result;
         }
     } catch (error) {
         document.getElementById('wordBankSize').innerText = getTotalWordCount();
+        const savedUsage = localStorage.getItem('spelling_usage') || 0;
+        document.getElementById('heroLearners').innerText = (parseInt(savedUsage) + 1200).toLocaleString() + '+';
     }
 }
 
-// 8. Get AI Quote from Grok API
+// 6. Get AI Quote from Cloudflare API
 async function getAIQuote(topic = 'spelling') {
     try {
-        const result = await callAPI('ai-quote', 'POST', { prompt: topic });
+        const result = await callAPI('/api/ai-quote', 'POST', { prompt: topic });
         if (result.success && result.quote) {
             showToast(`💡 "${result.quote}" - ${result.author || 'AI'}`, 'info');
             return result.quote;
         }
     } catch (error) {
+        // Fallback quotes
         const quotes = [
             'Keep practicing! Every word you learn makes you smarter! ✨',
             'Spelling is the foundation of great communication! 📚',
@@ -344,6 +338,52 @@ function getTotalWordCount() {
     return wordLists.easy.length + wordLists.medium.length + wordLists.hard.length + wordLists.expert.length;
 }
 
+// ========== TYPEWRITER ANIMATION ==========
+function initTypewriter() {
+    const phrases = [
+        'AI-Powered Learning 🤖',
+        'Master Your Spelling 🎯',
+        '7 Interactive Games 🎮',
+        'Never Repeat Words 📚',
+        'Learn with Fun 🎉'
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterElement = document.getElementById('typewriterText');
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (!isDeleting) {
+            // Typing
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            
+            if (charIndex === currentPhrase.length) {
+                isDeleting = true;
+                setTimeout(typeEffect, 2500);
+                return;
+            }
+            setTimeout(typeEffect, 80);
+        } else {
+            // Deleting
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            
+            if (charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(typeEffect, 500);
+                return;
+            }
+            setTimeout(typeEffect, 40);
+        }
+    }
+    
+    typeEffect();
+}
+
 // ========== UTILITY FUNCTIONS ==========
 
 function showToast(message, type = 'info') {
@@ -353,13 +393,13 @@ function showToast(message, type = 'info') {
     const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
     toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => toast.remove(), 3500);
 }
 
 function updateReactionsUI() {
     Object.keys(reactionCounts).forEach(key => {
         const span = document.getElementById(`react-${key}`);
-        if (span) span.textContent = reactionCounts[key];
+        if (span) span.textContent = reactionCounts[key] || 0;
     });
 }
 
@@ -382,11 +422,11 @@ function playSound(type) {
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.frequency.value = type === 'correct' ? 880 : 440;
-        gain.gain.value = 0.15;
+        gain.gain.value = 0.12;
         osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
-        osc.stop(audioCtx.currentTime + 0.5);
-    } catch(e) { console.log('Audio not supported'); }
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+        osc.stop(audioCtx.currentTime + 0.4);
+    } catch(e) { /* Silent fail */ }
 }
 
 function speak(text, rate = 0.8) {
@@ -410,11 +450,10 @@ function shuffleArray(arr) {
 
 // Get a new word that hasn't been used recently
 function getNewWord(level, words) {
-    const usedWords = usedWordsHistory[level];
+    const usedWords = usedWordsHistory[level] || [];
     const availableWords = words.filter(w => !usedWords.includes(w));
     
     if (availableWords.length === 0) {
-        // Reset history if all words have been used
         usedWordsHistory[level] = [];
         return words[Math.floor(Math.random() * words.length)];
     }
@@ -422,12 +461,24 @@ function getNewWord(level, words) {
     const newWord = availableWords[Math.floor(Math.random() * availableWords.length)];
     usedWordsHistory[level].push(newWord);
     
-    // Keep history size limited to prevent memory issues
     if (usedWordsHistory[level].length > 50) {
         usedWordsHistory[level].shift();
     }
     
     return newWord;
+}
+
+// ========== 3D CHECKLIST UPDATE ==========
+function updateChecklist(step) {
+    const items = document.querySelectorAll('.checklist-item');
+    items.forEach(item => {
+        const stepNum = parseInt(item.dataset.step);
+        if (stepNum <= step) {
+            item.classList.add('completed');
+        } else {
+            item.classList.remove('completed');
+        }
+    });
 }
 
 // ========== GAME METHODS ==========
@@ -589,7 +640,6 @@ function nextWord() {
         return;
     }
     
-    // Show loading spinner
     const spinner = document.getElementById('loadingSpinner');
     if (spinner) spinner.style.display = 'flex';
     
@@ -614,6 +664,9 @@ function nextWord() {
         speak(currentWord);
         
         if (spinner) spinner.style.display = 'none';
+        
+        // Update checklist
+        updateChecklist(3);
     }, 100);
 }
 
@@ -633,7 +686,6 @@ function correctAnswer() {
     document.getElementById('feedback').innerHTML = `✅ Correct! +${points} points! (${currentWord.toUpperCase()})`;
     document.getElementById('feedback').className = 'feedback correct';
     
-    // Reward power-ups for streaks
     if (streak === 5) { powerUps.hint++; showToast('🎁 Bonus: Extra Hint unlocked!', 'success'); }
     if (streak === 10) { powerUps.time++; showToast('🎁 Bonus: Extra Time unlocked!', 'success'); }
     if (streak === 15) { powerUps.freeze++; showToast('🎁 Bonus: Extra Freeze unlocked!', 'success'); }
@@ -724,7 +776,7 @@ function endGame() {
         achievementsDiv.innerHTML = '<div class="achievement">🌟 Great Try!</div>';
     }
     
-    // Show AI encouragement
+    updateChecklist(4);
     getAIQuote('spelling success');
 }
 
@@ -740,11 +792,11 @@ function restartGame() {
     wordsCompleted = 0;
     powerUps = { hint: 2, time: 1, freeze: 1 };
     updateUI();
+    updateChecklist(0);
 }
 
 function selectLevel(level) {
     currentLevel = level;
-    // Get fresh words that haven't been used
     const freshWords = [];
     const wordsList = [...wordLists[currentLevel]];
     const shuffledWords = shuffleArray(wordsList);
@@ -755,7 +807,6 @@ function selectLevel(level) {
         }
     }
     
-    // If we need more words, add from remaining
     while (freshWords.length < 20 && freshWords.length < shuffledWords.length) {
         for (let word of shuffledWords) {
             if (!freshWords.includes(word)) freshWords.push(word);
@@ -787,9 +838,8 @@ function selectLevel(level) {
         document.getElementById('timerBar').style.display = 'none';
     }
     
-    // Increment usage when game starts
+    updateChecklist(2);
     incrementUsage();
-    
     nextWord();
 }
 
@@ -880,7 +930,7 @@ function toggleTheme() {
 }
 
 function initTheme() {
-    const savedTheme = localStorage.getItem('spelling_theme') || 'light';
+    const savedTheme = localStorage.getItem('spelling_theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);
     if (savedTheme === 'dark') {
         document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
@@ -908,10 +958,10 @@ function closePremiumModal() {
 // ========== INITIALIZATION ==========
 async function init() {
     // Load high score
-    highScore = localStorage.getItem('spellingHighScore') || 0;
+    highScore = parseInt(localStorage.getItem('spellingHighScore')) || 0;
     updateUI();
     
-    // Load used words history from localStorage
+    // Load used words history
     const savedHistory = localStorage.getItem('spelling_word_history');
     if (savedHistory) {
         try {
@@ -919,16 +969,40 @@ async function init() {
         } catch(e) {}
     }
     
-    // Check API health
-    await checkHealth();
+    // Load reactions from localStorage
+    const savedReactions = localStorage.getItem('spelling_reactions');
+    if (savedReactions) {
+        try {
+            reactionCounts = JSON.parse(savedReactions);
+            updateReactionsUI();
+        } catch(e) {}
+    }
     
-    // Load data from APIs
-    await getUsageCount();
-    await getReactionsFromDB();
-    await getStats();
+    // Load usage from localStorage
+    const savedUsage = localStorage.getItem('spelling_usage');
+    if (savedUsage) {
+        document.getElementById('usageCount').innerText = savedUsage;
+        document.getElementById('globalUsageCount').innerText = parseInt(savedUsage) + 1200;
+        document.getElementById('heroLearners').innerText = (parseInt(savedUsage) + 1200).toLocaleString() + '+';
+    }
+    
+    // Try to fetch fresh data from API
+    try {
+        await getStats();
+        await getReactionsFromDB();
+        await incrementUsage();
+    } catch (e) {
+        console.warn('API fetch failed, using cached data');
+    }
     
     // Build keyboard
     buildKeyboard();
+    
+    // Init typewriter
+    initTypewriter();
+    
+    // Update checklist
+    updateChecklist(0);
     
     // Setup event listeners
     document.querySelectorAll('.level-card').forEach(btn => {
@@ -998,11 +1072,11 @@ async function init() {
         localStorage.setItem('spelling_word_history', JSON.stringify(usedWordsHistory));
     }, 30000);
     
-    showToast('Welcome to Magicrills Spelling Bee! 🐝 AI-Powered Learning', 'success');
+    showToast('🐝 Welcome to Magicrills Spelling Bee! AI-Powered Learning', 'success');
     
-    // Show AI quote of the day
-    setTimeout(() => getAIQuote('motivation'), 3000);
+    // Show AI quote after delay
+    setTimeout(() => getAIQuote('motivation'), 4000);
 }
 
 // Start the game
-init();
+document.addEventListener('DOMContentLoaded', init);
