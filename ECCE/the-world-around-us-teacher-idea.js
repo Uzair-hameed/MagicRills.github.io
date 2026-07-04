@@ -1,4 +1,378 @@
-// Complete Lesson Plan Data for 30+ Topics
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'the-world-around-us',
+    STORAGE_KEY: 'twau_lesson_data'
+};
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function getToolSlug() {
+    return CONFIG.TOOL_SLUG;
+}
+
+function getStorageKey() {
+    return CONFIG.STORAGE_KEY;
+}
+
+function getApiBase() {
+    return CONFIG.API_BASE;
+}
+
+function getApiKey() {
+    return CONFIG.API_KEY;
+}
+
+// ============================================================
+// API FUNCTIONS - Cloudflare Workers
+// ============================================================
+
+/**
+ * Increment usage count for this tool
+ */
+async function incrementUsage() {
+    try {
+        const response = await fetch(`${getApiBase()}/api/usage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': getApiKey()
+            },
+            body: JSON.stringify({
+                tool_slug: getToolSlug()
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Usage API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('Usage API failed, using localStorage fallback:', error);
+        // Fallback: increment local count
+        const localCount = parseInt(localStorage.getItem(`${getStorageKey()}_usage`) || '0', 10);
+        localStorage.setItem(`${getStorageKey()}_usage`, localCount + 1);
+        return { success: true, count: localCount + 1, fallback: true };
+    }
+}
+
+/**
+ * Get tool statistics
+ */
+async function getToolStats() {
+    try {
+        const response = await fetch(`${getApiBase()}/api/stats?tool_slug=${getToolSlug()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': getApiKey()
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Stats API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('Stats API failed, using localStorage fallback:', error);
+        // Fallback: get from localStorage
+        return {
+            usage: parseInt(localStorage.getItem(`${getStorageKey()}_usage`) || '0', 10),
+            views: parseInt(localStorage.getItem(`${getStorageKey()}_views`) || '0', 10),
+            shares: parseInt(localStorage.getItem(`${getStorageKey()}_shares`) || '0', 10),
+            reactions: JSON.parse(localStorage.getItem(`${getStorageKey()}_reactions`) || '{}')
+        };
+    }
+}
+
+/**
+ * Add a reaction
+ */
+async function addReaction(reaction) {
+    try {
+        const response = await fetch(`${getApiBase()}/api/reactions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': getApiKey()
+            },
+            body: JSON.stringify({
+                tool_slug: getToolSlug(),
+                reaction: reaction
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Reaction API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('Reaction API failed, using localStorage fallback:', error);
+        // Fallback: store reaction locally
+        const reactions = JSON.parse(localStorage.getItem(`${getStorageKey()}_reactions`) || '{}');
+        reactions[reaction] = (reactions[reaction] || 0) + 1;
+        localStorage.setItem(`${getStorageKey()}_reactions`, JSON.stringify(reactions));
+        return { success: true, reactions, fallback: true };
+    }
+}
+
+/**
+ * Record a share
+ */
+async function recordShare(platform) {
+    try {
+        const response = await fetch(`${getApiBase()}/api/shares`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': getApiKey()
+            },
+            body: JSON.stringify({
+                tool_slug: getToolSlug(),
+                platform: platform
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Share API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('Share API failed, using localStorage fallback:', error);
+        // Fallback: increment local share count
+        const shares = parseInt(localStorage.getItem(`${getStorageKey()}_shares`) || '0', 10);
+        localStorage.setItem(`${getStorageKey()}_shares`, shares + 1);
+        return { success: true, count: shares + 1, fallback: true };
+    }
+}
+
+// ============================================================
+// UI UPDATE FUNCTIONS
+// ============================================================
+
+/**
+ * Update stats dashboard
+ */
+async function updateStats() {
+    try {
+        const stats = await getToolStats();
+        
+        // Update usage
+        document.getElementById('stat-usage').textContent = stats.usage || 0;
+        document.getElementById('stat-views').textContent = stats.views || 0;
+        document.getElementById('stat-shares').textContent = stats.shares || 0;
+        
+        // Update reactions if available
+        if (stats.reactions && typeof stats.reactions === 'object') {
+            Object.keys(stats.reactions).forEach(key => {
+                const el = document.getElementById(`react-${key}`);
+                if (el) {
+                    el.textContent = stats.reactions[key] || 0;
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error updating stats:', error);
+    }
+}
+
+/**
+ * Update reaction count on UI
+ */
+function updateReactionUI(reaction, count) {
+    const el = document.getElementById(`react-${reaction}`);
+    if (el) {
+        el.textContent = count;
+    }
+}
+
+// ============================================================
+// REACTION HANDLERS
+// ============================================================
+
+/**
+ * Handle reaction click
+ */
+async function handleReactionClick(button, reaction) {
+    // Prevent double-click spam
+    if (button.dataset.processing === 'true') return;
+    button.dataset.processing = 'true';
+    
+    try {
+        // Optimistic UI update
+        const countEl = document.getElementById(`react-${reaction}`);
+        const currentCount = parseInt(countEl.textContent, 10) || 0;
+        countEl.textContent = currentCount + 1;
+        button.classList.add('active');
+        
+        // Send to API
+        const result = await addReaction(reaction);
+        
+        // Update with actual count
+        if (result.reactions && result.reactions[reaction] !== undefined) {
+            countEl.textContent = result.reactions[reaction];
+        }
+        
+        // Update stats
+        await updateStats();
+    } catch (error) {
+        console.error('Error adding reaction:', error);
+        // Revert optimistic update
+        const countEl = document.getElementById(`react-${reaction}`);
+        const currentCount = parseInt(countEl.textContent, 10) || 0;
+        countEl.textContent = Math.max(0, currentCount - 1);
+        button.classList.remove('active');
+    } finally {
+        button.dataset.processing = 'false';
+    }
+}
+
+// ============================================================
+// SHARE HANDLERS
+// ============================================================
+
+/**
+ * Get current page URL
+ */
+function getShareUrl() {
+    return window.location.href;
+}
+
+/**
+ * Get share text
+ */
+function getShareText() {
+    const topic = document.getElementById('topic-select');
+    const topicName = topic.options[topic.selectedIndex]?.text || 'Lesson Plan';
+    return `🌍 The World Around Us - ${topicName}\n\nGenerated with AI-powered lesson plan generator! Check it out:`;
+}
+
+/**
+ * Handle share click
+ */
+async function handleShareClick(platform) {
+    const url = getShareUrl();
+    const text = getShareText();
+    let shareUrl = '';
+    
+    switch (platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            break;
+        case 'copy':
+            try {
+                await navigator.clipboard.writeText(url);
+                const btn = document.querySelector('.share-btn.copy');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+                // Record share
+                await recordShare('copy');
+                await updateStats();
+                return;
+            } catch (err) {
+                console.error('Copy failed:', err);
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = url;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                const btn = document.querySelector('.share-btn.copy');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+            }
+            break;
+        default:
+            return;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+        // Record share
+        await recordShare(platform);
+        await updateStats();
+    }
+}
+
+// ============================================================
+// TYPEWRITER ANIMATION
+// ============================================================
+
+function initTypewriter() {
+    const phrases = [
+        '📖 Generate Lesson Plans',
+        '🎯 30+ Topics Available',
+        '👩‍🏫 For ECCE Teachers',
+        '✨ AI-Powered Learning',
+        '📝 Ready-to-Use Content',
+        '🌟 Download & Print'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById('typewriter-text');
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let speed = 80;
+        
+        if (isDeleting) {
+            speed = 40;
+        }
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            speed = 2000; // pause at end
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            speed = 500;
+        }
+        
+        setTimeout(type, speed);
+    }
+    
+    type();
+}
+
+// ============================================================
+// LESSON PLAN DATA
+// ============================================================
+
 const lessonData = {
     // ==================== NATURE & ENVIRONMENT (15 Topics) ====================
     
@@ -1410,7 +1784,10 @@ const lessonData = {
     }
 };
 
-// Helper function to display lesson plan
+// ============================================================
+// LESSON PLAN DISPLAY FUNCTIONS
+// ============================================================
+
 function displayLessonPlan(topicKey) {
     const data = lessonData[topicKey];
     if (!data) {
@@ -1502,7 +1879,11 @@ function displayActivities(containerId, activities) {
     });
 }
 
-// Event listeners
+// ============================================================
+// EVENT LISTENERS & INITIALIZATION
+// ============================================================
+
+// Generate button
 document.getElementById('generate-btn').addEventListener('click', () => {
     const topic = document.getElementById('topic-select').value;
     if (!topic) {
@@ -1519,6 +1900,7 @@ document.getElementById('generate-btn').addEventListener('click', () => {
     window.scrollTo({ top: document.getElementById('results').offsetTop, behavior: 'smooth' });
 });
 
+// Surprise button
 document.getElementById('surprise-btn').addEventListener('click', () => {
     const topics = Object.keys(lessonData);
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
@@ -1547,7 +1929,7 @@ document.getElementById('doc-btn').addEventListener('click', () => {
         return;
     }
     const content = document.querySelector('.lesson-plan').cloneNode(true);
-    content.querySelectorAll('.toggle-process, .download-buttons').forEach(el => el.remove());
+    content.querySelectorAll('.toggle-process, .download-buttons, .reactions-section, .share-section').forEach(el => el.remove());
     const htmlContent = `
         <html>
         <head><title>Lesson Plan - ${lessonData[topic].title}</title>
@@ -1577,5 +1959,51 @@ document.getElementById('print-btn').addEventListener('click', () => {
     window.print();
 });
 
-// Initialize
-document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-PK');
+// ============================================================
+// REACTION EVENT LISTENERS
+// ============================================================
+
+document.querySelectorAll('.reaction-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const reaction = this.dataset.reaction;
+        handleReactionClick(this, reaction);
+    });
+});
+
+// ============================================================
+// SHARE EVENT LISTENERS
+// ============================================================
+
+document.querySelectorAll('.share-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const platform = this.dataset.share;
+        handleShareClick(platform);
+    });
+});
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+async function init() {
+    try {
+        // Set current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-PK');
+        
+        // Initialize typewriter
+        initTypewriter();
+        
+        // Increment usage on load
+        await incrementUsage();
+        
+        // Update stats
+        await updateStats();
+        
+        console.log('🌍 The World Around Us - Initialized successfully!');
+    } catch (error) {
+        console.error('Initialization error:', error);
+    }
+}
+
+// Start the application
+init();
