@@ -3,543 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Magic Numbers | Dragon's Quest - Epic Comparison Game</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
+    
+    <!-- Primary Meta Tags -->
+    <title>Magic Numbers: Dragon's Quest - Epic Number Comparison Game for Kids</title>
+    <meta name="title" content="Magic Numbers: Dragon's Quest - Epic Number Comparison Game for Kids">
+    <meta name="description" content="Play Magic Numbers: Dragon's Quest - an exciting number comparison game for kids. Learn greater than, less than with dragons, power-ups, and challenges!">
+    <meta name="keywords" content="number comparison game, kids math game, greater than less than, educational game, dragon quest, math learning, fun math game">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://magic-numbers-game.uzairhameed01.workers.dev/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magic-numbers-game.uzairhameed01.workers.dev/">
+    <meta property="og:title" content="Magic Numbers: Dragon's Quest - Epic Number Comparison Game for Kids">
+    <meta property="og:description" content="Learn number comparison with dragons, power-ups, and exciting challenges!">
+    <meta property="og:image" content="https://magic-numbers-game.uzairhameed01.workers.dev/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://magic-numbers-game.uzairhameed01.workers.dev/">
+    <meta property="twitter:title" content="Magic Numbers: Dragon's Quest - Epic Number Comparison Game for Kids">
+    <meta property="twitter:description" content="Learn number comparison with dragons, power-ups, and exciting challenges!">
+    <meta property="twitter:image" content="https://magic-numbers-game.uzairhameed01.workers.dev/og-image.jpg">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Game",
+        "name": "Magic Numbers: Dragon's Quest",
+        "description": "An educational number comparison game for kids featuring dragons, power-ups, and progressive difficulty levels.",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web",
+        "browserRequirements": "Requires JavaScript",
+        "educationalUse": "Teaches number comparison and mathematical reasoning",
+        "audience": {
+            "@type": "EducationalAudience",
+            "educationalRole": "Student",
+            "audienceType": "Children"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
         }
-
-        :root {
-            --neon-cyan: #0ff;
-            --neon-pink: #f0f;
-            --neon-green: #0f0;
-            --neon-red: #f00;
-            --neon-yellow: #ff0;
-        }
-
-        body {
-            font-family: 'Press Start 2P', 'Courier New', 'Segoe UI', monospace;
-            background: #0a0a2a;
-            overflow-x: hidden;
-            min-height: 100vh;
-            color: white;
-        }
-
-        /* ========== ANIMATED BACKGROUND ========== */
-        .game-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        /* Stars */
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle random(2s, 5s) infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.3); }
-        }
-
-        /* Flying Dragons */
-        .dragon {
-            position: fixed;
-            width: 80px;
-            height: 80px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ff4444" d="M50,10 L60,30 L85,25 L70,45 L90,55 L65,65 L75,85 L50,70 L25,85 L35,65 L10,55 L30,45 L15,25 L40,30 Z"/><circle fill="%23ffff00" cx="45" cy="35" r="3"/><circle fill="%23ffff00" cx="55" cy="35" r="3"/><path fill="%23ff6666" d="M50,65 L45,80 L55,80 Z"/></svg>') no-repeat center;
-            background-size: contain;
-            pointer-events: none;
-            z-index: 1;
-            animation: flyDragon 18s linear infinite;
-            filter: drop-shadow(0 0 10px #ff4444);
-        }
-
-        @keyframes flyDragon {
-            0% { transform: translateX(-150px) translateY(0px) rotate(0deg); }
-            25% { transform: translateX(calc(100vw + 150px)) translateY(-80px) rotate(5deg); }
-            50% { transform: translateX(-150px) translateY(80px) rotate(-5deg); }
-            75% { transform: translateX(calc(100vw + 150px)) translateY(-40px) rotate(3deg); }
-            100% { transform: translateX(-150px) translateY(0px) rotate(0deg); }
-        }
-
-        .dragon:nth-child(2) { animation-duration: 22s; animation-delay: -7s; width: 60px; filter: hue-rotate(200deg) drop-shadow(0 0 10px #44ff44); }
-        .dragon:nth-child(3) { animation-duration: 28s; animation-delay: -14s; width: 100px; filter: hue-rotate(280deg) drop-shadow(0 0 10px #ff44ff); }
-
-        /* Floating Islands */
-        .floating-island {
-            position: fixed;
-            background: linear-gradient(135deg, #2d6a2d, #1a4a1a);
-            border-radius: 50% 50% 40% 40%;
-            box-shadow: 0 20px 30px rgba(0,0,0,0.5);
-            pointer-events: none;
-            z-index: 1;
-            animation: floatIsland 6s ease-in-out infinite;
-            border-bottom: 3px solid #8B4513;
-        }
-
-        @keyframes floatIsland {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(2deg); }
-        }
-
-        /* Clouds */
-        .cloud {
-            position: fixed;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            filter: blur(15px);
-            pointer-events: none;
-            z-index: 1;
-            animation: moveCloud linear infinite;
-        }
-
-        @keyframes moveCloud {
-            from { transform: translateX(-250px); }
-            to { transform: translateX(calc(100vw + 250px)); }
-        }
-
-        /* ========== MAIN CONTAINER ========== */
-        .game-container {
-            position: relative;
-            z-index: 10;
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Glass Card */
-        .glass-card {
-            background: rgba(0,0,0,0.45);
-            backdrop-filter: blur(12px);
-            border-radius: 30px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(0,255,255,0.3);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            text-align: center;
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #f0f);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: titlePulse 1.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes titlePulse {
-            from { filter: drop-shadow(0 0 5px #0ff); }
-            to { filter: drop-shadow(0 0 20px #f0f); }
-        }
-
-        /* Difficulty Buttons */
-        .difficulty-selector {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-
-        .difficulty-btn {
-            padding: 12px 28px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .difficulty-btn.easy { background: linear-gradient(135deg, #00b4d8, #0077b6); color: white; }
-        .difficulty-btn.medium { background: linear-gradient(135deg, #f77f00, #e85d04); color: white; }
-        .difficulty-btn.hard { background: linear-gradient(135deg, #d62828, #9b2226); color: white; }
-        .difficulty-btn.active { box-shadow: 0 0 20px currentColor; transform: scale(1.05); }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 12px;
-            margin: 15px 0;
-        }
-
-        .stat-card {
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid rgba(0,255,255,0.3);
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            display: block;
-            font-family: monospace;
-        }
-
-        /* Numbers Arena */
-        .numbers-arena {
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 40px;
-            padding: 30px;
-            margin: 20px 0;
-            border: 2px solid rgba(0,255,255,0.4);
-        }
-
-        .timer-ring {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 15px;
-            position: relative;
-        }
-
-        .timer-svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .timer-bg {
-            stroke: rgba(255,255,255,0.2);
-            stroke-width: 8;
-            fill: none;
-        }
-
-        .timer-progress {
-            stroke: #0ff;
-            stroke-width: 8;
-            fill: none;
-            stroke-dasharray: 251.2;
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 0.1s linear;
-        }
-
-        .timer-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .numbers-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-            flex-wrap: wrap;
-            perspective: 1000px;
-            margin: 25px 0;
-        }
-
-        .number-card {
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(145deg, rgba(0,255,255,0.15), rgba(0,255,255,0.05));
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-            font-weight: bold;
-            font-family: monospace;
-            text-shadow: 0 0 20px #0ff;
-            border: 1px solid rgba(0,255,255,0.5);
-            animation: floatNumber 3s ease-in-out infinite;
-        }
-
-        @keyframes floatNumber {
-            0%, 100% { transform: translateY(0px) rotateY(0deg); }
-            50% { transform: translateY(-15px) rotateY(8deg); }
-        }
-
-        .number-card.flip {
-            animation: flipCard 0.5s ease-out;
-        }
-
-        @keyframes flipCard {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(180deg) scale(1.1); box-shadow: 0 0 40px #0ff; }
-            100% { transform: rotateY(360deg); }
-        }
-
-        .vs-symbol {
-            font-size: 3.5rem;
-            font-weight: bold;
-            text-shadow: 0 0 20px #f0f;
-            animation: vsPulse 1s ease-in-out infinite;
-        }
-
-        @keyframes vsPulse {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.15); opacity: 1; }
-        }
-
-        .progress-bar-container {
-            background: rgba(255,255,255,0.2);
-            height: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #0ff, #f0f);
-            width: 0%;
-            transition: width 0.3s;
-            border-radius: 10px;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-            margin: 25px 0;
-            flex-wrap: wrap;
-        }
-
-        .game-btn {
-            padding: 16px 40px;
-            font-family: inherit;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .game-btn:active { transform: scale(0.96); }
-        .btn-greater { background: linear-gradient(135deg, #00f260, #0575e6); color: white; box-shadow: 0 0 15px #00f260; }
-        .btn-less { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; box-shadow: 0 0 15px #f5576c; }
-
-        /* Power-ups */
-        .powerups-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-
-        .powerup {
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            border: none;
-            padding: 10px 22px;
-            border-radius: 40px;
-            font-family: inherit;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .powerup:hover { transform: translateY(-3px); filter: brightness(1.1); }
-        .powerup:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        /* Reactions */
-        .reactions-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 15px 0;
-        }
-
-        .reaction-btn {
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50px;
-            padding: 10px 20px;
-            font-size: 1.3rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-        }
-
-        .reaction-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
-        .reaction-count { font-size: 0.8rem; background: rgba(0,0,0,0.5); border-radius: 20px; padding: 2px 8px; }
-
-        /* Share Buttons */
-        .share-container {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 15px 0;
-        }
-
-        .share-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            color: white;
-        }
-        .share-btn:hover { transform: translateY(-2px); }
-        .share-fb { background: #1877f2; }
-        .share-twitter { background: #1da1f2; }
-        .share-wa { background: #25d366; }
-        .share-linkedin { background: #0077b5; }
-        .share-email { background: #ea4335; }
-        .share-copy { background: #6c5ce7; }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            border-left: 4px solid #0ff;
-            padding: 12px 24px;
-            border-radius: 12px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            font-family: monospace;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Scroll Buttons */
-        .scroll-buttons {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 99;
-        }
-        .scroll-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            border: 1px solid #0ff;
-            cursor: pointer;
-            font-size: 1.3rem;
-        }
-        .scroll-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px #0ff; }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(5px);
-            z-index: 1001;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 30px;
-            border-radius: 30px;
-            border: 2px solid #0ff;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-        }
-
-        /* Effects */
-        .shake { animation: shakeAnim 0.4s ease-in-out; }
-        @keyframes shakeAnim {
-            0%,100%{transform:translateX(0)} 25%{transform:translateX(-12px)} 75%{transform:translateX(12px)}
-        }
-        .glitch { animation: glitchAnim 0.2s ease-in-out; }
-        @keyframes glitchAnim {
-            0%,100%{transform:translate(0)} 25%{transform:translate(-3px,2px)} 75%{transform:translate(3px,-2px)}
-        }
-        .fire-effect {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            background: linear-gradient(180deg, transparent, rgba(255,69,0,0.6), rgba(255,0,0,0.8));
-            pointer-events: none;
-            z-index: 5;
-            animation: fireFlicker 0.15s infinite;
-        }
-        @keyframes fireFlicker { 0%,100%{opacity:0.5} 50%{opacity:1} }
-        
-        .boss-fight {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,0,0,0.3), transparent);
-            pointer-events: none;
-            z-index: 5;
-            animation: bossPulse 0.5s infinite;
-        }
-        @keyframes bossPulse { 0%,100%{opacity:0.2} 50%{opacity:0.5} }
-
-        .celebration-particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 999;
-            animation: floatUp 1.5s ease-out forwards;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .number-card { width: 110px; height: 110px; font-size: 2.5rem; }
-            .vs-symbol { font-size: 2rem; }
-            .game-btn { padding: 12px 25px; font-size: 0.9rem; }
-            h1 { font-size: 1.4rem; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 480px) {
-            .numbers-container { gap: 15px; }
-            .number-card { width: 85px; height: 85px; font-size: 2rem; }
-            .action-buttons { flex-direction: column; align-items: center; }
-        }
-    </style>
+    }
+    </script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="magic-numbers-comparison-game.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐉</text></svg>">
 </head>
 <body>
-    <!-- Animated Background -->
+    <!-- ========== ANIMATED BACKGROUND ========== -->
     <div class="game-canvas" id="gameCanvas">
         <div id="starsContainer"></div>
         <div class="dragon" style="top: 8%;"></div>
@@ -553,8 +74,65 @@
         <div class="floating-island" style="top: 10%; right: 8%; width: 55px; height: 28px; animation-delay: -4s;"></div>
     </div>
 
-    <!-- Main Game -->
-    <div class="game-container">
+    <!-- ========== HERO SECTION ========== -->
+    <section class="hero-section" aria-label="Game Hero Section">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">🐉 EDUCATIONAL GAME</div>
+                <h1 class="hero-title">
+                    <span class="highlight-text">Magic Numbers</span>
+                    <span class="hero-subtitle">Dragon's Quest</span>
+                </h1>
+                <div class="hero-typewriter">
+                    <span class="typewriter-text" id="typewriterText">Learn number comparison with dragons!</span>
+                </div>
+                <p class="hero-description">
+                    An epic adventure where you compare numbers, collect points, and defeat dragons!
+                    Perfect for kids learning greater than and less than.
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-icon">🎮</span>
+                        <span class="hero-stat-value" id="heroUsage">0</span>
+                        <span class="hero-stat-label">Players</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-icon">⭐</span>
+                        <span class="hero-stat-value" id="heroShares">0</span>
+                        <span class="hero-stat-label">Shares</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-icon">❤️</span>
+                        <span class="hero-stat-value" id="heroReactions">0</span>
+                        <span class="hero-stat-label">Reactions</span>
+                    </div>
+                </div>
+                <a href="#game-section" class="hero-cta">🎯 Start Adventure</a>
+            </div>
+            <div class="hero-image">
+                <div class="hero-animation-wrapper">
+                    <div class="hero-animation">
+                        <div class="hero-dragon-emoji">🐉</div>
+                        <div class="hero-numbers">
+                            <span class="hero-number">42</span>
+                            <span class="hero-vs">VS</span>
+                            <span class="hero-number">37</span>
+                        </div>
+                        <div class="hero-sparkles">
+                            <span>✨</span>
+                            <span>🌟</span>
+                            <span>💫</span>
+                            <span>⭐</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== MAIN GAME CONTAINER ========== -->
+    <div class="game-container" id="game-section">
+        <!-- Glass Card: Header -->
         <div class="glass-card">
             <h1>🐉 MAGIC NUMBERS: DRAGON'S QUEST 🐉</h1>
             <div class="difficulty-selector">
@@ -563,538 +141,134 @@
                 <button class="difficulty-btn hard" data-diff="hard">🔴 HARD</button>
             </div>
             <div class="stats-grid">
-                <div class="stat-card">🏆 SCORE<br><span class="stat-value" id="score">0</span></div>
-                <div class="stat-card">🔥 STREAK<br><span class="stat-value" id="streak">0</span></div>
-                <div class="stat-card">❤️ LIVES<br><span class="stat-value" id="lives">3</span></div>
-                <div class="stat-card">📊 USED<br><span class="stat-value" id="usageCount">0</span></div>
+                <div class="stat-card">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-label">SCORE</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🔥</span>
+                    <span class="stat-label">STREAK</span>
+                    <span class="stat-value" id="streak">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">❤️</span>
+                    <span class="stat-label">LIVES</span>
+                    <span class="stat-value" id="lives">3</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">📊</span>
+                    <span class="stat-label">USED</span>
+                    <span class="stat-value" id="usageCount">0</span>
+                </div>
             </div>
         </div>
 
+        <!-- Numbers Arena -->
         <div class="numbers-arena">
             <div class="timer-ring">
-                <svg class="timer-svg" viewBox="0 0 100 100">
+                <svg class="timer-svg" viewBox="0 0 100 100" aria-label="Timer">
                     <circle class="timer-bg" cx="50" cy="50" r="40"></circle>
                     <circle class="timer-progress" id="timerProgress" cx="50" cy="50" r="40"></circle>
                 </svg>
                 <div class="timer-text" id="timerText">12</div>
             </div>
-            <div style="text-align: center; margin-bottom: 10px;">
-                LEVEL <span id="currentLevel">1</span> / <span id="maxLevel">8</span>
-                <div class="progress-bar-container"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="level-progress">
+                <span>LEVEL <span id="currentLevel">1</span> / <span id="maxLevel">8</span></span>
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
             </div>
             <div class="numbers-container">
-                <div class="number-card" id="number1">?</div>
+                <div class="number-card" id="number1" aria-label="First number">?</div>
                 <div class="vs-symbol" id="vsSymbol">VS</div>
-                <div class="number-card" id="number2">?</div>
+                <div class="number-card" id="number2" aria-label="Second number">?</div>
             </div>
-            <div id="feedback" style="text-align: center; font-size: 1rem; margin: 15px; min-height: 50px;"></div>
+            <div id="feedback" class="feedback-text">👆 Press START to begin your adventure!</div>
             <div class="action-buttons">
-                <button class="game-btn btn-greater" id="greaterBtn">🔺 GREATER &gt;</button>
-                <button class="game-btn btn-less" id="lessBtn">🔻 LESS &lt;</button>
+                <button class="game-btn btn-start" id="startBtn">▶ START GAME</button>
+                <button class="game-btn btn-greater" id="greaterBtn" disabled>🔺 GREATER &gt;</button>
+                <button class="game-btn btn-less" id="lessBtn" disabled>🔻 LESS &lt;</button>
             </div>
             <div class="powerups-container">
-                <button class="powerup" id="hintPowerup">💡 HINT (2)</button>
-                <button class="powerup" id="skipPowerup">⏭️ SKIP (2)</button>
-                <button class="powerup" id="doublePowerup">⭐ DOUBLE (1)</button>
+                <button class="powerup powerup-hint" id="hintPowerup">💡 HINT (2)</button>
+                <button class="powerup powerup-skip" id="skipPowerup">⏭️ SKIP (2)</button>
+                <button class="powerup powerup-double" id="doublePowerup">⭐ DOUBLE (1)</button>
             </div>
         </div>
 
         <!-- Reactions Section -->
-        <div class="glass-card">
-            <h3 style="text-align: center;">😊 HOW DO YOU FEEL?</h3>
+        <div class="glass-card reactions-card">
+            <h3>😊 HOW DO YOU FEEL?</h3>
             <div class="reactions-container" id="reactionsContainer">
-                <button class="reaction-btn" data-emoji="👍">👍 <span class="reaction-count" id="react-thumbsup">0</span></button>
-                <button class="reaction-btn" data-emoji="❤️">❤️ <span class="reaction-count" id="react-heart">0</span></button>
-                <button class="reaction-btn" data-emoji="😮">😮 <span class="reaction-count" id="react-wow">0</span></button>
-                <button class="reaction-btn" data-emoji="😢">😢 <span class="reaction-count" id="react-sad">0</span></button>
-                <button class="reaction-btn" data-emoji="😠">😠 <span class="reaction-count" id="react-angry">0</span></button>
-                <button class="reaction-btn" data-emoji="😂">😂 <span class="reaction-count" id="react-laugh">0</span></button>
-                <button class="reaction-btn" data-emoji="🎉">🎉 <span class="reaction-count" id="react-party">0</span></button>
+                <button class="reaction-btn reaction-thumbsup" data-emoji="👍">
+                    👍 <span class="reaction-count" id="react-thumbsup">0</span>
+                </button>
+                <button class="reaction-btn reaction-heart" data-emoji="❤️">
+                    ❤️ <span class="reaction-count" id="react-heart">0</span>
+                </button>
+                <button class="reaction-btn reaction-wow" data-emoji="😮">
+                    😮 <span class="reaction-count" id="react-wow">0</span>
+                </button>
+                <button class="reaction-btn reaction-sad" data-emoji="😢">
+                    😢 <span class="reaction-count" id="react-sad">0</span>
+                </button>
+                <button class="reaction-btn reaction-angry" data-emoji="😠">
+                    😠 <span class="reaction-count" id="react-angry">0</span>
+                </button>
+                <button class="reaction-btn reaction-laugh" data-emoji="😂">
+                    😂 <span class="reaction-count" id="react-laugh">0</span>
+                </button>
+                <button class="reaction-btn reaction-party" data-emoji="🎉">
+                    🎉 <span class="reaction-count" id="react-party">0</span>
+                </button>
             </div>
         </div>
 
         <!-- Share Section -->
-        <div class="glass-card">
-            <h3 style="text-align: center;">📢 SHARE THE ADVENTURE</h3>
+        <div class="glass-card share-card">
+            <h3>📢 SHARE THE ADVENTURE</h3>
             <div class="share-container">
-                <button class="share-btn share-fb" data-platform="facebook">📘 Facebook</button>
-                <button class="share-btn share-twitter" data-platform="twitter">🐦 Twitter</button>
-                <button class="share-btn share-wa" data-platform="whatsapp">💬 WhatsApp</button>
-                <button class="share-btn share-linkedin" data-platform="linkedin">🔗 LinkedIn</button>
-                <button class="share-btn share-email" data-platform="email">📧 Email</button>
-                <button class="share-btn share-copy" data-platform="copy">📋 Copy URL</button>
+                <button class="share-btn share-fb" data-platform="facebook" aria-label="Share on Facebook">📘 Facebook</button>
+                <button class="share-btn share-twitter" data-platform="twitter" aria-label="Share on Twitter">🐦 Twitter</button>
+                <button class="share-btn share-wa" data-platform="whatsapp" aria-label="Share on WhatsApp">💬 WhatsApp</button>
+                <button class="share-btn share-linkedin" data-platform="linkedin" aria-label="Share on LinkedIn">🔗 LinkedIn</button>
+                <button class="share-btn share-email" data-platform="email" aria-label="Share via Email">📧 Email</button>
+                <button class="share-btn share-copy" data-platform="copy" aria-label="Copy URL">📋 Copy URL</button>
             </div>
-            <p style="text-align: center; margin-top: 10px;">📤 Total Shares: <span id="totalShares">0</span></p>
+            <p class="share-total">📤 Total Shares: <span id="totalShares">0</span></p>
         </div>
     </div>
 
     <!-- Scroll Buttons -->
-    <div class="scroll-buttons">
-        <button class="scroll-btn" id="scrollUpBtn">⬆️</button>
-        <button class="scroll-btn" id="scrollDownBtn">⬇️</button>
-        <button class="scroll-btn" id="darkModeBtn">🌓</button>
-        <button class="scroll-btn" id="premiumBtn">💎</button>
+    <div class="scroll-buttons" role="navigation" aria-label="Quick navigation">
+        <button class="scroll-btn" id="scrollUpBtn" aria-label="Scroll up">⬆️</button>
+        <button class="scroll-btn" id="scrollDownBtn" aria-label="Scroll down">⬇️</button>
+        <button class="scroll-btn" id="darkModeBtn" aria-label="Toggle dark mode">🌓</button>
+        <button class="scroll-btn" id="premiumBtn" aria-label="View premium features">💎</button>
     </div>
 
     <!-- Premium Modal -->
-    <div class="modal" id="premiumModal">
+    <div class="modal" id="premiumModal" role="dialog" aria-label="Premium Features">
         <div class="modal-content">
             <h2>💎 PREMIUM DRAGON</h2>
-            <p>✨ Unlimited Power-ups</p>
-            <p>✨ Exclusive Dragon Skins</p>
-            <p>✨ Ad-Free Adventure</p>
-            <p>✨ Global Leaderboard</p>
-            <button class="game-btn" id="closeModal" style="margin-top: 20px; padding: 10px 25px;">Close</button>
+            <ul class="premium-features">
+                <li>✨ Unlimited Power-ups</li>
+                <li>✨ Exclusive Dragon Skins</li>
+                <li>✨ Ad-Free Adventure</li>
+                <li>✨ Global Leaderboard</li>
+            </ul>
+            <button class="game-btn btn-modal-close" id="closeModal">Close</button>
         </div>
     </div>
 
-    <script>
-        // ==================== SOUND SYSTEM ====================
-        class SoundSystem {
-            constructor() { this.ctx = null; this.enabled = true; }
-            init() {
-                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if (this.ctx.state === 'suspended') this.ctx.resume();
-            }
-            play(freq=440, dur=0.2, type='sine') {
-                if (!this.enabled) return;
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.frequency.value = freq;
-                osc.type = type;
-                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + dur);
-                osc.start();
-                osc.stop(this.ctx.currentTime + dur);
-            }
-            correct() { this.play(523.25,0.2); setTimeout(()=>this.play(659.25,0.2),120); setTimeout(()=>this.play(783.99,0.3),250); }
-            wrong() { this.play(440,0.2,'sawtooth'); setTimeout(()=>this.play(349.23,0.25,'sawtooth'),130); }
-            levelUp() { this.play(523.25,0.15); setTimeout(()=>this.play(659.25,0.15),100); setTimeout(()=>this.play(783.99,0.15),200); setTimeout(()=>this.play(1046.5,0.4),300); }
-            gameOver() { this.play(220,0.4,'triangle'); setTimeout(()=>this.play(196,0.4,'triangle'),250); setTimeout(()=>this.play(174.61,0.8,'triangle'),500); }
-            victory() { [523.25,587.33,659.25,783.99,880,987.77,1046.5].forEach((n,i)=>setTimeout(()=>this.play(n,0.2),i*120)); }
-            powerup() { this.play(880,0.1); setTimeout(()=>this.play(1318.52,0.15),100); }
-            click() { this.play(660,0.05); }
-        }
-        const sound = new SoundSystem();
+    <!-- Footer -->
+    <footer class="game-footer">
+        <p>🐉 Magic Numbers: Dragon's Quest &copy; 2024 - Learn Math with Fun!</p>
+        <p>Made with ❤️ for young learners everywhere</p>
+    </footer>
 
-        // ==================== GAME STATE ====================
-        let gameState = {
-            score: 0, streak: 0, lives: 3, currentLevel: 1, correctInLevel: 0,
-            currentDifficulty: 'easy',
-            questionsPerLevel: { easy: 8, medium: 9, hard: 10 },
-            usedQuestions: [],
-            currentNum1: null, currentNum2: null, currentAnswer: null,
-            timerInterval: null, timeLeft: 12, doubleScore: false,
-            gameActive: true, totalCorrect: 0,
-            powerups: { hint: 2, skip: 2, double: 1 },
-            bossFight: false
-        };
-
-        // ==================== API CONFIG ====================
-        const API_BASE = 'https://magic-numbers-game.uzairhameed01.workers.dev';
-        const TOOL_SLUG = 'magic-numbers-comparison-game';
-
-        // ==================== DOM ELEMENTS ====================
-        const number1El = document.getElementById('number1');
-        const number2El = document.getElementById('number2');
-        const vsSymbol = document.getElementById('vsSymbol');
-        const greaterBtn = document.getElementById('greaterBtn');
-        const lessBtn = document.getElementById('lessBtn');
-        const scoreEl = document.getElementById('score');
-        const streakEl = document.getElementById('streak');
-        const livesEl = document.getElementById('lives');
-        const feedbackEl = document.getElementById('feedback');
-        const currentLevelEl = document.getElementById('currentLevel');
-        const maxLevelEl = document.getElementById('maxLevel');
-        const progressFill = document.getElementById('progressFill');
-        const timerText = document.getElementById('timerText');
-        const timerProgress = document.getElementById('timerProgress');
-        const circumference = 2 * Math.PI * 40;
-
-        timerProgress.style.strokeDasharray = circumference;
-
-        // ==================== HELPERS ====================
-        function showToast(msg, type='info') {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2800);
-        }
-
-        function createStars() {
-            const container = document.getElementById('starsContainer');
-            for (let i = 0; i < 180; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.width = Math.random() * 3 + 1 + 'px';
-                star.style.height = star.style.width;
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 5 + 's';
-                star.style.animationDuration = Math.random() * 3 + 2 + 's';
-                container.appendChild(star);
-            }
-        }
-
-        function createGlitch() { document.body.classList.add('glitch'); setTimeout(()=>document.body.classList.remove('glitch'),250); }
-        function createShake() { document.body.classList.add('shake'); setTimeout(()=>document.body.classList.remove('shake'),400); }
-        function createFire() { const f=document.createElement('div'); f.className='fire-effect'; document.body.appendChild(f); setTimeout(()=>f.remove(),800); }
-        function createBossFight() { const b=document.createElement('div'); b.className='boss-fight'; document.body.appendChild(b); setTimeout(()=>b.remove(),2500); }
-        
-        function createCelebration() {
-            const emojis = ['🎉','✨','🌟','⭐','🏆','🎊','💎','🐉','🔥'];
-            for(let i=0;i<35;i++) {
-                const el = document.createElement('div');
-                el.className = 'celebration-particle';
-                el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-                el.style.left = Math.random() * 100 + '%';
-                el.style.bottom = '0px';
-                el.style.fontSize = Math.random() * 22 + 18 + 'px';
-                document.body.appendChild(el);
-                setTimeout(()=>el.remove(),1500);
-            }
-        }
-
-        function getQuestionHash(n1,n2) { return `${Math.min(n1,n2)}_${Math.max(n1,n2)}`; }
-
-        function generateUniqueNumbers() {
-            let maxNum;
-            switch(gameState.currentDifficulty) {
-                case 'easy': maxNum = gameState.currentLevel * 10 + 20; break;
-                case 'medium': maxNum = gameState.currentLevel * 15 + 50; break;
-                case 'hard': maxNum = gameState.currentLevel * 25 + 150; break;
-                default: maxNum = 100;
-            }
-            let attempts=0, n1, n2, hash;
-            do {
-                n1 = Math.floor(Math.random() * maxNum) + 1;
-                n2 = Math.floor(Math.random() * maxNum) + 1;
-                hash = getQuestionHash(n1,n2);
-                attempts++;
-                if(attempts > 150) { gameState.usedQuestions = []; break; }
-            } while(n1 === n2 || gameState.usedQuestions.includes(hash));
-            gameState.usedQuestions.push(hash);
-            return { n1, n2 };
-        }
-
-        function updateUI() {
-            scoreEl.textContent = gameState.score;
-            streakEl.textContent = gameState.streak;
-            livesEl.textContent = gameState.lives;
-            currentLevelEl.textContent = gameState.currentLevel;
-            const maxLvl = gameState.questionsPerLevel[gameState.currentDifficulty];
-            maxLevelEl.textContent = maxLvl;
-            const progress = (gameState.correctInLevel / maxLvl) * 100;
-            progressFill.style.width = progress + '%';
-            
-            if(gameState.currentLevel === 5 && !gameState.bossFight && gameState.correctInLevel === 0) {
-                gameState.bossFight = true;
-                createBossFight();
-                showToast('⚔️ BOSS FIGHT APPROACHING! ⚔️', 'warning');
-                sound.play(150,0.3,'square');
-            }
-        }
-
-        function updateTimer() {
-            const offset = circumference * (1 - gameState.timeLeft / 12);
-            timerProgress.style.strokeDashoffset = offset;
-            timerText.textContent = gameState.timeLeft;
-            timerProgress.style.stroke = gameState.timeLeft <= 3 ? '#ff5252' : '#0ff';
-            timerText.style.color = gameState.timeLeft <= 3 ? '#ff5252' : '#0ff';
-        }
-
-        function startTimer() {
-            if(gameState.timerInterval) clearInterval(gameState.timerInterval);
-            gameState.timeLeft = 12;
-            updateTimer();
-            gameState.timerInterval = setInterval(() => {
-                if(!gameState.gameActive) return;
-                gameState.timeLeft--;
-                updateTimer();
-                if(gameState.timeLeft <= 0) {
-                    clearInterval(gameState.timerInterval);
-                    handleTimeout();
-                }
-            }, 1000);
-        }
-
-        function handleTimeout() {
-            gameState.lives--;
-            gameState.streak = 0;
-            updateUI();
-            createShake();
-            sound.wrong();
-            showToast(`⏰ TIME'S UP! -1 Life`, 'error');
-            if(gameState.lives <= 0) endGame(false);
-            else loadNewQuestion();
-        }
-
-        function loadNewQuestion() {
-            if(!gameState.gameActive) return;
-            const { n1, n2 } = generateUniqueNumbers();
-            gameState.currentNum1 = n1;
-            gameState.currentNum2 = n2;
-            gameState.currentAnswer = n1 > n2;
-            
-            number1El.classList.add('flip');
-            number2El.classList.add('flip');
-            vsSymbol.style.animation = 'none';
-            setTimeout(() => {
-                number1El.textContent = n1;
-                number2El.textContent = n2;
-                vsSymbol.style.animation = 'vsPulse 1s ease-in-out infinite';
-                number1El.classList.remove('flip');
-                number2El.classList.remove('flip');
-            }, 250);
-            feedbackEl.innerHTML = '';
-            startTimer();
-        }
-
-        function checkAnswer(isGreater) {
-            if(!gameState.gameActive) return;
-            if(gameState.timerInterval) clearInterval(gameState.timerInterval);
-            
-            const isCorrect = (isGreater === gameState.currentAnswer);
-            const timeBonus = Math.floor(gameState.timeLeft * 8);
-            
-            if(isCorrect) {
-                let points = 10 * (gameState.currentDifficulty==='easy'?1:gameState.currentDifficulty==='medium'?2:3);
-                points += gameState.streak * 3 + timeBonus;
-                if(gameState.doubleScore) points *= 2;
-                
-                gameState.score += points;
-                gameState.streak++;
-                gameState.totalCorrect++;
-                gameState.correctInLevel++;
-                
-                sound.correct();
-                createCelebration();
-                feedbackEl.innerHTML = `✅ CORRECT! ${gameState.currentNum1} ${gameState.currentAnswer ? '>' : '<'} ${gameState.currentNum2}<br>+${points} pts (Time: +${timeBonus})`;
-                feedbackEl.style.color = '#0f0';
-                
-                const maxPerLevel = gameState.questionsPerLevel[gameState.currentDifficulty];
-                if(gameState.correctInLevel >= maxPerLevel) levelComplete();
-                else setTimeout(()=>loadNewQuestion(), 1100);
-            } else {
-                gameState.lives--;
-                gameState.streak = 0;
-                gameState.doubleScore = false;
-                updateUI();
-                createShake();
-                createFire();
-                createGlitch();
-                sound.wrong();
-                feedbackEl.innerHTML = `❌ WRONG! ${gameState.currentNum1} ${gameState.currentAnswer ? '>' : '<'} ${gameState.currentNum2}<br>Correct: ${gameState.currentAnswer ? 'Greater (>)' : 'Less (<)'}`;
-                feedbackEl.style.color = '#f00';
-                if(gameState.lives <= 0) endGame(false);
-                else setTimeout(()=>loadNewQuestion(), 1700);
-            }
-            updateUI();
-        }
-
-        function levelComplete() {
-            sound.levelUp();
-            createCelebration();
-            showToast(`🏆 LEVEL ${gameState.currentLevel} COMPLETE! 🏆`, 'success');
-            gameState.currentLevel++;
-            gameState.correctInLevel = 0;
-            gameState.usedQuestions = [];
-            gameState.doubleScore = false;
-            gameState.bossFight = false;
-            if(gameState.currentLevel % 3 === 0 && gameState.lives < 5) {
-                gameState.lives++;
-                showToast(`❤️ BONUS LIFE!`, 'success');
-            }
-            const maxTotal = 15;
-            if(gameState.currentLevel > maxTotal) endGame(true);
-            else { updateUI(); loadNewQuestion(); }
-        }
-
-        function endGame(isVictory) {
-            gameState.gameActive = false;
-            if(gameState.timerInterval) clearInterval(gameState.timerInterval);
-            if(isVictory) {
-                sound.victory();
-                createCelebration();
-                feedbackEl.innerHTML = `🏆 VICTORY! YOU BEAT THE DRAGON! 🏆<br>Final Score: ${gameState.score}<br>Correct: ${gameState.totalCorrect}`;
-                showToast('🎉 YOU ARE THE CHAMPION! 🎉', 'success');
-            } else {
-                sound.gameOver();
-                feedbackEl.innerHTML = `💀 GAME OVER! DRAGON WINS... 💀<br>Final Score: ${gameState.score}<br>Correct: ${gameState.totalCorrect}`;
-                showToast('💀 GAME OVER! Try Again! 💀', 'error');
-            }
-            greaterBtn.disabled = true;
-            lessBtn.disabled = true;
-            recordUsage();
-        }
-
-        function resetGame() {
-            gameState = {
-                score: 0, streak: 0, lives: 3, currentLevel: 1, correctInLevel: 0,
-                currentDifficulty: gameState.currentDifficulty || 'easy',
-                questionsPerLevel: { easy: 8, medium: 9, hard: 10 },
-                usedQuestions: [], currentNum1: null, currentNum2: null, currentAnswer: null,
-                timerInterval: null, timeLeft: 12, doubleScore: false,
-                gameActive: true, totalCorrect: 0,
-                powerups: { hint: 2, skip: 2, double: 1 },
-                bossFight: false
-            };
-            greaterBtn.disabled = false;
-            lessBtn.disabled = false;
-            document.getElementById('hintPowerup').textContent = '💡 HINT (2)';
-            document.getElementById('skipPowerup').textContent = '⏭️ SKIP (2)';
-            document.getElementById('doublePowerup').textContent = '⭐ DOUBLE (1)';
-            updateUI();
-            loadNewQuestion();
-        }
-
-        // ==================== POWER-UPS ====================
-        function useHint() {
-            if(gameState.powerups.hint <= 0) { showToast('No hints left!','error'); return; }
-            gameState.powerups.hint--;
-            sound.powerup();
-            showToast(`💡 Hint: ${gameState.currentAnswer ? 'Greater (>)/' : 'Less (<)'} is correct!`, 'info');
-            document.getElementById('hintPowerup').textContent = `💡 HINT (${gameState.powerups.hint})`;
-        }
-        function useSkip() {
-            if(gameState.powerups.skip <= 0) { showToast('No skips left!','error'); return; }
-            gameState.powerups.skip--;
-            sound.powerup();
-            showToast(`⏭️ Question skipped!`, 'info');
-            document.getElementById('skipPowerup').textContent = `⏭️ SKIP (${gameState.powerups.skip})`;
-            loadNewQuestion();
-        }
-        function useDouble() {
-            if(gameState.powerups.double <= 0) { showToast('No double score left!','error'); return; }
-            gameState.powerups.double--;
-            gameState.doubleScore = true;
-            sound.powerup();
-            showToast(`⭐ DOUBLE SCORE ACTIVE!`, 'success');
-            document.getElementById('doublePowerup').textContent = `⭐ DOUBLE (${gameState.powerups.double})`;
-        }
-
-        // ==================== API FUNCTIONS ====================
-        async function recordUsage() {
-            try {
-                await fetch(`${API_BASE}/api/usage/increment`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ tool_slug: TOOL_SLUG })
-                });
-                fetchUsageCount();
-            } catch(e) { console.log('Usage API error'); }
-        }
-        async function fetchUsageCount() {
-            try {
-                const res = await fetch(`${API_BASE}/api/usage/get?tool_slug=${TOOL_SLUG}`);
-                const data = await res.json();
-                document.getElementById('usageCount').textContent = data.count || 0;
-            } catch(e) { document.getElementById('usageCount').textContent = '0'; }
-        }
-        async function recordReaction(emoji) {
-            try {
-                await fetch(`${API_BASE}/api/reactions/add`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji })
-                });
-                fetchReactions();
-                sound.click();
-                showToast(`Thanks for your reaction! ${emoji}`, 'success');
-            } catch(e) { console.log('Reaction API error'); }
-        }
-        async function fetchReactions() {
-            try {
-                const res = await fetch(`${API_BASE}/api/reactions/get?tool_slug=${TOOL_SLUG}`);
-                const data = await res.json();
-                const map = { '👍':'thumbsup', '❤️':'heart', '😮':'wow', '😢':'sad', '😠':'angry', '😂':'laugh', '🎉':'party' };
-                for(let [emoji,count] of Object.entries(data.reactions || {})) {
-                    const id = map[emoji];
-                    if(id) document.getElementById(`react-${id}`).textContent = count;
-                }
-            } catch(e) { console.log('Fetch reactions error'); }
-        }
-        async function recordShare(platform) {
-            try {
-                await fetch(`${API_BASE}/api/shares/add`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform })
-                });
-                fetchShares();
-                sound.click();
-            } catch(e) { console.log('Share API error'); }
-        }
-        async function fetchShares() {
-            try {
-                const res = await fetch(`${API_BASE}/api/shares/get?tool_slug=${TOOL_SLUG}`);
-                const data = await res.json();
-                document.getElementById('totalShares').textContent = data.total || 0;
-            } catch(e) { document.getElementById('totalShares').textContent = '0'; }
-        }
-
-        // ==================== SHARE ACTIONS ====================
-        const shareActions = {
-            facebook: () => { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,'_blank'); recordShare('facebook'); },
-            twitter: () => { window.open(`https://twitter.com/intent/tweet?text=Check%20Magic%20Numbers%20Dragon%20Quest!%20${encodeURIComponent(window.location.href)}`,'_blank'); recordShare('twitter'); },
-            whatsapp: () => { window.open(`https://wa.me/?text=${encodeURIComponent('Magic Numbers Dragon Quest! ' + window.location.href)}`,'_blank'); recordShare('whatsapp'); },
-            linkedin: () => { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`,'_blank'); recordShare('linkedin'); },
-            email: () => { window.location.href = `mailto:?subject=Magic Numbers Game&body=Check this out! ${window.location.href}`; recordShare('email'); },
-            copy: async () => { await navigator.clipboard.writeText(window.location.href); showToast('📋 URL Copied!','success'); recordShare('copy'); }
-        };
-
-        // ==================== SCROLL & DARK MODE ====================
-        function scrollUp() { window.scrollBy({ top: -350, behavior: 'smooth' }); }
-        function scrollDown() { window.scrollBy({ top: 350, behavior: 'smooth' }); }
-        function toggleDarkMode() {
-            document.body.style.background = document.body.style.background === 'rgb(10, 10, 42)' ? '#f5f5f5' : '#0a0a2a';
-            document.body.style.color = document.body.style.background === '#f5f5f5' ? '#333' : '#fff';
-        }
-
-        // ==================== INIT ====================
-        function init() {
-            createStars();
-            fetchUsageCount();
-            fetchReactions();
-            fetchShares();
-            
-            greaterBtn.addEventListener('click', () => checkAnswer(true));
-            lessBtn.addEventListener('click', () => checkAnswer(false));
-            document.getElementById('hintPowerup').addEventListener('click', useHint);
-            document.getElementById('skipPowerup').addEventListener('click', useSkip);
-            document.getElementById('doublePowerup').addEventListener('click', useDouble);
-            document.getElementById('scrollUpBtn').addEventListener('click', scrollUp);
-            document.getElementById('scrollDownBtn').addEventListener('click', scrollDown);
-            document.getElementById('darkModeBtn').addEventListener('click', toggleDarkMode);
-            document.getElementById('premiumBtn').addEventListener('click', () => document.getElementById('premiumModal').style.display = 'flex');
-            document.getElementById('closeModal').addEventListener('click', () => document.getElementById('premiumModal').style.display = 'none');
-            
-            document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.currentDifficulty = btn.dataset.diff;
-                    resetGame();
-                });
-            });
-            
-            document.querySelectorAll('.reaction-btn').forEach(btn => {
-                btn.addEventListener('click', () => recordReaction(btn.dataset.emoji));
-            });
-            
-            document.querySelectorAll('.share-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const platform = btn.dataset.platform;
-                    if(shareActions[platform]) shareActions[platform]();
-                });
-            });
-            
-            document.body.addEventListener('click', () => sound.init(), { once: true });
-            resetGame();
-        }
-        
-        init();
-    </script>
+    <!-- Scripts -->
+    <script src="magic-numbers-comparison-game.js"></script>
 </body>
 </html>
