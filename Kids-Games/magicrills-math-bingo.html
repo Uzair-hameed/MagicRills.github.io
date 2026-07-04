@@ -2,175 +2,245 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    
-    <!-- PRIMARY SEO -->
-    <title>Math Bingo - Free Math Game for Kids</title>
-    <meta name="description" content="Play Math Bingo with our free game for kids. Perfect for building math skills while having fun. Addition, subtraction, multiplication, division.">
-    <meta name="keywords" content="math bingo, math game, kids learning, arithmetic practice, educational game, bingo game">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎮 MagicRills Math Bingo - Interactive Learning Game | AI-Powered</title>
+    <meta name="description" content="Play MagicRills Math Bingo - an AI-powered interactive math learning game with 85+ features. Solve equations, mark your card, and win! Perfect for students & teachers.">
+    <meta name="keywords" content="math bingo, learning game, interactive math, AI math game, educational game, math practice, bingo game">
+    <meta name="author" content="MagicRills">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://magicrills.com/Kids-Games/magicrills-math-bingo.html">
+    <link rel="canonical" href="https://magicrills-math-bingo.vercel.app/">
     
-    <!-- OPEN GRAPH -->
-    <meta property="og:title" content="Math Bingo - Free Math Game for Kids">
-    <meta property="og:description" content="Play Math Bingo with our free game for kids. Perfect for building math skills while having fun. Addition, subtraction, multiplication, division.">
-    <meta property="og:url" content="https://magicrills.com/Kids-Games/magicrills-math-bingo.html">
+    <!-- Open Graph -->
+    <meta property="og:title" content="MagicRills Math Bingo - Interactive Learning Game">
+    <meta property="og:description" content="AI-powered math bingo game with 85+ features. Learn math through fun gameplay!">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://magicrills.com/pics/og-magicrills-math-bingo.webp.webp">
+    <meta property="og:url" content="https://magicrills-math-bingo.vercel.app/">
+    <meta property="og:image" content="https://magicrills-math-bingo.vercel.app/og-image.png">
     
-    <!-- TWITTER -->
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Math Bingo - Free Math Game for Kids">
-    <meta name="twitter:description" content="Play Math Bingo with our free game for kids. Perfect for building math skills while having fun. Addition, subtraction, multiplication, division.">
-    <meta name="twitter:image" content="https://magicrills.com/pics/og-magicrills-math-bingo.webp.webp">
+    <meta name="twitter:title" content="MagicRills Math Bingo - Interactive Learning Game">
+    <meta name="twitter:description" content="AI-powered math bingo game with 85+ features. Learn math through fun gameplay!">
     
-    <!-- STYLES & FONTS -->
+    <!-- Schema Markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalGame",
+        "name": "MagicRills Math Bingo",
+        "description": "AI-powered interactive math learning game",
+        "applicationCategory": "Educational",
+        "operatingSystem": "All",
+        "audience": {
+            "@type": "EducationalAudience",
+            "educationalRole": "Student"
+        }
+    }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="magicrills-math-bingo.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <div id="confetti-canvas"></div>
-    <div class="loading-spinner" id="loadingSpinner">
-        <div class="spinner"></div>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loader-container">
+        <div class="loader-ring"></div>
+        <div class="loader-text">LOADING...</div>
     </div>
-    <div class="toast-notification" id="toast"></div>
-    
-    <!-- Scroll Buttons -->
-    <button class="scroll-btn scroll-up" id="scrollUpBtn" aria-label="Scroll to top">↑</button>
-    <button class="scroll-btn scroll-down" id="scrollDownBtn" aria-label="Scroll to bottom">↓</button>
+</div>
 
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">
-                <h1>✨ Magicrills Sentence Builder</h1>
-                <p>Master English Sentences | 24 Learning Modes | AI Powered</p>
-            </div>
-            <div class="header-actions">
-                <div class="dark-mode-toggle" id="darkModeToggle" role="button" aria-label="Dark mode toggle"></div>
-                <button class="icon-btn" id="focusModeBtn" title="Focus Mode (No Timer)">🎯</button>
-                <button class="icon-btn" id="soundToggleBtn" title="Sound Effects">🔊</button>
-                <button class="icon-btn" id="fontSizeBtn" title="Font Size">A🔍</button>
-                <button class="icon-btn" id="statsModalBtn" title="Your Statistics">📊</button>
-            </div>
-        </div>
+<!-- ===== MOVING SPACE BACKGROUND ===== -->
+<div class="space-bg" id="spaceBg"></div>
+<div class="stars-container" id="starsContainer"></div>
 
-        <!-- Stats Bar -->
-        <div class="stats-bar">
-            <div class="stat-card">
-                <div class="stat-value" id="totalXP">0</div>
-                <div class="stat-label">Total XP</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="userLevel">1</div>
-                <div class="stat-label">Level</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="streakDays">0</div>
-                <div class="stat-label">Day Streak</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="accuracyRate">0%</div>
-                <div class="stat-label">Accuracy</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalTimeSpent">0</div>
-                <div class="stat-label">Minutes</div>
-            </div>
-        </div>
+<!-- ===== FLOATING POWER-UP ===== -->
+<div class="floating-powerup" id="powerup">⚡</div>
 
-        <!-- Mode Grid (24 Modes) -->
-        <div class="mode-grid" id="modeGrid"></div>
+<!-- ===== MAIN CONTAINER ===== -->
+<div class="game-container">
 
-        <!-- Game Area -->
-        <div class="game-area" id="gameArea">
-            <div class="game-header">
-                <div class="current-mode" id="currentModeName">Select a mode to start</div>
-                <div class="timer-display" id="timerDisplay">⏱️ --s</div>
-                <div class="score-display">🎯 Score: <span id="currentScore">0</span> | ✅ <span id="correctCount">0</span> | ❌ <span id="wrongCount">0</span></div>
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">🎯 AI-POWERED LEARNING</div>
+            <h1 class="hero-title">
+                <span class="title-line">MagicRills</span>
+                <span class="title-line highlight">Math Bingo</span>
+            </h1>
+            <div class="hero-typewriter">
+                <span class="typewriter-text" id="typewriterText"></span>
+                <span class="typewriter-cursor">|</span>
             </div>
-            <div class="word-bank" id="wordBank"></div>
-            <div class="sentence-area" id="sentenceArea"></div>
-            <div class="progress-section">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+            <p class="hero-subtitle">Solve equations • Mark your card • Win BINGO!</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number" id="heroUsage">0</span>
+                    <span class="hero-stat-label">Players</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number" id="heroGames">0</span>
+                    <span class="hero-stat-label">Games Played</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number" id="heroBingos">0</span>
+                    <span class="hero-stat-label">BINGOs!</span>
                 </div>
             </div>
-            <div class="hint-box" id="hintBox"></div>
-            <div class="control-buttons">
-                <button class="btn btn-primary" id="checkBtn">✅ Check Answer</button>
-                <button class="btn btn-warning" id="resetBtn">🔄 Reset</button>
-                <button class="btn btn-outline" id="hintBtn">💡 Hint (-5 XP)</button>
-                <button class="btn btn-success" id="nextBtn" style="display:none;">➡️ Next Sentence</button>
+            <button class="hero-cta" id="heroStartBtn">🚀 Start Playing</button>
+        </div>
+        <div class="hero-visual">
+            <div class="math-symbols-animation">
+                <span class="math-symbol" style="--i:1">∑</span>
+                <span class="math-symbol" style="--i:2">π</span>
+                <span class="math-symbol" style="--i:3">√</span>
+                <span class="math-symbol" style="--i:4">∫</span>
+                <span class="math-symbol" style="--i:5">∞</span>
+                <span class="math-symbol" style="--i:6">Δ</span>
+                <span class="math-symbol" style="--i:7">θ</span>
+                <span class="math-symbol" style="--i:8">Φ</span>
+                <span class="math-symbol" style="--i:9">α</span>
+                <span class="math-symbol" style="--i:10">β</span>
+                <span class="math-symbol" style="--i:11">γ</span>
+                <span class="math-symbol" style="--i:12">λ</span>
+                <span class="math-symbol" style="--i:13">μ</span>
+                <span class="math-symbol" style="--i:14">σ</span>
+                <span class="math-symbol" style="--i:15">τ</span>
+                <span class="math-symbol" style="--i:16">ω</span>
+                <span class="math-symbol" style="--i:17">∇</span>
+                <span class="math-symbol" style="--i:18">∂</span>
+                <span class="math-symbol" style="--i:19">∏</span>
+                <span class="math-symbol" style="--i:20">∐</span>
             </div>
         </div>
+    </section>
 
-        <!-- Reactions & Share Section -->
-        <div class="reactions-section">
-            <div class="reactions" id="reactionsContainer">
-                <button class="reaction-btn" data-reaction="👍">👍<span class="reaction-count">0</span></button>
-                <button class="reaction-btn" data-reaction="❤️">❤️<span class="reaction-count">0</span></button>
-                <button class="reaction-btn" data-reaction="😮">😮<span class="reaction-count">0</span></button>
-                <button class="reaction-btn" data-reaction="😢">😢<span class="reaction-count">0</span></button>
-                <button class="reaction-btn" data-reaction="😠">😠<span class="reaction-count">0</span></button>
-                <button class="reaction-btn" data-reaction="😂">😂<span class="reaction-count">0</span></button>
-                <button class="reaction-btn" data-reaction="🎉">🎉<span class="reaction-count">0</span></button>
-            </div>
-            <div class="share-section" id="shareSection"></div>
-        </div>
+    <!-- ===== GAMING HEADER ===== -->
+    <header class="gaming-header">
+        <h1>🎰 MATH BINGO 🎲</h1>
+        <p class="header-subtitle">85+ Features | AI Powered | Dark Space</p>
+    </header>
 
-        <!-- XP & Level Section -->
-        <div class="xp-section" id="xpSection">
-            <div class="level-badge" id="levelBadge">Level 1</div>
-            <div class="progress-bar" style="flex:1;">
-                <div class="progress-fill" id="xpProgressFill" style="width:0%"></div>
-            </div>
-            <span id="xpText">0 / 100 XP</span>
+    <!-- ===== STATS ROW ===== -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-label">SCORE</div>
+            <div class="stat-value" id="score">0</div>
         </div>
-
-        <!-- Achievements -->
-        <div class="leaderboard" id="achievementsSection">
-            <h3>🏆 Achievements</h3>
-            <div class="achievements-grid" id="achievementsGrid"></div>
+        <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-label">BINGOS</div>
+            <div class="stat-value" id="bingos">0</div>
         </div>
-
-        <!-- Leaderboard -->
-        <div class="leaderboard" id="leaderboardSection">
-            <h3>📊 Daily Leaderboard</h3>
-            <div id="leaderboardList">Loading...</div>
+        <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-label">STREAK</div>
+            <div class="stat-value" id="streak">0</div>
         </div>
-
-        <!-- Mistake Tracker -->
-        <div class="mistake-tracker" id="mistakeTracker">
-            <h3>📝 Words to Practice</h3>
-            <div id="mistakeWordsList">No mistakes yet. Keep going!</div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-label">USAGE</div>
+            <div class="stat-value" id="usageCount">0</div>
         </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p>© 2024 Magicrills.com | Master English Sentences</p>
+        <div class="stat-card stat-card-level">
+            <select id="levelSelect">
+                <option value="easy">🟢 EASY</option>
+                <option value="average">🟡 AVERAGE</option>
+                <option value="hard">🟠 HARD</option>
+                <option value="professional">🔴 PRO</option>
+            </select>
         </div>
+        <button class="gaming-btn btn-primary" id="newGameBtn">🔄 NEW GAME</button>
     </div>
 
-    <!-- Stats Modal -->
-    <div class="modal" id="statsModal">
-        <div class="modal-content">
-            <h2>📊 Your Statistics</h2>
-            <div class="stats-details">
-                <p>Total Sentences: <span id="statTotalSentences">0</span></p>
-                <p>Correct Answers: <span id="statCorrectAnswers">0</span></p>
-                <p>Wrong Answers: <span id="statWrongAnswers">0</span></p>
-                <p>Accuracy: <span id="statAccuracy">0</span>%</p>
-                <p>Total XP: <span id="statTotalXP">0</span></p>
-                <p>Current Level: <span id="statLevel">1</span></p>
-                <p>Longest Streak: <span id="statLongestStreak">0</span> days</p>
-            </div>
-            <button class="btn btn-primary" id="closeStatsBtn">Close</button>
+    <!-- ===== PROBLEM AREA ===== -->
+    <section class="problem-area">
+        <div class="problem-header">
+            <span class="problem-badge">🧠 SOLVE TO MARK</span>
         </div>
-    </div>
+        <div class="question-display" id="questionText">⚡ READY TO PLAY ⚡</div>
+        <div class="input-group">
+            <input type="text" id="answerInput" class="answer-input" placeholder="Enter your answer..." disabled>
+            <button class="gaming-btn btn-submit" id="submitBtn">✓ SUBMIT</button>
+            <button class="gaming-btn btn-next" id="nextBtn">⏩ NEXT</button>
+        </div>
+        <div class="hint-area" id="hintArea">💡 Type your answer and press Enter</div>
+    </section>
 
-    <script src="magicrills-sentence-builder.js"></script>
+    <!-- ===== BINGO CARD ===== -->
+    <section class="bingo-section">
+        <div class="bingo-header">
+            <span>🎯 Your Bingo Card</span>
+            <span class="bingo-header-progress" id="progressDisplay">0/25</span>
+        </div>
+        <div class="bingo-grid" id="bingoGrid"></div>
+    </section>
+
+    <!-- ===== 3D CHECKLIST ===== -->
+    <section class="checklist-section">
+        <h3 class="checklist-title">📋 Mission Progress</h3>
+        <div class="checklist-grid" id="checklistGrid">
+            <div class="checklist-item" data-check="1">
+                <span class="checklist-icon">⬜</span>
+                <span class="checklist-text">Solve 5 equations</span>
+                <span class="checklist-progress">0/5</span>
+            </div>
+            <div class="checklist-item" data-check="2">
+                <span class="checklist-icon">⬜</span>
+                <span class="checklist-text">Get a BINGO!</span>
+                <span class="checklist-progress">0/1</span>
+            </div>
+            <div class="checklist-item" data-check="3">
+                <span class="checklist-icon">⬜</span>
+                <span class="checklist-text">10 game streak</span>
+                <span class="checklist-progress">0/10</span>
+            </div>
+            <div class="checklist-item" data-check="4">
+                <span class="checklist-icon">⬜</span>
+                <span class="checklist-text">Score 100 points</span>
+                <span class="checklist-progress">0/100</span>
+            </div>
+            <div class="checklist-item" data-check="5">
+                <span class="checklist-icon">⬜</span>
+                <span class="checklist-text">Master all levels</span>
+                <span class="checklist-progress">0/4</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SOCIAL SECTION ===== -->
+    <section class="social-section">
+        <div class="reactions-row" id="reactionsRow"></div>
+        <div class="share-buttons" id="shareButtons"></div>
+        <div class="social-stats">
+            <span class="social-stat" id="shareCount">📤 0 Shares</span>
+            <span class="social-stat" id="viewCount">👁️ 0 Views</span>
+            <span class="social-stat" id="followerCount">👥 0 Followers</span>
+        </div>
+    </section>
+
+</div>
+
+<!-- ===== BINGO CELEBRATION ===== -->
+<div class="bingo-celebration" id="bingoCelebration">
+    <div class="celebration-content">
+        <div class="celebration-emoji">🎉</div>
+        <h2>BINGO!</h2>
+        <p>+50 BONUS POINTS</p>
+        <button class="gaming-btn btn-primary" id="closeCelebration">CONTINUE</button>
+    </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toastContainer"></div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="magicrills-math-bingo.js"></script>
 </body>
 </html>
