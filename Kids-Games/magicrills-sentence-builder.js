@@ -5,10 +5,12 @@
 // ============================================
 
 // ============================================
-// API CONFIGURATION
+// ============================================
+// API CONFIGURATION - CLOUDFLARE WORKERS
 // ============================================
 const API_CONFIG = {
-    baseURL: '/api',
+    baseURL: 'https://magicrills-api.uzairhameed01.workers.dev',
+    apiKey: 'magicrills-grok-api.uzairhameed01.workers.dev',
     toolSlug: 'magicrills-sentence-builder',
     userId: null
 };
@@ -23,7 +25,6 @@ function getUserId() {
 }
 
 API_CONFIG.userId = getUserId();
-
 // ============================================
 // 24 GAME MODES DATA
 // ============================================
@@ -776,20 +777,26 @@ function renderModeGrid() {
 // ============================================
 async function incrementUsageCount() {
     try {
-        const response = await fetch(`${API_CONFIG.baseURL}/increment-usage`, {
+        const response = await fetch(`${API_CONFIG.baseURL}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_CONFIG.apiKey
+            },
             body: JSON.stringify({
                 tool_slug: API_CONFIG.toolSlug,
-                user_id: API_CONFIG.userId
+                user_id: API_CONFIG.userId,
+                tool_name: API_CONFIG.toolName,
+                category: API_CONFIG.category
             })
         });
         if (response.ok) {
             const data = await response.json();
-            totalUsageCount = data.total_usage || 0;
+            totalUsageCount = data.total_usage || data.usage || 0;
             updateUsageDisplay();
         }
     } catch (error) {
+        console.log('API fallback: using localStorage');
         let localCount = parseInt(localStorage.getItem(`${API_CONFIG.toolSlug}_usage`) || '0');
         localCount++;
         localStorage.setItem(`${API_CONFIG.toolSlug}_usage`, localCount);
@@ -797,7 +804,6 @@ async function incrementUsageCount() {
         updateUsageDisplay();
     }
 }
-
 function updateUsageDisplay() {
     const usageEl = document.getElementById("totalUsage");
     if (usageEl) usageEl.textContent = totalUsageCount.toLocaleString();
@@ -805,27 +811,31 @@ function updateUsageDisplay() {
 
 async function fetchReactions() {
     try {
-        const response = await fetch(`${API_CONFIG.baseURL}/reactions?tool_slug=${API_CONFIG.toolSlug}`);
+        const response = await fetch(`${API_CONFIG.baseURL}/api/reactions?tool_slug=${API_CONFIG.toolSlug}`, {
+            headers: {
+                'X-API-Key': API_CONFIG.apiKey
+            }
+        });
         if (response.ok) {
             const data = await response.json();
             if (data.reactions) {
                 currentReactions = {
-                    '👍': data.reactions.like || 0,
-                    '❤️': data.reactions.love || 0,
-                    '😮': data.reactions.wow || 0,
-                    '😢': data.reactions.sad || 0,
-                    '😠': data.reactions.angry || 0,
-                    '😂': data.reactions.laugh || 0,
-                    '🎉': data.reactions.celebrate || 0
+                    '👍': data.reactions.like || data.reactions['👍'] || 0,
+                    '❤️': data.reactions.love || data.reactions['❤️'] || 0,
+                    '😮': data.reactions.wow || data.reactions['😮'] || 0,
+                    '😢': data.reactions.sad || data.reactions['😢'] || 0,
+                    '😠': data.reactions.angry || data.reactions['😠'] || 0,
+                    '😂': data.reactions.laugh || data.reactions['😂'] || 0,
+                    '🎉': data.reactions.celebrate || data.reactions['🎉'] || 0
                 };
             }
             updateReactionsDisplay();
         }
     } catch (error) {
+        console.log('API fallback: loading reactions from localStorage');
         loadReactionsFromLocal();
     }
 }
-
 async function addReaction(emoji) {
     if (userReactions[emoji]) {
         showToast(`You already reacted with ${emoji}!`, 'info');
@@ -833,9 +843,12 @@ async function addReaction(emoji) {
     }
     try {
         const reactionMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
-        const response = await fetch(`${API_CONFIG.baseURL}/add-reaction`, {
+        const response = await fetch(`${API_CONFIG.baseURL}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_CONFIG.apiKey
+            },
             body: JSON.stringify({
                 tool_slug: API_CONFIG.toolSlug,
                 emoji: emoji,
@@ -845,22 +858,23 @@ async function addReaction(emoji) {
         });
         if (response.ok) {
             const data = await response.json();
-            if (data.already_reacted) {
+            if (data.already_reacted || data.message === 'Already reacted') {
                 showToast(`You already reacted with ${emoji}!`, 'info');
                 return;
             }
-            if (data.counts) {
+            if (data.counts || data.reactions) {
+                const counts = data.counts || data.reactions;
                 currentReactions = {
-                    '👍': data.counts.like || 0,
-                    '❤️': data.counts.love || 0,
-                    '😮': data.counts.wow || 0,
-                    '😢': data.counts.sad || 0,
-                    '😠': data.counts.angry || 0,
-                    '😂': data.counts.laugh || 0,
-                    '🎉': data.counts.celebrate || 0
+                    '👍': counts.like || counts['👍'] || 0,
+                    '❤️': counts.love || counts['❤️'] || 0,
+                    '😮': counts.wow || counts['😮'] || 0,
+                    '😢': counts.sad || counts['😢'] || 0,
+                    '😠': counts.angry || counts['😠'] || 0,
+                    '😂': counts.laugh || counts['😂'] || 0,
+                    '🎉': counts.celebrate || counts['🎉'] || 0
                 };
             } else {
-                currentReactions[emoji]++;
+                currentReactions[emoji] = (currentReactions[emoji] || 0) + 1;
             }
             userReactions[emoji] = true;
             saveReactionsToLocal();
@@ -869,8 +883,9 @@ async function addReaction(emoji) {
             addXP(5);
         }
     } catch (error) {
+        console.log('API fallback: saving reaction locally');
         if (!userReactions[emoji]) {
-            currentReactions[emoji]++;
+            currentReactions[emoji] = (currentReactions[emoji] || 0) + 1;
             userReactions[emoji] = true;
             saveReactionsToLocal();
             updateReactionsDisplay();
@@ -879,7 +894,6 @@ async function addReaction(emoji) {
         }
     }
 }
-
 function updateReactionsDisplay() {
     const reactionsContainer = document.getElementById("reactionsContainer");
     if (!reactionsContainer) return;
@@ -940,20 +954,27 @@ async function shareToPlatform(platform) {
 
 async function trackShare(platform) {
     try {
-        await fetch(`${API_CONFIG.baseURL}/add-share`, {
+        await fetch(`${API_CONFIG.baseURL}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_CONFIG.apiKey
+            },
             body: JSON.stringify({
                 tool_slug: API_CONFIG.toolSlug,
                 platform: platform,
-                user_id: API_CONFIG.userId
+                user_id: API_CONFIG.userId,
+                tool_name: API_CONFIG.toolName
             })
         });
     } catch (error) {
-        console.error('Share track error:', error);
+        console.log('Share track error:', error);
+        // Save locally
+        let localShares = JSON.parse(localStorage.getItem(`${API_CONFIG.toolSlug}_shares`) || '[]');
+        localShares.push({ platform, timestamp: Date.now() });
+        localStorage.setItem(`${API_CONFIG.toolSlug}_shares`, JSON.stringify(localShares));
     }
 }
-
 function initShareButtons() {
     const shareSection = document.getElementById("shareSection");
     if (!shareSection) return;
@@ -970,6 +991,34 @@ async function fetchLeaderboard() {
     const leaderboardList = document.getElementById("leaderboardList");
     if (!leaderboardList) return;
     leaderboardList.innerHTML = '<div>Loading...</div>';
+    
+    try {
+        const response = await fetch(`${API_CONFIG.baseURL}/api/stats?tool_slug=${API_CONFIG.toolSlug}`, {
+            headers: {
+                'X-API-Key': API_CONFIG.apiKey
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            // Update dashboard stats
+            if (data.stats) {
+                dashboardStats.usage = data.stats.usage || data.stats.total_usage || 0;
+                dashboardStats.views = data.stats.views || data.stats.total_views || 0;
+                dashboardStats.shares = data.stats.shares || data.stats.total_shares || 0;
+                dashboardStats.followers = data.stats.followers || data.stats.total_followers || 0;
+                updateDashboardStats();
+            }
+        }
+    } catch (error) {
+        console.log('API fallback: using local stats');
+        // Load from localStorage
+        dashboardStats.usage = parseInt(localStorage.getItem(`${API_CONFIG.toolSlug}_usage`) || '0');
+        const localShares = JSON.parse(localStorage.getItem(`${API_CONFIG.toolSlug}_shares`) || '[]');
+        dashboardStats.shares = localShares.length;
+        updateDashboardStats();
+    }
+    
+    // Show local leaderboard
     const users = [{ name: 'You', xp: totalXP, level: userLevel, correct: correctCount }];
     users.sort((a, b) => b.xp - a.xp);
     leaderboardList.innerHTML = users.map((user, idx) => `
@@ -981,6 +1030,20 @@ async function fetchLeaderboard() {
     `).join('');
 }
 
+function updateDashboardStats() {
+    // Update stats display if elements exist
+    const usageEl = document.getElementById('totalUsage');
+    if (usageEl) usageEl.textContent = dashboardStats.usage.toLocaleString();
+    
+    const viewsEl = document.getElementById('totalViews');
+    if (viewsEl) viewsEl.textContent = dashboardStats.views.toLocaleString();
+    
+    const sharesEl = document.getElementById('totalShares');
+    if (sharesEl) sharesEl.textContent = dashboardStats.shares.toLocaleString();
+    
+    const followersEl = document.getElementById('totalFollowers');
+    if (followersEl) followersEl.textContent = dashboardStats.followers.toLocaleString();
+}
 // ============================================
 // UI INITIALIZATION
 // ============================================
