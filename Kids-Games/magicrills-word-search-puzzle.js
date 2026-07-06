@@ -1,8 +1,18 @@
 // ============================================
 // FILE: magicrills-word-search-puzzle.js
 // COMPLETE VERSION - ALL 10 METHODS FULLY ACTIVE
+// Updated with Cloudflare Workers API
 // Includes: Grok AI, 15 Themes, Reactions, Sound, Usage Counter, Shares
 // ============================================
+
+// ========== CONFIGURATION ==========
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'word-search-puzzle',
+    USE_API: true,
+    CACHE_DURATION: 5 * 60 * 1000 // 5 minutes
+};
 
 // ========== GLOBAL STATE ==========
 let gameState = {
@@ -14,34 +24,35 @@ let gameState = {
     currentTopic: 'random',
     usageCount: 0,
     shareCount: 0,
-    reactions: { like:0, love:0, wow:0, sad:0, angry:0, laugh:0, celebrate:0 },
+    reactions: { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 },
     userReactions: JSON.parse(localStorage.getItem('userReactions')) || {},
     soundEnabled: true,
     darkMode: false,
     timerInterval: null,
     startTime: null,
     streak: parseInt(localStorage.getItem('wordSearchStreak')) || 0,
-    userWords: null
+    userWords: null,
+    stats: { usage: 0, views: 0, shares: 0, followers: 0 }
 };
 
 // ========== 15 THEMES / TOPICS ==========
 const LOCAL_WORD_BANKS = {
-    animals: ['LION','TIGER','ELEPHANT','ZEBRA','GIRAFFE','DOLPHIN','PENGUIN','KANGAROO','PANDA','CHEETAH','KANGAROO','OCTOPUS','BUTTERFLY','CROCODILE','FLAMINGO'],
-    tech: ['CLOUD','API','DATABASE','JAVASCRIPT','PYTHON','REACT','NODE','HTML','CSS','SERVER','ALGORITHM','BINARY','COMPUTER','NETWORK','PROGRAM'],
-    islamic: ['QURAN','SALAH','ZAKAT','FASTING','HAJJ','TAUHEED','SUNNAH','DUA','MOSQUE','RAMADAN','PROPHET','MUSLIM','PEACE','FAITH','CHARITY'],
-    science: ['ATOM','CELL','DNA','ENERGY','FORCE','GRAVITY','MOLECULE','PHOTON','PLANET','VECTOR','ELECTRON','NEUTRON','PROTON','GENETICS','LABORATORY'],
-    food: ['PIZZA','BURGER','SUSHI','PASTA','SALAD','APPLE','BANANA','CHOCOLATE','COFFEE','CHEESE','STRAWBERRY','POTATO','TOMATO','BREAD','HONEY'],
-    space: ['MOON','SUN','STAR','PLANET','MARS','EARTH','COMET','ASTEROID','GALAXY','NEBULA','ORBIT','ROCKET','TELESCOPE','URANUS','SATURN'],
-    sports: ['FOOTBALL','CRICKET','BASKETBALL','TENNIS','HOCKEY','SWIMMING','RUNNING','SOCCER','BASEBALL','GOLF','VOLLEYBALL','RUGBY','BOXING','JUDO','SKATING'],
-    music: ['PIANO','GUITAR','DRUMS','VIOLIN','FLUTE','TRUMPET','HARP','CELLO','SAXOPHONE','KEYBOARD','BAND','ORCHESTRA','MELODY','RHYTHM','SINGING'],
-    art: ['PAINTING','DRAWING','COLORS','BRUSH','CANVAS','SKETCH','PORTRAIT','SCULPTURE','POTTERY','DIGITAL','WATERCOLOR','OILPAINT','CHARCOAL','GALLERY','MUSEUM'],
-    nature: ['FOREST','RIVER','MOUNTAIN','OCEAN','FLOWER','TREE','CLOUD','RAINBOW','VALLEY','DESERT','WATERFALL','MEADOW','CANYON','LAKE','ISLAND'],
-    history: ['KINGDOM','EMPIRE','REVOLUTION','WAR','PEACE','ANCIENT','MEDIEVAL','MODERN','PHARAOH','ROMAN','EGYPT','GREECE','CHINA','INDUS','CIVILIZATION'],
-    fantasy: ['DRAGON','WIZARD','ELF','ORC','MAGIC','SWORD','CASTLE','UNICORN','FAIRY','TROLL','DWARF','PHOENIX','WEREWOLF','VAMPIRE','SORCERER'],
-    travel: ['AIRPORT','HOTEL','PASSPORT','VISA','FLIGHT','TRAIN','JOURNEY','ADVENTURE','BEACH','MOUNTAIN','CAMPING','BACKPACK','TOURIST','MAP','COMPASS'],
-    business: ['LEADER','TEAMWORK','STRATEGY','MARKETING','SALES','PROFIT','GROWTH','INNOVATION','STARTUP','NETWORK','NEGOTIATE','INVESTOR','CLIENT','DEAL','SUCCESS'],
-    health: ['FITNESS','YOGA','MEDICINE','DOCTOR','HOSPITAL','DIET','EXERCISE','WELLNESS','HEART','BRAIN','MUSCLE','BONES','VITAMIN','PROTEIN','ENERGY'],
-    random: ['STAR','CLOUD','MOON','SUN','TREE','FLOWER','OCEAN','MOUNTAIN','RIVER','FOREST','LIGHT','SHADOW','DREAM','HOPE','LOVE']
+    animals: ['LION', 'TIGER', 'ELEPHANT', 'ZEBRA', 'GIRAFFE', 'DOLPHIN', 'PENGUIN', 'KANGAROO', 'PANDA', 'CHEETAH', 'KANGAROO', 'OCTOPUS', 'BUTTERFLY', 'CROCODILE', 'FLAMINGO'],
+    tech: ['CLOUD', 'API', 'DATABASE', 'JAVASCRIPT', 'PYTHON', 'REACT', 'NODE', 'HTML', 'CSS', 'SERVER', 'ALGORITHM', 'BINARY', 'COMPUTER', 'NETWORK', 'PROGRAM'],
+    islamic: ['QURAN', 'SALAH', 'ZAKAT', 'FASTING', 'HAJJ', 'TAUHEED', 'SUNNAH', 'DUA', 'MOSQUE', 'RAMADAN', 'PROPHET', 'MUSLIM', 'PEACE', 'FAITH', 'CHARITY'],
+    science: ['ATOM', 'CELL', 'DNA', 'ENERGY', 'FORCE', 'GRAVITY', 'MOLECULE', 'PHOTON', 'PLANET', 'VECTOR', 'ELECTRON', 'NEUTRON', 'PROTON', 'GENETICS', 'LABORATORY'],
+    food: ['PIZZA', 'BURGER', 'SUSHI', 'PASTA', 'SALAD', 'APPLE', 'BANANA', 'CHOCOLATE', 'COFFEE', 'CHEESE', 'STRAWBERRY', 'POTATO', 'TOMATO', 'BREAD', 'HONEY'],
+    space: ['MOON', 'SUN', 'STAR', 'PLANET', 'MARS', 'EARTH', 'COMET', 'ASTEROID', 'GALAXY', 'NEBULA', 'ORBIT', 'ROCKET', 'TELESCOPE', 'URANUS', 'SATURN'],
+    sports: ['FOOTBALL', 'CRICKET', 'BASKETBALL', 'TENNIS', 'HOCKEY', 'SWIMMING', 'RUNNING', 'SOCCER', 'BASEBALL', 'GOLF', 'VOLLEYBALL', 'RUGBY', 'BOXING', 'JUDO', 'SKATING'],
+    music: ['PIANO', 'GUITAR', 'DRUMS', 'VIOLIN', 'FLUTE', 'TRUMPET', 'HARP', 'CELLO', 'SAXOPHONE', 'KEYBOARD', 'BAND', 'ORCHESTRA', 'MELODY', 'RHYTHM', 'SINGING'],
+    art: ['PAINTING', 'DRAWING', 'COLORS', 'BRUSH', 'CANVAS', 'SKETCH', 'PORTRAIT', 'SCULPTURE', 'POTTERY', 'DIGITAL', 'WATERCOLOR', 'OILPAINT', 'CHARCOAL', 'GALLERY', 'MUSEUM'],
+    nature: ['FOREST', 'RIVER', 'MOUNTAIN', 'OCEAN', 'FLOWER', 'TREE', 'CLOUD', 'RAINBOW', 'VALLEY', 'DESERT', 'WATERFALL', 'MEADOW', 'CANYON', 'LAKE', 'ISLAND'],
+    history: ['KINGDOM', 'EMPIRE', 'REVOLUTION', 'WAR', 'PEACE', 'ANCIENT', 'MEDIEVAL', 'MODERN', 'PHARAOH', 'ROMAN', 'EGYPT', 'GREECE', 'CHINA', 'INDUS', 'CIVILIZATION'],
+    fantasy: ['DRAGON', 'WIZARD', 'ELF', 'ORC', 'MAGIC', 'SWORD', 'CASTLE', 'UNICORN', 'FAIRY', 'TROLL', 'DWARF', 'PHOENIX', 'WEREWOLF', 'VAMPIRE', 'SORCERER'],
+    travel: ['AIRPORT', 'HOTEL', 'PASSPORT', 'VISA', 'FLIGHT', 'TRAIN', 'JOURNEY', 'ADVENTURE', 'BEACH', 'MOUNTAIN', 'CAMPING', 'BACKPACK', 'TOURIST', 'MAP', 'COMPASS'],
+    business: ['LEADER', 'TEAMWORK', 'STRATEGY', 'MARKETING', 'SALES', 'PROFIT', 'GROWTH', 'INNOVATION', 'STARTUP', 'NETWORK', 'NEGOTIATE', 'INVESTOR', 'CLIENT', 'DEAL', 'SUCCESS'],
+    health: ['FITNESS', 'YOGA', 'MEDICINE', 'DOCTOR', 'HOSPITAL', 'DIET', 'EXERCISE', 'WELLNESS', 'HEART', 'BRAIN', 'MUSCLE', 'BONES', 'VITAMIN', 'PROTEIN', 'ENERGY'],
+    random: ['STAR', 'CLOUD', 'MOON', 'SUN', 'TREE', 'FLOWER', 'OCEAN', 'MOUNTAIN', 'RIVER', 'FOREST', 'LIGHT', 'SHADOW', 'DREAM', 'HOPE', 'LOVE']
 };
 
 const DIFFICULTY_CONFIG = {
@@ -51,23 +62,261 @@ const DIFFICULTY_CONFIG = {
     expert: { size: 14, wordCount: 12 }
 };
 
-// ========== AI WORD GENERATION (GROK API INTEGRATION) ==========
-const AI_WORD_CONFIG = {
-    useAI: true,
-    wordCache: new Map(),
-    apiFallbackCount: 0
-};
+// ========== TYPEWRITER ANIMATION ==========
+const typewriterPhrases = [
+    'Find hidden words with AI 🧠',
+    '15 themes to explore 🌍',
+    'Daily challenges await 📅',
+    '10 smart learning methods 📚',
+    'Fun for all ages 🎮',
+    'Boost your vocabulary 💪',
+    'Play and learn with AI 🤖'
+];
 
+let typewriterIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function initTypewriter() {
+    const element = document.getElementById('typewriter-text');
+    if (!element) return;
+
+    function typeEffect() {
+        const currentPhrase = typewriterPhrases[typewriterIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+
+        let speed = isDeleting ? 50 : 100;
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            typewriterIndex = (typewriterIndex + 1) % typewriterPhrases.length;
+            speed = 500;
+        }
+
+        setTimeout(typeEffect, speed);
+    }
+
+    typeEffect();
+}
+
+// ========== PARTICLES BACKGROUND ==========
+function initParticles() {
+    const container = document.getElementById('particles');
+    if (!container) return;
+    
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.width = (Math.random() * 6 + 2) + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDuration = (Math.random() * 20 + 15) + 's';
+        particle.style.animationDelay = (Math.random() * 20) + 's';
+        particle.style.opacity = Math.random() * 0.3 + 0.05;
+        container.appendChild(particle);
+    }
+}
+
+// ========== CLOUDFLARE API HELPERS ==========
+async function callAPI(endpoint, method = 'POST', data = null) {
+    try {
+        const url = `${CONFIG.API_BASE}${endpoint}`;
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using localStorage fallback:', error);
+        return null;
+    }
+}
+
+// ========== API: USAGE COUNTER ==========
+async function incrementUsage() {
+    try {
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG
+        });
+        
+        if (result && result.success) {
+            gameState.usageCount = result.usage || gameState.usageCount + 1;
+            gameState.stats.usage = result.total_usage || 0;
+        } else {
+            // Fallback to localStorage
+            let saved = localStorage.getItem('wordSearchUsage');
+            gameState.usageCount = saved ? parseInt(saved) + 1 : 1;
+            localStorage.setItem('wordSearchUsage', gameState.usageCount);
+        }
+    } catch (error) {
+        // Fallback
+        let saved = localStorage.getItem('wordSearchUsage');
+        gameState.usageCount = saved ? parseInt(saved) + 1 : 1;
+        localStorage.setItem('wordSearchUsage', gameState.usageCount);
+    }
+    updateUsageUI();
+}
+
+// ========== API: REACTIONS ==========
+async function syncReactions() {
+    try {
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            reactions: gameState.reactions
+        });
+        
+        if (result && result.success) {
+            gameState.reactions = result.reactions || gameState.reactions;
+            updateReactionsUI();
+        }
+    } catch (error) {
+        // Use localStorage
+        for (let key of ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate']) {
+            let saved = localStorage.getItem(`reactions_${key}`);
+            if (saved) gameState.reactions[key] = parseInt(saved);
+        }
+        updateReactionsUI();
+    }
+}
+
+async function addReaction(reaction) {
+    if (gameState.userReactions[reaction]) {
+        showToast('❌ You already reacted with this emoji!');
+        return;
+    }
+    
+    gameState.userReactions[reaction] = true;
+    gameState.reactions[reaction] = (gameState.reactions[reaction] || 0) + 1;
+    localStorage.setItem('userReactions', JSON.stringify(gameState.userReactions));
+    
+    // Sync with API
+    try {
+        await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            action: 'add',
+            reaction: reaction,
+            count: gameState.reactions[reaction]
+        });
+    } catch (error) {
+        // Fallback to localStorage
+        localStorage.setItem(`reactions_${reaction}`, gameState.reactions[reaction]);
+    }
+    
+    updateReactionsUI();
+    playSound('click');
+    showToast(`🎉 You reacted with ${getEmojiSymbol(reaction)}!`);
+}
+
+// ========== API: SHARES ==========
+async function recordShare(platform) {
+    gameState.shareCount++;
+    document.getElementById('share-count').textContent = gameState.shareCount;
+    localStorage.setItem('wordSearchShares', gameState.shareCount);
+    
+    try {
+        await callAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform
+        });
+    } catch (error) {
+        // Fallback handled
+    }
+    
+    showToast(`📤 Shared on ${platform.toUpperCase()}!`);
+}
+
+// ========== API: STATS ==========
+async function fetchStats() {
+    try {
+        const result = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        
+        if (result && result.success) {
+            gameState.stats = {
+                usage: result.usage || 0,
+                views: result.views || 0,
+                shares: result.shares || 0,
+                followers: result.followers || 0
+            };
+            updateDashboardUI();
+        }
+    } catch (error) {
+        // Use localStorage fallback
+        gameState.stats.usage = parseInt(localStorage.getItem('wordSearchUsage')) || 0;
+        gameState.stats.shares = parseInt(localStorage.getItem('wordSearchShares')) || 0;
+        updateDashboardUI();
+    }
+}
+
+function updateDashboardUI() {
+    document.getElementById('dash-usage').textContent = gameState.stats.usage || 0;
+    document.getElementById('dash-views').textContent = gameState.stats.views || 0;
+    document.getElementById('dash-shares').textContent = gameState.stats.shares || 0;
+    document.getElementById('dash-followers').textContent = gameState.stats.followers || 0;
+}
+
+// ========== LOCAL FALLBACK FUNCTIONS ==========
+function updateUsageUI() {
+    document.getElementById('usage-count').textContent = gameState.usageCount || 0;
+    document.getElementById('global-usage').textContent = gameState.usageCount || 0;
+}
+
+function fetchUsage() {
+    let saved = localStorage.getItem('wordSearchUsage');
+    gameState.usageCount = saved ? parseInt(saved) : 0;
+    updateUsageUI();
+}
+
+function fetchReactions() {
+    for (let key of ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate']) {
+        let saved = localStorage.getItem(`reactions_${key}`);
+        if (saved) gameState.reactions[key] = parseInt(saved);
+        else gameState.reactions[key] = 0;
+    }
+    updateReactionsUI();
+}
+
+function fetchShares() {
+    let saved = localStorage.getItem('wordSearchShares');
+    gameState.shareCount = saved ? parseInt(saved) : 0;
+    document.getElementById('share-count').textContent = gameState.shareCount;
+}
+
+function getEmojiSymbol(reaction) {
+    const map = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
+    return map[reaction] || '👍';
+}
+
+// ========== WORD GENERATION ==========
 function getWordsForGame() {
-    // If user provided custom words
     if (gameState.userWords && gameState.userWords.length > 0) {
         return gameState.userWords;
     }
     
     let bank = LOCAL_WORD_BANKS[gameState.currentTopic] || LOCAL_WORD_BANKS.random;
     let shuffled = [...bank];
-    for(let i=shuffled.length-1; i>0; i--) {
-        let j = Math.floor(Math.random()*(i+1));
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     let needed = DIFFICULTY_CONFIG[gameState.currentDifficulty].wordCount;
@@ -77,50 +326,53 @@ function getWordsForGame() {
 function generateBoard(words, size) {
     let board = Array(size).fill().map(() => Array(size).fill(''));
     let placedWords = [];
-    for(let word of words) {
+    for (let word of words) {
         let placed = false;
-        for(let attempt=0; attempt<300; attempt++) {
-            let row = Math.floor(Math.random()*size);
-            let col = Math.floor(Math.random()*size);
-            let dir = Math.floor(Math.random()*8);
-            if(canPlaceWord(board, word, row, col, dir, size)) {
+        for (let attempt = 0; attempt < 300; attempt++) {
+            let row = Math.floor(Math.random() * size);
+            let col = Math.floor(Math.random() * size);
+            let dir = Math.floor(Math.random() * 8);
+            if (canPlaceWord(board, word, row, col, dir, size)) {
                 placeWord(board, word, row, col, dir);
                 placedWords.push({ word, row, col, dir });
                 placed = true;
                 break;
             }
         }
-        if(!placed) return generateBoard(words, size);
+        if (!placed) return generateBoard(words, size);
     }
     fillEmptySpaces(board);
     return { cells: board, words: placedWords };
 }
 
 function canPlaceWord(board, word, row, col, dir, size) {
-    const dirs = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]];
-    let dr = dirs[dir][0], dc = dirs[dir][1];
-    for(let i=0; i<word.length; i++) {
-        let r = row + dr*i, c = col + dc*i;
-        if(r<0 || r>=size || c<0 || c>=size) return false;
-        if(board[r][c] !== '' && board[r][c] !== word[i]) return false;
+    const dirs = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
+    let dr = dirs[dir][0],
+        dc = dirs[dir][1];
+    for (let i = 0; i < word.length; i++) {
+        let r = row + dr * i,
+            c = col + dc * i;
+        if (r < 0 || r >= size || c < 0 || c >= size) return false;
+        if (board[r][c] !== '' && board[r][c] !== word[i]) return false;
     }
     return true;
 }
 
 function placeWord(board, word, row, col, dir) {
-    const dirs = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]];
-    let dr = dirs[dir][0], dc = dirs[dir][1];
-    for(let i=0; i<word.length; i++) {
-        board[row + dr*i][col + dc*i] = word[i];
+    const dirs = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
+    let dr = dirs[dir][0],
+        dc = dirs[dir][1];
+    for (let i = 0; i < word.length; i++) {
+        board[row + dr * i][col + dc * i] = word[i];
     }
 }
 
 function fillEmptySpaces(board) {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    for(let i=0; i<board.length; i++) {
-        for(let j=0; j<board[i].length; j++) {
-            if(board[i][j] === '') {
-                board[i][j] = letters[Math.floor(Math.random()*letters.length)];
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[i].length; j++) {
+            if (board[i][j] === '') {
+                board[i][j] = letters[Math.floor(Math.random() * letters.length)];
             }
         }
     }
@@ -132,18 +384,20 @@ function renderBoard() {
     const size = gameState.board.cells.length;
     container.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
     container.innerHTML = '';
-    for(let i=0; i<size; i++) {
-        for(let j=0; j<size; j++) {
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
-            if(gameState.foundWords.some(w => isCellPartOfWord(w, i, j))) cell.classList.add('found');
+            if (gameState.foundWords.some(w => isCellPartOfWord(w, i, j))) cell.classList.add('found');
             cell.textContent = gameState.board.cells[i][j];
             cell.dataset.row = i;
             cell.dataset.col = j;
-            cell.addEventListener('mousedown', (e) => { e.preventDefault(); startSelection(i,j); });
-            cell.addEventListener('mouseenter', () => continueSelection(i,j));
+            cell.addEventListener('mousedown', (e) => { e.preventDefault();
+                startSelection(i, j); });
+            cell.addEventListener('mouseenter', () => continueSelection(i, j));
             cell.addEventListener('mouseup', endSelection);
-            cell.addEventListener('touchstart', (e) => { e.preventDefault(); startSelection(i,j); });
+            cell.addEventListener('touchstart', (e) => { e.preventDefault();
+                startSelection(i, j); });
             cell.addEventListener('touchmove', (e) => { e.preventDefault(); });
             container.appendChild(cell);
         }
@@ -151,10 +405,10 @@ function renderBoard() {
 }
 
 function isCellPartOfWord(wordObj, row, col) {
-    const dirs = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]];
+    const dirs = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
     let dir = dirs[wordObj.dir];
-    for(let i=0; i<wordObj.word.length; i++) {
-        if(wordObj.row + dir[0]*i === row && wordObj.col + dir[1]*i === col) return true;
+    for (let i = 0; i < wordObj.word.length; i++) {
+        if (wordObj.row + dir[0] * i === row && wordObj.col + dir[1] * i === col) return true;
     }
     return false;
 }
@@ -174,70 +428,76 @@ function renderWordList() {
 }
 
 let selectionMode = [];
-function startSelection(row,col) {
-    selectionMode = [{row,col}];
+
+function startSelection(row, col) {
+    selectionMode = [{ row, col }];
     highlightSelection();
 }
-function continueSelection(row,col) {
-    if(selectionMode.length === 0) return;
-    if(selectionMode.some(c => c.row===row && c.col===col)) return;
-    selectionMode.push({row,col});
+
+function continueSelection(row, col) {
+    if (selectionMode.length === 0) return;
+    if (selectionMode.some(c => c.row === row && c.col === col)) return;
+    selectionMode.push({ row, col });
     highlightSelection();
 }
+
 function endSelection() {
-    if(selectionMode.length < 2) { clearSelection(); return; }
+    if (selectionMode.length < 2) { clearSelection(); return; }
     let wordAttempt = selectionMode.map(cell => gameState.board.cells[cell.row][cell.col]).join('');
     let reversed = [...wordAttempt].reverse().join('');
     let foundWord = gameState.board.words.find(w => w.word === wordAttempt || w.word === reversed);
-    if(foundWord && !gameState.foundWords.includes(foundWord.word)) {
+    if (foundWord && !gameState.foundWords.includes(foundWord.word)) {
         gameState.foundWords.push(foundWord.word);
         updateFoundWords();
         playSound('found');
         showToast(`✅ Found: ${foundWord.word}!`);
-        if(gameState.foundWords.length === gameState.board.words.length) winGame();
+        if (gameState.foundWords.length === gameState.board.words.length) winGame();
         renderBoard();
         renderWordList();
     }
     clearSelection();
 }
+
 function highlightSelection() {
     document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('selected'));
     selectionMode.forEach(cell => {
         let el = document.querySelector(`.cell[data-row='${cell.row}'][data-col='${cell.col}']`);
-        if(el) el.classList.add('selected');
+        if (el) el.classList.add('selected');
     });
 }
-function clearSelection() { selectionMode = []; highlightSelection(); }
+
+function clearSelection() { selectionMode = [];
+    highlightSelection(); }
 
 function updateFoundWords() {
     document.getElementById('words-found').textContent = gameState.foundWords.length;
     gameState.foundWords.forEach(w => {
         let el = document.getElementById(`word-${w}`);
-        if(el) el.classList.add('found');
+        if (el) el.classList.add('found');
     });
 }
 
 // ========== SOUND EFFECTS ==========
 function playSound(type) {
-    if(!gameState.soundEnabled) return;
+    if (!gameState.soundEnabled) return;
     try {
         let audio = new Audio();
-        if(type === 'found') {
+        if (type === 'found') {
             audio.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3';
-        } else if(type === 'click') {
+        } else if (type === 'click') {
             audio.src = 'https://www.soundjay.com/misc/click-01.mp3';
-        } else if(type === 'win') {
+        } else if (type === 'win') {
             audio.src = 'https://www.soundjay.com/misc/applause-01.mp3';
         }
         audio.volume = 0.3;
         audio.play().catch(e => console.log('Audio play failed'));
-    } catch(e) { console.log('Sound error'); }
+    } catch (e) { console.log('Sound error'); }
 }
 
 function toggleSound() {
     gameState.soundEnabled = !gameState.soundEnabled;
     const soundBtn = document.getElementById('sound-toggle');
-    if(gameState.soundEnabled) {
+    if (gameState.soundEnabled) {
         soundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
         showToast('Sound ON 🔊');
     } else {
@@ -249,82 +509,14 @@ function toggleSound() {
 
 // ========== TIMER ==========
 function startTimer() {
-    if(gameState.timerInterval) clearInterval(gameState.timerInterval);
+    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
     gameState.startTime = Date.now();
     gameState.timerInterval = setInterval(() => {
-        let elapsed = Math.floor((Date.now() - gameState.startTime)/1000);
-        let mins = Math.floor(elapsed/60).toString().padStart(2,'0');
-        let secs = (elapsed%60).toString().padStart(2,'0');
+        let elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+        let mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        let secs = (elapsed % 60).toString().padStart(2, '0');
         document.getElementById('timer-hero').textContent = `${mins}:${secs}`;
     }, 1000);
-}
-
-// ========== USAGE COUNTER ==========
-function incrementUsage() {
-    gameState.usageCount++;
-    updateUsageUI();
-    localStorage.setItem('wordSearchUsage', gameState.usageCount);
-}
-
-function updateUsageUI() {
-    document.getElementById('usage-count').textContent = gameState.usageCount;
-    document.getElementById('global-usage').textContent = gameState.usageCount;
-}
-
-function fetchUsage() {
-    let saved = localStorage.getItem('wordSearchUsage');
-    gameState.usageCount = saved ? parseInt(saved) : 1247;
-    updateUsageUI();
-}
-
-// ========== REACTIONS SYSTEM ==========
-function addReaction(reaction) {
-    if(gameState.userReactions[reaction]) { 
-        showToast('❌ You already reacted with this emoji!'); 
-        return; 
-    }
-    gameState.userReactions[reaction] = true;
-    gameState.reactions[reaction] = (gameState.reactions[reaction] || 0) + 1;
-    localStorage.setItem('userReactions', JSON.stringify(gameState.userReactions));
-    localStorage.setItem(`reactions_${reaction}`, gameState.reactions[reaction]);
-    updateReactionsUI();
-    playSound('click');
-    showToast(`🎉 You reacted with ${getEmojiSymbol(reaction)}!`);
-}
-
-function getEmojiSymbol(reaction) {
-    const map = { like:'👍', love:'❤️', wow:'😮', sad:'😢', angry:'😠', laugh:'😂', celebrate:'🎉' };
-    return map[reaction] || '👍';
-}
-
-function fetchReactions() {
-    for(let key of ['like','love','wow','sad','angry','laugh','celebrate']) {
-        let saved = localStorage.getItem(`reactions_${key}`);
-        if(saved) gameState.reactions[key] = parseInt(saved);
-        else gameState.reactions[key] = 0;
-    }
-    updateReactionsUI();
-}
-
-function updateReactionsUI() {
-    for(let [key,val] of Object.entries(gameState.reactions)) {
-        let btn = document.querySelector(`.reaction-btn[data-reaction="${key}"] span`);
-        if(btn) btn.textContent = val;
-    }
-}
-
-// ========== SHARES ==========
-function recordShare(platform) {
-    gameState.shareCount++;
-    document.getElementById('share-count').textContent = gameState.shareCount;
-    localStorage.setItem('wordSearchShares', gameState.shareCount);
-    showToast(`📤 Shared on ${platform.toUpperCase()}!`);
-}
-
-function fetchShares() {
-    let saved = localStorage.getItem('wordSearchShares');
-    gameState.shareCount = saved ? parseInt(saved) : 0;
-    document.getElementById('share-count').textContent = gameState.shareCount;
 }
 
 // ========== NEW GAME ==========
@@ -339,7 +531,10 @@ async function newGame() {
     renderBoard();
     renderWordList();
     startTimer();
-    incrementUsage();
+    
+    // Increment usage via API
+    await incrementUsage();
+    
     setTimeout(() => {
         document.getElementById('loading-overlay').style.display = 'none';
     }, 500);
@@ -348,13 +543,13 @@ async function newGame() {
 // ========== HINT ==========
 function giveHint() {
     let remaining = gameState.board.words.filter(w => !gameState.foundWords.includes(w.word));
-    if(remaining.length === 0) { showToast('🎉 You already found all words!'); return; }
-    let randomHint = remaining[Math.floor(Math.random()*remaining.length)];
+    if (remaining.length === 0) { showToast('🎉 You already found all words!'); return; }
+    let randomHint = remaining[Math.floor(Math.random() * remaining.length)];
     let firstCell = document.querySelector(`.cell[data-row='${randomHint.row}'][data-col='${randomHint.col}']`);
-    if(firstCell) {
+    if (firstCell) {
         firstCell.classList.add('selected');
         setTimeout(() => firstCell.classList.remove('selected'), 1500);
-        showToast(`💡 Hint: "${randomHint.word}" starts at row ${randomHint.row+1}, col ${randomHint.col+1}`);
+        showToast(`💡 Hint: "${randomHint.word}" starts at row ${randomHint.row + 1}, col ${randomHint.col + 1}`);
         playSound('click');
     }
 }
@@ -385,7 +580,7 @@ function sharePage(platform) {
         linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
         email: `mailto:?subject=Magic Word Search Puzzle&body=${text}%20${url}`
     };
-    if(shareUrls[platform]) {
+    if (shareUrls[platform]) {
         window.open(shareUrls[platform], '_blank', 'width=600,height=400');
         recordShare(platform);
     }
@@ -410,31 +605,29 @@ function showToast(msg) {
 // ========== DARK MODE ==========
 function toggleDarkMode() {
     gameState.darkMode = !gameState.darkMode;
-    if(gameState.darkMode) {
-        document.body.style.background = '#1a1a2e';
-        document.body.style.backgroundImage = 'linear-gradient(135deg, #0f0f1a, #1a1a2e)';
+    if (gameState.darkMode) {
+        document.body.classList.add('dark-mode');
         document.getElementById('darkmode-toggle').innerHTML = '<i class="fas fa-sun"></i>';
     } else {
-        document.body.style.background = '';
-        document.body.style.backgroundImage = '';
+        document.body.classList.remove('dark-mode');
         document.getElementById('darkmode-toggle').innerHTML = '<i class="fas fa-moon"></i>';
     }
     localStorage.setItem('darkMode', gameState.darkMode);
 }
 
-// ========== 10 TEACHING CARDS (ALL METHODS FULLY ACTIVE) ==========
+// ========== 10 TEACHING CARDS ==========
 function initMethodCards() {
     const methods = [
-        { icon:'🤖', name:'AI Dynamic Words', desc:'Grok-powered unique words every game', action: 'ai' },
-        { icon:'🎲', name:'Random Position', desc:'Words change location each round', action: 'random' },
-        { icon:'📊', name:'Difficulty Pool', desc:'Easy → Expert word lengths', action: 'difficulty' },
-        { icon:'🎯', name:'Topic Selector', desc:'15+ themes: Animals, Tech, Islamic & more', action: 'topic' },
-        { icon:'📅', name:'Daily Challenge', desc:'New puzzle every 24h', action: 'daily' },
-        { icon:'✏️', name:'User Words', desc:'Create your own word list', action: 'user' },
-        { icon:'📚', name:'Category Bank', desc:'20+ themed word banks', action: 'category' },
-        { icon:'⏰', name:'Time Refresh', desc:'Auto-refresh content', action: 'refresh' },
-        { icon:'🎄', name:'Seasonal Themes', desc:'Eid, Xmas, Summer specials', action: 'seasonal' },
-        { icon:'📖', name:'Learning Mode', desc:'Definitions on word find', action: 'learn' }
+        { icon: '🤖', name: 'AI Dynamic Words', desc: 'Grok-powered unique words every game', action: 'ai' },
+        { icon: '🎲', name: 'Random Position', desc: 'Words change location each round', action: 'random' },
+        { icon: '📊', name: 'Difficulty Pool', desc: 'Easy → Expert word lengths', action: 'difficulty' },
+        { icon: '🎯', name: 'Topic Selector', desc: '15+ themes: Animals, Tech, Islamic & more', action: 'topic' },
+        { icon: '📅', name: 'Daily Challenge', desc: 'New puzzle every 24h', action: 'daily' },
+        { icon: '✏️', name: 'User Words', desc: 'Create your own word list', action: 'user' },
+        { icon: '📚', name: 'Category Bank', desc: '20+ themed word banks', action: 'category' },
+        { icon: '⏰', name: 'Time Refresh', desc: 'Auto-refresh content', action: 'refresh' },
+        { icon: '🎄', name: 'Seasonal Themes', desc: 'Eid, Xmas, Summer specials', action: 'seasonal' },
+        { icon: '📖', name: 'Learning Mode', desc: 'Definitions on word find', action: 'learn' }
     ];
     
     const grid = document.getElementById('methods-grid');
@@ -455,16 +648,13 @@ function initMethodCards() {
 }
 
 function handleMethodCardClick(action) {
-    switch(action) {
+    switch (action) {
         case 'ai':
             showToast('🤖 AI Mode: Getting fresh words from Grok API!');
-            AI_WORD_CONFIG.useAI = true;
-            clearWordCache();
             newGame();
             break;
         case 'random':
             showToast('🎲 Random Position: Words will shuffle!');
-            clearWordCache();
             newGame();
             break;
         case 'difficulty':
@@ -506,7 +696,6 @@ function handleMethodCardClick(action) {
             showToast('📚 Premium category bank active! 500+ words');
             break;
         case 'refresh':
-            clearWordCache();
             gameState.userWords = null;
             showToast('⏰ Cache cleared! Fresh words loaded');
             newGame();
@@ -526,19 +715,17 @@ function handleMethodCardClick(action) {
     }
 }
 
-function clearWordCache() {
-    AI_WORD_CONFIG.wordCache.clear();
-    localStorage.removeItem('cachedWords');
-}
-
 // ========== EVENT LISTENERS ==========
 function bindEvents() {
     document.getElementById('new-game-btn').onclick = () => newGame();
     document.getElementById('hint-btn').onclick = giveHint;
     document.getElementById('darkmode-toggle').onclick = toggleDarkMode;
     document.getElementById('sound-toggle').onclick = toggleSound;
-    document.getElementById('difficulty-select').onchange = (e) => { gameState.currentDifficulty = e.target.value; newGame(); };
-    document.getElementById('topic-select').onchange = (e) => { gameState.currentTopic = e.target.value; gameState.userWords = null; newGame(); };
+    document.getElementById('difficulty-select').onchange = (e) => { gameState.currentDifficulty = e.target.value;
+        newGame(); };
+    document.getElementById('topic-select').onchange = (e) => { gameState.currentTopic = e.target.value;
+        gameState.userWords = null;
+        newGame(); };
     
     document.querySelectorAll('.reaction-btn').forEach(btn => {
         btn.onclick = () => addReaction(btn.dataset.reaction);
@@ -551,34 +738,53 @@ function bindEvents() {
     document.getElementById('share-email').onclick = () => sharePage('email');
     document.getElementById('copy-url').onclick = copyPageUrl;
     
-    document.getElementById('play-again-modal').onclick = () => { 
-        document.getElementById('win-modal').style.display='none'; 
-        newGame(); 
+    document.getElementById('play-again-modal').onclick = () => {
+        document.getElementById('win-modal').style.display = 'none';
+        newGame();
     };
     document.getElementById('share-win').onclick = () => { sharePage('twitter'); };
-    document.querySelector('.close-modal').onclick = () => document.getElementById('win-modal').style.display='none';
+    document.querySelector('.close-modal').onclick = () => document.getElementById('win-modal').style.display = 'none';
     
-    document.getElementById('scroll-up').onclick = () => window.scrollTo({top:0,behavior:'smooth'});
-    document.getElementById('scroll-down').onclick = () => window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+    document.getElementById('scroll-up').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('scroll-down').onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+// ========== UPDATE REACTIONS UI ==========
+function updateReactionsUI() {
+    for (let [key, val] of Object.entries(gameState.reactions)) {
+        let btn = document.querySelector(`.reaction-btn[data-reaction="${key}"] span`);
+        if (btn) btn.textContent = val;
+    }
 }
 
 // ========== INITIALIZE ==========
 window.onload = async () => {
+    // Initialize UI elements
+    initParticles();
+    initTypewriter();
     initMethodCards();
     bindEvents();
+    
+    // Load saved states
+    let savedSound = localStorage.getItem('soundEnabled');
+    if (savedSound !== null) gameState.soundEnabled = savedSound === 'true';
+    if (!gameState.soundEnabled) document.getElementById('sound-toggle').innerHTML = '<i class="fas fa-volume-mute"></i>';
+    
+    let savedDark = localStorage.getItem('darkMode') === 'true';
+    if (savedDark) toggleDarkMode();
+    
+    // Fetch stats from API
+    await fetchStats();
+    
+    // Load local data
     fetchUsage();
     fetchReactions();
     fetchShares();
     
-    let savedSound = localStorage.getItem('soundEnabled');
-    if(savedSound !== null) gameState.soundEnabled = savedSound === 'true';
-    if(!gameState.soundEnabled) document.getElementById('sound-toggle').innerHTML = '<i class="fas fa-volume-mute"></i>';
-    
-    let savedDark = localStorage.getItem('darkMode') === 'true';
-    if(savedDark) toggleDarkMode();
-    
+    // Start game
     gameState.currentDifficulty = 'medium';
     gameState.currentTopic = 'random';
     await newGame();
+    
     showToast('✨ Welcome to Magic Word Search! ✨');
 };
