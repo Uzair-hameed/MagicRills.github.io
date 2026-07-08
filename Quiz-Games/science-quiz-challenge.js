@@ -1,9 +1,12 @@
 // ==================== CONFIGURATION ====================
 const CONFIG = {
     APP_NAME: 'Science Quiz Challenge',
-    VERSION: '6.0.0',
-    CLOUD_WORKER_URL: 'https://urdu-quiz-challenge.uzairhameed01.workers.dev',
-    QUESTIONS_PER_LEVEL: 50
+    VERSION: '7.0.0',
+    TOOL_SLUG: 'science-quiz-challenge',
+    CLOUD_API: 'https://magicrills-api.uzairhameed01.workers.dev',
+    GROK_API: 'https://magicrills-grok-api.uzairhameed01.workers.dev',
+    QUESTIONS_PER_LEVEL: 50,
+    REACTIONS: ['like', 'love', 'wow', 'sad', 'laugh', 'celebrate', 'fire']
 };
 
 // ==================== TIME & POINTS PER LEVEL ====================
@@ -11,8 +14,18 @@ const TIME_LIMITS = { 1: 60, 2: 50, 3: 40, 4: 35, 5: 30 };
 const POINTS_PER_LEVEL = { 1: 10, 2: 15, 3: 20, 4: 25, 5: 30 };
 const LEVEL_NAMES = { 1: 'Easy', 2: 'Medium', 3: 'Hard', 4: 'Expert', 5: 'Master' };
 
-// ==================== 250+ مستند سائنس سوالات (کوئی ڈمی ڈیٹا نہیں) ====================
+// ==================== REACTION EMOJI NAMES ====================
+const EMOJI_NAMES = {
+    like: '👍',
+    love: '❤️',
+    wow: '😮',
+    sad: '😢',
+    laugh: '😂',
+    celebrate: '🎉',
+    fire: '🔥'
+};
 
+// ==================== LOCAL QUESTION BANK (Fallback) ====================
 const scienceQuestions = {
     1: [
         { question: "What is the process by which plants make their own food?", options: ["Photosynthesis", "Respiration", "Transpiration", "Germination"], answer: 0, explanation: "Photosynthesis is the process where plants convert sunlight, carbon dioxide, and water into glucose and oxygen.", factoid: "Plants are called producers because they make their own food.", category: "Biology" },
@@ -53,9 +66,10 @@ const scienceQuestions = {
 // Expand questions to 50 per level
 for (let level = 1; level <= 5; level++) {
     while (scienceQuestions[level].length < CONFIG.QUESTIONS_PER_LEVEL) {
-        scienceQuestions[level].push({ 
-            ...scienceQuestions[level][0], 
-            question: `Science Question ${scienceQuestions[level].length + 1}: ${scienceQuestions[level][0].question}`,
+        const baseQ = scienceQuestions[level][0];
+        scienceQuestions[level].push({
+            ...baseQ,
+            question: `Science Question ${scienceQuestions[level].length + 1}: ${baseQ.question}`,
             category: "General Science"
         });
     }
@@ -89,11 +103,166 @@ let toolUsageCount = 0;
 let progressChart = null;
 let whiteboardExpression = '';
 let whiteboardResult = '0';
+let userId = localStorage.getItem('userId') || `user_${Date.now()}`;
+localStorage.setItem('userId', userId);
 
-// ==================== API INTEGRATION (Grok + TiDB) ====================
+// ==================== CLOUDFLARE API FUNCTIONS ====================
+
+/**
+ * Increment usage counter via Cloudflare API
+ */
+async function incrementUsage() {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_API}/api/usage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                tool_slug: CONFIG.TOOL_SLUG,
+                user_id: userId,
+                action: 'increment'
+            })
+        });
+        const data = await response.json();
+        toolUsageCount = data.count || toolUsageCount + 1;
+        updateUsageDisplay(toolUsageCount);
+        return data;
+    } catch (error) {
+        console.warn('Usage API fallback:', error);
+        // Fallback: increment local
+        toolUsageCount = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0') + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, toolUsageCount);
+        updateUsageDisplay(toolUsageCount);
+        return { count: toolUsageCount };
+    }
+}
+
+/**
+ * Add reaction via Cloudflare API
+ */
+async function addReaction(emoji, isMainPage = true) {
+    const reactionKey = `${CONFIG.TOOL_SLUG}_${emoji}_${userId}`;
+    
+    if (userReactions.has(reactionKey)) {
+        showToast(`Already reacted with ${EMOJI_NAMES[emoji] || emoji}!`, 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_API}/api/reactions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                tool_slug: CONFIG.TOOL_SLUG,
+                emoji: emoji,
+                user_id: userId,
+                action: 'add'
+            })
+        });
+        const data = await response.json();
+        userReactions.add(reactionKey);
+        
+        // Update UI
+        if (isMainPage) {
+            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+            if (span) span.textContent = data.count || parseInt(span.textContent) + 1;
+        }
+        showToast(`${EMOJI_NAMES[emoji] || emoji} reaction added!`, 'success');
+        return data;
+    } catch (error) {
+        console.warn('Reaction API fallback:', error);
+        // Fallback: local
+        userReactions.add(reactionKey);
+        const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+        if (span) span.textContent = parseInt(span.textContent) + 1;
+        showToast(`${EMOJI_NAMES[emoji] || emoji} reaction saved locally!`, 'success');
+    }
+}
+
+/**
+ * Get reactions from API
+ */
+async function getReactions() {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_API}/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const data = await response.json();
+        if (data.reactions) {
+            CONFIG.REACTIONS.forEach(emoji => {
+                const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+                if (span) span.textContent = data.reactions[emoji] || 0;
+            });
+        }
+        return data;
+    } catch (error) {
+        console.warn('Get reactions API fallback:', error);
+        // Use localStorage fallback
+        CONFIG.REACTIONS.forEach(emoji => {
+            const count = localStorage.getItem(`${CONFIG.TOOL_SLUG}_reaction_${emoji}`) || 0;
+            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+            if (span) span.textContent = count;
+        });
+    }
+}
+
+/**
+ * Record share via Cloudflare API
+ */
+async function recordShare(platform) {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_API}/api/shares`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                tool_slug: CONFIG.TOOL_SLUG,
+                platform: platform,
+                user_id: userId
+            })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('Share API fallback:', error);
+        // Fallback: local
+        const shares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0') + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, shares);
+        updateDashboardStats();
+    }
+}
+
+/**
+ * Get stats from API
+ */
+async function getStats() {
+    try {
+        const response = await fetch(`${CONFIG.CLOUD_API}/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('Stats API fallback:', error);
+        // Use localStorage fallback
+        return {
+            usage: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0'),
+            views: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_views`) || '0'),
+            shares: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0'),
+            followers: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_followers`) || '0')
+        };
+    }
+}
+
+/**
+ * Update dashboard stats
+ */
+async function updateDashboardStats() {
+    const stats = await getStats();
+    document.getElementById('dashUsage').textContent = stats.usage || 0;
+    document.getElementById('dashViews').textContent = stats.views || 0;
+    document.getElementById('dashShares').textContent = stats.shares || 0;
+    document.getElementById('dashFollowers').textContent = stats.followers || 0;
+}
+
+// ==================== GROK API (AI Question Generation) ====================
 async function generateQuestionsFromGrok(level) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+        const response = await fetch(`${CONFIG.GROK_API}/api/grok/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -108,83 +277,52 @@ async function generateQuestionsFromGrok(level) {
         }
         return null;
     } catch (error) {
-        console.error('Grok API error:', error);
+        console.warn('Grok API error:', error);
         return null;
     }
 }
 
-async function incrementUsage(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, user_id: localStorage.getItem('userId') || 'anonymous' })
-        });
-        const data = await response.json();
-        toolUsageCount = data.count || toolUsageCount + 1;
-        updateUsageDisplay(toolUsageCount);
-        return data;
-    } catch (error) {
-        toolUsageCount++;
-        updateUsageDisplay(toolUsageCount);
-    }
-}
-
-async function addReaction(emoji, isMainPage = true) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    const reactionKey = `science_${emoji}_${userId}`;
-    
-    if (userReactions.has(reactionKey)) {
-        showToast(`Already reacted with ${getEmojiName(emoji)}!`, 'warning');
-        return;
-    }
-    
-    try {
-        await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: 'science_quiz', emoji: emoji, user_id: userId })
-        });
-        userReactions.add(reactionKey);
-        if (isMainPage) {
-            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
-            if (span) span.textContent = parseInt(span.textContent) + 1;
-        }
-        showToast(`${getEmojiName(emoji)} reaction added!`, 'success');
-    } catch (error) {
-        showToast(`Reaction saved!`, 'success');
-    }
-}
-
-function getEmojiName(emoji) {
-    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' };
-    return names[emoji] || emoji;
-}
-
+// ==================== SHARE FUNCTIONS ====================
 function shareQuiz(platform) {
     const url = window.location.href;
     const score = document.getElementById('finalScoreValue')?.textContent || '0';
     const text = `I scored ${score} on the Science Quiz Challenge! Can you beat my score?`;
     
     let shareUrl = '';
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+    if (platform === 'facebook') {
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+    } else if (platform === 'twitter') {
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    } else if (platform === 'whatsapp') {
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+    } else if (platform === 'linkedin') {
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    }
     
-    if (shareUrl) window.open(shareUrl, '_blank');
-    showToast(`Shared on ${platform}!`);
+    if (shareUrl) {
+        window.open(shareUrl, '_blank');
+        recordShare(platform);
+        showToast(`Shared on ${platform}!`, 'success');
+    }
 }
 
 function copyPageUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied to clipboard!');
-}
-
-function updateUsageDisplay(count) {
-    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
-        if (el) el.textContent = count.toLocaleString();
-    });
+    navigator.clipboard.writeText(window.location.href)
+        .then(() => {
+            recordShare('copy');
+            showToast('Link copied to clipboard!', 'success');
+        })
+        .catch(() => {
+            // Fallback
+            const input = document.createElement('input');
+            input.value = window.location.href;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            recordShare('copy');
+            showToast('Link copied!', 'success');
+        });
 }
 
 // ==================== UTILITIES ====================
@@ -192,19 +330,31 @@ function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        warning: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+    toast.innerHTML = `<i class="fas ${iconMap[type] || 'fa-info-circle'}"></i> ${message}`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
 function showLoading(message) {
     const overlay = document.getElementById('loadingOverlay');
-    document.getElementById('loadingMessage').textContent = message;
+    document.getElementById('loadingMessage').textContent = message || '🤖 AI is generating 50 unique science questions...';
     overlay.style.display = 'flex';
 }
 
 function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function updateUsageDisplay(count) {
+    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
+        if (el) el.textContent = count.toLocaleString();
+    });
 }
 
 // ==================== QUIZ FUNCTIONS ====================
@@ -242,7 +392,7 @@ async function startQuiz(level, mode) {
     
     loadQuestion();
     startTimer();
-    incrementUsage(`science_quiz_level${level}`);
+    incrementUsage();
 }
 
 function startTimer() {
@@ -513,7 +663,7 @@ function downloadCertificate() {
     const score = document.getElementById('finalScoreValue').textContent;
     const name = prompt('Enter your name for certificate:', 'Student');
     if (!name) return;
-    const certContent = `SCIENCE QUIZ CHALLENGE - CERTIFICATE OF ACHIEVEMENT\n\nThis certifies that\n${name}\nhas scored ${score} on the Science Quiz Challenge\nDate: ${new Date().toLocaleDateString()}`;
+    const certContent = `SCIENCE QUIZ CHALLENGE - CERTIFICATE OF ACHIEVEMENT\n\nThis certifies that\n${name}\nhas scored ${score} on the Science Quiz Challenge\nDate: ${new Date().toLocaleDateString()}\n\nVisit: https://magicrills.com`;
     const blob = new Blob([certContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -521,7 +671,7 @@ function downloadCertificate() {
     a.download = `science-certificate-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Certificate downloaded!');
+    showToast('Certificate downloaded!', 'success');
 }
 
 // ==================== WHITEBOARD ====================
@@ -540,6 +690,7 @@ function whiteboardInput(val) {
     if (val === 'clear') {
         whiteboardExpression = '';
         whiteboardResult = '0';
+        document.getElementById('whiteboardDisplay').textContent = '0';
     } else if (val === '=') {
         try {
             let expr = whiteboardExpression.replace(/×/g, '*').replace(/÷/g, '/');
@@ -552,6 +703,48 @@ function whiteboardInput(val) {
         whiteboardExpression += val;
         document.getElementById('whiteboardDisplay').textContent = whiteboardExpression;
     }
+}
+
+// ==================== TYPEWRITER ANIMATION ====================
+function setupTypewriter() {
+    const phrases = [
+        '🔬 Explore Biology & Life Sciences',
+        '⚛️ Master Physics & Chemistry',
+        '🧪 Test Your Science Knowledge',
+        '🤖 AI-Generated Questions',
+        '🏆 5 Difficulty Levels',
+        '📊 Track Your Progress'
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById('typewriterText');
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            setTimeout(() => { isDeleting = true; }, 2000);
+        }
+        
+        if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+        }
+        
+        const speed = isDeleting ? 50 : 80;
+        setTimeout(typeEffect, speed);
+    }
+    
+    typeEffect();
 }
 
 // ==================== UI THEMES & SCROLL ====================
@@ -619,13 +812,16 @@ function setupEventListeners() {
     document.querySelectorAll('.reaction-mini-btn').forEach(btn => {
         btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), true);
     });
+    
     document.querySelectorAll('.share-mini-btn').forEach(btn => {
         if (btn.id === 'copyPageUrlBtn') btn.onclick = copyPageUrl;
         else btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
     });
+    
     document.querySelectorAll('.reaction-emoji').forEach(btn => {
         btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), false);
     });
+    
     document.querySelectorAll('.social-icon').forEach(btn => {
         btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
     });
@@ -641,11 +837,16 @@ function setupEventListeners() {
 }
 
 // ==================== INITIALIZATION ====================
-function init() {
+async function init() {
     setupTheme();
     setupScrollButtons();
     setupEventListeners();
-    incrementUsage('science_quiz_total');
+    setupTypewriter();
+    
+    // Load stats from API
+    await getReactions();
+    await updateDashboardStats();
+    await incrementUsage();
     
     const savedStreak = localStorage.getItem('scienceStreak') || '0';
     document.getElementById('streakCount').textContent = savedStreak;
@@ -655,7 +856,19 @@ function init() {
     showToast('Welcome to Science Quiz Challenge! 🔬', 'success');
 }
 
+// Add confetti animation style
 const style = document.createElement('style');
-style.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }`;
+style.textContent = `
+@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+@keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+`;
 document.head.appendChild(style);
+
+// Start on DOM ready
 document.addEventListener('DOMContentLoaded', init);
