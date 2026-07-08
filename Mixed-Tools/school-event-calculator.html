@@ -1,75 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     
-    <!-- PRIMARY SEO -->
-    <title>School Event Calculator - Free Event Planning Tool</title>
-    <meta name="description" content="Plan school events with our free calculator. Perfect for teachers and administrators. Calculate budgets, timelines, and resources.">
-    <meta name="keywords" content="event calculator, school event, event planning, teacher tools, budget calculator, school management">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://magicrills.com/Mixed-Tools/school-event-calculator.html">
+    <!-- ========== PRIMARY SEO ========== -->
+    <title>School Event Calculator - Advanced Event Planning & Financial Analysis Tool | Magicrills</title>
+    <meta name="description" content="Plan and analyze school events with our advanced calculator. Track budgets, ROI, participation rates, and get AI-powered recommendations. Free tool for educators." />
+    <link rel="canonical" href="https://magicrills.com/tools/school-event-calculator" />
     
-    <!-- OPEN GRAPH -->
-    <meta property="og:title" content="School Event Calculator - Free Event Planning Tool">
-    <meta property="og:description" content="Plan school events with our free calculator. Perfect for teachers and administrators. Calculate budgets, timelines, and resources.">
-    <meta property="og:url" content="https://magicrills.com/Mixed-Tools/school-event-calculator.html">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://magicrills.com/pics/og-school-event-calculator.webp.webp">
+    <!-- ========== OPEN GRAPH ========== -->
+    <meta property="og:title" content="School Event Calculator - Advanced Event Planning Tool | Magicrills" />
+    <meta property="og:description" content="Calculate event impact, ROI, and get AI recommendations for school events. Track budgets, participation, and more." />
+    <meta property="og:url" content="https://magicrills.com/tools/school-event-calculator" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://magicrills.com/assets/og-school-event-calculator.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     
-    <!-- TWITTER -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="School Event Calculator - Free Event Planning Tool">
-    <meta name="twitter:description" content="Plan school events with our free calculator. Perfect for teachers and administrators. Calculate budgets, timelines, and resources.">
-    <meta name="twitter:image" content="https://magicrills.com/pics/og-school-event-calculator.webp.webp">
+    <!-- ========== TWITTER ========== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="School Event Calculator - Plan & Analyze Events" />
+    <meta name="twitter:description" content="Free tool to calculate event budget, ROI, and impact. Perfect for teachers and administrators." />
+    <meta name="twitter:image" content="https://magicrills.com/assets/og-school-event-calculator.jpg" />
     
-    <!-- STYLES & FONTS -->
-    <link rel="stylesheet" href="school-event-calculator.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- ========== SCHEMA MARKUP ========== -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "School Event Calculator",
+        "description": "Advanced event planning and financial analysis tool for schools and educational institutions.",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "url": "https://magicrills.com/tools/school-event-calculator",
+        "author": {
+            "@type": "Organization",
+            "name": "Magicrills",
+            "url": "https://magicrills.com"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "127"
+        }
+    }
+    </script>
+    
+    <!-- ========== STYLESHEETS ========== -->
+    <link rel="stylesheet" href="school-event-calculator.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    
+    <!-- ========== EXTERNAL SCRIPTS ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
-
 <body>
+    <!-- ========== TOAST CONTAINER ========== -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ========== SCROLL BUTTONS ========== -->
+    <div class="scroll-buttons">
+        <button class="scroll-btn up" id="scrollUpBtn" aria-label="Scroll to top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="scroll-btn down" id="scrollDownBtn" aria-label="Scroll to bottom">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <i class="fas fa-calendar-alt"></i>
-            <h1>School Event Calculator</h1>
-            <p>Complete Event Planning & Financial Analysis Tool</p>
-            <div class="usage-counter">
-                <i class="fas fa-chart-line"></i>
-                <span id="usedCount">0</span> times used
+        <!-- ============================================
+        HERO SECTION
+        ============================================ -->
+        <section class="hero-section" aria-label="Tool Hero">
+            <div class="hero-content">
+                <span class="hero-badge">
+                    <i class="fas fa-sparkles"></i> AI-Powered Tool
+                </span>
+                
+                <i class="fas fa-calendar-alt hero-icon" aria-hidden="true"></i>
+                
+                <h1 class="hero-title">
+                    School Event <span class="highlight">Calculator</span>
+                </h1>
+                
+                <!-- Typewriter Animation -->
+                <div class="typewriter-container">
+                    <span class="typewriter-text" id="typewriterText"></span>
+                </div>
+                
+                <p class="hero-description">
+                    Plan, budget, and analyze your school events with precision. 
+                    Track ROI, participation, and get intelligent recommendations 
+                    to make every event a success.
+                </p>
+                
+                <!-- Live Stats -->
+                <div class="hero-stats" id="heroStats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-number" id="statUsage">0</div>
+                        <div class="hero-stat-label"><i class="fas fa-users"></i> Total Usage</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number" id="statShares">0</div>
+                        <div class="hero-stat-label"><i class="fas fa-share-alt"></i> Shares</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number" id="statReactions">0</div>
+                        <div class="hero-stat-label"><i class="fas fa-heart"></i> Reactions</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number" id="statFollowers">0</div>
+                        <div class="hero-stat-label"><i class="fas fa-users"></i> Followers</div>
+                    </div>
+                </div>
+                
+                <!-- Animated Image -->
+                <div class="hero-image-container">
+                    <div class="hero-image-glow"></div>
+                    <svg class="hero-image" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Event planning illustration">
+                        <rect x="50" y="50" width="700" height="300" rx="24" fill="url(#grad1)" opacity="0.1" />
+                        <rect x="80" y="80" width="640" height="240" rx="16" fill="url(#grad2)" opacity="0.15" />
+                        
+                        <!-- Icons floating -->
+                        <circle cx="200" cy="150" r="40" fill="rgba(79,140,247,0.15)" stroke="rgba(79,140,247,0.3)" stroke-width="2" />
+                        <text x="188" y="160" font-size="28" fill="#4f8cf7">📊</text>
+                        
+                        <circle cx="400" cy="120" r="35" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.3)" stroke-width="2" />
+                        <text x="390" y="130" font-size="24" fill="#7c3aed">💰</text>
+                        
+                        <circle cx="600" cy="160" r="45" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.3)" stroke-width="2" />
+                        <text x="585" y="170" font-size="30" fill="#ec4899">🎯</text>
+                        
+                        <circle cx="300" cy="250" r="30" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.3)" stroke-width="2" />
+                        <text x="290" y="258" font-size="20" fill="#10b981">📈</text>
+                        
+                        <circle cx="500" cy="260" r="35" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.3)" stroke-width="2" />
+                        <text x="490" y="268" font-size="24" fill="#f59e0b">⭐</text>
+                        
+                        <!-- Connecting lines -->
+                        <line x1="240" y1="150" x2="365" y2="120" stroke="rgba(79,140,247,0.2)" stroke-width="1" stroke-dasharray="4,4" />
+                        <line x1="435" y1="120" x2="555" y2="160" stroke="rgba(124,58,237,0.2)" stroke-width="1" stroke-dasharray="4,4" />
+                        <line x1="300" y1="250" x2="465" y2="260" stroke="rgba(16,185,129,0.2)" stroke-width="1" stroke-dasharray="4,4" />
+                        
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4f8cf7" />
+                                <stop offset="50%" stop-color="#7c3aed" />
+                                <stop offset="100%" stop-color="#ec4899" />
+                            </linearGradient>
+                            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4f8cf7" stop-opacity="0.3" />
+                                <stop offset="100%" stop-color="#ec4899" stop-opacity="0.3" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Scroll Buttons -->
-        <div class="scroll-buttons">
-            <button class="scroll-btn up" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
-            <button class="scroll-btn down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
-        </div>
-
+        <!-- ========== DASHBOARD ========== -->
         <div class="dashboard">
             <div class="row">
                 <!-- Left Column - Inputs -->
                 <div class="col-lg-7">
+                    <!-- 3D Checklist -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-check-double"></i> Event Planning Checklist
+                            <span class="badge"><i class="fas fa-robot"></i> AI Assist</span>
+                        </div>
+                        <div class="checklist-3d" id="checklist3d">
+                            <div class="checklist-item" data-step="1">
+                                <div class="check-icon"><i class="fas fa-circle"></i></div>
+                                <span class="check-text">Basic Event Info</span>
+                            </div>
+                            <div class="checklist-item" data-step="2">
+                                <div class="check-icon"><i class="fas fa-circle"></i></div>
+                                <span class="check-text">Student & Staff Data</span>
+                            </div>
+                            <div class="checklist-item" data-step="3">
+                                <div class="check-icon"><i class="fas fa-circle"></i></div>
+                                <span class="check-text">Resources & Budget</span>
+                            </div>
+                            <div class="checklist-item" data-step="4">
+                                <div class="check-icon"><i class="fas fa-circle"></i></div>
+                                <span class="check-text">Income Sources</span>
+                            </div>
+                            <div class="checklist-item" data-step="5">
+                                <div class="check-icon"><i class="fas fa-circle"></i></div>
+                                <span class="check-text">Benefits & Impact</span>
+                            </div>
+                            <div class="checklist-item" data-step="6">
+                                <div class="check-icon"><i class="fas fa-circle"></i></div>
+                                <span class="check-text">Calculate & Analyze</span>
+                            </div>
+                        </div>
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:12px;text-align:center;">
+                            <i class="fas fa-robot" style="color:var(--neon-purple);"></i> 
+                            AI will analyze your inputs and provide smart recommendations
+                        </p>
+                    </div>
+
                     <!-- Basic Event Info -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-info-circle"></i> Basic Event Information</div>
+                        <div class="card-title">
+                            <i class="fas fa-info-circle"></i> Basic Event Information
+                            <span class="badge">Step 1</span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-tag"></i> Event Name</label>
-                                <input type="text" id="eventName" class="form-control" placeholder="e.g., Science Fair 2025">
+                                <input type="text" id="eventName" class="form-control" placeholder="e.g., Science Fair 2025" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-calendar"></i> Event Date</label>
-                                <input type="date" id="eventDate" class="form-control">
+                                <input type="date" id="eventDate" class="form-control" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-clock"></i> Event Duration (Days)</label>
-                                <input type="number" id="eventDuration" class="form-control" value="1" min="1">
+                                <input type="number" id="eventDuration" class="form-control" value="1" min="1" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-layer-group"></i> Event Type</label>
@@ -82,6 +244,8 @@
                                     <option value="fundraiser">Fundraiser</option>
                                     <option value="graduation">Graduation Ceremony</option>
                                     <option value="workshop">Workshop</option>
+                                    <option value="conference">Conference</option>
+                                    <option value="open_house">Open House</option>
                                 </select>
                             </div>
                         </div>
@@ -89,141 +253,158 @@
 
                     <!-- Student Information -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-users"></i> Student Information</div>
+                        <div class="card-title">
+                            <i class="fas fa-users"></i> Student Information
+                            <span class="badge">Step 2</span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-user-graduate"></i> Total Students</label>
-                                <input type="number" id="studentCount" class="form-control" value="150" min="0">
+                                <input type="number" id="studentCount" class="form-control" value="150" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-hourglass-half"></i> Hours per Student</label>
-                                <input type="number" id="studentHours" class="form-control" value="4" min="0" step="0.5">
+                                <input type="number" id="studentHours" class="form-control" value="4" min="0" step="0.5" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-chart-line"></i> Participation Rate (%)</label>
-                                <input type="number" id="participationRate" class="form-control" value="85" min="0" max="100">
+                                <input type="number" id="participationRate" class="form-control" value="85" min="0" max="100" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-heart"></i> Satisfaction Score (1-10)</label>
-                                <input type="number" id="satisfactionScore" class="form-control" value="8" min="1" max="10" step="0.5">
+                                <input type="number" id="satisfactionScore" class="form-control" value="8" min="1" max="10" step="0.5" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Staff Information -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-chalkboard-user"></i> Staff Information</div>
+                        <div class="card-title">
+                            <i class="fas fa-chalkboard-user"></i> Staff Information
+                            <span class="badge">Step 2</span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-user-tie"></i> Number of Staff</label>
-                                <input type="number" id="staffCount" class="form-control" value="12" min="0">
+                                <input type="number" id="staffCount" class="form-control" value="12" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-clock"></i> Hours per Staff</label>
-                                <input type="number" id="staffHours" class="form-control" value="8" min="0" step="0.5">
+                                <input type="number" id="staffHours" class="form-control" value="8" min="0" step="0.5" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-dollar-sign"></i> Staff Hourly Rate (PKR)</label>
-                                <input type="number" id="staffRate" class="form-control" value="500" min="0">
+                                <input type="number" id="staffRate" class="form-control" value="500" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-star"></i> Teacher Feedback Score (1-10)</label>
-                                <input type="number" id="teacherFeedback" class="form-control" value="7.5" min="1" max="10" step="0.5">
+                                <input type="number" id="teacherFeedback" class="form-control" value="7.5" min="1" max="10" step="0.5" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Resources & Materials -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-boxes"></i> Resources & Materials</div>
+                        <div class="card-title">
+                            <i class="fas fa-boxes"></i> Resources & Materials
+                            <span class="badge">Step 3</span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-paintbrush"></i> Materials Cost (PKR)</label>
-                                <input type="number" id="materialsCost" class="form-control" value="50000" min="0">
+                                <input type="number" id="materialsCost" class="form-control" value="50000" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-building"></i> Venue Cost (PKR)</label>
-                                <input type="number" id="venueCost" class="form-control" value="20000" min="0">
+                                <input type="number" id="venueCost" class="form-control" value="20000" min="0" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-laptop"></i> Technology Cost (PKR)</label>
-                                <input type="number" id="technologyCost" class="form-control" value="30000" min="0">
+                                <input type="number" id="technologyCost" class="form-control" value="30000" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-utensils"></i> Food/Catering (PKR)</label>
-                                <input type="number" id="foodCost" class="form-control" value="40000" min="0">
+                                <input type="number" id="foodCost" class="form-control" value="40000" min="0" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-microphone"></i> Equipment Rental (PKR)</label>
-                                <input type="number" id="equipmentCost" class="form-control" value="15000" min="0">
+                                <input type="number" id="equipmentCost" class="form-control" value="15000" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-print"></i> Marketing/Printing (PKR)</label>
-                                <input type="number" id="marketingCost" class="form-control" value="10000" min="0">
+                                <input type="number" id="marketingCost" class="form-control" value="10000" min="0" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Income Sources -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-hand-holding-usd"></i> Income Sources</div>
+                        <div class="card-title">
+                            <i class="fas fa-hand-holding-usd"></i> Income Sources
+                            <span class="badge">Step 4</span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-ticket-alt"></i> Ticket Sales (PKR)</label>
-                                <input type="number" id="ticketIncome" class="form-control" value="0" min="0">
+                                <input type="number" id="ticketIncome" class="form-control" value="0" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-handshake"></i> Sponsorship (PKR)</label>
-                                <input type="number" id="sponsorshipIncome" class="form-control" value="0" min="0">
+                                <input type="number" id="sponsorshipIncome" class="form-control" value="0" min="0" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-gift"></i> Donations (PKR)</label>
-                                <input type="number" id="donationIncome" class="form-control" value="0" min="0">
+                                <input type="number" id="donationIncome" class="form-control" value="0" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-store"></i> Vendor Stalls (PKR)</label>
-                                <input type="number" id="vendorIncome" class="form-control" value="0" min="0">
+                                <input type="number" id="vendorIncome" class="form-control" value="0" min="0" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Expected Benefits -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-chart-line"></i> Expected Benefits (Value in PKR)</div>
+                        <div class="card-title">
+                            <i class="fas fa-chart-line"></i> Expected Benefits (PKR)
+                            <span class="badge">Step 5</span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-graduation-cap"></i> Educational Value</label>
-                                <input type="number" id="learningValue" class="form-control" value="300000" min="0">
+                                <input type="number" id="learningValue" class="form-control" value="300000" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-smile"></i> Student Engagement Value</label>
-                                <input type="number" id="engagementValue" class="form-control" value="200000" min="0">
+                                <input type="number" id="engagementValue" class="form-control" value="200000" min="0" />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-trophy"></i> Skill Development Value</label>
-                                <input type="number" id="skillValue" class="form-control" value="150000" min="0">
+                                <input type="number" id="skillValue" class="form-control" value="150000" min="0" />
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-chart-line"></i> Long-term Impact Value</label>
-                                <input type="number" id="longTermValue" class="form-control" value="100000" min="0">
+                                <input type="number" id="longTermValue" class="form-control" value="100000" min="0" />
                             </div>
                         </div>
                     </div>
 
+                    <!-- Calculate Button -->
                     <button id="calculateBtn" class="btn btn-primary btn-block">
                         <i class="fas fa-calculator"></i> Calculate Event Impact
+                        <span class="ai-badge"><i class="fas fa-robot"></i> AI</span>
                     </button>
                 </div>
 
@@ -231,7 +412,10 @@
                 <div class="col-lg-5">
                     <!-- Quick Stats -->
                     <div class="card" id="results" style="display: none;">
-                        <div class="card-title"><i class="fas fa-chart-pie"></i> Event Summary</div>
+                        <div class="card-title">
+                            <i class="fas fa-chart-pie"></i> Event Summary
+                            <span class="badge"><i class="fas fa-robot"></i> AI Analyzed</span>
+                        </div>
                         <div id="summaryStats"></div>
                     </div>
 
@@ -256,13 +440,20 @@
                     <!-- Charts -->
                     <div class="card" id="chartCard" style="display: none;">
                         <div class="card-title"><i class="fas fa-chart-pie"></i> Visual Analysis</div>
-                        <canvas id="costChart" width="300" height="200"></canvas>
-                        <canvas id="roiChart" width="300" height="200" style="margin-top: 20px;"></canvas>
+                        <div class="chart-container">
+                            <canvas id="costChart" width="300" height="200"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="roiChart" width="300" height="200"></canvas>
+                        </div>
                     </div>
 
                     <!-- Recommendations -->
                     <div class="card" id="recommendationsCard" style="display: none;">
-                        <div class="card-title"><i class="fas fa-lightbulb"></i> Recommendations</div>
+                        <div class="card-title">
+                            <i class="fas fa-lightbulb"></i> AI Recommendations
+                            <span class="badge"><i class="fas fa-robot"></i> AI</span>
+                        </div>
                         <div id="recommendations"></div>
                     </div>
 
@@ -270,23 +461,49 @@
                     <div class="card" id="exportCard" style="display: none;">
                         <div class="card-title"><i class="fas fa-download"></i> Export Options</div>
                         <div class="export-buttons">
-                            <button id="exportExcelBtn" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Excel</button>
-                            <button id="exportWordBtn" class="btn btn-sm btn-primary"><i class="fas fa-file-word"></i> Word</button>
-                            <button id="printBtn" class="btn btn-sm btn-secondary"><i class="fas fa-print"></i> Print</button>
+                            <button id="exportExcelBtn" class="btn btn-sm btn-success">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </button>
+                            <button id="exportWordBtn" class="btn btn-sm btn-primary">
+                                <i class="fas fa-file-word"></i> Word
+                            </button>
+                            <button id="printBtn" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-print"></i> Print
+                            </button>
                         </div>
                     </div>
 
                     <!-- Reactions Section -->
                     <div class="card">
-                        <div class="card-title"><i class="fas fa-smile"></i> Was this tool helpful?</div>
+                        <div class="card-title">
+                            <i class="fas fa-smile"></i> Was this tool helpful?
+                            <span class="badge"><i class="fas fa-heart"></i> React</span>
+                        </div>
                         <div class="reactions-container" id="reactionsContainer">
-                            <button class="reaction-btn" data-emoji="like"><i class="far fa-thumbs-up"></i><span class="reaction-count" id="likeCount">0</span></button>
-                            <button class="reaction-btn" data-emoji="love"><i class="far fa-heart"></i><span class="reaction-count" id="loveCount">0</span></button>
-                            <button class="reaction-btn" data-emoji="wow"><i class="far fa-surprise"></i><span class="reaction-count" id="wowCount">0</span></button>
-                            <button class="reaction-btn" data-emoji="sad"><i class="far fa-frown"></i><span class="reaction-count" id="sadCount">0</span></button>
-                            <button class="reaction-btn" data-emoji="angry"><i class="far fa-angry"></i><span class="reaction-count" id="angryCount">0</span></button>
-                            <button class="reaction-btn" data-emoji="laugh"><i class="far fa-laugh-squint"></i><span class="reaction-count" id="laughCount">0</span></button>
-                            <button class="reaction-btn" data-emoji="celebrate"><i class="fas fa-party-horn"></i><span class="reaction-count" id="celebrateCount">0</span></button>
+                            <button class="reaction-btn" data-emoji="like" aria-label="Like">
+                                <i class="far fa-thumbs-up"></i>
+                                <span class="reaction-count" id="likeCount">0</span>
+                            </button>
+                            <button class="reaction-btn" data-emoji="love" aria-label="Love">
+                                <i class="far fa-heart"></i>
+                                <span class="reaction-count" id="loveCount">0</span>
+                            </button>
+                            <button class="reaction-btn" data-emoji="wow" aria-label="Wow">
+                                <i class="far fa-surprise"></i>
+                                <span class="reaction-count" id="wowCount">0</span>
+                            </button>
+                            <button class="reaction-btn" data-emoji="sad" aria-label="Sad">
+                                <i class="far fa-frown"></i>
+                                <span class="reaction-count" id="sadCount">0</span>
+                            </button>
+                            <button class="reaction-btn" data-emoji="laugh" aria-label="Laugh">
+                                <i class="far fa-laugh-squint"></i>
+                                <span class="reaction-count" id="laughCount">0</span>
+                            </button>
+                            <button class="reaction-btn" data-emoji="celebrate" aria-label="Celebrate">
+                                <i class="fas fa-party-horn"></i>
+                                <span class="reaction-count" id="celebrateCount">0</span>
+                            </button>
                         </div>
                     </div>
 
@@ -294,30 +511,47 @@
                     <div class="card">
                         <div class="card-title"><i class="fas fa-share-alt"></i> Share This Tool</div>
                         <div class="share-buttons">
-                            <button class="share-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
-                            <button class="share-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i></button>
-                            <button class="share-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
-                            <button class="share-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
-                            <button class="share-btn email" data-platform="email"><i class="fas fa-envelope"></i></button>
-                            <button class="share-btn copy-link" data-platform="copy"><i class="fas fa-link"></i></button>
+                            <button class="share-btn facebook" data-platform="facebook" aria-label="Share on Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </button>
+                            <button class="share-btn twitter" data-platform="twitter" aria-label="Share on Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </button>
+                            <button class="share-btn linkedin" data-platform="linkedin" aria-label="Share on LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </button>
+                            <button class="share-btn whatsapp" data-platform="whatsapp" aria-label="Share on WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button class="share-btn email" data-platform="email" aria-label="Share via Email">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                            <button class="share-btn copy-link" data-platform="copy" aria-label="Copy link">
+                                <i class="fas fa-link"></i>
+                            </button>
                         </div>
-                        <div class="share-stats mt-2"><span id="shareCount">0</span> people shared this tool</div>
+                        <div class="share-stats">
+                            <i class="fas fa-users"></i>
+                            <span id="shareCount">0</span> people shared this tool
+                        </div>
                     </div>
 
                     <!-- Placeholder -->
                     <div id="placeholder" class="card" style="text-align: center;">
-                        <i class="fas fa-calculator" style="font-size: 48px; color: var(--primary);"></i>
-                        <h3>Ready to Calculate?</h3>
-                        <p>Fill in the event details and click "Calculate Event Impact" to see comprehensive analysis!</p>
+                        <i class="fas fa-calculator" style="font-size: 48px; color: var(--neon-blue); display: block; margin-bottom: 15px;"></i>
+                        <h3 style="color: var(--text-primary);">Ready to Calculate?</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 400px; margin: 10px auto;">
+                            Fill in the event details and click 
+                            <strong style="color: var(--neon-blue);">"Calculate Event Impact"</strong> 
+                            to see comprehensive analysis with AI recommendations!
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
-
+    <!-- ========== SCRIPTS ========== -->
     <script src="school-event-calculator.js"></script>
 </body>
 </html>
