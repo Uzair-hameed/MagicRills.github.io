@@ -1,9 +1,15 @@
 // ==================== CONFIGURATION ====================
 const CONFIG = {
     APP_NAME: 'Math Quiz Challenge',
-    VERSION: '5.0.0',
-    CLOUD_WORKER_URL: 'https://computer-quiz-challenge.uzairhameed01.workers.dev',
-    QUESTIONS_PER_QUIZ: 35
+    VERSION: '5.1.0',
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'math-quiz-challenge',
+    CATEGORY: 'Quiz-Games',
+    QUESTIONS_PER_QUIZ: 35,
+    REACTIONS: ['like', 'love', 'wow', 'sad', 'laugh', 'celebrate'],
+    REACTION_ICONS: {
+        like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉'
+    }
 };
 
 // ==================== TIME & POINTS PER LEVEL ====================
@@ -35,8 +41,167 @@ let toolUsageCount = 0;
 let progressChart = null;
 let whiteboardExpression = '';
 let whiteboardResult = '0';
+let statsData = { usage: 0, reactions: {}, shares: 0 };
 
-// ==================== MATH QUESTION GENERATOR (Local) ====================
+// ==================== CLOUDFLARE API ====================
+async function callAPI(endpoint, method = 'GET', body = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Tool-Slug': CONFIG.TOOL_SLUG
+            }
+        };
+        if (body) options.body = JSON.stringify(body);
+        
+        const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        return null;
+    }
+}
+
+// ==================== API: INCREMENT USAGE ====================
+async function incrementUsage() {
+    try {
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            category: CONFIG.CATEGORY
+        });
+        if (result && result.success) {
+            toolUsageCount = result.usage || 0;
+            updateUsageDisplay(toolUsageCount);
+            updateHeroStats(toolUsageCount);
+            return result;
+        }
+    } catch (e) {
+        console.error('Usage increment failed:', e);
+    }
+    
+    // Fallback: LocalStorage
+    let localCount = parseInt(localStorage.getItem('mathQuizUsage') || '0');
+    localCount++;
+    localStorage.setItem('mathQuizUsage', localCount.toString());
+    toolUsageCount = localCount;
+    updateUsageDisplay(localCount);
+    updateHeroStats(localCount);
+}
+
+// ==================== API: GET STATS ====================
+async function fetchToolStats() {
+    try {
+        const result = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (result && result.success) {
+            statsData = result.data || statsData;
+            updateStatsDisplay();
+            return result;
+        }
+    } catch (e) {
+        console.error('Fetch stats failed:', e);
+    }
+    
+    // Fallback: LocalStorage
+    statsData.usage = parseInt(localStorage.getItem('mathQuizUsage') || '0');
+    statsData.reactions = JSON.parse(localStorage.getItem('mathQuizReactions') || '{}');
+    statsData.shares = parseInt(localStorage.getItem('mathQuizShares') || '0');
+    updateStatsDisplay();
+}
+
+// ==================== API: REACTIONS ====================
+async function addReaction(emoji, isMainPage = true) {
+    try {
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            emoji: emoji
+        });
+        if (result && result.success) {
+            statsData.reactions = result.reactions || {};
+            updateStatsDisplay();
+            updateReactionButtons();
+            showToast(`${CONFIG.REACTION_ICONS[emoji] || emoji} reaction added!`, 'success');
+            return;
+        }
+    } catch (e) {
+        console.error('Reaction failed:', e);
+    }
+    
+    // Fallback: LocalStorage
+    const reactions = JSON.parse(localStorage.getItem('mathQuizReactions') || '{}');
+    reactions[emoji] = (reactions[emoji] || 0) + 1;
+    localStorage.setItem('mathQuizReactions', JSON.stringify(reactions));
+    statsData.reactions = reactions;
+    updateStatsDisplay();
+    updateReactionButtons();
+    showToast(`${CONFIG.REACTION_ICONS[emoji] || emoji} reaction added!`, 'success');
+}
+
+// ==================== API: SHARES ====================
+async function recordShare(platform) {
+    try {
+        const result = await callAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform
+        });
+        if (result && result.success) {
+            statsData.shares = result.shares || 0;
+            updateStatsDisplay();
+            return;
+        }
+    } catch (e) {
+        console.error('Share record failed:', e);
+    }
+    
+    // Fallback: LocalStorage
+    let shares = parseInt(localStorage.getItem('mathQuizShares') || '0');
+    shares++;
+    localStorage.setItem('mathQuizShares', shares.toString());
+    statsData.shares = shares;
+    updateStatsDisplay();
+}
+
+// ==================== UPDATE UI ====================
+function updateUsageDisplay(count) {
+    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
+        if (el) el.textContent = count.toLocaleString();
+    });
+    document.getElementById('totalPlaysCount').textContent = count.toLocaleString();
+}
+
+function updateHeroStats(usage) {
+    document.getElementById('heroTotalPlayed').textContent = usage.toLocaleString();
+}
+
+function updateStatsDisplay() {
+    // Usage
+    if (statsData.usage) {
+        document.getElementById('totalPlaysCount').textContent = statsData.usage.toLocaleString();
+        document.getElementById('globalUsageCount').textContent = statsData.usage.toLocaleString();
+    }
+    
+    // Shares
+    if (statsData.shares) {
+        // Update share count if displayed
+    }
+    
+    // Reactions
+    updateReactionButtons();
+}
+
+function updateReactionButtons() {
+    const reactions = statsData.reactions || {};
+    document.querySelectorAll('.reaction-mini-btn').forEach(btn => {
+        const emoji = btn.getAttribute('data-emoji');
+        const countSpan = btn.querySelector('.count');
+        if (countSpan && reactions[emoji] !== undefined) {
+            countSpan.textContent = reactions[emoji];
+        }
+    });
+}
+
+// ==================== MATH QUESTION GENERATOR ====================
 const questionTypes = {
     easy: ['addition', 'subtraction', 'multiplication', 'division', 'square', 'squareRoot'],
     medium: ['addition', 'subtraction', 'multiplication', 'division', 'square', 'squareRoot', 'lcm', 'hcf'],
@@ -142,12 +307,11 @@ function generateMathQuestion(level, type = null) {
             factoid = `Math is fun!`;
     }
     
-    // Generate options for MCQ
     let options = [answer];
     while (options.length < 4) {
         let offset = Math.floor(Math.random() * (Math.max(5, answer / 4))) + 1;
-        let opt = answer + (Math.random() > 0.5 ? offset : -offset);
-        if (opt > 0 && !options.includes(opt)) options.push(opt);
+        let opt = typeof answer === 'number' ? answer + (Math.random() > 0.5 ? offset : -offset) : parseFloat(answer) + (Math.random() > 0.5 ? offset : -offset);
+        if (typeof opt === 'number' && opt > 0 && !options.includes(opt)) options.push(opt);
     }
     options = shuffleArray(options);
     
@@ -155,7 +319,7 @@ function generateMathQuestion(level, type = null) {
         question: question.text,
         type: selectedType,
         isInput: question.isInput || false,
-        options: options,
+        options: options.map(String),
         answer: options.indexOf(answer),
         correctValue: answer,
         explanation: explanation,
@@ -194,7 +358,7 @@ function shuffleArray(arr) {
 // ==================== AI INTEGRATION (Grok API) ====================
 async function callGrokAPI(prompt) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+        const response = await fetch('https://magicrills-grok-api.uzairhameed01.workers.dev/api/grok/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -256,81 +420,12 @@ Return JSON format:
     }
 }
 
-// ==================== API INTEGRATION ====================
-async function incrementUsage(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, user_id: localStorage.getItem('userId') || 'anonymous' })
-        });
-        const data = await response.json();
-        updateUsageDisplay(data.count);
-        return data;
-    } catch (error) {
-        toolUsageCount++;
-        updateUsageDisplay(toolUsageCount);
-    }
-}
-
-function updateUsageDisplay(count) {
-    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
-        if (el) el.textContent = count.toLocaleString();
-    });
-}
-
-// ==================== REACTIONS ====================
-async function addReaction(emoji, isMainPage = true) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    const reactionKey = `math_${emoji}_${userId}`;
-    
-    if (userReactions.has(reactionKey)) {
-        showToast(`Already reacted with ${getEmojiName(emoji)}!`, 'warning');
-        return;
-    }
-    
-    userReactions.add(reactionKey);
-    
-    if (isMainPage) {
-        const countSpan = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
-        if (countSpan) countSpan.textContent = parseInt(countSpan.textContent) + 1;
-    }
-    showToast(`${getEmojiName(emoji)} reaction added!`, 'success');
-}
-
-function getEmojiName(emoji) {
-    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' };
-    return names[emoji] || emoji;
-}
-
-// ==================== SHARING ====================
-function shareQuiz(platform) {
-    const url = window.location.href;
-    const score = document.getElementById('finalScoreValue')?.textContent || '0';
-    const text = `I scored ${score} on the Math Quiz Challenge! Can you beat my score?`;
-    
-    let shareUrl = '';
-    switch(platform) {
-        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`; break;
-        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; break;
-        case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`; break;
-    }
-    if (shareUrl) window.open(shareUrl, '_blank');
-    showToast(`Shared on ${platform}!`);
-}
-
-function copyPageUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied to clipboard!');
-}
-
 // ==================== UTILITIES ====================
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i> ${message}`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -343,6 +438,10 @@ function showLoading(message) {
 
 function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function getEmojiName(emoji) {
+    return CONFIG.REACTION_ICONS[emoji] || emoji;
 }
 
 // ==================== QUIZ FUNCTIONS ====================
@@ -385,7 +484,7 @@ async function startQuiz(level, mode) {
     
     loadQuestion();
     startTimer();
-    incrementUsage(`math_quiz_${level}`);
+    incrementUsage();
 }
 
 function startTimer() {
@@ -404,8 +503,7 @@ function startTimer() {
             currentState.timeLeft--;
             document.getElementById('timerDisplay').textContent = currentState.timeLeft;
             if (currentState.timeLeft <= 5) {
-                document.getElementById('timerDisplay').style.color = '#ef4444';
-                document.getElementById('timerDisplay').style.animation = 'pulse 0.5s infinite';
+                document.getElementById('timerDisplay').style.color = '#f87171';
             }
         }
     }, 1000);
@@ -577,8 +675,8 @@ function updateProgressChart(score) {
     if (progressChart) progressChart.destroy();
     progressChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: ['Quiz 1', 'Quiz 2', 'Quiz 3', 'Current'], datasets: [{ label: 'Your Progress', data: [40, 60, 75, score], borderColor: '#6e8efb', backgroundColor: 'rgba(110,142,251,0.1)', fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: true }
+        data: { labels: ['Quiz 1', 'Quiz 2', 'Quiz 3', 'Current'], datasets: [{ label: 'Your Progress', data: [40, 60, 75, score], borderColor: '#818cf8', backgroundColor: 'rgba(129,140,248,0.1)', fill: true, tension: 0.4 }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
     });
 }
 
@@ -595,7 +693,7 @@ function usePowerup(type) {
         for (let i = 0; i < q.options.length; i++) if (i !== q.answer) wrong.push(i);
         const toRemove = wrong.slice(0, 2);
         document.querySelectorAll('.option').forEach((opt, idx) => {
-            if (toRemove.includes(idx)) opt.style.opacity = '0.4';
+            if (toRemove.includes(idx)) opt.style.opacity = '0.3';
         });
         showToast('50/50 used! Two options eliminated.', 'success');
     } else if (type === 'time') {
@@ -639,6 +737,7 @@ function whiteboardInput(val) {
     if (val === 'clear') {
         whiteboardExpression = '';
         whiteboardResult = '0';
+        document.getElementById('whiteboardDisplay').textContent = '0';
     } else if (val === '=') {
         try {
             let expr = whiteboardExpression.replace(/×/g, '*').replace(/÷/g, '/');
@@ -686,14 +785,15 @@ function createConfetti() {
     for (let i = 0; i < 150; i++) {
         const confetti = document.createElement('div');
         confetti.style.position = 'fixed';
-        confetti.style.width = '10px';
-        confetti.style.height = '10px';
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.width = '8px';
+        confetti.style.height = '8px';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
         confetti.style.left = `${Math.random() * 100}%`;
         confetti.style.top = '-20px';
         confetti.style.borderRadius = '50%';
         confetti.style.zIndex = '1000';
         confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
+        confetti.style.pointerEvents = 'none';
         document.body.appendChild(confetti);
         setTimeout(() => confetti.remove(), 5000);
     }
@@ -703,7 +803,7 @@ function downloadCertificate() {
     const score = document.getElementById('finalScoreValue').textContent;
     const name = prompt('Enter your name for certificate:', 'Student');
     if (!name) return;
-    const certContent = `MATH QUIZ CHALLENGE - CERTIFICATE OF ACHIEVEMENT\n\nThis certifies that\n${name}\nhas scored ${score} on the Math Quiz Challenge\nDate: ${new Date().toLocaleDateString()}`;
+    const certContent = `MATH QUIZ CHALLENGE - CERTIFICATE OF ACHIEVEMENT\n\nThis certifies that\n${name}\nhas scored ${score} on the Math Quiz Challenge\nDate: ${new Date().toLocaleDateString()}\n\nPowered by MagicRills`;
     const blob = new Blob([certContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -711,17 +811,65 @@ function downloadCertificate() {
     a.download = `math-certificate-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Certificate downloaded!');
+    showToast('Certificate downloaded!', 'success');
 }
 
-// ==================== UI THEMES & SCROLL ====================
+// ==================== TYPEWRITER EFFECT ====================
+function startTypewriter() {
+    const phrases = [
+        '🧮 Solve 35 AI-generated questions',
+        '⚡ 4 exciting game modes',
+        '🎯 Track your progress',
+        '🏆 Earn badges & certificates',
+        '📊 Improve your math skills'
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    const element = document.getElementById('typewriterText');
+    let isDeleting = false;
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            setTimeout(() => { isDeleting = true; }, 1500);
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+        }
+        
+        const speed = isDeleting ? 50 : 100;
+        setTimeout(type, speed);
+    }
+    
+    type();
+}
+
+// ==================== UI THEMES & NAVIGATION ====================
 function setupTheme() {
-    const saved = localStorage.getItem('theme') || 'light';
+    const saved = localStorage.getItem('theme') || 'dark';
     if (saved === 'dark') document.body.setAttribute('data-theme', 'dark');
+    else document.body.removeAttribute('data-theme');
+    
     document.getElementById('themeToggle').onclick = () => {
         const isDark = document.body.getAttribute('data-theme') === 'dark';
-        if (isDark) { document.body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
-        else { document.body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+        if (isDark) {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
     };
 }
 
@@ -736,8 +884,72 @@ function isPremium() { return localStorage.getItem('isPremium') === 'true'; }
 function showPremiumModal() { document.getElementById('premiumModal').style.display = 'flex'; }
 function closePremiumModal() { document.getElementById('premiumModal').style.display = 'none'; }
 
+// ==================== BUILD REACTION BUTTONS ====================
+function buildReactionButtons() {
+    const container = document.getElementById('reactionsBar');
+    container.innerHTML = '';
+    CONFIG.REACTIONS.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'reaction-mini-btn';
+        btn.setAttribute('data-emoji', emoji);
+        btn.innerHTML = `${CONFIG.REACTION_ICONS[emoji]} <span class="count">${statsData.reactions[emoji] || 0}</span>`;
+        btn.onclick = () => addReaction(emoji, true);
+        container.appendChild(btn);
+    });
+    
+    // Results reactions
+    const resultsContainer = document.getElementById('resultsReactions');
+    resultsContainer.innerHTML = '';
+    CONFIG.REACTIONS.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'reaction-emoji';
+        btn.setAttribute('data-emoji', emoji);
+        btn.innerHTML = `${CONFIG.REACTION_ICONS[emoji]} <span>${statsData.reactions[emoji] || 0}</span>`;
+        btn.onclick = () => addReaction(emoji, false);
+        resultsContainer.appendChild(btn);
+    });
+}
+
+// ==================== SHARING ====================
+function shareQuiz(platform) {
+    const url = window.location.href;
+    const score = document.getElementById('finalScoreValue')?.textContent || '0';
+    const text = `I scored ${score} on the Math Quiz Challenge! Can you beat my score? 🧮`;
+    
+    let shareUrl = '';
+    switch(platform) {
+        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`; break;
+        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; break;
+        case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`; break;
+        case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; break;
+    }
+    if (shareUrl) {
+        window.open(shareUrl, '_blank');
+        recordShare(platform);
+        showToast(`Shared on ${platform}!`, 'success');
+    }
+}
+
+function copyPageUrl() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+        recordShare('copy');
+    }).catch(() => {
+        // Fallback
+        const input = document.createElement('input');
+        input.value = window.location.href;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('Link copied!', 'success');
+        recordShare('copy');
+    });
+}
+
 // ==================== EVENT LISTENERS ====================
 function setupEventListeners() {
+    // Mode Selection
     document.querySelectorAll('.mode-select-btn').forEach(btn => {
         btn.onclick = () => {
             currentState.mode = btn.closest('.mode-card').getAttribute('data-mode');
@@ -746,6 +958,7 @@ function setupEventListeners() {
         };
     });
     
+    // Level Selection
     document.querySelectorAll('.level-start-btn').forEach(btn => {
         btn.onclick = () => {
             const level = btn.closest('.level-card').getAttribute('data-level');
@@ -753,78 +966,132 @@ function setupEventListeners() {
         };
     });
     
+    // Back buttons
     document.getElementById('backToModeBtn').onclick = () => {
         document.getElementById('levelsContainer').style.display = 'none';
         document.getElementById('modeContainer').style.display = 'grid';
     };
     
+    document.getElementById('backBtn').onclick = () => {
+        window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+    };
+    
+    document.getElementById('homeBtn').onclick = () => {
+        window.location.href = 'https://magicrills.com';
+    };
+    
+    // Quiz navigation
     document.getElementById('nextBtn').onclick = nextQuestion;
     document.getElementById('prevBtn').onclick = prevQuestion;
+    
+    // Powerups
     document.getElementById('fiftyBtn').onclick = () => usePowerup('fifty');
     document.getElementById('timeBtn').onclick = () => usePowerup('time');
     document.getElementById('hintBtn').onclick = () => usePowerup('hint');
     document.getElementById('skipBtn').onclick = () => usePowerup('skip');
+    
+    // Audio & Whiteboard
     document.getElementById('readAloudBtn').onclick = readAloud;
     document.getElementById('whiteboardBtn').onclick = showWhiteboard;
     document.getElementById('closeWhiteboardBtn').onclick = closeWhiteboard;
     document.getElementById('submitAnswerBtn').onclick = submitTypedAnswer;
+    
+    // Results actions
     document.getElementById('tryAgainBtn').onclick = () => startQuiz(currentState.level, currentState.mode);
     document.getElementById('changeLevelBtn').onclick = () => {
         document.getElementById('resultsContainer').style.display = 'none';
         document.getElementById('levelsContainer').style.display = 'block';
     };
     document.getElementById('downloadCertBtn').onclick = downloadCertificate;
+    document.getElementById('practiceWeakBtn').onclick = () => {
+        showToast('🎯 Starting practice for weak areas...', 'info');
+        startQuiz(currentState.level, 'practice');
+    };
     
     // Whiteboard buttons
     document.querySelectorAll('.wb-btn').forEach(btn => {
         btn.onclick = () => whiteboardInput(btn.getAttribute('data-val') || btn.getAttribute('data-op'));
     });
     
-    document.querySelectorAll('.reaction-mini-btn').forEach(btn => {
-        btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), true);
-    });
+    // Share buttons
     document.querySelectorAll('.share-mini-btn').forEach(btn => {
         if (btn.id === 'copyPageUrlBtn') btn.onclick = copyPageUrl;
         else btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
-    });
-    document.querySelectorAll('.reaction-emoji').forEach(btn => {
-        btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), false);
     });
     document.querySelectorAll('.social-icon').forEach(btn => {
         btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
     });
     
+    // Premium modal
     document.getElementById('closeModalBtn').onclick = closePremiumModal;
     document.getElementById('maybeLaterBtn').onclick = closePremiumModal;
     document.getElementById('upgradeBtn').onclick = () => {
         localStorage.setItem('isPremium', 'true');
-        showToast('Premium activated! 🎉', 'success');
+        showToast('🎉 Premium activated!', 'success');
         closePremiumModal();
     };
-    document.getElementById('statsBtn').onclick = () => showToast(`Total plays: ${toolUsageCount}`, 'info');
     
+    // Stats
+    document.getElementById('statsBtn').onclick = () => {
+        showToast(`📊 Total plays: ${toolUsageCount}`, 'info');
+    };
+    document.getElementById('streakBtn').onclick = () => {
+        const streak = localStorage.getItem('mathStreak') || '0';
+        showToast(`🔥 Current streak: ${streak} days`, 'info');
+    };
+    
+    // Answer input Enter key
     document.getElementById('answerInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') submitTypedAnswer();
     });
 }
 
 // ==================== INITIALIZATION ====================
-function init() {
+async function init() {
+    console.log(`🚀 ${CONFIG.APP_NAME} v${CONFIG.VERSION} initializing...`);
+    
+    // Setup theme first
     setupTheme();
     setupScrollButtons();
-    setupEventListeners();
-    incrementUsage('math_quiz_total');
     
+    // Fetch stats
+    await fetchToolStats();
+    buildReactionButtons();
+    
+    // Increment usage
+    await incrementUsage();
+    
+    // Load streak
     const savedStreak = localStorage.getItem('mathStreak') || '0';
     document.getElementById('streakCount').textContent = savedStreak;
+    
+    // Set default user counts
     document.getElementById('totalUsersCount').textContent = '25,000+';
     document.getElementById('totalQuestionsCount').textContent = '10,000+';
+    document.getElementById('heroTotalUsers').textContent = '25K+';
+    document.getElementById('heroTotalQuestions').textContent = '10K+';
     
-    showToast('Welcome to Math Quiz Challenge! 🧮', 'success');
+    // Start typewriter
+    startTypewriter();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Show welcome
+    setTimeout(() => showToast('🧮 Welcome to Math Quiz Challenge!', 'success'), 500);
+    
+    console.log(`✅ ${CONFIG.APP_NAME} initialized successfully!`);
 }
 
+// Add confetti animation style
 const style = document.createElement('style');
-style.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }`;
+style.textContent = `
+    @keyframes confettiFall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+`;
 document.head.appendChild(style);
 
+// ==================== START ====================
 document.addEventListener('DOMContentLoaded', init);
