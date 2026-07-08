@@ -1,105 +1,233 @@
 // ============================================
-// PDF TO EXCEL/CSV CONVERTER - COMPLETE VERSION
-// TiDB INTEGRATED | REAL DATA
+// PDF TO EXCEL/CSV CONVERTER - COMPLETE
+// CLOUDFLARE WORKERS API INTEGRATION
 // ============================================
 
+// ============================================
+// CONFIGURATION
+// ============================================
 const TOOL_SLUG = 'pdf-to-excel-converter';
-const API_BASE_URL = window.location.origin;
+// NOTE: Update these URLs to match your actual Cloudflare Worker deployment
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
-// Global variables
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
 let selectedFiles = [];
 let currentPreviewData = [];
 let currentFile = null;
+let isConverting = false;
 
-// Initialize PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+// Initialize PDF.js with proper worker
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+}
 
 // ============================================
-// TiDB API FUNCTIONS (REAL DATA)
+// CLOUDFLARE WORKERS API FUNCTIONS
 // ============================================
 
+/**
+ * Track tool usage - increments usage count
+ */
 async function trackToolUsage() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/usage`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug: TOOL_SLUG })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ tool_slug: TOOL_SLUG })
         });
+        
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('usedCount').innerText = data.totalCount || 0;
+            updateUsageDisplay(data.usage_count || 0);
+            return data;
+        } else {
+            console.warn('API returned status:', response.status);
+            throw new Error('API response not OK');
         }
     } catch (error) {
-        // Fallback to local storage if API fails
-        let localCount = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-        localCount = parseInt(localCount) + 1;
+        console.warn('API fallback: Using localStorage for usage');
+        // Fallback to localStorage
+        let localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || 0);
+        localCount += 1;
         localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
-        document.getElementById('usedCount').innerText = localCount;
+        updateUsageDisplay(localCount);
+        return { usage_count: localCount };
     }
 }
 
+/**
+ * Get tool statistics from API
+ */
 async function getToolStats() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/stats?slug=${TOOL_SLUG}`);
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': API_KEY
+            }
+        });
+        
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('usedCount').innerText = data.usageCount || 0;
-            document.getElementById('shareCount').innerText = data.shareCount || 0;
-            if (data.reactions) updateReactionCounts(data.reactions);
+            updateAllStats(data);
+            return data;
+        } else {
+            console.warn('API returned status:', response.status);
+            throw new Error('API response not OK');
         }
     } catch (error) {
+        console.warn('API fallback: Loading stats from localStorage');
         loadLocalStats();
+        return null;
     }
 }
 
+/**
+ * Add a reaction
+ */
 async function addReaction(emojiType) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/reaction`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug: TOOL_SLUG, emojiType })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                emoji_type: emojiType
+            })
         });
+        
         if (response.ok) {
             const data = await response.json();
-            updateReactionCounts(data.reactions);
-            showToast(getEmojiName(emojiType) + ' added!', 'success');
+            updateReactionCounts(data.reactions || {});
+            showToast(`${getEmojiName(emojiType)} added! 👍`, 'success');
+            return data;
         } else if (response.status === 409) {
-            showToast('You already added this reaction!', 'info');
+            showToast('You already added this reaction! 😊', 'info');
+            return null;
+        } else {
+            console.warn('API returned status:', response.status);
+            throw new Error('API response not OK');
         }
     } catch (error) {
+        console.warn('API fallback: Using localStorage for reactions');
         incrementLocalReaction(emojiType);
+        return null;
     }
 }
 
+/**
+ * Track a share
+ */
 async function trackShare(platform) {
     try {
-        await fetch(`${API_BASE_URL}/api/tool/share`, {
+        const response = await fetch(`${API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug: TOOL_SLUG, shareType: platform })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                share_type: platform
+            })
         });
-        let shareCount = parseInt(document.getElementById('shareCount').innerText) || 0;
-        document.getElementById('shareCount').innerText = shareCount + 1;
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateShareCount(data.share_count || 0);
+            showToast(`Shared on ${platform}! 🎉`, 'success');
+            return data;
+        } else {
+            console.warn('API returned status:', response.status);
+            throw new Error('API response not OK');
+        }
     } catch (error) {
+        console.warn('API fallback: Using localStorage for shares');
         let shareCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || 0);
-        localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount + 1);
-        document.getElementById('shareCount').innerText = shareCount + 1;
+        shareCount += 1;
+        localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
+        updateShareCount(shareCount);
+        return { share_count: shareCount };
     }
+}
+
+// ============================================
+// UI UPDATE FUNCTIONS
+// ============================================
+
+function updateUsageDisplay(count) {
+    // Update all usage displays
+    const heroUsage = document.getElementById('heroUsage');
+    if (heroUsage) heroUsage.innerText = count || 0;
+}
+
+function updateShareCount(count) {
+    const shareCount = document.getElementById('shareCount');
+    if (shareCount) shareCount.innerText = count || 0;
+    
+    const heroShares = document.getElementById('heroShares');
+    if (heroShares) heroShares.innerText = count || 0;
 }
 
 function updateReactionCounts(reactions) {
-    if (reactions.like) document.getElementById('likeCount').innerText = reactions.like;
-    if (reactions.love) document.getElementById('loveCount').innerText = reactions.love;
-    if (reactions.wow) document.getElementById('wowCount').innerText = reactions.wow;
-    if (reactions.sad) document.getElementById('sadCount').innerText = reactions.sad;
-    if (reactions.angry) document.getElementById('angryCount').innerText = reactions.angry;
-    if (reactions.laugh) document.getElementById('laughCount').innerText = reactions.laugh;
-    if (reactions.celebrate) document.getElementById('celebrateCount').innerText = reactions.celebrate;
+    const emojiMap = {
+        'like': 'likeCount',
+        'love': 'loveCount',
+        'wow': 'wowCount',
+        'sad': 'sadCount',
+        'laugh': 'laughCount',
+        'celebrate': 'celebrateCount'
+    };
+    
+    let totalReactions = 0;
+    for (const [key, elementId] of Object.entries(emojiMap)) {
+        const count = reactions[key] || 0;
+        const el = document.getElementById(elementId);
+        if (el) el.innerText = count;
+        totalReactions += count;
+    }
+    
+    // Update hero reactions count
+    const heroReactions = document.getElementById('heroReactions');
+    if (heroReactions) heroReactions.innerText = totalReactions;
 }
 
-function getEmojiName(emojiType) {
-    const names = { like: '👍 Like', love: '❤️ Love', wow: '😮 Wow', sad: '😢 Sad', angry: '😠 Angry', laugh: '😂 Laugh', celebrate: '🎉 Celebrate' };
-    return names[emojiType] || emojiType;
+function updateAllStats(data) {
+    if (data) {
+        updateUsageDisplay(data.usage_count || 0);
+        updateShareCount(data.share_count || 0);
+        updateReactionCounts(data.reactions || {});
+        
+        // Followers (if available)
+        const heroFollowers = document.getElementById('heroFollowers');
+        if (heroFollowers) heroFollowers.innerText = data.followers || 0;
+    }
+}
+
+function loadLocalStats() {
+    // Usage
+    const usage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || 0);
+    updateUsageDisplay(usage);
+    
+    // Shares
+    const shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || 0);
+    updateShareCount(shares);
+    
+    // Reactions
+    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+    updateReactionCounts(reactions);
+    
+    // Followers (not stored locally)
+    const heroFollowers = document.getElementById('heroFollowers');
+    if (heroFollowers) heroFollowers.innerText = '0';
 }
 
 function incrementLocalReaction(emojiType) {
@@ -107,48 +235,138 @@ function incrementLocalReaction(emojiType) {
     reactions[emojiType] = (reactions[emojiType] || 0) + 1;
     localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
     updateReactionCounts(reactions);
+    showToast(`${getEmojiName(emojiType)} added! 👍`, 'success');
 }
 
-function loadLocalStats() {
-    document.getElementById('usedCount').innerText = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-    document.getElementById('shareCount').innerText = localStorage.getItem(`${TOOL_SLUG}_shares`) || 0;
-    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-    updateReactionCounts(reactions);
+function getEmojiName(emojiType) {
+    const names = {
+        'like': '👍 Like',
+        'love': '❤️ Love',
+        'wow': '😮 Wow',
+        'sad': '😢 Sad',
+        'laugh': '😂 Laugh',
+        'celebrate': '🎉 Celebrate'
+    };
+    return names[emojiType] || emojiType;
 }
 
+// ============================================
+// TOAST NOTIFICATIONS
+// ============================================
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = message;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-100%)';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 3000);
+}
+
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const phrases = [
+        'Extract tables from PDFs instantly 📊',
+        'Convert PDF to Excel with AI 🤖',
+        'PDF to CSV in one click ⚡',
+        'Smart table detection & extraction 🎯',
+        'Free, fast & accurate conversion 🚀'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const target = document.getElementById('typewriterTarget');
+    if (!target) return;
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (!isDeleting) {
+            // Typing
+            target.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            
+            if (charIndex === currentPhrase.length) {
+                isDeleting = true;
+                setTimeout(type, 2000);
+                return;
+            }
+            setTimeout(type, 50);
+        } else {
+            // Deleting
+            target.textContent = currentPhrase.substring(0, charIndex);
+            charIndex--;
+            
+            if (charIndex < 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(type, 500);
+                return;
+            }
+            setTimeout(type, 30);
+        }
+    }
+    
+    setTimeout(type, 500);
+}
+
+// ============================================
+// CHECKLIST 3D - UPDATE STEPS
+// ============================================
+function updateChecklist(step) {
+    const items = document.querySelectorAll('.checklist-item');
+    items.forEach((item) => {
+        const itemStep = parseInt(item.dataset.step);
+        if (itemStep <= step) {
+            item.classList.add('completed');
+            const icon = item.querySelector('.check-icon');
+            if (icon) icon.textContent = '✓';
+        } else {
+            item.classList.remove('completed');
+            const icon = item.querySelector('.check-icon');
+            if (icon) icon.textContent = itemStep;
+        }
+    });
 }
 
 // ============================================
 // FILE HANDLING FUNCTIONS
 // ============================================
-
 function handleFileSelect(event) {
     const files = Array.from(event.target.files);
     addFiles(files);
+    updateChecklist(1);
 }
 
 function addFiles(files) {
     files.forEach(file => {
         if (file.type === 'application/pdf') {
-            if (!selectedFiles.find(f => f.name === file.name)) {
+            if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
                 selectedFiles.push(file);
             }
         }
     });
     updateFileList();
-    document.getElementById('convertBtn').disabled = selectedFiles.length === 0;
+    const convertBtn = document.getElementById('convertBtn');
+    if (convertBtn) convertBtn.disabled = selectedFiles.length === 0;
     showToast(`${files.length} PDF file(s) added`, 'success');
 }
 
 function updateFileList() {
     const container = document.getElementById('fileList');
+    if (!container) return;
+    
     if (selectedFiles.length === 0) {
         container.innerHTML = '';
         return;
@@ -156,23 +374,27 @@ function updateFileList() {
     
     container.innerHTML = selectedFiles.map((file, index) => `
         <div class="file-item">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-file-pdf" style="color: var(--danger);"></i>
-                <div>
-                    <div class="file-name">${file.name}</div>
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                <i class="fas fa-file-pdf" style="color: #ef4444; flex-shrink: 0;"></i>
+                <div style="min-width: 0; flex: 1;">
+                    <div class="file-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</div>
                     <div class="file-size">${formatFileSize(file.size)}</div>
                 </div>
             </div>
-            <button class="delete-file" data-index="${index}"><i class="fas fa-trash"></i></button>
+            <button class="delete-file" data-index="${index}" style="flex-shrink: 0;">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
     `).join('');
     
     document.querySelectorAll('.delete-file').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const index = parseInt(btn.dataset.index);
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
             selectedFiles.splice(index, 1);
             updateFileList();
-            document.getElementById('convertBtn').disabled = selectedFiles.length === 0;
+            const convertBtn = document.getElementById('convertBtn');
+            if (convertBtn) convertBtn.disabled = selectedFiles.length === 0;
+            if (selectedFiles.length === 0) updateChecklist(0);
             showToast('File removed', 'info');
         });
     });
@@ -185,6 +407,9 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+// ============================================
+// PDF PROCESSING FUNCTIONS
+// ============================================
 function parsePageRange(rangeStr, totalPages) {
     if (!rangeStr || rangeStr.trim() === '') {
         return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -274,50 +499,60 @@ function convertToOutput(data, format, delimiter = ',') {
         // Excel format
         const ws = XLSX.utils.aoa_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, document.getElementById('sheetName').value || 'Sheet1');
+        const sheetName = document.getElementById('sheetName')?.value || 'Sheet1';
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
         return XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
     }
 }
 
 function updateProgress(percent) {
     const bar = document.getElementById('progressBar');
-    bar.style.width = percent + '%';
+    if (bar) bar.style.width = Math.min(100, percent) + '%';
 }
 
 // ============================================
 // MAIN CONVERSION FUNCTION
 // ============================================
-
 async function convertPDF() {
     if (selectedFiles.length === 0) {
         showToast('Please select a PDF file first', 'error');
         return;
     }
     
+    if (isConverting) return;
+    isConverting = true;
+    
     const convertBtn = document.getElementById('convertBtn');
-    convertBtn.disabled = true;
-    convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Converting...';
+    if (convertBtn) {
+        convertBtn.disabled = true;
+        convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Converting...';
+    }
     
-    document.getElementById('spinner').style.display = 'block';
-    document.getElementById('status').innerHTML = 'Processing PDF...';
-    updateProgress(10);
+    const spinner = document.getElementById('spinner');
+    if (spinner) spinner.style.display = 'block';
     
-    const outputFormat = document.getElementById('outputFormat').value;
-    const csvDelimiter = document.getElementById('csvDelimiter').value;
+    const status = document.getElementById('status');
+    if (status) status.innerHTML = 'Processing PDF...';
+    
+    updateProgress(5);
+    updateChecklist(3);
+    
+    const outputFormat = document.getElementById('outputFormat')?.value || 'xlsx';
+    const csvDelimiter = document.getElementById('csvDelimiter')?.value || ',';
     const actualDelimiter = csvDelimiter === 'tab' ? '\t' : csvDelimiter;
-    const pageRange = document.getElementById('pageRange').value;
-    const filterText = document.getElementById('filterText').value;
-    const findText = document.getElementById('findText').value;
-    const replaceText = document.getElementById('replaceText').value;
-    const removeEmpty = document.getElementById('removeEmptyRows').checked;
-    const addHeaders = document.getElementById('addHeaders').checked;
+    const pageRange = document.getElementById('pageRange')?.value || '';
+    const filterText = document.getElementById('filterText')?.value || '';
+    const findText = document.getElementById('findText')?.value || '';
+    const replaceText = document.getElementById('replaceText')?.value || '';
+    const removeEmpty = document.getElementById('removeEmptyRows')?.checked || false;
+    const addHeaders = document.getElementById('addHeaders')?.checked || false;
     
     const allResults = [];
     
     for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        updateProgress(20 + (i / selectedFiles.length) * 60);
-        document.getElementById('status').innerHTML = `Processing ${file.name}...`;
+        updateProgress(10 + (i / selectedFiles.length) * 70);
+        if (status) status.innerHTML = `Processing ${file.name}...`;
         
         try {
             const arrayBuffer = await readFileAsArrayBuffer(file);
@@ -346,54 +581,68 @@ async function convertPDF() {
             
         } catch (error) {
             console.error('Error:', error);
-            showToast(`Error processing ${file.name}`, 'error');
+            showToast(`Error processing ${file.name}: ${error.message}`, 'error');
         }
     }
     
-    updateProgress(90);
+    updateProgress(85);
+    updateChecklist(4);
     
     // Show preview
-    if (currentPreviewData.length > 0) {
+    if (currentPreviewData && currentPreviewData.length > 0) {
         displayPreview(currentPreviewData);
-        document.getElementById('previewCard').style.display = 'block';
+        const previewCard = document.getElementById('previewCard');
+        if (previewCard) previewCard.style.display = 'block';
+        updateChecklist(5);
     }
     
     // Show download buttons
     const downloadContainer = document.getElementById('downloadButtons');
-    downloadContainer.innerHTML = '';
-    
-    allResults.forEach((result, idx) => {
-        const blob = new Blob([result.data], { type: result.mimeType });
-        const url = URL.createObjectURL(blob);
+    if (downloadContainer) {
+        downloadContainer.innerHTML = '';
         
-        const link = document.createElement('a');
-        link.className = 'download-btn';
-        link.href = url;
-        link.download = result.name;
-        link.innerHTML = `<i class="fas fa-download"></i> ${result.name}`;
-        downloadContainer.appendChild(link);
-    });
+        allResults.forEach((result) => {
+            const blob = new Blob([result.data], { type: result.mimeType });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.className = 'download-btn';
+            link.href = url;
+            link.download = result.name;
+            link.innerHTML = `<i class="fas fa-download"></i> ${result.name}`;
+            downloadContainer.appendChild(link);
+        });
+    }
     
     // Save to history
     saveToHistory(selectedFiles.length, outputFormat);
     
-    document.getElementById('downloadCard').style.display = 'block';
-    document.getElementById('status').innerHTML = 'Conversion complete! Ready to download.';
-    updateProgress(100);
-    document.getElementById('spinner').style.display = 'none';
+    const downloadCard = document.getElementById('downloadCard');
+    if (downloadCard) downloadCard.style.display = 'block';
     
-    convertBtn.disabled = false;
-    convertBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Convert PDF';
+    if (status) status.innerHTML = '✅ Conversion complete! Ready to download.';
+    updateProgress(100);
+    if (spinner) spinner.style.display = 'none';
+    updateChecklist(6);
+    
+    if (convertBtn) {
+        convertBtn.disabled = false;
+        convertBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Convert PDF';
+    }
+    isConverting = false;
     
     // Track usage
-    trackToolUsage();
-    showToast(`Successfully converted ${selectedFiles.length} file(s)!`, 'success');
+    await trackToolUsage();
+    showToast(`✅ Successfully converted ${selectedFiles.length} file(s)!`, 'success');
 }
 
+// ============================================
+// PREVIEW FUNCTIONS
+// ============================================
 function displayPreview(data) {
     const container = document.getElementById('previewContainer');
-    if (!data || data.length === 0) {
-        container.innerHTML = '<p>No data to preview</p>';
+    if (!container || !data || data.length === 0) {
+        if (container) container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No data to preview</p>';
         return;
     }
     
@@ -402,23 +651,32 @@ function displayPreview(data) {
     for (let i = 0; i < maxCols; i++) html += `<th>Col ${i + 1}</th>`;
     html += '</tr></thead><tbody>';
     
-    data.slice(0, 10).forEach(row => {
+    const rowsToShow = Math.min(data.length, 10);
+    for (let r = 0; r < rowsToShow; r++) {
         html += '<tr>';
         for (let i = 0; i < maxCols; i++) {
-            html += `<td>${escapeHtml(row[i] || '')}</td>`;
+            html += `<td>${escapeHtml(data[r][i] || '')}</td>`;
         }
         html += '</tr>';
-    });
+    }
     html += '</tbody></table>';
     container.innerHTML = html;
     
-    document.getElementById('previewStats').innerHTML = `Showing ${Math.min(data.length, 10)} of ${data.length} rows, ${maxCols} columns`;
+    const statsEl = document.getElementById('previewStats');
+    if (statsEl) {
+        statsEl.innerHTML = `${rowsToShow} of ${data.length} rows, ${maxCols} columns`;
+    }
 }
 
 function escapeHtml(str) {
-    return str.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    return String(str).replace(/[&<>"]/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+    }[c] || c));
 }
 
+// ============================================
+// HISTORY FUNCTIONS
+// ============================================
 function saveToHistory(fileCount, format) {
     const history = {
         id: Date.now(),
@@ -437,9 +695,10 @@ function saveToHistory(fileCount, format) {
 function displayFileHistory() {
     const saved = JSON.parse(localStorage.getItem('pdfConverterHistory') || '[]');
     const container = document.getElementById('fileHistory');
+    if (!container) return;
     
     if (saved.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: var(--gray);">No recent conversions</p>';
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 13px;">No recent conversions</p>';
         return;
     }
     
@@ -454,37 +713,56 @@ function displayFileHistory() {
 // ============================================
 // SHARE FUNCTIONS
 // ============================================
-
 function shareOnFacebook() { 
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); 
     trackShare('facebook'); 
-    showToast('Shared on Facebook!', 'success'); 
 }
 
 function shareOnTwitter() { 
-    window.open(`https://twitter.com/intent/tweet?text=PDF%20to%20Excel%20Converter&url=${encodeURIComponent(window.location.href)}`, '_blank'); 
+    const text = encodeURIComponent('Convert PDF to Excel/CSV for free! 🚀');
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`, '_blank'); 
     trackShare('twitter'); 
-    showToast('Shared on Twitter!', 'success'); 
+}
+
+function shareOnLinkedIn() {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+    trackShare('linkedin');
 }
 
 function shareOnWhatsApp() { 
     window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank'); 
     trackShare('whatsapp'); 
-    showToast('Shared on WhatsApp!', 'success'); 
 }
 
 async function copyPageLink() { 
-    await navigator.clipboard.writeText(window.location.href); 
-    trackShare('copy'); 
-    showToast('Link copied!', 'success'); 
+    try {
+        await navigator.clipboard.writeText(window.location.href); 
+        trackShare('copy');
+        showToast('Link copied to clipboard! 📋', 'success');
+    } catch {
+        // Fallback
+        const input = document.createElement('input');
+        input.value = window.location.href;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        trackShare('copy');
+        showToast('Link copied! 📋', 'success');
+    }
 }
 
+// ============================================
+// SCROLL BUTTONS
+// ============================================
 function setupScrollButtons() {
     const upBtn = document.getElementById('scrollUpBtn');
     const downBtn = document.getElementById('scrollDownBtn');
     
+    if (!upBtn || !downBtn) return;
+    
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 200) {
+        if (window.scrollY > 300) {
             upBtn.style.display = 'flex';
         } else {
             upBtn.style.display = 'none';
@@ -498,70 +776,105 @@ function setupScrollButtons() {
 // ============================================
 // EVENT LISTENERS & INITIALIZATION
 // ============================================
-
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize
     getToolStats();
     displayFileHistory();
+    initTypewriter();
+    setupScrollButtons();
     
-    // File upload
+    // ===== FILE UPLOAD =====
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     
-    uploadBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFileSelect);
+    if (uploadBtn) uploadBtn.addEventListener('click', () => fileInput?.click());
+    if (fileInput) fileInput.addEventListener('change', handleFileSelect);
     
-    dropArea.addEventListener('dragover', (e) => { 
-        e.preventDefault(); 
-        dropArea.classList.add('drag-over'); 
-    });
+    if (dropArea) {
+        dropArea.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            dropArea.classList.add('drag-over'); 
+        });
+        
+        dropArea.addEventListener('dragleave', () => { 
+            dropArea.classList.remove('drag-over'); 
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                addFiles(Array.from(e.dataTransfer.files));
+            }
+        });
+    }
     
-    dropArea.addEventListener('dragleave', () => { 
-        dropArea.classList.remove('drag-over'); 
-    });
+    // ===== CONVERT BUTTON =====
+    const convertBtn = document.getElementById('convertBtn');
+    if (convertBtn) convertBtn.addEventListener('click', convertPDF);
     
-    dropArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropArea.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) {
-            addFiles(Array.from(e.dataTransfer.files));
-        }
-    });
+    // ===== FIND & REPLACE =====
+    const applyReplaceBtn = document.getElementById('applyReplaceBtn');
+    if (applyReplaceBtn) {
+        applyReplaceBtn.addEventListener('click', () => {
+            const findText = document.getElementById('findText')?.value || '';
+            const replaceText = document.getElementById('replaceText')?.value || '';
+            if (findText && currentPreviewData && currentPreviewData.length > 0) {
+                currentPreviewData = findAndReplace(currentPreviewData, findText, replaceText);
+                displayPreview(currentPreviewData);
+                showToast(`Replaced "${findText}" with "${replaceText}"`, 'success');
+            } else if (!findText) {
+                showToast('Please enter text to find', 'info');
+            } else {
+                showToast('No data to apply find/replace', 'info');
+            }
+        });
+    }
     
-    // Convert button
-    document.getElementById('convertBtn').addEventListener('click', convertPDF);
+    // ===== CLEAR HISTORY =====
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', () => {
+            localStorage.removeItem('pdfConverterHistory');
+            displayFileHistory();
+            showToast('History cleared', 'success');
+        });
+    }
     
-    // Find & Replace
-    document.getElementById('applyReplaceBtn').addEventListener('click', () => {
-        const findText = document.getElementById('findText').value;
-        const replaceText = document.getElementById('replaceText').value;
-        if (findText && currentPreviewData) {
-            currentPreviewData = findAndReplace(currentPreviewData, findText, replaceText);
-            displayPreview(currentPreviewData);
-            showToast(`Replaced "${findText}" with "${replaceText}"`, 'success');
-        }
-    });
-    
-    // Clear history
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-        localStorage.removeItem('pdfConverterHistory');
-        displayFileHistory();
-        showToast('History cleared', 'success');
-    });
-    
-    // Reactions
+    // ===== REACTIONS =====
     document.querySelectorAll('.reaction-btn').forEach(btn => {
-        btn.addEventListener('click', () => addReaction(btn.dataset.emoji));
+        btn.addEventListener('click', function() {
+            const emoji = this.dataset.emoji;
+            if (emoji) {
+                addReaction(emoji);
+                // Visual feedback
+                this.classList.add('active');
+                setTimeout(() => this.classList.remove('active'), 300);
+            }
+        });
     });
     
-    // Share buttons
-    document.querySelector('.share-btn.facebook')?.addEventListener('click', shareOnFacebook);
-    document.querySelector('.share-btn.twitter')?.addEventListener('click', shareOnTwitter);
-    document.querySelector('.share-btn.whatsapp')?.addEventListener('click', shareOnWhatsApp);
-    document.querySelector('.share-btn.copy-link')?.addEventListener('click', copyPageLink);
+    // ===== SHARE BUTTONS =====
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const platform = this.dataset.platform;
+            switch(platform) {
+                case 'facebook': shareOnFacebook(); break;
+                case 'twitter': shareOnTwitter(); break;
+                case 'linkedin': shareOnLinkedIn(); break;
+                case 'whatsapp': shareOnWhatsApp(); break;
+                case 'copy': copyPageLink(); break;
+                default: showToast('Share feature coming soon!', 'info');
+            }
+        });
+    });
     
-    // Scroll buttons
-    setupScrollButtons();
+    // ===== TOOL USAGE ON LOAD =====
+    trackToolUsage();
     
-    showToast('Welcome! Upload PDF to convert to Excel/CSV', 'success');
+    // Welcome toast
+    setTimeout(() => {
+        showToast('🚀 Upload a PDF to get started!', 'info');
+    }, 800);
 });
