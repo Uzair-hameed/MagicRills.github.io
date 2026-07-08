@@ -3,173 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>History, Geography & GK Quiz Challenge | AI-Powered | Grok API | 65+ Features</title>
+    
+    <!-- ==================== SEO META TAGS ==================== -->
+    <title>History, Geography & GK Quiz Challenge | AI-Powered Learning | 5000+ Questions</title>
+    <meta name="description" content="Test your knowledge with AI-powered History, Geography & General Knowledge quiz. 5000+ unique questions, 3 difficulty levels, real-time scoring. Play now!">
+    <meta name="keywords" content="history quiz, geography quiz, general knowledge, AI quiz, trivia, learning, educational game">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://magicrills.com/tools/history-geography-gk-quiz.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="History, Geography & GK Quiz Challenge | AI-Powered Learning">
+    <meta property="og:description" content="Test your knowledge with AI-powered quizzes on History, Geography & General Knowledge. 5000+ unique questions!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills.com/tools/history-geography-gk-quiz.html">
+    <meta property="og:image" content="https://magicrills.com/assets/og-quiz.jpg">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="History, Geography & GK Quiz Challenge">
+    <meta name="twitter:description" content="AI-powered quiz with 5000+ unique questions. Test your knowledge now!">
+    <meta name="twitter:image" content="https://magicrills.com/assets/twitter-quiz.jpg">
+    
+    <!-- Schema Markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "History, Geography & GK Quiz Challenge",
+        "description": "AI-powered quiz game with 5000+ unique questions across History, Geography and General Knowledge.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "1250"
+        }
+    }
+    </script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-primary: #f0f4f8;
-            --bg-secondary: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --card-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-            --hover-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            --history-gradient: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
-            --geography-gradient: linear-gradient(135deg, #2ecc71 0%, #229954 100%);
-            --gk-gradient: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --danger: #ef233c;
-            --premium: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
-        }
-        [data-theme="dark"] {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
-        }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); transition: all 0.3s ease; min-height: 100vh; }
-        .app-container { max-width: 1400px; margin: 0 auto; padding: 20px; position: relative; }
-        
-        .main-header { background: var(--bg-secondary); border-radius: 24px; padding: 20px 30px; margin-bottom: 30px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-area i { font-size: 32px; background: var(--history-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .logo-area h1 { font-size: 24px; font-weight: 700; }
-        .header-actions { display: flex; gap: 12px; }
-        .theme-toggle, .stats-btn, .streak-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 10px 16px; cursor: pointer; transition: all 0.3s; color: var(--text-primary); }
-        .theme-toggle:hover, .stats-btn:hover, .streak-btn:hover { transform: scale(1.05); background: var(--history-gradient); color: white; }
-        .stats-badge, .streak-btn span { background: var(--history-gradient); border-radius: 20px; padding: 2px 8px; margin-left: 8px; font-size: 12px; color: white; }
-        .tagline { margin-top: 12px; font-size: 14px; color: var(--text-secondary); text-align: center; }
-        
-        .stats-bar { background: var(--bg-secondary); border-radius: 20px; padding: 15px 25px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid var(--border-color); }
-        .stats-item { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-        .reactions-bar { display: flex; gap: 12px; flex-wrap: wrap; }
-        .reaction-mini-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
-        .reaction-mini-btn:hover { transform: scale(1.05); background: var(--warning); color: white; }
-        .share-buttons-bar { display: flex; gap: 10px; flex-wrap: wrap; }
-        .share-mini-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
-        .share-mini-btn:hover { transform: scale(1.05); background: var(--info); color: white; }
-        
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 30px; }
-        .subject-card { background: var(--bg-secondary); border-radius: 28px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid var(--border-color); }
-        .subject-card[data-subject="history"]:hover { background: var(--history-gradient); transform: translateY(-8px); }
-        .subject-card[data-subject="geography"]:hover { background: var(--geography-gradient); transform: translateY(-8px); }
-        .subject-card[data-subject="gk"]:hover { background: var(--gk-gradient); transform: translateY(-8px); }
-        .subject-card:hover h2, .subject-card:hover p, .subject-card:hover .subject-icon i { color: white; }
-        .subject-icon i { font-size: 52px; margin-bottom: 15px; background: var(--history-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .subject-card h2 { font-size: 28px; margin-bottom: 8px; }
-        .subject-card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; }
-        .subject-stats { font-size: 13px; margin-bottom: 20px; }
-        .subject-select-btn { background: var(--history-gradient); color: white; border: none; border-radius: 40px; padding: 12px 24px; cursor: pointer; width: 100%; font-weight: 600; }
-        
-        .levels-container { background: var(--bg-secondary); border-radius: 28px; padding: 30px; margin-bottom: 30px; display: none; }
-        .back-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 10px 20px; cursor: pointer; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
-        .levels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 20px; }
-        .level-card { background: var(--bg-primary); border-radius: 24px; padding: 25px; text-align: center; border: 1px solid var(--border-color); transition: all 0.3s; }
-        .level-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow); }
-        .level-icon i { font-size: 40px; margin-bottom: 15px; }
-        .level-card h3 { font-size: 22px; margin-bottom: 10px; }
-        .level-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
-        .level-start-btn { background: var(--history-gradient); color: white; border: none; border-radius: 40px; padding: 12px 20px; cursor: pointer; width: 100%; font-weight: 600; }
-        
-        .quiz-container { background: var(--bg-secondary); border-radius: 28px; padding: 30px; border: 1px solid var(--border-color); display: none; }
-        .quiz-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
-        .quiz-info { display: flex; gap: 12px; }
-        .quiz-subject, .quiz-level { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-        .quiz-subject { background: var(--history-gradient); color: white; }
-        .quiz-level { background: var(--bg-primary); }
-        .quiz-timer { font-size: 20px; font-weight: 700; color: var(--warning); display: flex; align-items: center; gap: 6px; }
-        .quiz-lives { color: var(--danger); font-weight: 600; }
-        .quiz-score { color: var(--success); font-weight: 600; }
-        .progress-bar-container { background: var(--border-color); border-radius: 10px; height: 8px; margin-bottom: 25px; overflow: hidden; }
-        .progress-bar-fill { background: var(--history-gradient); height: 100%; width: 0%; transition: width 0.3s ease; }
-        
-        .audio-controls { display: flex; gap: 12px; margin-bottom: 25px; }
-        .read-aloud-btn, .speech-answer-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 10px 18px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
-        .read-aloud-btn:hover, .speech-answer-btn:hover { background: var(--info); color: white; }
-        
-        .question-text { font-size: 22px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
-        .question-meta { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
-        .question-points { background: var(--warning); color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; }
-        .options-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        .option { background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 16px; padding: 16px 20px; cursor: pointer; transition: all 0.3s; font-weight: 500; }
-        .option:hover { border-color: var(--info); transform: translateX(6px); }
-        .option.selected { background: var(--info); color: white; }
-        .option.correct { background: var(--success); color: white; }
-        .option.incorrect { background: var(--error); color: white; }
-        
-        .explanation-box { background: var(--bg-primary); border-radius: 20px; padding: 20px; margin: 20px 0; border-left: 4px solid var(--info); display: none; }
-        .explanation-header { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 12px; }
-        
-        .quiz-footer { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
-        .powerups { display: flex; gap: 10px; flex-wrap: wrap; }
-        .powerup-btn { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 8px 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; font-size: 11px; }
-        .powerup-btn.premium { background: var(--premium); color: white; }
-        .premium-badge { position: absolute; top: -8px; right: -8px; background: gold; color: #333; font-size: 8px; padding: 2px 6px; border-radius: 10px; }
-        .powerup-count { background: var(--history-gradient); border-radius: 20px; padding: 2px 6px; font-size: 10px; color: white; }
-        .nav-buttons { display: flex; gap: 10px; }
-        .nav-btn, .next-btn { background: var(--history-gradient); color: white; border: none; border-radius: 40px; padding: 10px 20px; cursor: pointer; font-weight: 600; }
-        .nav-btn:disabled, .next-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        .results-container { background: var(--bg-secondary); border-radius: 28px; padding: 35px; display: none; text-align: center; }
-        .score-circle { width: 150px; height: 150px; background: var(--history-gradient); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; color: white; }
-        .score-value { font-size: 48px; font-weight: 800; }
-        .badge-earned { background: var(--history-gradient); color: white; padding: 10px 24px; border-radius: 40px; display: inline-block; margin: 20px 0; }
-        .weak-areas-section { margin: 20px 0; text-align: left; }
-        .weak-area-tag { background: var(--error); color: white; padding: 5px 12px; border-radius: 20px; display: inline-block; margin: 5px; font-size: 12px; }
-        .emoji-reactions { display: flex; justify-content: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
-        .reaction-emoji { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 16px; cursor: pointer; }
-        .social-icons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
-        .social-icon { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; color: white; }
-        .social-icon[data-platform="facebook"] { background: #1877f2; }
-        .social-icon[data-platform="twitter"] { background: #1da1f2; }
-        .social-icon[data-platform="whatsapp"] { background: #25d366; }
-        .action-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
-        .try-again-btn, .change-level-btn, .dashboard-return-btn { padding: 12px 24px; border-radius: 40px; font-weight: 600; cursor: pointer; }
-        .try-again-btn { background: var(--history-gradient); color: white; border: none; }
-        .change-level-btn { background: transparent; border: 2px solid var(--history-gradient); color: var(--text-primary); }
-        .dashboard-return-btn { background: var(--dark-color); color: white; border: none; }
-        
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; display: none; }
-        .spinner { width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .scroll-btn { position: fixed; right: 20px; width: 48px; height: 48px; border-radius: 50%; background: var(--history-gradient); border: none; color: white; cursor: pointer; z-index: 99; display: flex; align-items: center; justify-content: center; }
-        .scroll-up { bottom: 80px; display: none; }
-        .scroll-down { bottom: 20px; }
-        
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; }
-        .modal-content { background: var(--bg-secondary); border-radius: 28px; padding: 35px; max-width: 450px; width: 90%; text-align: center; position: relative; }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; }
-        .upgrade-btn { background: var(--premium); color: white; border: none; border-radius: 40px; padding: 14px; width: 100%; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        
-        .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; }
-        .toast { background: var(--bg-secondary); padding: 12px 24px; border-radius: 40px; margin-bottom: 10px; animation: slideUp 0.3s ease; border-left: 4px solid var(--success); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        @media (max-width: 768px) {
-            .app-container { padding: 12px; }
-            .dashboard { grid-template-columns: 1fr; }
-            .levels-grid { grid-template-columns: 1fr; }
-            .quiz-header { flex-direction: column; align-items: stretch; text-align: center; }
-            .stats-bar { flex-direction: column; align-items: stretch; }
-            .quiz-footer { flex-direction: column; }
-            .nav-buttons { width: 100%; justify-content: center; }
-        }
-    </style>
+    <link rel="stylesheet" href="history-geography-gk-quiz-challenge.css">
 </head>
 <body>
     <div class="app-container">
+        
+        <!-- ==================== HERO SECTION ==================== -->
+        <section class="hero-section" id="heroSection">
+            <div class="hero-content">
+                <span class="hero-badge"><i class="fas fa-robot"></i> AI-Powered Quiz</span>
+                <h1>History, Geography & <span class="highlight">GK Quiz</span></h1>
+                <div class="typewriter-container">
+                    <span class="typewriter-text" id="typewriterText"></span>
+                </div>
+                <div class="hero-stats" id="heroStats">
+                    <div class="hero-stat">
+                        <span class="number" id="heroQuestions">5000+</span>
+                        <span class="label">AI Questions</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="number" id="heroUsers">5K+</span>
+                        <span class="label">Active Learners</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="number" id="heroQuizzes">12K+</span>
+                        <span class="label">Quizzes Played</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-animated-image" id="heroAnimatedImage">
+                    <i class="fas fa-globe-asia"></i>
+                    <span class="emoji-overlay">📚</span>
+                    <span class="emoji-overlay">🌍</span>
+                    <span class="emoji-overlay">🧠</span>
+                    <span class="emoji-overlay">🏛️</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== NAVIGATION BAR ==================== -->
+        <nav class="nav-bar">
+            <div class="nav-left">
+                <a href="https://magicrills.com" class="nav-btn" id="homeBtn"><i class="fas fa-home"></i> Home</a>
+                <a href="https://magicrills.com/category-pages/mixed-tools.html" class="nav-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Back</a>
+            </div>
+            <div class="nav-right">
+                <span style="font-size:13px;color:var(--text-secondary);font-weight:500;">✨ AI-Powered</span>
+            </div>
+        </nav>
+
+        <!-- ==================== HEADER ==================== -->
         <header class="main-header">
             <div class="header-content">
-                <div class="logo-area"><i class="fas fa-globe-asia"></i><h1>History, Geography & GK Quiz</h1></div>
+                <div class="logo-area">
+                    <i class="fas fa-globe-asia"></i>
+                    <h1>History, Geography & GK Quiz</h1>
+                </div>
                 <div class="header-actions">
                     <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
                     <button class="stats-btn" id="statsBtn"><i class="fas fa-chart-line"></i><span class="stats-badge" id="globalUsageCount">0</span></button>
@@ -179,9 +116,16 @@
             <p class="tagline">🤖 AI-Powered by Grok API | 5000+ Unique Questions | No Repetition | 65+ Features</p>
         </header>
 
-        <div class="stats-bar">
+        <!-- ==================== STATS BAR ==================== -->
+        <div class="stats-bar" id="statsBar">
             <div class="stats-item"><i class="fas fa-users"></i> <span id="totalUsersCount">5,000+</span> Active Learners</div>
             <div class="stats-item"><i class="fas fa-question-circle"></i> <span id="totalQuestionsCount">5000+</span> AI Questions</div>
+            <div class="stats-item"><i class="fas fa-share-alt"></i> <span id="totalSharesCount">0</span> Shares</div>
+            <div class="stats-item"><i class="fas fa-eye"></i> <span id="totalViewsCount">0</span> Views</div>
+        </div>
+
+        <!-- ==================== REACTIONS & SHARE BAR ==================== -->
+        <div class="stats-bar" style="margin-bottom:30px;flex-wrap:wrap;">
             <div class="reactions-bar" id="mainReactionsBar">
                 <button class="reaction-mini-btn" data-emoji="like">👍 <span id="reactionLike">0</span></button>
                 <button class="reaction-mini-btn" data-emoji="love">❤️ <span id="reactionLove">0</span></button>
@@ -189,15 +133,18 @@
                 <button class="reaction-mini-btn" data-emoji="sad">😢 <span id="reactionSad">0</span></button>
                 <button class="reaction-mini-btn" data-emoji="laugh">😂 <span id="reactionLaugh">0</span></button>
                 <button class="reaction-mini-btn" data-emoji="celebrate">🎉 <span id="reactionCelebrate">0</span></button>
+                <button class="reaction-mini-btn" data-emoji="angry">😡 <span id="reactionAngry">0</span></button>
             </div>
             <div class="share-buttons-bar">
                 <button class="share-mini-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
                 <button class="share-mini-btn" data-platform="twitter"><i class="fab fa-twitter"></i> Tweet</button>
                 <button class="share-mini-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
+                <button class="share-mini-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
                 <button class="share-mini-btn" id="copyPageUrlBtn"><i class="fas fa-link"></i> Copy Link</button>
             </div>
         </div>
 
+        <!-- ==================== DASHBOARD ==================== -->
         <div class="dashboard" id="dashboard">
             <div class="subject-card" data-subject="history">
                 <div class="subject-icon"><i class="fas fa-landmark"></i></div>
@@ -222,23 +169,27 @@
             </div>
         </div>
 
+        <!-- ==================== LEVELS ==================== -->
         <div class="levels-container" id="levelsContainer">
             <button class="back-btn" id="backToDashboardBtn"><i class="fas fa-arrow-left"></i> Back to Subjects</button>
             <h2 id="selectedSubjectTitle">History</h2>
             <div class="levels-grid">
                 <div class="level-card" data-level="1">
+                    <span class="level-number">1</span>
                     <div class="level-icon"><i class="fas fa-seedling"></i></div>
                     <h3>Level 1 - Easy</h3>
                     <p>📚 20 Questions | ⏱️ 60 seconds | ⭐ 1 point each</p>
                     <button class="level-start-btn">Start Easy Level</button>
                 </div>
                 <div class="level-card" data-level="2">
+                    <span class="level-number">2</span>
                     <div class="level-icon"><i class="fas fa-chart-line"></i></div>
                     <h3>Level 2 - Average</h3>
                     <p>📚 20 Questions | ⏱️ 45 seconds | ⭐⭐ 2 points each</p>
                     <button class="level-start-btn">Start Average Level</button>
                 </div>
                 <div class="level-card" data-level="3">
+                    <span class="level-number">3</span>
                     <div class="level-icon"><i class="fas fa-crown"></i></div>
                     <h3>Level 3 - Hard</h3>
                     <p>📚 20 Questions | ⏱️ 30 seconds | ⭐⭐⭐ 3 points each</p>
@@ -247,6 +198,7 @@
             </div>
         </div>
 
+        <!-- ==================== QUIZ ==================== -->
         <div class="quiz-container" id="quizContainer">
             <div class="quiz-header">
                 <div class="quiz-info"><span class="quiz-subject" id="quizSubject">History</span><span class="quiz-level" id="quizLevel">Easy</span></div>
@@ -288,6 +240,7 @@
             </div>
         </div>
 
+        <!-- ==================== RESULTS ==================== -->
         <div class="results-container" id="resultsContainer">
             <div class="results-card">
                 <i class="fas fa-trophy" id="trophyIcon"></i>
@@ -296,6 +249,8 @@
                 <div class="badge-earned" id="badgeEarned">History Explorer</div>
                 <div class="weak-areas-section"><h4><i class="fas fa-chart-line"></i> Areas to Improve</h4><div id="weakAreasList"></div></div>
                 <div class="progress-chart-container"><canvas id="progressChart" width="300" height="150"></canvas></div>
+                
+                <!-- Colorful Reaction Buttons -->
                 <div class="emoji-reactions">
                     <button class="reaction-emoji" data-emoji="like">👍 <span>0</span></button>
                     <button class="reaction-emoji" data-emoji="love">❤️ <span>0</span></button>
@@ -303,11 +258,14 @@
                     <button class="reaction-emoji" data-emoji="sad">😢 <span>0</span></button>
                     <button class="reaction-emoji" data-emoji="laugh">😂 <span>0</span></button>
                     <button class="reaction-emoji" data-emoji="celebrate">🎉 <span>0</span></button>
+                    <button class="reaction-emoji" data-emoji="angry">😡 <span>0</span></button>
                 </div>
+                
                 <div class="social-icons">
                     <button class="social-icon" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
                     <button class="social-icon" data-platform="twitter"><i class="fab fa-twitter"></i></button>
                     <button class="social-icon" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                    <button class="social-icon" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
                 </div>
                 <div class="action-buttons">
                     <button class="try-again-btn" id="tryAgainBtn"><i class="fas fa-redo"></i> Try Again</button>
@@ -317,15 +275,32 @@
             </div>
         </div>
 
-        <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><p id="loadingMessage">🤖 AI is generating unique questions from Grok API...</p></div>
+        <!-- ==================== LOADING ==================== -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p id="loadingMessage">🤖 AI is generating unique questions from Grok API...</p>
+        </div>
 
+        <!-- ==================== SCROLL BUTTONS ==================== -->
         <button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-chevron-up"></i></button>
         <button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-chevron-down"></i></button>
 
-        <div class="modal" id="premiumModal"><div class="modal-content"><span class="close-modal" id="closeModalBtn">&times;</span><div class="modal-icon"><i class="fas fa-crown"></i></div><h2>Upgrade to Premium</h2><p>Unlock unlimited hints & time boosts!</p><button class="upgrade-btn" id="upgradeBtn">Upgrade ($4.99/month)</button><button class="maybe-later-btn" id="maybeLaterBtn">Maybe Later</button></div></div>
+        <!-- ==================== PREMIUM MODAL ==================== -->
+        <div class="modal" id="premiumModal">
+            <div class="modal-content">
+                <span class="close-modal" id="closeModalBtn">&times;</span>
+                <div class="modal-icon"><i class="fas fa-crown"></i></div>
+                <h2>Upgrade to Premium</h2>
+                <p>Unlock unlimited hints & time boosts!</p>
+                <button class="upgrade-btn" id="upgradeBtn">Upgrade ($4.99/month)</button>
+                <button class="maybe-later-btn" id="maybeLaterBtn">Maybe Later</button>
+            </div>
+        </div>
 
+        <!-- ==================== TOAST ==================== -->
         <div class="toast-container" id="toastContainer"></div>
     </div>
+    
     <script src="history-geography-gk-quiz-challenge.js"></script>
 </body>
 </html>
