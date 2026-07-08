@@ -1,12 +1,13 @@
 // ============================================
-// CAR LOAN CALCULATOR - TIDB INTEGRATED VERSION
+// CAR LOAN CALCULATOR - CLOUDFLARE WORKERS API
 // ============================================
 
-// Tool Configuration
+// ===== CONFIGURATION =====
 const TOOL_SLUG = 'car-loan-calculator';
-const API_BASE_URL = window.location.origin; // Vercel deployment URL
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
-// Car Models Database
+// ===== CAR MODELS DATABASE =====
 const carModels = {
     toyota: ['Corolla 1.6', 'Corolla 1.8', 'Yaris 1.3', 'Yaris 1.5', 'Fortuner 2.7', 'Fortuner 2.8', 'Hilux Revo', 'Camry', 'Prius', 'Land Cruiser 300'],
     honda: ['Civic 1.5 Turbo', 'Civic RS', 'City 1.2', 'City 1.5', 'BR-V', 'Accord', 'Vezel'],
@@ -19,7 +20,7 @@ const carModels = {
     mercedes: ['A-Class', 'C-Class', 'E-Class', 'GLA', 'GLC', 'GLE', 'EQS']
 };
 
-// Bank Rates Database
+// ===== BANK RATES =====
 const bankRates = {
     hbl: { rate: 13.5, minDown: 20, name: 'HBL', processingFee: 1.0 },
     ubl: { rate: 14.0, minDown: 25, name: 'UBL', processingFee: 1.2 },
@@ -33,7 +34,7 @@ const bankRates = {
     bankislami: { rate: 15.5, minDown: 25, name: 'BankIslami', processingFee: 1.3 }
 };
 
-// City Tax Rates
+// ===== CITY TAX RATES =====
 const regTaxRates = {
     lahore: 8,
     karachi: 7,
@@ -42,128 +43,116 @@ const regTaxRates = {
     other: 5
 };
 
-// Global Variables
+// ===== GLOBALS =====
 let currentChart = null;
 let currentBarChart = null;
 let monthlyData = [];
-let userReactions = {};
 
 // ============================================
-// TIDB API FUNCTIONS
+// CLOUDFLARE WORKERS API FUNCTIONS
 // ============================================
 
-// Track tool usage (called when user clicks Calculate)
+/**
+ * Generic API caller with error handling & localStorage fallback
+ */
+async function callAPI(endpoint, method = 'POST', body = null) {
+    const url = `${API_BASE}${endpoint}`;
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+        }
+    };
+    if (body) options.body = JSON.stringify(body);
+
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.warn(`API call failed: ${endpoint}`, error);
+        return null;
+    }
+}
+
+// ===== 1. USAGE COUNTER =====
 async function trackToolUsage() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug: TOOL_SLUG })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('usedCount').innerText = data.totalCount || 0;
-            showToast('Tool usage recorded!', 'success');
-        }
-    } catch (error) {
-        console.error('Error tracking usage:', error);
-        // Fallback: increment locally
-        incrementLocalUsage();
+    const data = await callAPI('/api/usage', 'POST', { tool_slug: TOOL_SLUG });
+    if (data && data.totalCount !== undefined) {
+        document.getElementById('usedCount').innerText = data.totalCount;
+        document.getElementById('heroUsageCount').innerText = data.totalCount;
+        return data.totalCount;
     }
+    // Fallback: local
+    const localCount = incrementLocalUsage();
+    document.getElementById('usedCount').innerText = localCount;
+    document.getElementById('heroUsageCount').innerText = localCount;
+    return localCount;
 }
 
-// Get tool stats (usage count + reactions + shares)
-async function getToolStats() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/stats?slug=${TOOL_SLUG}`);
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('usedCount').innerText = data.usageCount || 0;
-            document.getElementById('shareCount').innerText = data.shareCount || 0;
-            
-            // Update reaction counts
-            if (data.reactions) {
-                updateReactionCounts(data.reactions);
-            }
-        }
-    } catch (error) {
-        console.error('Error fetching stats:', error);
-        loadLocalStats();
-    }
+function incrementLocalUsage() {
+    let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+    count++;
+    localStorage.setItem(`${TOOL_SLUG}_usage`, count);
+    return count;
 }
 
-// Add reaction to tool
+// ===== 2. REACTIONS =====
 async function addReaction(emojiType) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/reaction`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                toolSlug: TOOL_SLUG, 
-                emojiType: emojiType 
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            updateReactionCounts(data.reactions);
-            showToast(`You reacted with ${getEmojiName(emojiType)}!`, 'success');
-            
-            // Highlight the clicked button
-            highlightReactionButton(emojiType);
-        } else if (response.status === 409) {
-            showToast('You already reacted with this emoji!', 'info');
-        }
-    } catch (error) {
-        console.error('Error adding reaction:', error);
-        // Local fallback
-        incrementLocalReaction(emojiType);
+    const data = await callAPI('/api/reactions', 'POST', {
+        tool_slug: TOOL_SLUG,
+        reaction_type: emojiType
+    });
+    if (data && data.reactions) {
+        updateReactionCounts(data.reactions);
+        highlightReactionButton(emojiType);
+        showToast(`You reacted with ${getEmojiName(emojiType)}! 🎉`, 'success');
+        updateHeroReactionTotal(data.reactions);
+        return;
     }
+    // Fallback: local
+    incrementLocalReaction(emojiType);
+    showToast(`You reacted with ${getEmojiName(emojiType)}! (offline)`, 'info');
 }
 
-// Track share
-async function trackShare(platform) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tool/share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                toolSlug: TOOL_SLUG, 
-                shareType: platform 
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('shareCount').innerText = data.totalCount || 0;
-        }
-    } catch (error) {
-        console.error('Error tracking share:', error);
-    }
+function incrementLocalReaction(emojiType) {
+    let reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+    reactions[emojiType] = (reactions[emojiType] || 0) + 1;
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+    updateReactionCounts(reactions);
+    updateHeroReactionTotal(reactions);
 }
-
-// ============================================
-// UI UPDATE FUNCTIONS
-// ============================================
 
 function updateReactionCounts(reactions) {
-    if (reactions.like) document.getElementById('likeCount').innerText = reactions.like;
-    if (reactions.love) document.getElementById('loveCount').innerText = reactions.love;
-    if (reactions.wow) document.getElementById('wowCount').innerText = reactions.wow;
-    if (reactions.sad) document.getElementById('sadCount').innerText = reactions.sad;
-    if (reactions.angry) document.getElementById('angryCount').innerText = reactions.angry;
-    if (reactions.laugh) document.getElementById('laughCount').innerText = reactions.laugh;
-    if (reactions.celebrate) document.getElementById('celebrateCount').innerText = reactions.celebrate;
+    const map = {
+        like: 'likeCount',
+        love: 'loveCount',
+        wow: 'wowCount',
+        sad: 'sadCount',
+        angry: 'angryCount',
+        laugh: 'laughCount',
+        celebrate: 'celebrateCount'
+    };
+    for (const [key, id] of Object.entries(map)) {
+        const el = document.getElementById(id);
+        if (el && reactions[key] !== undefined) el.innerText = reactions[key];
+    }
+    updateHeroReactionTotal(reactions);
+}
+
+function updateHeroReactionTotal(reactions) {
+    const total = Object.values(reactions).reduce((a, b) => a + b, 0);
+    const el = document.getElementById('heroReactionCount');
+    if (el) el.innerText = total;
 }
 
 function highlightReactionButton(emojiType) {
-    const buttons = document.querySelectorAll('.reaction-btn');
-    buttons.forEach(btn => {
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.emoji === emojiType) {
             btn.classList.add('active');
-            setTimeout(() => btn.classList.remove('active'), 1000);
+            setTimeout(() => btn.classList.remove('active'), 1200);
         }
     });
 }
@@ -181,44 +170,55 @@ function getEmojiName(emojiType) {
     return names[emojiType] || emojiType;
 }
 
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    toast.innerHTML = `<span>${icon}</span> ${message}`;
-    
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideIn 0.3s reverse';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+// ===== 3. SHARES =====
+async function trackShare(platform) {
+    const data = await callAPI('/api/shares', 'POST', {
+        tool_slug: TOOL_SLUG,
+        share_type: platform
+    });
+    if (data && data.totalCount !== undefined) {
+        document.getElementById('shareCount').innerText = data.totalCount;
+        document.getElementById('heroShareCount').innerText = data.totalCount;
+        return;
+    }
+    // Fallback: local
+    incrementLocalShare();
 }
 
-// Local fallback functions
-function incrementLocalUsage() {
-    let localCount = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-    localCount = parseInt(localCount) + 1;
-    localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
-    document.getElementById('usedCount').innerText = localCount;
+function incrementLocalShare() {
+    let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+    count++;
+    localStorage.setItem(`${TOOL_SLUG}_shares`, count);
+    document.getElementById('shareCount').innerText = count;
+    document.getElementById('heroShareCount').innerText = count;
+    return count;
 }
 
-function incrementLocalReaction(emojiType) {
-    let reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-    reactions[emojiType] = (reactions[emojiType] || 0) + 1;
-    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
-    updateReactionCounts(reactions);
+// ===== 4. GET STATS =====
+async function getToolStats() {
+    const data = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+    if (data) {
+        document.getElementById('usedCount').innerText = data.usageCount || 0;
+        document.getElementById('heroUsageCount').innerText = data.usageCount || 0;
+        document.getElementById('shareCount').innerText = data.shareCount || 0;
+        document.getElementById('heroShareCount').innerText = data.shareCount || 0;
+        if (data.reactions) {
+            updateReactionCounts(data.reactions);
+        }
+        return;
+    }
+    // Fallback: load local
+    loadLocalStats();
 }
 
 function loadLocalStats() {
     const usage = localStorage.getItem(`${TOOL_SLUG}_usage`) || 0;
-    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
     const shares = localStorage.getItem(`${TOOL_SLUG}_shares`) || 0;
-    
+    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
     document.getElementById('usedCount').innerText = usage;
+    document.getElementById('heroUsageCount').innerText = usage;
     document.getElementById('shareCount').innerText = shares;
+    document.getElementById('heroShareCount').innerText = shares;
     updateReactionCounts(reactions);
 }
 
@@ -235,7 +235,7 @@ function shareOnFacebook() {
 
 function shareOnTwitter() {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('Check out this Car Loan Calculator!');
+    const text = encodeURIComponent('Check out this Car Loan Calculator! 🚗');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
     trackShare('twitter');
     showToast('Shared on Twitter!', 'success');
@@ -268,38 +268,76 @@ async function copyPageLink() {
         await navigator.clipboard.writeText(window.location.href);
         trackShare('copy');
         showToast('Link copied to clipboard!', 'success');
-    } catch (err) {
+    } catch {
         showToast('Failed to copy link', 'error');
     }
 }
 
 // ============================================
-// SCROLL BUTTON FUNCTIONS
+// TOAST NOTIFICATIONS
 // ============================================
 
-function setupScrollButtons() {
-    const scrollUpBtn = document.getElementById('scrollUpBtn');
-    const scrollDownBtn = document.getElementById('scrollDownBtn');
-    
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 200) {
-            scrollUpBtn.style.display = 'flex';
-        } else {
-            scrollUpBtn.style.display = 'none';
-        }
-    });
-    
-    scrollUpBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    
-    scrollDownBtn.addEventListener('click', () => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    });
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+    toast.innerHTML = `<span>${icon}</span> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-100%)';
+        toast.style.transition = 'all 0.4s ease';
+        setTimeout(() => toast.remove(), 400);
+    }, 3200);
 }
 
 // ============================================
-// CALCULATION FUNCTIONS
+// TYPEWRITER ANIMATION
+// ============================================
+
+function initTypewriter() {
+    const phrases = [
+        'Calculate your car loan instantly 🚗',
+        'Real bank rates for Pakistan 🇵🇰',
+        'Monthly installments at your fingertips',
+        'Smart auto finance decisions made easy',
+        'Your dream car is closer than you think!'
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const el = document.getElementById('typewriterText');
+    if (!el) return;
+
+    function typeLoop() {
+        const currentPhrase = phrases[phraseIndex];
+        if (isDeleting) {
+            el.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            if (charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(typeLoop, 500);
+                return;
+            }
+            setTimeout(typeLoop, 40);
+        } else {
+            el.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            if (charIndex === currentPhrase.length) {
+                isDeleting = true;
+                setTimeout(typeLoop, 2500);
+                return;
+            }
+            setTimeout(typeLoop, 60);
+        }
+    }
+    typeLoop();
+}
+
+// ============================================
+// CALCULATION ENGINE
 // ============================================
 
 function updateCarModels() {
@@ -335,19 +373,14 @@ function updateDownPaymentUI() {
     const label = document.getElementById('downPaymentLabel');
     const slider = document.getElementById('downPaymentSlider');
     const input = document.getElementById('downPaymentValue');
-    
     if (type === 'percentage') {
         label.innerHTML = '<i class="fas fa-percent"></i> Down Payment (%)';
-        slider.min = 0;
-        slider.max = 50;
-        slider.step = 1;
+        slider.min = 0; slider.max = 50; slider.step = 1;
         if (!input.value || input.value > 50) input.value = 20;
         slider.value = input.value;
     } else {
         label.innerHTML = '<i class="fas fa-rupee-sign"></i> Down Payment (PKR)';
-        slider.min = 0;
-        slider.max = 5000000;
-        slider.step = 10000;
+        slider.min = 0; slider.max = 5000000; slider.step = 10000;
         if (!input.value || input.value > 5000000) input.value = 500000;
         slider.value = input.value;
     }
@@ -372,7 +405,6 @@ function updateBankRate() {
     const bank = document.getElementById('bank').value;
     const rateInput = document.getElementById('interestRate');
     const downInput = document.getElementById('downPaymentValue');
-    
     if (bank && bankRates[bank]) {
         rateInput.value = bankRates[bank].rate;
         if (bankRates[bank].minDown && document.getElementById('downPaymentType').value === 'percentage') {
@@ -387,7 +419,6 @@ function updateLoanTermOptions() {
     const carType = document.getElementById('carType').value;
     const loanTerm = document.getElementById('loanTerm');
     loanTerm.innerHTML = '';
-    
     const maxYears = carType === 'used' ? 5 : 7;
     for (let i = 1; i <= maxYears; i++) {
         const option = document.createElement('option');
@@ -402,11 +433,10 @@ function updateLoanTermOptions() {
 function calculateLoan() {
     const carPrice = parseFloat(document.getElementById('carPrice').value);
     if (isNaN(carPrice) || carPrice <= 0) return;
-    
+
     let downPayment;
     const downPaymentType = document.getElementById('downPaymentType').value;
     const downPaymentValue = parseFloat(document.getElementById('downPaymentValue').value);
-    
     if (downPaymentType === 'percentage') {
         downPayment = carPrice * (downPaymentValue / 100);
     } else {
@@ -414,31 +444,31 @@ function calculateLoan() {
     }
     if (isNaN(downPayment)) downPayment = 0;
     if (downPayment > carPrice) downPayment = carPrice;
-    
+
     const processingFee = carPrice * 0.01;
     const insurance = carPrice * 0.02;
     const regCity = document.getElementById('regCity').value;
     const regTax = carPrice * (regTaxRates[regCity] / 100);
-    
+
     const loanAmount = carPrice - downPayment;
     const termYears = parseInt(document.getElementById('loanTerm').value);
     const annualRate = parseFloat(document.getElementById('interestRate').value) / 100;
-    
+
     const monthlyRate = annualRate / 12;
     const termMonths = termYears * 12;
-    
+
     let monthlyPayment;
     if (monthlyRate === 0) {
         monthlyPayment = loanAmount / termMonths;
     } else {
         monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / (Math.pow(1 + monthlyRate, termMonths) - 1);
     }
-    
+
     const totalPayment = monthlyPayment * termMonths;
     const totalInterest = totalPayment - loanAmount;
-    
+
     calculateAmortization(loanAmount, annualRate, termYears, monthlyPayment);
-    
+
     document.getElementById('resultCarPrice').innerHTML = `PKR ${formatNumber(carPrice)}`;
     document.getElementById('resultDownPayment').innerHTML = `PKR ${formatNumber(downPayment)}`;
     document.getElementById('resultProcessingFee').innerHTML = `PKR ${formatNumber(processingFee)}`;
@@ -446,7 +476,7 @@ function calculateLoan() {
     document.getElementById('resultTotalInterest').innerHTML = `PKR ${formatNumber(totalInterest)}`;
     document.getElementById('resultTotalPayment').innerHTML = `PKR ${formatNumber(totalPayment + processingFee + insurance + regTax)}`;
     document.getElementById('resultMonthlyPayment').innerHTML = `PKR ${formatNumber(monthlyPayment)}`;
-    
+
     updateCharts(loanAmount, totalInterest);
 }
 
@@ -458,17 +488,15 @@ function calculateAmortization(loanAmount, annualRate, termYears, monthlyPayment
     let yearlyPrincipal = 0;
     let yearlyInterest = 0;
     monthlyData = [];
-    
+
     for (let month = 1; month <= termMonths; month++) {
         const interest = balance * monthlyRate;
         let principal = monthlyPayment - interest;
         if (principal > balance) principal = balance;
         balance -= principal;
-        
         yearlyPrincipal += principal;
         yearlyInterest += interest;
         monthlyData.push({ month, principal, interest, balance: Math.max(0, balance) });
-        
         if (month % 12 === 0 || month === termMonths) {
             const year = Math.ceil(month / 12);
             amortization.push({
@@ -480,17 +508,14 @@ function calculateAmortization(loanAmount, annualRate, termYears, monthlyPayment
             yearlyPrincipal = 0;
             yearlyInterest = 0;
         }
-        
         if (balance <= 0) break;
     }
-    
     displayAmortization(amortization);
 }
 
 function displayAmortization(amortization) {
     const tbody = document.getElementById('paymentTableBody');
     tbody.innerHTML = '';
-    
     amortization.forEach(item => {
         const row = tbody.insertRow();
         row.insertCell(0).textContent = `Year ${item.year}`;
@@ -509,16 +534,16 @@ function updateCharts(principal, interest) {
             labels: ['Principal Amount', 'Total Interest'],
             datasets: [{
                 data: [principal, interest],
-                backgroundColor: ['#10b981', '#ef4444'],
+                backgroundColor: ['#00b894', '#e17055'],
                 borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { position: 'bottom' } }
+            plugins: { legend: { position: 'bottom', labels: { color: '#b2bec3' } } }
         }
     });
-    
+
     const ctx2 = document.getElementById('barChart').getContext('2d');
     if (currentBarChart) currentBarChart.destroy();
     currentBarChart = new Chart(ctx2, {
@@ -526,32 +551,52 @@ function updateCharts(principal, interest) {
         data: {
             labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
             datasets: [
-                { label: 'Principal Paid', data: [principal * 0.15, principal * 0.17, principal * 0.19, principal * 0.22, principal * 0.27], backgroundColor: '#10b981' },
-                { label: 'Interest Paid', data: [interest * 0.3, interest * 0.25, interest * 0.2, interest * 0.15, interest * 0.1], backgroundColor: '#ef4444' }
+                { label: 'Principal Paid', data: [principal * 0.15, principal * 0.17, principal * 0.19, principal * 0.22, principal * 0.27], backgroundColor: '#00b894' },
+                { label: 'Interest Paid', data: [interest * 0.3, interest * 0.25, interest * 0.2, interest * 0.15, interest * 0.1], backgroundColor: '#e17055' }
             ]
         },
         options: {
             responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: { y: { beginAtZero: true, ticks: { callback: v => 'PKR ' + (v / 1000) + 'k' } } }
+            plugins: { legend: { position: 'bottom', labels: { color: '#b2bec3' } } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#b2bec3', callback: v => 'PKR ' + (v / 1000) + 'k' } },
+                x: { ticks: { color: '#b2bec3' } }
+            }
         }
     });
 }
 
 function formatNumber(num) {
-    if (isNaN(num)) return '0';
+    if (isNaN(num) || !isFinite(num)) return '0';
     return Math.round(num).toLocaleString('en-PK');
 }
 
 // ============================================
-// EVENT LISTENERS & INITIALIZATION
+// SCROLL BUTTONS
+// ============================================
+
+function setupScrollButtons() {
+    const upBtn = document.getElementById('scrollUpBtn');
+    const downBtn = document.getElementById('scrollDownBtn');
+    window.addEventListener('scroll', () => {
+        upBtn.style.display = window.scrollY > 200 ? 'flex' : 'none';
+    });
+    upBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    downBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+}
+
+// ============================================
+// INITIALIZATION
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load tool stats from TiDB
+    // Load stats from API
     getToolStats();
-    
-    // Setup event listeners
+
+    // Typewriter
+    initTypewriter();
+
+    // Event listeners
     document.getElementById('carBrand').addEventListener('change', updateCarModels);
     document.getElementById('carPriceSlider').addEventListener('input', syncPriceInput);
     document.getElementById('carPrice').addEventListener('input', syncPriceSlider);
@@ -560,13 +605,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('downPaymentValue').addEventListener('input', syncDownPaymentSlider);
     document.getElementById('bank').addEventListener('change', updateBankRate);
     document.getElementById('carType').addEventListener('change', updateLoanTermOptions);
-    document.getElementById('calculateBtn').addEventListener('click', calculateLoan);
-    
-    // Reaction buttons
+    document.getElementById('calculateBtn').addEventListener('click', function() {
+        calculateLoan();
+        trackToolUsage(); // Track usage on calculate
+    });
+
+    // Reactions
     document.querySelectorAll('.reaction-btn').forEach(btn => {
         btn.addEventListener('click', () => addReaction(btn.dataset.emoji));
     });
-    
+
     // Share buttons
     document.querySelector('.share-btn.facebook').addEventListener('click', shareOnFacebook);
     document.querySelector('.share-btn.twitter').addEventListener('click', shareOnTwitter);
@@ -574,12 +622,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.share-btn.whatsapp').addEventListener('click', shareOnWhatsApp);
     document.querySelector('.share-btn.email').addEventListener('click', shareByEmail);
     document.querySelector('.share-btn.copy-link').addEventListener('click', copyPageLink);
-    
-    // Scroll buttons
+
+    // Scroll
     setupScrollButtons();
-    
+
     // Initial calculation
     calculateLoan();
-    
-    showToast('Welcome! Calculate your car loan easily.', 'info');
+
+    // Track initial page view usage
+    trackToolUsage();
+
+    showToast('Welcome! Calculate your car loan easily 🚗', 'info');
 });
