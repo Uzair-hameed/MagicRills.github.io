@@ -1,18 +1,21 @@
 // ==================== CONFIGURATION ====================
 const CONFIG = {
     APP_NAME: 'اردو کوئز چیلنج',
-    VERSION: '6.0.0',
-    // Cloudflare Worker URL - آپ کے موجودہ ورکر سے کنیکٹ
-    CLOUD_WORKER_URL: 'https://urdu-quiz-challenge.uzairhameed01.workers.dev',
-    QUESTIONS_PER_LEVEL: 50
+    VERSION: '7.0.0',
+    // Cloudflare Worker API - Updated
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    QUESTIONS_PER_LEVEL: 50,
+    // Magicrills Home & Category URLs
+    HOME_URL: 'https://magicrills.com',
+    CATEGORY_URL: 'https://magicrills.com/category-pages/mixed-tools.html'
 };
 
 // ==================== TIME LIMITS ====================
 const TIME_LIMITS = { 1: 60, 2: 55, 3: 50, 4: 45, 5: 40 };
 const LEVEL_NAMES = { 1: 'بنیادی', 2: 'آسان', 3: 'درمیانہ', 4: 'مشکل', 5: 'ماہر' };
 
-// ==================== 250+ مستند اردو سوالات (کوئی ڈمی ڈیٹا نہیں) ====================
-
+// ==================== 250+ مستند اردو سوالات ====================
 const allQuestions = [
     // Level 1 - بنیادی (سوالات 1-50)
     { level: 1, question: "خوشی کا مترادف کیا ہے؟", options: ["مسرت", "غم", "غصہ", "پریشانی"], answer: 0, explanation: "مسرت کا مطلب خوشی ہے۔ یہ خوشی کا مترادف ہے۔", factoid: "اردو میں خوشی کے لیے 20 سے زائد الفاظ ہیں۔", category: "مترادفات" },
@@ -93,15 +96,173 @@ let currentState = { mode: 'classic', level: 1, questions: [], currentQuestion: 
 let userReactions = new Set();
 let toolUsageCount = 0;
 let progressChart = null;
+let userId = localStorage.getItem('userId') || `user_${Date.now()}`;
+localStorage.setItem('userId', userId);
 
-// ==================== API INTEGRATION (TiDB + Grok + Cloudflare Worker) ====================
+// ==================== CLOUDFLARE WORKERS API INTEGRATION ====================
 
-// Grok API سے سوالات جنریٹ کرنے کا فنکشن
+// Make API request with error handling
+async function apiRequest(endpoint, options = {}) {
+    try {
+        const url = `${CONFIG.API_BASE}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-API-Key': CONFIG.API_KEY,
+            ...options.headers
+        };
+        const response = await fetch(url, { ...options, headers });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('API Request Failed:', error);
+        return null;
+    }
+}
+
+// ==================== USAGE COUNTER ====================
+async function incrementUsage() {
+    try {
+        const data = await apiRequest('/api/usage', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                tool_slug: 'urdu_quiz',
+                user_id: userId,
+                action: 'view'
+            })
+        });
+        if (data && data.count !== undefined) {
+            toolUsageCount = data.count;
+            updateUsageDisplay(toolUsageCount);
+        }
+        return data;
+    } catch (error) {
+        // Fallback: LocalStorage
+        toolUsageCount = parseInt(localStorage.getItem('urdu_quiz_usage') || '0') + 1;
+        localStorage.setItem('urdu_quiz_usage', toolUsageCount);
+        updateUsageDisplay(toolUsageCount);
+    }
+}
+
+async function getUsageStats() {
+    try {
+        const data = await apiRequest(`/api/stats?tool_slug=urdu_quiz`, { method: 'GET' });
+        if (data) {
+            toolUsageCount = data.usage || 0;
+            updateUsageDisplay(toolUsageCount);
+            if (document.getElementById('totalUsersCount')) {
+                document.getElementById('totalUsersCount').textContent = (data.views || 0).toLocaleString();
+            }
+            if (document.getElementById('totalSharesCount')) {
+                document.getElementById('totalSharesCount').textContent = (data.shares || 0).toLocaleString();
+            }
+        }
+        return data;
+    } catch (error) {
+        // Fallback: LocalStorage
+        const usage = parseInt(localStorage.getItem('urdu_quiz_usage') || '0');
+        toolUsageCount = usage;
+        updateUsageDisplay(usage);
+    }
+}
+
+function updateUsageDisplay(count) {
+    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
+        if (el) el.textContent = count.toLocaleString();
+    });
+}
+
+// ==================== REACTIONS ====================
+async function addReaction(emoji, isMainPage = true) {
+    const reactionKey = `urdu_quiz_${emoji}_${userId}`;
+    
+    if (userReactions.has(reactionKey)) {
+        showToast(`پہلے ہی ${getEmojiName(emoji)} کا ردعمل دے چکے ہیں!`, 'warning');
+        return;
+    }
+    
+    try {
+        const data = await apiRequest('/api/reactions', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                tool_slug: 'urdu_quiz', 
+                emoji: emoji, 
+                user_id: userId 
+            })
+        });
+        userReactions.add(reactionKey);
+        if (isMainPage) {
+            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+            if (span) span.textContent = parseInt(span.textContent) + 1;
+        }
+        showToast(`${getEmojiName(emoji)} کا شکریہ!`, 'success');
+    } catch (error) {
+        // Fallback: LocalStorage
+        userReactions.add(reactionKey);
+        const saved = JSON.parse(localStorage.getItem('urdu_quiz_reactions') || '{}');
+        saved[emoji] = (saved[emoji] || 0) + 1;
+        localStorage.setItem('urdu_quiz_reactions', JSON.stringify(saved));
+        if (isMainPage) {
+            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+            if (span) span.textContent = parseInt(span.textContent) + 1;
+        }
+        showToast(`${getEmojiName(emoji)} کا شکریہ!`, 'success');
+    }
+}
+
+async function getReactions() {
+    try {
+        const data = await apiRequest(`/api/reactions?tool_slug=urdu_quiz`, { method: 'GET' });
+        if (data && data.reactions) {
+            const emojis = ['like', 'love', 'wow', 'sad', 'laugh', 'celebrate'];
+            emojis.forEach(emoji => {
+                const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+                if (span && data.reactions[emoji] !== undefined) {
+                    span.textContent = data.reactions[emoji];
+                }
+            });
+        }
+        return data;
+    } catch (error) {
+        // Fallback: LocalStorage
+        const saved = JSON.parse(localStorage.getItem('urdu_quiz_reactions') || '{}');
+        const emojis = ['like', 'love', 'wow', 'sad', 'laugh', 'celebrate'];
+        emojis.forEach(emoji => {
+            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+            if (span && saved[emoji] !== undefined) {
+                span.textContent = saved[emoji];
+            }
+        });
+    }
+}
+
+// ==================== SHARES ====================
+async function trackShare(platform) {
+    try {
+        await apiRequest('/api/shares', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                tool_slug: 'urdu_quiz', 
+                platform: platform,
+                user_id: userId 
+            })
+        });
+    } catch (error) {
+        // Fallback: LocalStorage
+        const shares = JSON.parse(localStorage.getItem('urdu_quiz_shares') || '{}');
+        shares[platform] = (shares[platform] || 0) + 1;
+        localStorage.setItem('urdu_quiz_shares', JSON.stringify(shares));
+    }
+}
+
+// ==================== GROK AI INTEGRATION ====================
 async function generateQuestionsFromGrok(level) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/grok/generate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
             body: JSON.stringify({ 
                 prompt: `${CONFIG.QUESTIONS_PER_LEVEL} منفرد اردو سوالات جنریٹ کریں۔ لیول: ${LEVEL_NAMES[level]}۔ موضوعات: مترادفات، متضاد، قواعد، محاورات، ادب۔ ہر سوال کے 4 آپشنز، صحیح جواب کی انڈیکس (0-3)، تشریح اور دلچسپ حقیقت شامل کریں۔ JSON فارمیٹ میں واپس کریں۔`,
                 model: 'llama-3.1-8b-instant',
@@ -119,94 +280,6 @@ async function generateQuestionsFromGrok(level) {
     }
 }
 
-// Usage Counter - TiDB سے کنیکٹ
-async function incrementUsage(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, user_id: localStorage.getItem('userId') || 'anonymous' })
-        });
-        const data = await response.json();
-        toolUsageCount = data.count || toolUsageCount + 1;
-        updateUsageDisplay(toolUsageCount);
-        return data;
-    } catch (error) {
-        toolUsageCount++;
-        updateUsageDisplay(toolUsageCount);
-    }
-}
-
-async function getUsageCount(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/get?tool_slug=${toolSlug}`);
-        const data = await response.json();
-        toolUsageCount = data.count || 0;
-        updateUsageDisplay(toolUsageCount);
-        return data;
-    } catch (error) {
-        return { count: toolUsageCount };
-    }
-}
-
-// Reactions - TiDB سے کنیکٹ
-async function addReaction(emoji, isMainPage = true) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    const toolSlug = 'urdu_quiz';
-    const reactionKey = `${toolSlug}_${emoji}_${userId}`;
-    
-    if (userReactions.has(reactionKey)) {
-        showToast(`پہلے ہی ${getEmojiName(emoji)} کا ردعمل دے چکے ہیں!`, 'warning');
-        return;
-    }
-    
-    try {
-        await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, emoji: emoji, user_id: userId })
-        });
-        userReactions.add(reactionKey);
-        if (isMainPage) {
-            const span = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
-            if (span) span.textContent = parseInt(span.textContent) + 1;
-        }
-        showToast(`${getEmojiName(emoji)} کا شکریہ!`, 'success');
-    } catch (error) {
-        showToast('ری ایکشن محفوظ ہو گیا!', 'success');
-    }
-}
-
-async function getReactions(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/get?tool_slug=${toolSlug}`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        return {};
-    }
-}
-
-// Shares Tracking - TiDB سے کنیکٹ
-async function trackShare(toolSlug, platform) {
-    try {
-        await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/shares/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, platform: platform })
-        });
-    } catch (error) {
-        console.error('Share track error:', error);
-    }
-}
-
-function updateUsageDisplay(count) {
-    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
-        if (el) el.textContent = count.toLocaleString();
-    });
-}
-
 function getEmojiName(emoji) {
     const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' };
     return names[emoji] || emoji;
@@ -222,39 +295,62 @@ function shareQuiz(platform) {
     if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
     else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+    else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offscreen/?url=${encodeURIComponent(url)}`;
+    else if (platform === 'copy') {
+        navigator.clipboard.writeText(url);
+        trackShare('copy');
+        showToast('لنک کاپی ہو گیا!', 'success');
+        return;
+    }
     
     if (shareUrl) {
         window.open(shareUrl, '_blank');
-        trackShare('urdu_quiz', platform);
+        trackShare(platform);
     }
     showToast(`${platform} پر شیئر کر دیا!`, 'success');
 }
 
 function copyPageUrl() {
     navigator.clipboard.writeText(window.location.href);
-    trackShare('urdu_quiz', 'copy');
+    trackShare('copy');
     showToast('لنک کاپی ہو گیا!', 'success');
 }
 
 // ==================== UTILITIES ====================
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
 function showLoading(message) {
     const overlay = document.getElementById('loadingOverlay');
+    if (!overlay) return;
     document.getElementById('loadingMessage').textContent = message;
     overlay.style.display = 'flex';
 }
 
-function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+function hideLoading() { 
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none'; 
+}
 
 function getQuestionsForLevel(level) { return [...questionsByLevel[level]]; }
+
+// Navigate to Home
+function goHome() {
+    window.location.href = CONFIG.HOME_URL;
+}
+
+// Navigate to Category
+function goBack() {
+    window.location.href = CONFIG.CATEGORY_URL;
+}
 
 // ==================== QUIZ FUNCTIONS ====================
 async function startQuiz(level, mode) {
@@ -262,33 +358,47 @@ async function startQuiz(level, mode) {
     
     showLoading('🤖 Grok AI سے سوالات آرہے ہیں...');
     
-    // پہلے Grok API سے سوالات لینے کی کوشش کریں
+    // Try Grok API first
     let aiQuestions = await generateQuestionsFromGrok(level);
     
     if (aiQuestions && aiQuestions.length >= 20) {
         currentState.questions = aiQuestions.slice(0, CONFIG.QUESTIONS_PER_LEVEL);
         showToast('✨ Grok AI سے نئے سوالات تیار ہو گئے!', 'success');
     } else {
-        // اگر AI fail ہو جائے تو لوکل سوالات استعمال کریں
+        // Fallback to local questions
         currentState.questions = getQuestionsForLevel(level);
         showToast('📚 لوکل سوالات استعمال ہو رہے ہیں', 'info');
     }
     
     hideLoading();
     
-    document.getElementById('modeContainer').style.display = 'none';
-    document.getElementById('levelsContainer').style.display = 'none';
-    document.getElementById('quizContainer').style.display = 'block';
-    document.getElementById('quizMode').textContent = mode === 'classic' ? 'کلاسک' : mode === 'practice' ? 'پریکٹس' : 'سروائیول';
-    document.getElementById('quizLevel').textContent = LEVEL_NAMES[level];
-    document.getElementById('totalQuestions').textContent = currentState.questions.length;
-    document.getElementById('livesCount').textContent = currentState.lives;
-    document.getElementById('scoreCount').textContent = currentState.score;
+    const modeContainer = document.getElementById('modeContainer');
+    const levelsContainer = document.getElementById('levelsContainer');
+    const quizContainer = document.getElementById('quizContainer');
+    
+    if (modeContainer) modeContainer.style.display = 'none';
+    if (levelsContainer) levelsContainer.style.display = 'none';
+    if (quizContainer) quizContainer.style.display = 'block';
+    
+    const modeEl = document.getElementById('quizMode');
+    if (modeEl) modeEl.textContent = mode === 'classic' ? 'کلاسک' : mode === 'practice' ? 'پریکٹس' : 'سروائیول';
+    
+    const levelEl = document.getElementById('quizLevel');
+    if (levelEl) levelEl.textContent = LEVEL_NAMES[level];
+    
+    const totalEl = document.getElementById('totalQuestions');
+    if (totalEl) totalEl.textContent = currentState.questions.length;
+    
+    const livesEl = document.getElementById('livesCount');
+    if (livesEl) livesEl.textContent = currentState.lives;
+    
+    const scoreEl = document.getElementById('scoreCount');
+    if (scoreEl) scoreEl.textContent = currentState.score;
     
     loadQuestion();
     startTimer();
-    incrementUsage(`urdu_quiz_level${level}`);
-    getReactions('urdu_quiz');
+    incrementUsage();
+    getReactions();
 }
 
 function startTimer() {
@@ -296,27 +406,47 @@ function startTimer() {
     if (currentState.mode === 'practice') return;
     currentState.timer = setInterval(() => {
         if (currentState.timeLeft <= 0) { clearInterval(currentState.timer); handleTimeout(); }
-        else { currentState.timeLeft--; document.getElementById('timerDisplay').textContent = currentState.timeLeft; }
+        else { currentState.timeLeft--; 
+            const timerEl = document.getElementById('timerDisplay');
+            if (timerEl) timerEl.textContent = currentState.timeLeft; 
+        }
     }, 1000);
 }
 
 function handleTimeout() {
     if (currentState.userAnswers[currentState.currentQuestion] !== undefined) return;
-    currentState.lives--; document.getElementById('livesCount').textContent = currentState.lives;
+    currentState.lives--; 
+    const livesEl = document.getElementById('livesCount');
+    if (livesEl) livesEl.textContent = currentState.lives;
     showToast(`⏰ وقت ختم! ایک جان ضائع`, 'error');
     if (currentState.lives <= 0) endQuiz();
-    else { currentState.userAnswers[currentState.currentQuestion] = { selected: -1, correct: false }; document.getElementById('nextBtn').disabled = false; }
+    else { currentState.userAnswers[currentState.currentQuestion] = { selected: -1, correct: false }; 
+        const nextBtn = document.getElementById('nextBtn');
+        if (nextBtn) nextBtn.disabled = false; 
+    }
 }
 
 function loadQuestion() {
     const q = currentState.questions[currentState.currentQuestion];
-    document.getElementById('questionText').textContent = `سوال ${currentState.currentQuestion + 1}: ${q.question}`;
-    document.getElementById('questionCategory').textContent = q.category || 'اردو';
-    document.getElementById('questionPoints').textContent = `+${currentState.level} پوائنٹ`;
-    document.getElementById('currentQuestionNum').textContent = currentState.currentQuestion + 1;
-    document.getElementById('progressFill').style.width = `${((currentState.currentQuestion + 1) / currentState.questions.length) * 100}%`;
+    if (!q) return;
+    
+    const questionText = document.getElementById('questionText');
+    if (questionText) questionText.textContent = `سوال ${currentState.currentQuestion + 1}: ${q.question}`;
+    
+    const categoryEl = document.getElementById('questionCategory');
+    if (categoryEl) categoryEl.textContent = q.category || 'اردو';
+    
+    const pointsEl = document.getElementById('questionPoints');
+    if (pointsEl) pointsEl.textContent = `+${currentState.level} پوائنٹ`;
+    
+    const currentNumEl = document.getElementById('currentQuestionNum');
+    if (currentNumEl) currentNumEl.textContent = currentState.currentQuestion + 1;
+    
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = `${((currentState.currentQuestion + 1) / currentState.questions.length) * 100}%`;
     
     const optsContainer = document.getElementById('optionsList');
+    if (!optsContainer) return;
     optsContainer.innerHTML = '';
     q.options.forEach((opt, idx) => {
         const div = document.createElement('div');
@@ -325,9 +455,16 @@ function loadQuestion() {
         div.onclick = () => selectAnswer(idx);
         optsContainer.appendChild(div);
     });
-    document.getElementById('explanationBox').style.display = 'none';
-    document.getElementById('nextBtn').disabled = true;
-    document.getElementById('prevBtn').disabled = currentState.currentQuestion === 0;
+    
+    const explanationBox = document.getElementById('explanationBox');
+    if (explanationBox) explanationBox.style.display = 'none';
+    
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.disabled = true;
+    
+    const prevBtn = document.getElementById('prevBtn');
+    if (prevBtn) prevBtn.disabled = currentState.currentQuestion === 0;
+    
     updatePowerupsDisplay();
 }
 
@@ -335,43 +472,105 @@ function selectAnswer(selectedIdx) {
     if (currentState.userAnswers[currentState.currentQuestion] !== undefined) return;
     const q = currentState.questions[currentState.currentQuestion];
     const isCorrect = (selectedIdx === q.answer);
-    if (isCorrect) { currentState.score += 10 * currentState.level; showToast('✅ صحیح جواب! بہت خوب!', 'success'); playSound(true); }
-    else { currentState.lives--; showToast(`❌ غلط! صحیح جواب: ${String.fromCharCode(65 + q.answer)}`, 'error'); playSound(false); trackWeakArea(q.category || 'اردو'); }
+    if (isCorrect) { 
+        currentState.score += 10 * currentState.level; 
+        showToast('✅ صحیح جواب! بہت خوب!', 'success'); 
+        playSound(true); 
+    } else { 
+        currentState.lives--; 
+        showToast(`❌ غلط! صحیح جواب: ${String.fromCharCode(65 + q.answer)}`, 'error'); 
+        playSound(false); 
+        trackWeakArea(q.category || 'اردو'); 
+    }
     currentState.userAnswers[currentState.currentQuestion] = { selected: selectedIdx, correct: isCorrect };
-    document.getElementById('livesCount').textContent = currentState.lives;
-    document.getElementById('scoreCount').textContent = currentState.score;
+    
+    const livesEl = document.getElementById('livesCount');
+    if (livesEl) livesEl.textContent = currentState.lives;
+    
+    const scoreEl = document.getElementById('scoreCount');
+    if (scoreEl) scoreEl.textContent = currentState.score;
+    
     const opts = document.querySelectorAll('.option');
-    opts.forEach((opt, idx) => { if (idx === q.answer) opt.classList.add('correct'); else if (idx === selectedIdx && !isCorrect) opt.classList.add('incorrect'); opt.style.pointerEvents = 'none'; });
-    document.getElementById('explanationText').textContent = q.explanation;
-    document.getElementById('factoidText').textContent = q.factoid || '📖 اردو میں روز نئے الفاظ سیکھیں!';
-    document.getElementById('explanationBox').style.display = 'block';
-    document.getElementById('nextBtn').disabled = false;
+    opts.forEach((opt, idx) => { 
+        if (idx === q.answer) opt.classList.add('correct'); 
+        else if (idx === selectedIdx && !isCorrect) opt.classList.add('incorrect'); 
+        opt.style.pointerEvents = 'none'; 
+    });
+    
+    const explanationText = document.getElementById('explanationText');
+    if (explanationText) explanationText.textContent = q.explanation;
+    
+    const factoidText = document.getElementById('factoidText');
+    if (factoidText) factoidText.textContent = q.factoid || '📖 اردو میں روز نئے الفاظ سیکھیں!';
+    
+    const explanationBox = document.getElementById('explanationBox');
+    if (explanationBox) explanationBox.style.display = 'block';
+    
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.disabled = false;
+    
     if (currentState.lives <= 0) setTimeout(() => endQuiz(), 1500);
 }
 
 function trackWeakArea(area) { if (!currentState.weakAreas[area]) currentState.weakAreas[area] = 0; currentState.weakAreas[area]++; }
 
-function nextQuestion() { if (currentState.currentQuestion + 1 < currentState.questions.length) { currentState.currentQuestion++; loadQuestion(); } else { endQuiz(); } }
-function prevQuestion() { if (currentState.currentQuestion > 0) { currentState.currentQuestion--; loadQuestion(); } }
+function nextQuestion() { 
+    if (currentState.currentQuestion + 1 < currentState.questions.length) { 
+        currentState.currentQuestion++; 
+        loadQuestion(); 
+    } else { 
+        endQuiz(); 
+    } 
+}
+
+function prevQuestion() { 
+    if (currentState.currentQuestion > 0) { 
+        currentState.currentQuestion--; 
+        loadQuestion(); 
+    } 
+}
 
 function endQuiz() {
     if (currentState.timer) clearInterval(currentState.timer);
-    const percentage = Math.round((currentState.score / (currentState.questions.length * 10 * currentState.level)) * 100);
-    document.getElementById('finalScoreValue').textContent = `${percentage}%`;
+    const totalPossible = currentState.questions.length * 10 * currentState.level;
+    const percentage = totalPossible > 0 ? Math.round((currentState.score / totalPossible) * 100) : 0;
+    
+    const finalScore = document.getElementById('finalScoreValue');
+    if (finalScore) finalScore.textContent = `${percentage}%`;
+    
     let badge = "اردو سیکھنے والا 📚";
     if (percentage >= 90) badge = "اردو کا ماہر 🎓🏆";
     else if (percentage >= 70) badge = "سخن شناس 🌟";
-    document.getElementById('badgeEarned').textContent = badge;
+    
+    const badgeEl = document.getElementById('badgeEarned');
+    if (badgeEl) badgeEl.textContent = badge;
+    
     let streak = parseInt(localStorage.getItem('urduStreak') || '0');
     if (percentage >= 60) { streak++; localStorage.setItem('urduStreak', streak); }
     else { streak = 0; localStorage.setItem('urduStreak', '0'); }
-    document.getElementById('streakCount').textContent = streak;
+    
+    const streakEl = document.getElementById('streakCount');
+    if (streakEl) streakEl.textContent = streak;
+    
     const weakList = document.getElementById('weakAreasList');
-    weakList.innerHTML = '';
-    Object.entries(currentState.weakAreas).slice(0, 3).forEach(([area, count]) => { const tag = document.createElement('span'); tag.className = 'weak-area-tag'; tag.textContent = `${area}: ${count} غلطیاں`; weakList.appendChild(tag); });
+    if (weakList) {
+        weakList.innerHTML = '';
+        Object.entries(currentState.weakAreas).slice(0, 3).forEach(([area, count]) => { 
+            const tag = document.createElement('span'); 
+            tag.className = 'weak-area-tag'; 
+            tag.textContent = `${area}: ${count} غلطیاں`; 
+            weakList.appendChild(tag); 
+        });
+    }
+    
     updateProgressChart(percentage);
-    document.getElementById('quizContainer').style.display = 'none';
-    document.getElementById('resultsContainer').style.display = 'block';
+    
+    const quizContainer = document.getElementById('quizContainer');
+    if (quizContainer) quizContainer.style.display = 'none';
+    
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (resultsContainer) resultsContainer.style.display = 'block';
+    
     if (percentage >= 70) createConfetti();
 }
 
@@ -379,7 +578,21 @@ function updateProgressChart(score) {
     const ctx = document.getElementById('progressChart')?.getContext('2d');
     if (!ctx) return;
     if (progressChart) progressChart.destroy();
-    progressChart = new Chart(ctx, { type: 'line', data: { labels: ['پہلا', 'دوسرا', 'تیسرا', 'موجودہ'], datasets: [{ label: 'آپ کی کارکردگی', data: [40, 55, 70, score], borderColor: '#11998e', backgroundColor: 'rgba(17,153,142,0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true } });
+    progressChart = new Chart(ctx, { 
+        type: 'line', 
+        data: { 
+            labels: ['پہلا', 'دوسرا', 'تیسرا', 'موجودہ'], 
+            datasets: [{ 
+                label: 'آپ کی کارکردگی', 
+                data: [40, 55, 70, score], 
+                borderColor: '#11998e', 
+                backgroundColor: 'rgba(17,153,142,0.1)', 
+                fill: true, 
+                tension: 0.4 
+            }] 
+        }, 
+        options: { responsive: true } 
+    });
 }
 
 function usePowerup(type) {
@@ -397,53 +610,382 @@ function usePowerup(type) {
     else if (type === 'skip') { nextQuestion(); showToast('سوال چھوڑ دیا!', 'info'); }
     updatePowerupsDisplay();
 }
-function updatePowerupsDisplay() { document.querySelectorAll('.powerup-btn').forEach(btn => { const type = btn.getAttribute('data-powerup'); const span = btn.querySelector('.powerup-count'); if (span && currentState.powerups[type] !== undefined) { span.textContent = currentState.powerups[type]; if (currentState.powerups[type] === 0) btn.disabled = true; } }); }
 
-function readAloud() { const q = currentState.questions[currentState.currentQuestion]; if (!q) return; const utterance = new SpeechSynthesisUtterance(q.question); utterance.lang = 'ur-PK'; utterance.rate = 0.9; speechSynthesis.cancel(); speechSynthesis.speak(utterance); }
-function startSpeechRecognition() { if (!('webkitSpeechRecognition' in window)) { showToast('اسپیکر سپورٹ نہیں', 'error'); return; } const recognition = new webkitSpeechRecognition(); recognition.lang = 'ur-PK'; recognition.onresult = (event) => { const spoken = event.results[0][0].transcript; const q = currentState.questions[currentState.currentQuestion]; const correctOption = q.options[q.answer]; if (spoken.includes(correctOption) || correctOption.includes(spoken)) selectAnswer(q.answer); else showToast(`آپ نے کہا: "${spoken}"۔ دوبارہ کوشش کریں!`, 'error'); }; recognition.start(); showToast('🎤 سن رہا ہوں... جواب بولیں', 'info'); }
-function playSound(isCorrect) { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); oscillator.frequency.value = isCorrect ? 880 : 440; gainNode.gain.value = 0.15; oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5); oscillator.stop(audioCtx.currentTime + 0.5); } catch(e) {} }
-function createConfetti() { for (let i = 0; i < 150; i++) { const confetti = document.createElement('div'); confetti.style.position = 'fixed'; confetti.style.width = '10px'; confetti.style.height = '10px'; confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`; confetti.style.left = `${Math.random() * 100}%`; confetti.style.top = '-20px'; confetti.style.borderRadius = '50%'; confetti.style.zIndex = '1000'; confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`; document.body.appendChild(confetti); setTimeout(() => confetti.remove(), 5000); } }
-function downloadCertificate() { const score = document.getElementById('finalScoreValue').textContent; const name = prompt('اپنا نام درج کریں:', 'طلبہ'); if (!name) return; const certContent = `اردو کوئز چیلنج - تکمیل کی سند\n\nیہ سند تصدیق کرتی ہے کہ\n${name}\nنے اردو کوئز میں ${score}% سکور حاصل کیا\nتاریخ: ${new Date().toLocaleDateString('ur-PK')}`; const blob = new Blob([certContent], { type: 'text/plain' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `urdu-certificate-${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); showToast('سرٹیفکیٹ ڈاؤن لوڈ ہو گیا!'); }
-
-function setupTheme() { const saved = localStorage.getItem('theme') || 'light'; if (saved === 'dark') document.body.setAttribute('data-theme', 'dark'); document.getElementById('themeToggle').onclick = () => { const isDark = document.body.getAttribute('data-theme') === 'dark'; if (isDark) { document.body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); } else { document.body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); } }; }
-function setupScrollButtons() { const up = document.getElementById('scrollUpBtn'), down = document.getElementById('scrollDownBtn'); window.addEventListener('scroll', () => up.style.display = window.scrollY > 200 ? 'flex' : 'none'); up.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' }); down.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
-
-function setupEventListeners() {
-    document.querySelectorAll('.mode-select-btn').forEach(btn => { btn.onclick = () => { currentState.mode = btn.closest('.mode-card').getAttribute('data-mode'); document.getElementById('modeContainer').style.display = 'none'; document.getElementById('levelsContainer').style.display = 'block'; }; });
-    document.querySelectorAll('.level-start-btn').forEach(btn => { btn.onclick = () => { const level = parseInt(btn.closest('.level-card').getAttribute('data-level')); startQuiz(level, currentState.mode); }; });
-    document.getElementById('backToModeBtn').onclick = () => { document.getElementById('levelsContainer').style.display = 'none'; document.getElementById('modeContainer').style.display = 'grid'; };
-    document.getElementById('nextBtn').onclick = nextQuestion;
-    document.getElementById('prevBtn').onclick = prevQuestion;
-    document.getElementById('fiftyBtn').onclick = () => usePowerup('fifty');
-    document.getElementById('timeBtn').onclick = () => usePowerup('time');
-    document.getElementById('hintBtn').onclick = () => usePowerup('hint');
-    document.getElementById('skipBtn').onclick = () => usePowerup('skip');
-    document.getElementById('readAloudBtn').onclick = readAloud;
-    document.getElementById('speechAnswerBtn').onclick = startSpeechRecognition;
-    document.getElementById('tryAgainBtn').onclick = () => startQuiz(currentState.level, currentState.mode);
-    document.getElementById('changeLevelBtn').onclick = () => { document.getElementById('resultsContainer').style.display = 'none'; document.getElementById('levelsContainer').style.display = 'block'; };
-    document.getElementById('downloadCertBtn').onclick = downloadCertificate;
-    
-    document.querySelectorAll('.reaction-mini-btn').forEach(btn => { btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), true); });
-    document.querySelectorAll('.share-mini-btn').forEach(btn => { if (btn.id === 'copyPageUrlBtn') btn.onclick = copyPageUrl; else btn.onclick = () => shareQuiz(btn.getAttribute('data-platform')); });
-    document.querySelectorAll('.reaction-emoji').forEach(btn => { btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), false); });
-    document.querySelectorAll('.social-icon').forEach(btn => { btn.onclick = () => shareQuiz(btn.getAttribute('data-platform')); });
-    document.getElementById('statsBtn').onclick = () => showToast(`کل پلے: ${toolUsageCount}`, 'info');
+function updatePowerupsDisplay() { 
+    document.querySelectorAll('.powerup-btn').forEach(btn => { 
+        const type = btn.getAttribute('data-powerup'); 
+        const span = btn.querySelector('.powerup-count'); 
+        if (span && currentState.powerups[type] !== undefined) { 
+            span.textContent = currentState.powerups[type]; 
+            if (currentState.powerups[type] === 0) btn.disabled = true; 
+        } 
+    }); 
 }
 
+function readAloud() { 
+    const q = currentState.questions[currentState.currentQuestion]; 
+    if (!q) return; 
+    const utterance = new SpeechSynthesisUtterance(q.question); 
+    utterance.lang = 'ur-PK'; 
+    utterance.rate = 0.9; 
+    speechSynthesis.cancel(); 
+    speechSynthesis.speak(utterance); 
+}
+
+function startSpeechRecognition() { 
+    if (!('webkitSpeechRecognition' in window)) { showToast('اسپیکر سپورٹ نہیں', 'error'); return; } 
+    const recognition = new webkitSpeechRecognition(); 
+    recognition.lang = 'ur-PK'; 
+    recognition.onresult = (event) => { 
+        const spoken = event.results[0][0].transcript; 
+        const q = currentState.questions[currentState.currentQuestion]; 
+        const correctOption = q.options[q.answer]; 
+        if (spoken.includes(correctOption) || correctOption.includes(spoken)) selectAnswer(q.answer); 
+        else showToast(`آپ نے کہا: "${spoken}"۔ دوبارہ کوشش کریں!`, 'error'); 
+    }; 
+    recognition.start(); 
+    showToast('🎤 سن رہا ہوں... جواب بولیں', 'info'); 
+}
+
+function playSound(isCorrect) { 
+    try { 
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const oscillator = audioCtx.createOscillator(); 
+        const gainNode = audioCtx.createGain(); 
+        oscillator.connect(gainNode); 
+        gainNode.connect(audioCtx.destination); 
+        oscillator.frequency.value = isCorrect ? 880 : 440; 
+        gainNode.gain.value = 0.15; 
+        oscillator.start(); 
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5); 
+        oscillator.stop(audioCtx.currentTime + 0.5); 
+    } catch(e) {} 
+}
+
+function createConfetti() { 
+    for (let i = 0; i < 150; i++) { 
+        const confetti = document.createElement('div'); 
+        confetti.style.position = 'fixed'; 
+        confetti.style.width = '10px'; 
+        confetti.style.height = '10px'; 
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`; 
+        confetti.style.left = `${Math.random() * 100}%`; 
+        confetti.style.top = '-20px'; 
+        confetti.style.borderRadius = '50%'; 
+        confetti.style.zIndex = '1000'; 
+        confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`; 
+        document.body.appendChild(confetti); 
+        setTimeout(() => confetti.remove(), 5000); 
+    } 
+}
+
+function downloadCertificate() { 
+    const score = document.getElementById('finalScoreValue')?.textContent || '0%'; 
+    const name = prompt('اپنا نام درج کریں:', 'طلبہ'); 
+    if (!name) return; 
+    const certContent = `اردو کوئز چیلنج - تکمیل کی سند\n\nیہ سند تصدیق کرتی ہے کہ\n${name}\nنے اردو کوئز میں ${score} سکور حاصل کیا\nتاریخ: ${new Date().toLocaleDateString('ur-PK')}`; 
+    const blob = new Blob([certContent], { type: 'text/plain' }); 
+    const url = URL.createObjectURL(blob); 
+    const a = document.createElement('a'); 
+    a.href = url; 
+    a.download = `urdu-certificate-${Date.now()}.txt`; 
+    a.click(); 
+    URL.revokeObjectURL(url); 
+    showToast('سرٹیفکیٹ ڈاؤن لوڈ ہو گیا!'); 
+}
+
+// ==================== THEME SETUP ====================
+function setupTheme() { 
+    const saved = localStorage.getItem('theme') || 'light'; 
+    if (saved === 'dark') document.body.setAttribute('data-theme', 'dark'); 
+    const toggle = document.getElementById('themeToggle');
+    if (toggle) {
+        toggle.onclick = () => { 
+            const isDark = document.body.getAttribute('data-theme') === 'dark'; 
+            if (isDark) { 
+                document.body.removeAttribute('data-theme'); 
+                localStorage.setItem('theme', 'light'); 
+            } else { 
+                document.body.setAttribute('data-theme', 'dark'); 
+                localStorage.setItem('theme', 'dark'); 
+            } 
+        };
+    }
+}
+
+function setupScrollButtons() { 
+    const up = document.getElementById('scrollUpBtn'); 
+    const down = document.getElementById('scrollDownBtn');
+    if (up) {
+        window.addEventListener('scroll', () => up.style.display = window.scrollY > 200 ? 'flex' : 'none'); 
+        up.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    }
+    if (down) down.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); 
+}
+
+// ==================== EVENT LISTENERS ====================
+function setupEventListeners() {
+    // Mode Selection
+    document.querySelectorAll('.mode-select-btn').forEach(btn => {
+        if (btn) {
+            btn.onclick = () => {
+                const card = btn.closest('.mode-card');
+                if (card) {
+                    currentState.mode = card.getAttribute('data-mode');
+                    const modeContainer = document.getElementById('modeContainer');
+                    const levelsContainer = document.getElementById('levelsContainer');
+                    if (modeContainer) modeContainer.style.display = 'none';
+                    if (levelsContainer) levelsContainer.style.display = 'block';
+                }
+            };
+        }
+    });
+    
+    // Level Start
+    document.querySelectorAll('.level-start-btn').forEach(btn => {
+        if (btn) {
+            btn.onclick = () => {
+                const card = btn.closest('.level-card');
+                if (card) {
+                    const level = parseInt(card.getAttribute('data-level'));
+                    startQuiz(level, currentState.mode);
+                }
+            };
+        }
+    });
+    
+    // Back to Mode
+    const backBtn = document.getElementById('backToModeBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            const levelsContainer = document.getElementById('levelsContainer');
+            const modeContainer = document.getElementById('modeContainer');
+            if (levelsContainer) levelsContainer.style.display = 'none';
+            if (modeContainer) modeContainer.style.display = 'grid';
+        };
+    }
+    
+    // Navigation Buttons
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.onclick = nextQuestion;
+    
+    const prevBtn = document.getElementById('prevBtn');
+    if (prevBtn) prevBtn.onclick = prevQuestion;
+    
+    // Powerups
+    const fiftyBtn = document.getElementById('fiftyBtn');
+    if (fiftyBtn) fiftyBtn.onclick = () => usePowerup('fifty');
+    
+    const timeBtn = document.getElementById('timeBtn');
+    if (timeBtn) timeBtn.onclick = () => usePowerup('time');
+    
+    const hintBtn = document.getElementById('hintBtn');
+    if (hintBtn) hintBtn.onclick = () => usePowerup('hint');
+    
+    const skipBtn = document.getElementById('skipBtn');
+    if (skipBtn) skipBtn.onclick = () => usePowerup('skip');
+    
+    // Audio Controls
+    const readAloudBtn = document.getElementById('readAloudBtn');
+    if (readAloudBtn) readAloudBtn.onclick = readAloud;
+    
+    const speechBtn = document.getElementById('speechAnswerBtn');
+    if (speechBtn) speechBtn.onclick = startSpeechRecognition;
+    
+    // Results Actions
+    const tryAgainBtn = document.getElementById('tryAgainBtn');
+    if (tryAgainBtn) tryAgainBtn.onclick = () => startQuiz(currentState.level, currentState.mode);
+    
+    const changeLevelBtn = document.getElementById('changeLevelBtn');
+    if (changeLevelBtn) {
+        changeLevelBtn.onclick = () => {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const levelsContainer = document.getElementById('levelsContainer');
+            if (resultsContainer) resultsContainer.style.display = 'none';
+            if (levelsContainer) levelsContainer.style.display = 'block';
+        };
+    }
+    
+    const downloadBtn = document.getElementById('downloadCertBtn');
+    if (downloadBtn) downloadBtn.onclick = downloadCertificate;
+    
+    // Reactions - Main Page
+    document.querySelectorAll('.reaction-mini-btn').forEach(btn => {
+        if (btn) {
+            btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), true);
+        }
+    });
+    
+    // Reactions - Results
+    document.querySelectorAll('.reaction-emoji').forEach(btn => {
+        if (btn) {
+            btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), false);
+        }
+    });
+    
+    // Share Buttons
+    document.querySelectorAll('.share-mini-btn').forEach(btn => {
+        if (btn) {
+            if (btn.id === 'copyPageUrlBtn') {
+                btn.onclick = copyPageUrl;
+            } else {
+                btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
+            }
+        }
+    });
+    
+    // Social Icons - Results
+    document.querySelectorAll('.social-icon').forEach(btn => {
+        if (btn) {
+            btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
+        }
+    });
+    
+    // Stats Button
+    const statsBtn = document.getElementById('statsBtn');
+    if (statsBtn) {
+        statsBtn.onclick = async () => {
+            const data = await getUsageStats();
+            if (data) {
+                showToast(`کل پلے: ${data.usage || 0} | شیئرز: ${data.shares || 0} | ویوز: ${data.views || 0}`, 'info');
+            } else {
+                const usage = parseInt(localStorage.getItem('urdu_quiz_usage') || '0');
+                showToast(`کل پلے: ${usage}`, 'info');
+            }
+        };
+    }
+    
+    // Home Button
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.onclick = goHome;
+    
+    // Back to Category Button
+    const categoryBackBtn = document.getElementById('categoryBackBtn');
+    if (categoryBackBtn) categoryBackBtn.onclick = goBack;
+}
+
+// ==================== TYPEWRITER ANIMATION ====================
+function setupTypewriter() {
+    const element = document.getElementById('heroTypewriter');
+    if (!element) return;
+    
+    const texts = [
+        '📚 اردو سیکھیں اور مہارت حاصل کریں',
+        '🎯 250+ مستند سوالات',
+        '🤖 AI پاورڈ کوئز',
+        '🏆 اپنی صلاحیتوں کو جانچیں'
+    ];
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let isPaused = false;
+
+    function typeEffect() {
+        const currentText = texts[textIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentText.substring(0, charIndex - 1);
+            charIndex--;
+            if (charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+                setTimeout(typeEffect, 500);
+                return;
+            }
+            setTimeout(typeEffect, 50);
+        } else {
+            element.textContent = currentText.substring(0, charIndex + 1);
+            charIndex++;
+            if (charIndex === currentText.length) {
+                isDeleting = true;
+                setTimeout(typeEffect, 2000);
+                return;
+            }
+            setTimeout(typeEffect, 100);
+        }
+    }
+
+    typeEffect();
+}
+
+// ==================== CHECKLIST STYLES ====================
+function setupChecklistStyles() {
+    // The checklist styling is handled in CSS
+    // This function ensures the checklist items have proper classes
+    document.querySelectorAll('.checklist-item').forEach(item => {
+        item.addEventListener('click', function() {
+            this.classList.toggle('completed');
+        });
+    });
+}
+
+// ==================== INITIALIZATION ====================
 function init() {
     setupTheme();
     setupScrollButtons();
     setupEventListeners();
-    getUsageCount('urdu_quiz_total');
+    setupTypewriter();
+    setupChecklistStyles();
+    
+    // Load usage stats
+    getUsageStats();
+    getReactions();
+    
+    // Load streak
     const savedStreak = localStorage.getItem('urduStreak') || '0';
-    document.getElementById('streakCount').textContent = savedStreak;
-    document.getElementById('totalUsersCount').textContent = '50,000+';
-    document.getElementById('totalQuestionsCount').textContent = '250+';
+    const streakEl = document.getElementById('streakCount');
+    if (streakEl) streakEl.textContent = savedStreak;
+    
+    // Set total users and questions (static stats)
+    const usersEl = document.getElementById('totalUsersCount');
+    if (usersEl) usersEl.textContent = '50,000+';
+    
+    const questionsEl = document.getElementById('totalQuestionsCount');
+    if (questionsEl) questionsEl.textContent = '250+';
+    
+    // Set initial usage display
+    const usage = parseInt(localStorage.getItem('urdu_quiz_usage') || '0');
+    updateUsageDisplay(usage);
+    
     showToast('السلام علیکم! اردو کوئز چیلنج میں خوش آمدید 📖', 'success');
 }
 
+// ==================== CONFETTI STYLES ====================
 const style = document.createElement('style');
-style.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }`;
+style.textContent = `
+    @keyframes confettiFall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    .checklist-item {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border-color);
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .checklist-item:hover {
+        transform: scale(1.02);
+        border-color: var(--success);
+    }
+    .checklist-item.completed {
+        background: var(--success);
+        color: white;
+        border-color: var(--success);
+    }
+    .checklist-item.completed::before {
+        content: '✅ ';
+    }
+    .checklist-item::before {
+        content: '⬜ ';
+        font-size: 18px;
+    }
+`;
 document.head.appendChild(style);
+
 document.addEventListener('DOMContentLoaded', init);
