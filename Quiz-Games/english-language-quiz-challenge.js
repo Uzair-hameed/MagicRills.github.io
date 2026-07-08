@@ -1,8 +1,10 @@
 // ==================== CONFIGURATION ====================
 const CONFIG = {
     APP_NAME: 'English Language Quiz Challenge',
-    VERSION: '3.0.0',
-    CLOUD_WORKER_URL: 'https://computer-quiz-challenge.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'english-language-quiz-challenge',
+    VERSION: '4.0.0',
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
     DEFAULT_TIMER: 35,
     QUESTIONS_PER_QUIZ: 35
 };
@@ -22,20 +24,176 @@ let currentState = {
     timeLeft: 35,
     streak: 0,
     weakAreas: {},
-    sessionId: null
+    sessionId: null,
+    stats: {
+        usage: 0,
+        views: 0,
+        shares: 0,
+        followers: 0
+    }
 };
 
 let userReactions = new Set();
 let toolUsageCount = 0;
 let progressChart = null;
 let currentSpeechRecognition = null;
+let isPremium = localStorage.getItem('isPremium') === 'true';
 
-// ==================== API INTEGRATION ====================
+// ==================== CLOUDFLARE API INTEGRATION ====================
+class MagicRillsAPI {
+    constructor() {
+        this.baseURL = CONFIG.API_BASE;
+        this.apiKey = CONFIG.API_KEY;
+        this.toolSlug = CONFIG.TOOL_SLUG;
+    }
+
+    async request(endpoint, options = {}) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': this.apiKey,
+                    ...options.headers
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.warn('API request failed, using localStorage fallback:', error);
+            return null;
+        }
+    }
+
+    // Track usage
+    async trackUsage() {
+        const result = await this.request('/api/usage', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                tool_slug: this.toolSlug,
+                action: 'load'
+            })
+        });
+        
+        if (result && result.success) {
+            toolUsageCount = result.count || 0;
+            this.updateStatsDisplay();
+            return result;
+        }
+        
+        // Fallback: localStorage
+        toolUsageCount = parseInt(localStorage.getItem(`${this.toolSlug}_usage`) || '0') + 1;
+        localStorage.setItem(`${this.toolSlug}_usage`, toolUsageCount);
+        this.updateStatsDisplay();
+        return { count: toolUsageCount };
+    }
+
+    // Add reaction
+    async addReaction(emoji) {
+        const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
+        const result = await this.request('/api/reactions', {
+            method: 'POST',
+            body: JSON.stringify({
+                tool_slug: this.toolSlug,
+                emoji: emoji,
+                user_id: userId
+            })
+        });
+        
+        if (result && result.success) {
+            return result;
+        }
+        
+        // Fallback: localStorage
+        const key = `${this.toolSlug}_reactions`;
+        const reactions = JSON.parse(localStorage.getItem(key) || '{}');
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        localStorage.setItem(key, JSON.stringify(reactions));
+        return { success: true, counts: reactions };
+    }
+
+    // Get reactions
+    async getReactions() {
+        const result = await this.request(`/api/reactions?tool_slug=${this.toolSlug}`, {
+            method: 'GET'
+        });
+        
+        if (result && result.success) {
+            return result.counts;
+        }
+        
+        // Fallback: localStorage
+        const key = `${this.toolSlug}_reactions`;
+        return JSON.parse(localStorage.getItem(key) || '{}');
+    }
+
+    // Record share
+    async recordShare(platform) {
+        const result = await this.request('/api/shares', {
+            method: 'POST',
+            body: JSON.stringify({
+                tool_slug: this.toolSlug,
+                platform: platform
+            })
+        });
+        
+        if (result && result.success) {
+            return result;
+        }
+        
+        // Fallback: localStorage
+        const key = `${this.toolSlug}_shares`;
+        const shares = JSON.parse(localStorage.getItem(key) || '{}');
+        shares[platform] = (shares[platform] || 0) + 1;
+        localStorage.setItem(key, JSON.stringify(shares));
+        return { success: true };
+    }
+
+    // Get stats
+    async getStats() {
+        const result = await this.request(`/api/stats?tool_slug=${this.toolSlug}`, {
+            method: 'GET'
+        });
+        
+        if (result && result.success) {
+            currentState.stats = result.data || currentState.stats;
+            this.updateStatsDisplay();
+            return result;
+        }
+        
+        // Fallback: localStorage
+        currentState.stats.usage = parseInt(localStorage.getItem(`${this.toolSlug}_usage`) || '0');
+        currentState.stats.views = parseInt(localStorage.getItem(`${this.toolSlug}_views`) || '0');
+        const shares = JSON.parse(localStorage.getItem(`${this.toolSlug}_shares`) || '{}');
+        currentState.stats.shares = Object.values(shares).reduce((a, b) => a + b, 0);
+        currentState.stats.followers = parseInt(localStorage.getItem(`${this.toolSlug}_followers`) || '0');
+        this.updateStatsDisplay();
+        return { data: currentState.stats };
+    }
+
+    updateStatsDisplay() {
+        document.getElementById('globalUsageCount').textContent = toolUsageCount || currentState.stats.usage || 0;
+        document.getElementById('totalUsersCount').textContent = currentState.stats.followers || '1,234';
+        document.getElementById('totalQuestionsCount').textContent = '10,000+';
+    }
+}
+
+// Initialize API
+const api = new MagicRillsAPI();
+
+// ==================== GROK API INTEGRATION ====================
 async function callGrokAPI(prompt) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+        const response = await fetch(`https://magicrills-grok-api.uzairhameed01.workers.dev/api/grok/generate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
             body: JSON.stringify({ 
                 prompt: prompt,
                 model: 'llama-3.1-8b-instant',
@@ -152,9 +310,17 @@ function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+    }, 3000);
 }
 
 function showLoading(message) {
@@ -167,59 +333,67 @@ function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
 }
 
-async function incrementUsage(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, user_id: localStorage.getItem('userId') || 'anonymous' })
-        });
-        const data = await response.json();
-        updateUsageDisplay(data.count);
-        return data;
-    } catch (error) {
-        toolUsageCount++;
-        updateUsageDisplay(toolUsageCount);
-    }
-}
-
-function updateUsageDisplay(count) {
-    const elements = document.querySelectorAll('#globalUsageCount, .stats-badge');
-    elements.forEach(el => { if (el) el.textContent = count.toLocaleString(); });
+function getEmojiName(emoji) {
+    const names = { 
+        'like': '👍', 
+        'love': '❤️', 
+        'wow': '😮', 
+        'sad': '😢', 
+        'laugh': '😂', 
+        'celebrate': '🎉' 
+    };
+    return names[emoji] || emoji;
 }
 
 // ==================== REACTIONS ====================
 async function addReaction(emoji) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    const reactionKey = `english_quiz_${emoji}_${userId}`;
+    const result = await api.addReaction(emoji);
     
-    if (userReactions.has(reactionKey)) {
-        showToast(`You already reacted with ${getEmojiName(emoji)}!`, 'warning');
-        return;
+    if (result && result.success) {
+        // Update UI with real counts
+        updateReactionCounts(result.counts);
+        showToast(`${getEmojiName(emoji)} reaction added!`, 'success');
+    } else {
+        // Local fallback
+        const countSpan = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+        if (countSpan) {
+            const currentCount = parseInt(countSpan.textContent) || 0;
+            countSpan.textContent = currentCount + 1;
+        }
+        showToast(`${getEmojiName(emoji)} reaction added!`, 'success');
     }
-    
-    userReactions.add(reactionKey);
-    
-    // Update UI
-    const countSpan = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
-    if (countSpan) {
-        const currentCount = parseInt(countSpan.textContent) || 0;
-        countSpan.textContent = currentCount + 1;
-    }
-    
-    showToast(`${getEmojiName(emoji)} reaction added!`, 'success');
 }
 
-function getEmojiName(emoji) {
-    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
-    return names[emoji] || emoji;
+async function updateReactionCounts(counts) {
+    const emojiMap = {
+        'like': 'reactionLike',
+        'love': 'reactionLove',
+        'wow': 'reactionWow',
+        'sad': 'reactionSad',
+        'laugh': 'reactionLaugh',
+        'celebrate': 'reactionCelebrate'
+    };
+    
+    for (const [emoji, count] of Object.entries(counts)) {
+        const elementId = emojiMap[emoji];
+        if (elementId) {
+            const el = document.getElementById(elementId);
+            if (el) el.textContent = count;
+        }
+    }
+}
+
+async function loadReactions() {
+    const counts = await api.getReactions();
+    if (counts) {
+        updateReactionCounts(counts);
+    }
 }
 
 // ==================== SHARING ====================
 function shareQuiz(platform) {
     const url = window.location.href;
-    const text = `I'm learning English on this quiz! Join me at English Quiz Challenge!`;
+    const text = `📚 I'm learning English with English Quiz Challenge! Test your skills too! 🎯`;
     
     let shareUrl = '';
     switch(platform) {
@@ -232,15 +406,20 @@ function shareQuiz(platform) {
         case 'whatsapp':
             shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
             break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(url);
+            showToast('Link copied to clipboard!');
+            return;
     }
     
     if (shareUrl) window.open(shareUrl, '_blank');
+    
+    // Record share
+    api.recordShare(platform);
     showToast(`Shared on ${platform}!`);
-}
-
-function copyPageUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied to clipboard!');
 }
 
 // ==================== QUIZ FUNCTIONS ====================
@@ -267,7 +446,7 @@ async function startQuiz() {
     document.getElementById('scoreCount').textContent = currentState.score;
     
     loadQuestion();
-    incrementUsage(`english_quiz_${currentState.mode}`);
+    api.trackUsage();
 }
 
 function loadQuestion() {
@@ -428,8 +607,34 @@ function updateProgressChart(score) {
     if (progressChart) progressChart.destroy();
     progressChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: ['Quiz 1', 'Quiz 2', 'Quiz 3', 'Current'], datasets: [{ label: 'Your Progress', data: [35, 55, 70, score], borderColor: '#4361ee', backgroundColor: 'rgba(67,97,238,0.1)', fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+        data: { 
+            labels: ['Quiz 1', 'Quiz 2', 'Quiz 3', 'Current'], 
+            datasets: [{ 
+                label: 'Your Progress', 
+                data: [35, 55, 70, score], 
+                borderColor: '#4361ee', 
+                backgroundColor: 'rgba(67,97,238,0.1)', 
+                fill: true, 
+                tension: 0.4,
+                borderWidth: 3
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            plugins: { 
+                legend: { position: 'top' } 
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                }
+            }
+        }
     });
 }
 
@@ -446,16 +651,19 @@ function usePowerup(type) {
         for (let i = 0; i < q.options.length; i++) if (i !== q.answer) wrong.push(i);
         const toRemove = wrong.slice(0, 2);
         document.querySelectorAll('.option').forEach((opt, idx) => {
-            if (toRemove.includes(idx)) opt.style.opacity = '0.4';
+            if (toRemove.includes(idx)) {
+                opt.style.opacity = '0.4';
+                opt.style.pointerEvents = 'none';
+            }
         });
         showToast('50/50 used! Two options eliminated.', 'success');
     } else if (type === 'time') {
-        if (!isPremium()) { showPremiumModal(); return; }
+        if (!isPremium) { showPremiumModal(); return; }
         currentState.timeLeft = Math.min(currentState.timeLeft + 30, CONFIG.DEFAULT_TIMER + 30);
         updateTimerDisplay();
         showToast('+30 seconds added!', 'success');
     } else if (type === 'hint') {
-        if (!isPremium()) { showPremiumModal(); return; }
+        if (!isPremium) { showPremiumModal(); return; }
         showToast(`💡 Hint: ${q.explanation.substring(0, 100)}...`, 'info');
     } else if (type === 'skip') {
         nextQuestion();
@@ -471,14 +679,23 @@ function updatePowerupsDisplay() {
         if (span && currentState.powerups[type] !== undefined) {
             span.textContent = currentState.powerups[type];
             if (currentState.powerups[type] === 0) btn.disabled = true;
+            else btn.disabled = false;
         }
     });
 }
 
 function updateTimerDisplay() {
     const timerEl = document.getElementById('timerDisplay');
-    if (timerEl) timerEl.textContent = currentState.timeLeft;
-    if (currentState.timeLeft <= 5) timerEl.style.color = '#ef4444';
+    if (timerEl) {
+        timerEl.textContent = currentState.timeLeft;
+        if (currentState.timeLeft <= 5) {
+            timerEl.style.color = '#ef4444';
+            timerEl.style.animation = 'pulse 0.5s infinite';
+        } else {
+            timerEl.style.color = '';
+            timerEl.style.animation = '';
+        }
+    }
 }
 
 // ==================== AUDIO & SPEECH ====================
@@ -493,7 +710,15 @@ function readAloud() {
 }
 
 function startSpeechRecognition() {
-    if (!('webkitSpeechRecognition' in window)) { showToast('Speech recognition not supported in this browser', 'error'); return; }
+    if (!('webkitSpeechRecognition' in window)) { 
+        showToast('Speech recognition not supported in this browser', 'error'); 
+        return; 
+    }
+    
+    if (!isPremium) {
+        showPremiumModal();
+        return;
+    }
     
     const recognition = new webkitSpeechRecognition();
     recognition.lang = 'en-US';
@@ -515,6 +740,7 @@ function startSpeechRecognition() {
     };
     recognition.onerror = () => showToast('Speech recognition error. Please try again.', 'error');
     recognition.start();
+    currentSpeechRecognition = recognition;
 }
 
 function playSound(isCorrect) {
@@ -525,6 +751,7 @@ function playSound(isCorrect) {
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         oscillator.frequency.value = isCorrect ? 880 : 440;
+        oscillator.type = isCorrect ? 'sine' : 'square';
         gainNode.gain.value = 0.15;
         oscillator.start();
         gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
@@ -533,18 +760,22 @@ function playSound(isCorrect) {
 }
 
 function createConfetti() {
+    const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6bff', '#ff9f43'];
     for (let i = 0; i < 150; i++) {
         const confetti = document.createElement('div');
-        confetti.style.position = 'fixed';
-        confetti.style.width = '10px';
-        confetti.style.height = '10px';
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-        confetti.style.left = `${Math.random() * 100}%`;
-        confetti.style.top = '-20px';
-        confetti.style.borderRadius = '50%';
-        confetti.style.zIndex = '1000';
-        confetti.style.pointerEvents = 'none';
-        confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
+        confetti.style.cssText = `
+            position: fixed;
+            width: ${Math.random() * 8 + 4}px;
+            height: ${Math.random() * 8 + 4}px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            left: ${Math.random() * 100}%;
+            top: -20px;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+            z-index: 1000;
+            pointer-events: none;
+            animation: confettiFall ${Math.random() * 3 + 2}s linear forwards;
+            animation-delay: ${Math.random() * 2}s;
+        `;
         document.body.appendChild(confetti);
         setTimeout(() => confetti.remove(), 5000);
     }
@@ -556,21 +787,86 @@ function setupTheme() {
     if (saved === 'dark') document.body.setAttribute('data-theme', 'dark');
     document.getElementById('themeToggle').onclick = () => {
         const isDark = document.body.getAttribute('data-theme') === 'dark';
-        if (isDark) { document.body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
-        else { document.body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+        if (isDark) { 
+            document.body.removeAttribute('data-theme'); 
+            localStorage.setItem('theme', 'light');
+            document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        } else { 
+            document.body.setAttribute('data-theme', 'dark'); 
+            localStorage.setItem('theme', 'dark');
+            document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
     };
+    // Set initial icon
+    if (saved === 'dark') {
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+    }
 }
 
 function setupScrollButtons() {
     const up = document.getElementById('scrollUpBtn'), down = document.getElementById('scrollDownBtn');
-    window.addEventListener('scroll', () => up.style.display = window.scrollY > 200 ? 'flex' : 'none');
-    up.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-    down.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    window.addEventListener('scroll', () => {
+        if (up) up.style.display = window.scrollY > 200 ? 'flex' : 'none';
+    });
+    if (up) up.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (down) down.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
-function isPremium() { return localStorage.getItem('isPremium') === 'true'; }
-function showPremiumModal() { document.getElementById('premiumModal').style.display = 'flex'; }
-function closePremiumModal() { document.getElementById('premiumModal').style.display = 'none'; }
+function showPremiumModal() { 
+    document.getElementById('premiumModal').style.display = 'flex'; 
+}
+
+function closePremiumModal() { 
+    document.getElementById('premiumModal').style.display = 'none'; 
+}
+
+// ==================== TYPEWRITER EFFECT ====================
+function setupTypewriter() {
+    const elements = document.querySelectorAll('.typewriter-text');
+    elements.forEach(el => {
+        const text = el.getAttribute('data-text') || 'Master English with AI-Powered Quizzes!';
+        let index = 0;
+        el.textContent = '';
+        
+        function type() {
+            if (index < text.length) {
+                el.textContent += text.charAt(index);
+                index++;
+                setTimeout(type, 50 + Math.random() * 30);
+            }
+        }
+        type();
+    });
+}
+
+// ==================== 3D CHECKLIST ====================
+function setupChecklist() {
+    const items = document.querySelectorAll('.checklist-item');
+    items.forEach((item, index) => {
+        item.style.setProperty('--i', index);
+        item.addEventListener('mouseenter', () => {
+            item.style.transform = 'translateZ(20px) rotateX(5deg)';
+        });
+        item.addEventListener('mouseleave', () => {
+            item.style.transform = 'translateZ(0) rotateX(0)';
+        });
+    });
+}
+
+// ==================== NAVIGATION ====================
+function setupNavigation() {
+    // Home button
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+        homeBtn.onclick = () => window.location.href = 'https://magicrills.com';
+    }
+    
+    // Back button
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.onclick = () => window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+    }
+}
 
 // ==================== EVENT LISTENERS ====================
 function setupEventListeners() {
@@ -632,7 +928,7 @@ function setupEventListeners() {
         btn.onclick = () => {
             const platform = btn.getAttribute('data-platform');
             if (platform) shareQuiz(platform);
-            else if (btn.id === 'copyPageUrlBtn') copyPageUrl();
+            else if (btn.id === 'copyPageUrlBtn') shareQuiz('copy');
         };
     });
     
@@ -646,32 +942,81 @@ function setupEventListeners() {
     document.getElementById('maybeLaterBtn').onclick = closePremiumModal;
     document.getElementById('upgradeBtn').onclick = () => {
         localStorage.setItem('isPremium', 'true');
+        isPremium = true;
         showToast('Premium activated! 🎉', 'success');
         closePremiumModal();
     };
     
     // Stats button
-    document.getElementById('statsBtn').onclick = () => showToast(`Total plays: ${toolUsageCount}`, 'info');
+    document.getElementById('statsBtn').onclick = async () => {
+        const stats = await api.getStats();
+        showToast(`📊 Usage: ${stats.data?.usage || 0} | Views: ${stats.data?.views || 0} | Shares: ${stats.data?.shares || 0}`, 'info');
+    };
+    
+    // Navigation
+    setupNavigation();
 }
 
 // ==================== INITIALIZATION ====================
-function init() {
+async function init() {
+    // Setup theme
     setupTheme();
     setupScrollButtons();
-    setupEventListeners();
-    incrementUsage('english_quiz_total');
+    setupTypewriter();
+    setupChecklist();
     
+    // Load stats
+    await api.getStats();
+    await api.trackUsage();
+    await loadReactions();
+    
+    // Setup events
+    setupEventListeners();
+    
+    // Display streak
     const savedStreak = localStorage.getItem('englishStreak') || '0';
     document.getElementById('streakCount').textContent = savedStreak;
-    document.getElementById('totalQuestionsCount').textContent = '10,000+';
-    document.getElementById('totalUsersCount').textContent = '1,234';
     
-    showToast('Welcome to English Quiz Challenge! 📖 AI generates 35 fresh questions each time', 'success');
+    // Show welcome
+    showToast('🎯 Welcome to English Quiz Challenge! AI generates 35 fresh questions each time', 'success');
+    
+    // Initialize chart placeholder
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    progressChart = new Chart(ctx, {
+        type: 'line',
+        data: { 
+            labels: ['Start', 'Progress', 'Goal'], 
+            datasets: [{ 
+                label: 'Your Journey', 
+                data: [0, 50, 100], 
+                borderColor: '#4361ee', 
+                backgroundColor: 'rgba(67,97,238,0.1)', 
+                fill: true, 
+                tension: 0.4,
+                borderWidth: 3
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: true,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
 }
 
 // Add confetti animation CSS
 const style = document.createElement('style');
-style.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }`;
+style.textContent = `
+    @keyframes confettiFall {
+        0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg) scale(0); opacity: 0; }
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.05); }
+    }
+`;
 document.head.appendChild(style);
 
 // Start the app
