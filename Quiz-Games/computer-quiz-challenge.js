@@ -1,8 +1,10 @@
 // ==================== CONFIGURATION ====================
 const CONFIG = {
     APP_NAME: 'Computer Quiz Challenge',
-    VERSION: '3.0.0',
-    CLOUD_WORKER_URL: 'https://advanced-science-quiz-challenge.uzairhameed01.workers.dev',
+    VERSION: '4.0.0',
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'computer-quiz-challenge',
     DEFAULT_TIMER: 60,
     QUESTIONS_PER_QUIZ: 20,
     SCORE_PER_CORRECT: 100
@@ -25,9 +27,14 @@ let currentState = {
 };
 
 let userReactions = new Set();
-let toolUsageCount = 0;
 let allBadges = [];
 let earnedBadges = [];
+let toolStats = {
+    usage: 0,
+    views: 0,
+    shares: 0,
+    followers: 0
+};
 
 // ==================== QUIZ DATA (Local Fallback) ====================
 const localQuestions = {
@@ -79,107 +86,131 @@ function expandQuestions(questions) {
 // ==================== UTILITY FUNCTIONS ====================
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-triangle-exclamation',
+        info: 'fa-lightbulb'
+    };
+    toast.innerHTML = `<i class="fas ${iconMap[type] || 'fa-info-circle'}"></i> ${message}`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+    }, 3500);
 }
 
 function showLoading(message = 'Processing...') {
     const overlay = document.getElementById('loadingOverlay');
-    document.getElementById('loadingMessage').textContent = message;
-    overlay.style.display = 'flex';
+    const messageEl = document.getElementById('loadingMessage');
+    if (overlay) overlay.style.display = 'flex';
+    if (messageEl) messageEl.textContent = message;
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
 }
 
-// ==================== TiDB API INTEGRATION ====================
-async function incrementUsage(toolSlug) {
+// ==================== CLOUDFLARE WORKERS API INTEGRATION ====================
+async function callAPI(endpoint, method = 'POST', data = null) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                tool_slug: toolSlug, 
-                user_id: localStorage.getItem('userId') || 'anonymous' 
-            })
-        });
-        const data = await response.json();
-        updateUsageDisplay(data.count);
-        return data;
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        if (data && (method === 'POST' || method === 'PUT')) {
+            options.body = JSON.stringify(data);
+        }
+        // For GET requests with query params, append to URL
+        let url = `${CONFIG.API_BASE}${endpoint}`;
+        if (method === 'GET' && data) {
+            const params = new URLSearchParams(data);
+            url += `?${params.toString()}`;
+        }
+        const response = await fetch(url, options);
+        const result = await response.json();
+        return result;
     } catch (error) {
-        console.error('Usage increment failed:', error);
-        toolUsageCount++;
-        updateUsageDisplay(toolUsageCount);
+        console.error('API call failed:', error);
+        return null;
     }
 }
 
-async function getUsageCount(toolSlug) {
+// ==================== USAGE TRACKING ====================
+async function trackUsage() {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/get?tool_slug=${toolSlug}`);
-        const data = await response.json();
-        toolUsageCount = data.count || 0;
-        updateUsageDisplay(toolUsageCount);
-        return data;
+        const data = {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: localStorage.getItem('userId') || `user_${Date.now()}`
+        };
+        const result = await callAPI('/api/usage', 'POST', data);
+        if (result && result.success) {
+            toolStats.usage = result.count || 0;
+            updateStatsDisplay();
+            return result;
+        }
+        // Fallback to localStorage
+        const localCount = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0') + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, localCount);
+        toolStats.usage = localCount;
+        updateStatsDisplay();
+        return { count: localCount };
     } catch (error) {
-        console.error('Get usage failed:', error);
-        return { count: toolUsageCount };
+        console.error('Usage tracking failed:', error);
+        const localCount = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0') + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, localCount);
+        toolStats.usage = localCount;
+        updateStatsDisplay();
+        return { count: localCount };
     }
 }
 
-async function addReaction(toolSlug, emoji) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    
+// ==================== REACTIONS ====================
+const REACTIONS = [
+    { emoji: '👍', label: 'Like', color: '#3b82f6' },
+    { emoji: '❤️', label: 'Love', color: '#ef4444' },
+    { emoji: '😮', label: 'Wow', color: '#f59e0b' },
+    { emoji: '😢', label: 'Sad', color: '#8b5cf6' },
+    { emoji: '😂', label: 'Laugh', color: '#10b981' },
+    { emoji: '🎉', label: 'Celebrate', color: '#ec4899' },
+    { emoji: '🔥', label: 'Fire', color: '#f97316' }
+];
+
+async function addReaction(emoji) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, emoji: emoji, user_id: userId })
-        });
-        const data = await response.json();
-        updateReactionDisplay(data.counts);
-        showToast(`${getEmojiName(emoji)} reaction added!`);
-        return data;
+        const data = {
+            tool_slug: CONFIG.TOOL_SLUG,
+            emoji: emoji,
+            user_id: localStorage.getItem('userId') || `user_${Date.now()}`
+        };
+        const result = await callAPI('/api/reactions', 'POST', data);
+        if (result && result.success) {
+            showToast(`${emoji} reaction added!`, 'success');
+            updateReactionDisplay(result.counts);
+            return result;
+        }
+        // Fallback to localStorage
+        const localReactions = JSON.parse(localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`) || '{}');
+        localReactions[emoji] = (localReactions[emoji] || 0) + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_reactions`, JSON.stringify(localReactions));
+        updateReactionDisplay(localReactions);
+        showToast(`${emoji} reaction added!`, 'success');
+        return { counts: localReactions };
     } catch (error) {
         console.error('Add reaction failed:', error);
-        showToast('Reaction saved locally', 'warning');
+        const localReactions = JSON.parse(localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`) || '{}');
+        localReactions[emoji] = (localReactions[emoji] || 0) + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_reactions`, JSON.stringify(localReactions));
+        updateReactionDisplay(localReactions);
+        showToast(`${emoji} reaction added!`, 'success');
+        return { counts: localReactions };
     }
-}
-
-async function getReactions(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/reactions/get?tool_slug=${toolSlug}`);
-        const data = await response.json();
-        updateReactionDisplay(data);
-        return data;
-    } catch (error) {
-        console.error('Get reactions failed:', error);
-    }
-}
-
-async function trackShare(toolSlug, platform) {
-    try {
-        await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/shares/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, platform: platform })
-        });
-    } catch (error) {
-        console.error('Track share failed:', error);
-    }
-}
-
-function updateUsageDisplay(count) {
-    const usageElements = document.querySelectorAll('.usage-count');
-    usageElements.forEach(el => {
-        if (el) el.textContent = count.toLocaleString();
-    });
-    const globalBadge = document.getElementById('globalUsageCount');
-    if (globalBadge) globalBadge.textContent = count.toLocaleString();
 }
 
 function updateReactionDisplay(counts) {
@@ -187,15 +218,103 @@ function updateReactionDisplay(counts) {
     reactionButtons.forEach(btn => {
         const emoji = btn.getAttribute('data-emoji');
         const countSpan = btn.querySelector('.reaction-count');
-        if (countSpan && counts[emoji] !== undefined) {
+        if (countSpan && counts && counts[emoji] !== undefined) {
             countSpan.textContent = counts[emoji];
         }
     });
 }
 
-function getEmojiName(emoji) {
-    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉' };
-    return names[emoji] || emoji;
+// ==================== SHARES ====================
+async function trackShare(platform) {
+    try {
+        const data = {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            user_id: localStorage.getItem('userId') || `user_${Date.now()}`
+        };
+        const result = await callAPI('/api/shares', 'POST', data);
+        if (result && result.success) {
+            toolStats.shares = result.total || 0;
+            updateStatsDisplay();
+            return result;
+        }
+        // Fallback to localStorage
+        const localShares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0') + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, localShares);
+        toolStats.shares = localShares;
+        updateStatsDisplay();
+        return { total: localShares };
+    } catch (error) {
+        console.error('Track share failed:', error);
+        const localShares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0') + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, localShares);
+        toolStats.shares = localShares;
+        updateStatsDisplay();
+        return { total: localShares };
+    }
+}
+
+// ==================== STATS ====================
+async function getStats() {
+    try {
+        const result = await callAPI('/api/stats', 'GET', { tool_slug: CONFIG.TOOL_SLUG });
+        if (result && result.success) {
+            toolStats = {
+                usage: result.usage || 0,
+                views: result.views || 0,
+                shares: result.shares || 0,
+                followers: result.followers || 0
+            };
+            updateStatsDisplay();
+            return result;
+        }
+        // Fallback to localStorage
+        toolStats = {
+            usage: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0'),
+            views: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_views`) || '0'),
+            shares: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0'),
+            followers: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_followers`) || '0')
+        };
+        updateStatsDisplay();
+        return { success: true, ...toolStats };
+    } catch (error) {
+        console.error('Get stats failed:', error);
+        toolStats = {
+            usage: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0'),
+            views: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_views`) || '0'),
+            shares: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0'),
+            followers: parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_followers`) || '0')
+        };
+        updateStatsDisplay();
+        return { success: true, ...toolStats };
+    }
+}
+
+function updateStatsDisplay() {
+    // Update usage counts on level cards
+    const usageElements = document.querySelectorAll('.usage-count');
+    usageElements.forEach(el => {
+        if (el) el.textContent = toolStats.usage.toLocaleString();
+    });
+    
+    // Update global badge
+    const globalBadge = document.getElementById('globalUsageCount');
+    if (globalBadge) globalBadge.textContent = toolStats.usage.toLocaleString();
+    
+    // Update hero usage count
+    const heroUsage = document.getElementById('heroUsageCount');
+    if (heroUsage) heroUsage.textContent = toolStats.usage.toLocaleString();
+    
+    // Update dashboard stats
+    const statUsage = document.getElementById('statUsage');
+    const statViews = document.getElementById('statViews');
+    const statShares = document.getElementById('statShares');
+    const statFollowers = document.getElementById('statFollowers');
+    
+    if (statUsage) statUsage.textContent = toolStats.usage.toLocaleString();
+    if (statViews) statViews.textContent = toolStats.views.toLocaleString();
+    if (statShares) statShares.textContent = toolStats.shares.toLocaleString();
+    if (statFollowers) statFollowers.textContent = toolStats.followers.toLocaleString();
 }
 
 // ==================== GROK API INTEGRATION ====================
@@ -205,9 +324,12 @@ async function generateQuestionsFromAI(level) {
     const prompt = `Generate ${CONFIG.QUESTIONS_PER_QUIZ} multiple choice questions about Computer Science at ${level} difficulty level. Include questions about programming, hardware, software, networking, and IT concepts. For each question, provide: question text, 4 options, correct answer index (0-3), a brief explanation, and an interesting factoid. Format as JSON array.`;
     
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/grok/generate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
             body: JSON.stringify({ prompt, model: 'llama-3.1-8b-instant' })
         });
         
@@ -248,24 +370,35 @@ async function startQuiz(level) {
     localStorage.setItem('sessionId', currentState.sessionId);
     
     // Track usage
-    await incrementUsage(`quiz_computer_${level}`);
-    await getUsageCount(`quiz_computer_${level}`);
+    await trackUsage();
+    await getStats();
     
     // Generate questions
     const questions = await generateQuestionsFromAI(level);
     currentState.questions = questions;
     
     // Setup UI
-    document.getElementById('levelsContainer').style.display = 'none';
-    document.getElementById('quizContainer').style.display = 'block';
-    document.getElementById('resultsContainer').style.display = 'none';
-    document.getElementById('badgesContainer').style.display = 'none';
+    const levelsContainer = document.getElementById('levelsContainer');
+    const quizContainer = document.getElementById('quizContainer');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const badgesContainer = document.getElementById('badgesContainer');
     
-    document.getElementById('quizLevel').textContent = level.charAt(0).toUpperCase() + level.slice(1);
-    document.getElementById('totalQuestions').textContent = currentState.questions.length;
-    document.getElementById('totalQuestionsCount').textContent = currentState.questions.length;
-    document.getElementById('livesCount').textContent = currentState.lives;
-    document.getElementById('scoreCount').textContent = currentState.score;
+    if (levelsContainer) levelsContainer.style.display = 'none';
+    if (quizContainer) quizContainer.style.display = 'block';
+    if (resultsContainer) resultsContainer.style.display = 'none';
+    if (badgesContainer) badgesContainer.style.display = 'none';
+    
+    const quizLevel = document.getElementById('quizLevel');
+    const totalQuestions = document.getElementById('totalQuestions');
+    const totalQuestionsCount = document.getElementById('totalQuestionsCount');
+    const livesCount = document.getElementById('livesCount');
+    const scoreCount = document.getElementById('scoreCount');
+    
+    if (quizLevel) quizLevel.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+    if (totalQuestions) totalQuestions.textContent = currentState.questions.length;
+    if (totalQuestionsCount) totalQuestionsCount.textContent = currentState.questions.length;
+    if (livesCount) livesCount.textContent = currentState.lives;
+    if (scoreCount) scoreCount.textContent = currentState.score;
     
     loadQuestion();
 }
@@ -284,24 +417,33 @@ function loadQuestion() {
     }, 1000);
     
     const question = currentState.questions[currentState.currentQuestion];
-    document.getElementById('questionText').textContent = question.question;
-    document.getElementById('currentQuestionNum').textContent = currentState.currentQuestion + 1;
-    document.getElementById('progressFill').style.width = `${((currentState.currentQuestion + 1) / currentState.questions.length) * 100}%`;
-    
+    const questionText = document.getElementById('questionText');
+    const currentQuestionNum = document.getElementById('currentQuestionNum');
+    const progressFill = document.getElementById('progressFill');
     const optionsContainer = document.getElementById('optionsList');
-    optionsContainer.innerHTML = '';
     
-    question.options.forEach((option, index) => {
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'option';
-        optionDiv.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
-        optionDiv.setAttribute('data-index', index);
-        optionDiv.onclick = () => selectAnswer(index);
-        optionsContainer.appendChild(optionDiv);
-    });
+    if (questionText) questionText.textContent = question.question;
+    if (currentQuestionNum) currentQuestionNum.textContent = currentState.currentQuestion + 1;
+    if (progressFill) {
+        progressFill.style.width = `${((currentState.currentQuestion + 1) / currentState.questions.length) * 100}%`;
+    }
     
-    document.getElementById('explanationBox').style.display = 'none';
-    document.getElementById('nextBtn').disabled = true;
+    if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        question.options.forEach((option, index) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option';
+            optionDiv.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+            optionDiv.setAttribute('data-index', index);
+            optionDiv.onclick = () => selectAnswer(index);
+            optionsContainer.appendChild(optionDiv);
+        });
+    }
+    
+    const explanationBox = document.getElementById('explanationBox');
+    const nextBtn = document.getElementById('nextBtn');
+    if (explanationBox) explanationBox.style.display = 'none';
+    if (nextBtn) nextBtn.disabled = true;
     updatePowerupsDisplay();
 }
 
@@ -316,7 +458,7 @@ function selectAnswer(selectedIndex) {
         showToast('✅ Correct!', 'success');
     } else {
         currentState.lives--;
-        showToast(`❌ Incorrect. Correct answer: ${String.fromCharCode(65 + question.answer)}`, 'error');
+        showToast(`❌ Incorrect. Answer: ${String.fromCharCode(65 + question.answer)}`, 'error');
     }
     
     currentState.userAnswers[currentState.currentQuestion] = {
@@ -326,8 +468,10 @@ function selectAnswer(selectedIndex) {
     };
     
     // Update displays
-    document.getElementById('livesCount').textContent = currentState.lives;
-    document.getElementById('scoreCount').textContent = currentState.score;
+    const livesCount = document.getElementById('livesCount');
+    const scoreCount = document.getElementById('scoreCount');
+    if (livesCount) livesCount.textContent = currentState.lives;
+    if (scoreCount) scoreCount.textContent = currentState.score;
     
     // Highlight correct/incorrect
     const options = document.querySelectorAll('.option');
@@ -341,11 +485,15 @@ function selectAnswer(selectedIndex) {
     });
     
     // Show explanation
-    document.getElementById('explanationText').textContent = question.explanation;
-    document.getElementById('factoidText').textContent = question.factoid || 'Did you know? Computers use binary language (0s and 1s) to process information!';
-    document.getElementById('explanationBox').style.display = 'block';
+    const explanationText = document.getElementById('explanationText');
+    const factoidText = document.getElementById('factoidText');
+    const explanationBox = document.getElementById('explanationBox');
+    if (explanationText) explanationText.textContent = question.explanation;
+    if (factoidText) factoidText.textContent = question.factoid || 'Did you know? Computers use binary language (0s and 1s) to process information!';
+    if (explanationBox) explanationBox.style.display = 'block';
     
-    document.getElementById('nextBtn').disabled = false;
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.disabled = false;
     if (currentState.timer) clearInterval(currentState.timer);
     
     // Check game over
@@ -362,7 +510,8 @@ function handleTimeout() {
         correctAnswer: question.answer
     };
     currentState.lives--;
-    document.getElementById('livesCount').textContent = currentState.lives;
+    const livesCount = document.getElementById('livesCount');
+    if (livesCount) livesCount.textContent = currentState.lives;
     
     showToast(`⏰ Time's up! Answer: ${String.fromCharCode(65 + question.answer)}`, 'warning');
     
@@ -372,10 +521,15 @@ function handleTimeout() {
         opt.classList.add('disabled');
     });
     
-    document.getElementById('explanationText').textContent = question.explanation;
-    document.getElementById('factoidText').textContent = question.factoid || 'Time management is key in quizzes!';
-    document.getElementById('explanationBox').style.display = 'block';
-    document.getElementById('nextBtn').disabled = false;
+    const explanationText = document.getElementById('explanationText');
+    const factoidText = document.getElementById('factoidText');
+    const explanationBox = document.getElementById('explanationBox');
+    if (explanationText) explanationText.textContent = question.explanation;
+    if (factoidText) factoidText.textContent = question.factoid || 'Time management is key in quizzes!';
+    if (explanationBox) explanationBox.style.display = 'block';
+    
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.disabled = false;
     
     if (currentState.lives <= 0) {
         setTimeout(() => endQuiz(), 1500);
@@ -396,29 +550,35 @@ async function endQuiz() {
     
     const percentage = Math.round((currentState.score / (currentState.questions.length * CONFIG.SCORE_PER_CORRECT)) * 100);
     const timeBonus = Math.floor(currentState.timeLeft / 3);
-    const totalScore = currentState.score + timeBonus;
     const correctCount = currentState.userAnswers.filter(a => a && a.correct).length;
     
-    document.getElementById('finalScoreValue').textContent = `${percentage}%`;
-    document.getElementById('correctCount').textContent = correctCount;
-    document.getElementById('timeBonus').textContent = timeBonus;
-    document.getElementById('livesLeft').textContent = currentState.lives;
+    const finalScoreValue = document.getElementById('finalScoreValue');
+    const correctCountEl = document.getElementById('correctCount');
+    const timeBonusEl = document.getElementById('timeBonus');
+    const livesLeftEl = document.getElementById('livesLeft');
+    
+    if (finalScoreValue) finalScoreValue.textContent = `${percentage}%`;
+    if (correctCountEl) correctCountEl.textContent = correctCount;
+    if (timeBonusEl) timeBonusEl.textContent = timeBonus;
+    if (livesLeftEl) livesLeftEl.textContent = currentState.lives;
     
     // Determine badge
     let badge = 'Computer Novice 💻';
     if (percentage >= 90) badge = 'Computer Master 🎓';
     else if (percentage >= 75) badge = 'Tech Expert 🚀';
     else if (percentage >= 50) badge = 'Digital Learner 📚';
-    document.getElementById('badgeEarned').textContent = badge;
+    const badgeEarned = document.getElementById('badgeEarned');
+    if (badgeEarned) badgeEarned.textContent = badge;
     
     // Update badges
     updateBadges(percentage, correctCount);
     
-    // Load reactions
-    await getReactions(`quiz_computer_${currentState.level}`);
+    // Load reactions    await getStats();
     
-    document.getElementById('quizContainer').style.display = 'none';
-    document.getElementById('resultsContainer').style.display = 'block';
+    const quizContainer = document.getElementById('quizContainer');
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (quizContainer) quizContainer.style.display = 'none';
+    if (resultsContainer) resultsContainer.style.display = 'block';
     
     // Confetti for good scores
     if (percentage >= 75) {
@@ -445,6 +605,7 @@ function updateBadges(percentage, correctCount) {
 
 function showBadgesModal() {
     const badgesGrid = document.getElementById('badgesGrid');
+    if (!badgesGrid) return;
     badgesGrid.innerHTML = '';
     
     allBadges.forEach(badge => {
@@ -458,8 +619,10 @@ function showBadgesModal() {
         badgesGrid.appendChild(badgeCard);
     });
     
-    document.getElementById('resultsContainer').style.display = 'none';
-    document.getElementById('badgesContainer').style.display = 'block';
+    const resultsContainer = document.getElementById('resultsContainer');
+    const badgesContainer = document.getElementById('badgesContainer');
+    if (resultsContainer) resultsContainer.style.display = 'none';
+    if (badgesContainer) badgesContainer.style.display = 'block';
 }
 
 // ==================== POWERUPS ====================
@@ -533,7 +696,7 @@ function updatePowerupsDisplay() {
         const countSpan = btn.querySelector('.powerup-count');
         if (countSpan && currentState.powerups[type] !== undefined) {
             countSpan.textContent = currentState.powerups[type];
-            if (currentState.powerups[type] === 0) btn.disabled = true;
+            btn.disabled = (currentState.powerups[type] === 0);
         }
     });
 }
@@ -541,10 +704,10 @@ function updatePowerupsDisplay() {
 function updateTimerDisplay() {
     const timerEl = document.getElementById('timerDisplay');
     if (timerEl) timerEl.textContent = currentState.timeLeft;
-    if (currentState.timeLeft <= 10) {
+    if (currentState.timeLeft <= 10 && timerEl) {
         timerEl.style.color = '#ef4444';
         timerEl.style.animation = 'pulse 0.5s infinite';
-    } else {
+    } else if (timerEl) {
         timerEl.style.color = '';
         timerEl.style.animation = '';
     }
@@ -556,11 +719,13 @@ function isPremiumUser() {
 }
 
 function showPremiumModal() {
-    document.getElementById('premiumModal').style.display = 'flex';
+    const modal = document.getElementById('premiumModal');
+    if (modal) modal.style.display = 'flex';
 }
 
 function closePremiumModal() {
-    document.getElementById('premiumModal').style.display = 'none';
+    const modal = document.getElementById('premiumModal');
+    if (modal) modal.style.display = 'none';
 }
 
 // ==================== REACTIONS & SHARING ====================
@@ -575,7 +740,7 @@ function setupReactions() {
 async function handleReactionClick(e) {
     const btn = e.currentTarget;
     const emoji = btn.getAttribute('data-emoji');
-    const reactionKey = `computer_${currentState.level}_${emoji}`;
+    const reactionKey = `computer_${currentState.level || 'default'}_${emoji}`;
     
     if (userReactions.has(reactionKey)) {
         showToast('You already reacted with this emoji!', 'warning');
@@ -583,7 +748,7 @@ async function handleReactionClick(e) {
     }
     
     userReactions.add(reactionKey);
-    await addReaction(`quiz_computer_${currentState.level}`, emoji);
+    await addReaction(emoji);
 }
 
 function setupSocialShares() {
@@ -592,14 +757,16 @@ function setupSocialShares() {
         btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
     });
     
-    document.getElementById('copyUrlBtn').onclick = copyQuizUrl;
-    document.getElementById('downloadResultsBtn').onclick = downloadResults;
+    const copyBtn = document.getElementById('copyUrlBtn');
+    const downloadBtn = document.getElementById('downloadResultsBtn');
+    if (copyBtn) copyBtn.onclick = copyQuizUrl;
+    if (downloadBtn) downloadBtn.onclick = downloadResults;
 }
 
 function shareQuiz(platform) {
     const url = window.location.href;
-    const percentage = document.getElementById('finalScoreValue').textContent;
-    const level = currentState.level;
+    const percentage = document.getElementById('finalScoreValue')?.textContent || '0%';
+    const level = currentState.level || 'Computer';
     const text = `I scored ${percentage} on the ${level} level Computer Quiz Challenge! Can you beat my score?`;
     
     let shareUrl = '';
@@ -619,31 +786,58 @@ function shareQuiz(platform) {
         case 'email':
             shareUrl = `mailto:?subject=Computer Quiz Challenge&body=${encodeURIComponent(text + '\n\n' + url)}`;
             break;
+        default:
+            showToast('Share platform not supported', 'warning');
+            return;
     }
     
-    if (shareUrl) window.open(shareUrl, '_blank');
-    trackShare(`quiz_computer_${currentState.level}`, platform);
-    showToast(`Shared on ${platform}!`);
+    if (shareUrl) {
+        window.open(shareUrl, '_blank');
+        trackShare(platform);
+        showToast(`Shared on ${platform}!`, 'success');
+    }
 }
 
 function copyQuizUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied to clipboard!');
-    trackShare(`quiz_computer_${currentState.level}`, 'copy');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('Link copied to clipboard!', 'success');
+            trackShare('copy');
+        }).catch(() => {
+            fallbackCopyUrl();
+        });
+    } else {
+        fallbackCopyUrl();
+    }
+}
+
+function fallbackCopyUrl() {
+    const textArea = document.createElement('textarea');
+    textArea.value = window.location.href;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        showToast('Link copied to clipboard!', 'success');
+        trackShare('copy');
+    } catch (err) {
+        showToast('Failed to copy link', 'error');
+    }
+    document.body.removeChild(textArea);
 }
 
 function downloadResults() {
-    const percentage = document.getElementById('finalScoreValue').textContent;
-    const correct = document.getElementById('correctCount').textContent;
-    const total = document.getElementById('totalQuestionsCount').textContent;
-    const timeBonus = document.getElementById('timeBonus').textContent;
-    const livesLeft = document.getElementById('livesLeft').textContent;
-    const badge = document.getElementById('badgeEarned').textContent;
+    const percentage = document.getElementById('finalScoreValue')?.textContent || '0%';
+    const correct = document.getElementById('correctCount')?.textContent || '0';
+    const total = document.getElementById('totalQuestionsCount')?.textContent || '20';
+    const timeBonus = document.getElementById('timeBonus')?.textContent || '0';
+    const livesLeft = document.getElementById('livesLeft')?.textContent || '0';
+    const badge = document.getElementById('badgeEarned')?.textContent || 'Computer Novice 💻';
     
     const content = `Computer Quiz Challenge Results
 ================================
 Date: ${new Date().toLocaleString()}
-Level: ${currentState.level}
+Level: ${currentState.level || 'Computer'}
 Score: ${percentage}
 Correct Answers: ${correct}/${total}
 Time Bonus: +${timeBonus}
@@ -657,85 +851,130 @@ Thank you for playing!`;
     const a = document.createElement('a');
     a.href = url;
     a.download = `computer-quiz-results-${Date.now()}.txt`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Results downloaded!');
+    showToast('Results downloaded!', 'success');
 }
 
 // ==================== UI THEMES & SCROLL ====================
 function setupTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-        document.body.setAttribute('data-theme', 'dark');
-        document.querySelector('#themeToggle i').className = 'fas fa-sun';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.setAttribute('data-theme', 'light');
+        const themeIcon = document.querySelector('#themeToggle i');
+        if (themeIcon) themeIcon.className = 'fas fa-moon';
+    } else {
+        // Default is dark
+        document.body.removeAttribute('data-theme');
+        const themeIcon = document.querySelector('#themeToggle i');
+        if (themeIcon) themeIcon.className = 'fas fa-sun';
     }
     
-    document.getElementById('themeToggle').onclick = () => {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        if (isDark) {
-            document.body.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            document.querySelector('#themeToggle i').className = 'fas fa-moon';
-        } else {
-            document.body.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            document.querySelector('#themeToggle i').className = 'fas fa-sun';
-        }
-    };
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.onclick = () => {
+            const isDark = document.body.getAttribute('data-theme') !== 'light';
+            if (isDark) {
+                document.body.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                const icon = document.querySelector('#themeToggle i');
+                if (icon) icon.className = 'fas fa-moon';
+            } else {
+                document.body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'dark');
+                const icon = document.querySelector('#themeToggle i');
+                if (icon) icon.className = 'fas fa-sun';
+            }
+        };
+    }
 }
 
 function setupScrollButtons() {
     const scrollUp = document.getElementById('scrollUpBtn');
     const scrollDown = document.getElementById('scrollDownBtn');
     
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 200) {
-            scrollUp.style.display = 'flex';
-        } else {
-            scrollUp.style.display = 'none';
-        }
-    });
+    if (scrollUp) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollUp.style.display = 'flex';
+            } else {
+                scrollUp.style.display = 'none';
+            }
+        });
+        scrollUp.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     
-    scrollUp.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-    scrollDown.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    if (scrollDown) {
+        scrollDown.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
 }
 
 function animateConfetti() {
-    for (let i = 0; i < 100; i++) {
+    const colors = ['#6366f1', '#8b5cf6', '#a855f7', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#f97316'];
+    const container = document.body;
+    
+    for (let i = 0; i < 80; i++) {
         const confetti = document.createElement('div');
-        confetti.style.position = 'fixed';
-        confetti.style.width = '10px';
-        confetti.style.height = '10px';
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-        confetti.style.left = `${Math.random() * 100}%`;
-        confetti.style.top = '-10px';
-        confetti.style.borderRadius = '50%';
-        confetti.style.zIndex = '1000';
-        confetti.style.pointerEvents = 'none';
-        confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
-        document.body.appendChild(confetti);
-        
+        const size = Math.random() * 10 + 5;
+        const isCircle = Math.random() > 0.5;
+        confetti.style.cssText = `
+            position: fixed;
+            width: ${size}px;
+            height: ${isCircle ? size : size * 0.4}px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            left: ${Math.random() * 100}%;
+            top: -10px;
+            border-radius: ${isCircle ? '50%' : '2px'};
+            z-index: 1000;
+            pointer-events: none;
+            opacity: ${Math.random() * 0.8 + 0.2};
+            animation: confettiFall ${Math.random() * 3 + 2}s linear forwards;
+            animation-delay: ${Math.random() * 0.5}s;
+        `;
+        container.appendChild(confetti);
         setTimeout(() => confetti.remove(), 5000);
     }
 }
 
-// Add confetti animation CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes confettiFall {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+// Add confetti animation CSS if not exists
+if (!document.getElementById('confettiStyle')) {
+    const style = document.createElement('style');
+    style.id = 'confettiStyle';
+    style.textContent = `
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg) scale(0.3); opacity: 0; }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ==================== NAVIGATION ====================
+function setupNavigation() {
+    const homeBtn = document.getElementById('homeBtn');
+    const backBtn = document.getElementById('backBtn');
+    
+    if (homeBtn) {
+        homeBtn.onclick = () => {
+            window.location.href = 'https://magicrills.com';
+        };
     }
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+    if (backBtn) {
+        backBtn.onclick = () => {
+            window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+        };
     }
-`;
-document.head.appendChild(style);
+}
 
 // ==================== EVENT LISTENERS ====================
 function setupEventListeners() {
-    // Level cards
+    // Level cards - Start buttons
     document.querySelectorAll('.start-btn').forEach(btn => {
         btn.onclick = (e) => {
             e.stopPropagation();
@@ -744,66 +983,182 @@ function setupEventListeners() {
         };
     });
     
+    // Level cards - Click on card also triggers
+    document.querySelectorAll('.level-card').forEach(card => {
+        card.onclick = () => {
+            const btn = card.querySelector('.start-btn');
+            if (btn) btn.click();
+        };
+    });
+    
     // Powerups
-    document.getElementById('fiftyBtn').onclick = () => usePowerup('fifty');
-    document.getElementById('timeBtn').onclick = () => usePowerup('time');
-    document.getElementById('hintBtn').onclick = () => usePowerup('hint');
-    document.getElementById('skipBtn').onclick = () => usePowerup('skip');
+    const fiftyBtn = document.getElementById('fiftyBtn');
+    const timeBtn = document.getElementById('timeBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    
+    if (fiftyBtn) fiftyBtn.onclick = () => usePowerup('fifty');
+    if (timeBtn) timeBtn.onclick = () => usePowerup('time');
+    if (hintBtn) hintBtn.onclick = () => usePowerup('hint');
+    if (skipBtn) skipBtn.onclick = () => usePowerup('skip');
     
     // Next button
-    document.getElementById('nextBtn').onclick = nextQuestion;
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.onclick = nextQuestion;
     
     // Try again button
-    document.getElementById('tryAgainBtn').onclick = () => {
-        document.getElementById('resultsContainer').style.display = 'none';
-        document.getElementById('levelsContainer').style.display = 'grid';
-        currentState = {};
-    };
+    const tryAgainBtn = document.getElementById('tryAgainBtn');
+    if (tryAgainBtn) {
+        tryAgainBtn.onclick = () => {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const levelsContainer = document.getElementById('levelsContainer');
+            if (resultsContainer) resultsContainer.style.display = 'none';
+            if (levelsContainer) levelsContainer.style.display = 'grid';
+            currentState = {};
+            userReactions = new Set();
+        };
+    }
     
     // View badges button
-    document.getElementById('viewBadgesBtn').onclick = () => showBadgesModal();
-    document.getElementById('backFromBadgesBtn').onclick = () => {
-        document.getElementById('badgesContainer').style.display = 'none';
-        document.getElementById('resultsContainer').style.display = 'block';
-    };
+    const viewBadgesBtn = document.getElementById('viewBadgesBtn');
+    if (viewBadgesBtn) viewBadgesBtn.onclick = showBadgesModal;
+    
+    const backFromBadgesBtn = document.getElementById('backFromBadgesBtn');
+    if (backFromBadgesBtn) {
+        backFromBadgesBtn.onclick = () => {
+            const badgesContainer = document.getElementById('badgesContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            if (badgesContainer) badgesContainer.style.display = 'none';
+            if (resultsContainer) resultsContainer.style.display = 'block';
+        };
+    }
     
     // Stats button
-    document.getElementById('statsBtn').onclick = () => {
-        showToast(`Total plays: ${toolUsageCount.toLocaleString()}`, 'info');
-    };
+    const statsBtn = document.getElementById('statsBtn');
+    if (statsBtn) {
+        statsBtn.onclick = () => {
+            showToast(`📊 Usage: ${toolStats.usage.toLocaleString()} | Shares: ${toolStats.shares.toLocaleString()}`, 'info');
+        };
+    }
     
     // Modal buttons
-    document.getElementById('closeModalBtn').onclick = closePremiumModal;
-    document.getElementById('maybeLaterBtn').onclick = closePremiumModal;
-    document.getElementById('upgradeBtn').onclick = () => {
-        localStorage.setItem('isPremium', 'true');
-        showToast('Premium activated! 🎉', 'success');
-        closePremiumModal();
-    };
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const maybeLaterBtn = document.getElementById('maybeLaterBtn');
+    const upgradeBtn = document.getElementById('upgradeBtn');
+    
+    if (closeModalBtn) closeModalBtn.onclick = closePremiumModal;
+    if (maybeLaterBtn) maybeLaterBtn.onclick = closePremiumModal;
+    if (upgradeBtn) {
+        upgradeBtn.onclick = () => {
+            localStorage.setItem('isPremium', 'true');
+            showToast('🎉 Premium activated!', 'success');
+            closePremiumModal();
+        };
+    }
     
     // Close modal on outside click
-    window.onclick = (e) => {
-        if (e.target === document.getElementById('premiumModal')) {
-            closePremiumModal();
+    const modal = document.getElementById('premiumModal');
+    if (modal) {
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closePremiumModal();
+            }
+        };
+    }
+    
+    // Setup navigation
+    setupNavigation();
+}
+
+// ==================== HERO SECTION ====================
+function setupHero() {
+    const heroText = document.getElementById('heroText');
+    if (!heroText) return;
+    
+    const phrases = [
+        'Master Computer Science 🖥️',
+        'AI-Powered Learning 🤖',
+        'Test Your Knowledge 📚',
+        'Become a Tech Expert 🚀'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let isWaiting = false;
+    
+    function typeWriter() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isWaiting) {
+            setTimeout(() => {
+                isWaiting = false;
+                isDeleting = true;
+                typeWriter();
+            }, 1500);
+            return;
         }
-    };
+        
+        if (isDeleting) {
+            heroText.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            if (charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(typeWriter, 300);
+                return;
+            }
+            setTimeout(typeWriter, 30);
+        } else {
+            heroText.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            if (charIndex === currentPhrase.length) {
+                isWaiting = true;
+                setTimeout(typeWriter, 100);
+                return;
+            }
+            setTimeout(typeWriter, 60);
+        }
+    }
+    
+    // Start the typewriter
+    setTimeout(typeWriter, 500);
 }
 
 // ==================== INITIALIZATION ====================
 async function init() {
     console.log(`${CONFIG.APP_NAME} v${CONFIG.VERSION} initialized`);
     
+    // Setup all features
     setupTheme();
     setupScrollButtons();
     setupReactions();
     setupSocialShares();
     setupEventListeners();
+    setupHero();
     
     // Load initial stats
-    await getUsageCount('quiz_computer_total');
+    await getStats();
     
-    showToast('Welcome to Computer Quiz Challenge! 💻', 'success');
+    // Track initial view
+    try {
+        await callAPI('/api/views', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: localStorage.getItem('userId') || `user_${Date.now()}`
+        });
+    } catch (error) {
+        console.error('View tracking failed:', error);
+    }
+    
+    // Show welcome toast after a small delay
+    setTimeout(() => {
+        showToast('🚀 Welcome to Computer Quiz Challenge!', 'success');
+    }, 600);
 }
 
-// Start the app
-document.addEventListener('DOMContentLoaded', init);
+// Start the app when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
