@@ -1,9 +1,12 @@
 // ==================== CONFIGURATION ====================
 const CONFIG = {
     APP_NAME: 'اسلامک اسٹڈیز کوئز چیلنج',
-    VERSION: '5.0.0',
-    CLOUD_WORKER_URL: 'https://computer-quiz-challenge.uzairhameed01.workers.dev',
-    QUESTIONS_PER_QUIZ: 35
+    VERSION: '6.0.0',
+    TOOL_SLUG: 'islamic-studies-quiz',
+    CATEGORY: 'Quiz-Games',
+    QUESTIONS_PER_QUIZ: 35,
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev'
 };
 
 // ==================== TIME & POINTS PER LEVEL ====================
@@ -32,9 +35,12 @@ let currentState = {
 let userReactions = new Set();
 let toolUsageCount = 0;
 let progressChart = null;
+let userId = localStorage.getItem('userId') || `user_${Date.now()}`;
+localStorage.setItem('userId', userId);
 
-// ==================== COMPLETE 35 UNIQUE QUESTIONS PER LEVEL (LOCAL FALLBACK) ====================
-// Level 1 - 35 Unique Questions
+// ==================== COMPLETE 35 UNIQUE QUESTIONS PER LEVEL ====================
+// (Keeping all existing question banks - they remain unchanged)
+
 const level1Questions = [
     { question: "اسلام کے پانچ بنیادی ارکان میں سے پہلا رکن کون سا ہے؟", options: ["نماز", "روزہ", "زکوٰۃ", "کلمہ طیبہ"], answer: 3, explanation: "کلمہ طیبہ 'لا الہ الا اللہ محمد الرسول اللہ' اسلام کا پہلا اور بنیادی رکن ہے۔", factoid: "کلمہ پڑھنے والا مسلمان کہلاتا ہے۔", points: 1, category: "ارکان اسلام" },
     { question: "نماز فرض ہونے کی عمر کیا ہے؟", options: ["7 سال", "10 سال", "بلوغت", "15 سال"], answer: 2, explanation: "نماز بلوغت کے بعد فرض ہوتی ہے، لیکن بچپن سے سکھانی چاہیے۔", factoid: "7 سال کی عمر میں نماز سکھانے کا حکم ہے۔", points: 1, category: "نماز" },
@@ -85,7 +91,7 @@ const level2Questions = [
     { question: "صلح حدیبیہ کس سن میں ہوئی؟", options: ["5 ہجری", "6 ہجری", "7 ہجری", "8 ہجری"], answer: 1, explanation: "صلح حدیبیہ 6 ہجری میں ہوئی۔", factoid: "اس صلح کو فتح مبین کہا گیا۔", points: 2, category: "غزوات" }
 ];
 
-// Add more questions to reach 35 for level 2
+// Fill remaining level 2 questions
 for (let i = level2Questions.length; i < 35; i++) {
     level2Questions.push({
         question: `لیول 2 کا منفرد سوال نمبر ${i + 1}: اسلامی تعلیمات کے مطابق نماز کی کیا اہمیت ہے؟`,
@@ -98,7 +104,7 @@ for (let i = level2Questions.length; i < 35; i++) {
     });
 }
 
-// Level 3, 4, 5 questions arrays (similarly populated with 35 unique questions each)
+// Level 3, 4, 5 questions arrays
 const level3Questions = [...level2Questions].map((q, idx) => ({ ...q, points: 3, question: q.question.replace('لیول 2', 'لیول 3') }));
 const level4Questions = [...level2Questions].map((q, idx) => ({ ...q, points: 4, question: q.question.replace('لیول 2', 'لیول 4') }));
 const level5Questions = [...level2Questions].map((q, idx) => ({ ...q, points: 5, question: q.question.replace('لیول 2', 'لیول 5') }));
@@ -122,13 +128,173 @@ function loadQuestionsFromBank() {
     return [...allLevelQuestions[currentState.level]];
 }
 
+// ==================== CLOUDFLARE API HELPERS ====================
+
+async function apiCall(endpoint, method = 'GET', body = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        if (body) options.body = JSON.stringify(body);
+        
+        const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
+        const data = await response.json();
+        return { success: true, data };
+    } catch (error) {
+        console.error('API Error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ==================== USAGE COUNTER ====================
+async function incrementUsage() {
+    try {
+        const result = await apiCall('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: userId
+        });
+        if (result.success && result.data.count) {
+            toolUsageCount = result.data.count;
+            updateUsageDisplay(toolUsageCount);
+            return toolUsageCount;
+        }
+    } catch (e) {
+        console.warn('Usage API failed, using localStorage fallback');
+    }
+    
+    // Fallback: localStorage
+    let count = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0');
+    count++;
+    localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, count);
+    toolUsageCount = count;
+    updateUsageDisplay(count);
+    return count;
+}
+
+function updateUsageDisplay(count) {
+    document.querySelectorAll('#globalUsageCount, #heroTotalPlays, #dashUsage').forEach(el => {
+        if (el) el.textContent = count.toLocaleString();
+    });
+}
+
+// ==================== REACTIONS API ====================
+async function syncReactions() {
+    try {
+        const result = await apiCall(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result.success && result.data) {
+            const reactions = result.data;
+            document.querySelectorAll('.reaction-mini-btn, .reaction-emoji').forEach(btn => {
+                const emoji = btn.getAttribute('data-emoji');
+                const countSpan = btn.querySelector('.count');
+                if (countSpan && reactions[emoji] !== undefined) {
+                    countSpan.textContent = reactions[emoji];
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('Reactions sync failed');
+    }
+}
+
+async function addReaction(emoji, isMainPage = true) {
+    const reactionKey = `${CONFIG.TOOL_SLUG}_${emoji}_${userId}`;
+    
+    if (userReactions.has(reactionKey)) {
+        showToast(`پہلے ہی ${getEmojiName(emoji)} کا ردعمل دے چکے ہیں!`, 'warning');
+        return;
+    }
+    
+    userReactions.add(reactionKey);
+    
+    try {
+        await apiCall('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            emoji: emoji,
+            user_id: userId
+        });
+    } catch (e) {
+        console.warn('Reaction API failed, using localStorage fallback');
+        // Local fallback
+        let reactions = JSON.parse(localStorage.getItem(`${CONFIG.TOOL_SLUG}_reactions`) || '{}');
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+    }
+    
+    // Update UI
+    if (isMainPage) {
+        const countSpan = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
+        if (countSpan) countSpan.textContent = parseInt(countSpan.textContent) + 1;
+    }
+    
+    showToast(`✨ ${getEmojiName(emoji)} کا شکریہ!`, 'success');
+}
+
+function getEmojiName(emoji) {
+    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' };
+    return names[emoji] || emoji;
+}
+
+// ==================== SHARES API ====================
+async function recordShare(platform) {
+    try {
+        await apiCall('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            user_id: userId
+        });
+    } catch (e) {
+        console.warn('Share API failed');
+        let shares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0');
+        shares++;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, shares);
+        updateSharesDisplay(shares);
+    }
+}
+
+function updateSharesDisplay(count) {
+    document.getElementById('dashShares').textContent = count.toLocaleString();
+}
+
+// ==================== STATS API ====================
+async function fetchStats() {
+    try {
+        const result = await apiCall(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result.success && result.data) {
+            const stats = result.data;
+            document.getElementById('dashViews').textContent = (stats.views || 0).toLocaleString();
+            document.getElementById('dashShares').textContent = (stats.shares || 0).toLocaleString();
+            document.getElementById('dashFollowers').textContent = (stats.followers || 0).toLocaleString();
+            if (stats.usage) {
+                toolUsageCount = stats.usage;
+                updateUsageDisplay(stats.usage);
+            }
+            return stats;
+        }
+    } catch (e) {
+        console.warn('Stats API failed');
+        // Fallback: localStorage
+        const views = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_views`) || '0');
+        const shares = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0');
+        document.getElementById('dashViews').textContent = views.toLocaleString();
+        document.getElementById('dashShares').textContent = shares.toLocaleString();
+    }
+    return null;
+}
+
 // ==================== GROK API INTEGRATION ====================
 async function callGrokAPI(prompt) {
     try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/grok/generate`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/grok/generate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
+            body: JSON.stringify({
                 prompt: prompt,
                 model: 'llama-3.1-8b-instant',
                 max_tokens: 8000
@@ -195,96 +361,6 @@ JSON فارمیٹ میں واپس کریں:
     }
 }
 
-// ==================== API INTEGRATION ====================
-async function incrementUsage(toolSlug) {
-    try {
-        const response = await fetch(`${CONFIG.CLOUD_WORKER_URL}/api/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: toolSlug, user_id: localStorage.getItem('userId') || 'anonymous' })
-        });
-        const data = await response.json();
-        updateUsageDisplay(data.count);
-        return data;
-    } catch (error) {
-        toolUsageCount++;
-        updateUsageDisplay(toolUsageCount);
-    }
-}
-
-function updateUsageDisplay(count) {
-    document.querySelectorAll('.stats-badge, #globalUsageCount').forEach(el => {
-        if (el) el.textContent = count.toLocaleString();
-    });
-}
-
-// ==================== REACTIONS ====================
-async function addReaction(emoji, isMainPage = true) {
-    const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
-    localStorage.setItem('userId', userId);
-    const reactionKey = `islamic_${emoji}_${userId}`;
-    
-    if (userReactions.has(reactionKey)) {
-        showToast(`پہلے ہی ${getEmojiName(emoji)} کا ردعمل دے چکے ہیں!`, 'warning');
-        return;
-    }
-    
-    userReactions.add(reactionKey);
-    
-    if (isMainPage) {
-        const countSpan = document.getElementById(`reaction${emoji.charAt(0).toUpperCase() + emoji.slice(1)}`);
-        if (countSpan) countSpan.textContent = parseInt(countSpan.textContent) + 1;
-    }
-    
-    showToast(`✨ ${getEmojiName(emoji)} کا شکریہ!`, 'success');
-}
-
-function getEmojiName(emoji) {
-    const names = { like: '👍', love: '❤️', wow: '😮', sad: '😢', laugh: '😂', celebrate: '🎉' };
-    return names[emoji] || emoji;
-}
-
-// ==================== SHARING ====================
-function shareQuiz(platform) {
-    const url = window.location.href;
-    const score = document.getElementById('finalScoreValue')?.textContent || '0';
-    const text = `میں نے اسلامیات کوئز میں ${score}% سکور حاصل کیا! آپ بھی尝试 کریں۔`;
-    
-    let shareUrl = '';
-    switch(platform) {
-        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`; break;
-        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; break;
-        case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`; break;
-    }
-    if (shareUrl) window.open(shareUrl, '_blank');
-    showToast(`${platform} پر شیئر کر دیا!`, 'success');
-}
-
-function copyPageUrl() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('لنک کاپی ہو گیا!', 'success');
-}
-
-// ==================== UTILITIES ====================
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${message}`;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-function showLoading(message) {
-    const overlay = document.getElementById('loadingOverlay');
-    document.getElementById('loadingMessage').textContent = message;
-    overlay.style.display = 'flex';
-}
-
-function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-}
-
 // ==================== QUIZ FUNCTIONS ====================
 async function startQuiz(level) {
     currentState.level = level;
@@ -313,7 +389,7 @@ async function startQuiz(level) {
     
     loadQuestion();
     startTimer();
-    incrementUsage(`islamic_quiz_level${level}`);
+    incrementUsage();
 }
 
 function startTimer() {
@@ -326,7 +402,7 @@ function startTimer() {
             currentState.timeLeft--;
             document.getElementById('timerDisplay').textContent = currentState.timeLeft;
             if (currentState.timeLeft <= 5) {
-                document.getElementById('timerDisplay').style.color = '#ef4444';
+                document.getElementById('timerDisplay').style.color = '#f87171';
                 document.getElementById('timerDisplay').style.animation = 'pulse 0.5s infinite';
             }
         }
@@ -396,7 +472,7 @@ function selectAnswer(selectedIdx) {
     opts.forEach((opt, idx) => {
         if (idx === q.answer) opt.classList.add('correct');
         else if (idx === selectedIdx && !isCorrect) opt.classList.add('incorrect');
-        opt.style.pointerEvents = 'none';
+        opt.classList.add('disabled');
     });
     
     document.getElementById('explanationText').textContent = q.explanation;
@@ -461,6 +537,12 @@ function endQuiz() {
     document.getElementById('quizContainer').style.display = 'none';
     document.getElementById('resultsContainer').style.display = 'block';
     if (percentage >= 75) createConfetti();
+    
+    // Record view
+    let views = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_views`) || '0');
+    views++;
+    localStorage.setItem(`${CONFIG.TOOL_SLUG}_views`, views);
+    document.getElementById('dashViews').textContent = views.toLocaleString();
 }
 
 function updateProgressChart(score) {
@@ -469,8 +551,28 @@ function updateProgressChart(score) {
     if (progressChart) progressChart.destroy();
     progressChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: ['پہلا', 'دوسرا', 'تیسرا', 'موجودہ'], datasets: [{ label: 'آپ کی کارکردگی', data: [35, 55, 70, score], borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+        data: {
+            labels: ['پہلا', 'دوسرا', 'تیسرا', 'موجودہ'],
+            datasets: [{
+                label: 'آپ کی کارکردگی',
+                data: [35, 55, 70, score],
+                borderColor: '#0ea5e9',
+                backgroundColor: 'rgba(14,165,233,0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'top', labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') } }
+            },
+            scales: {
+                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
     });
 }
 
@@ -487,7 +589,7 @@ function usePowerup(type) {
         for (let i = 0; i < q.options.length; i++) if (i !== q.answer) wrong.push(i);
         const toRemove = wrong.slice(0, 2);
         document.querySelectorAll('.option').forEach((opt, idx) => {
-            if (toRemove.includes(idx)) opt.style.opacity = '0.4';
+            if (toRemove.includes(idx)) opt.style.opacity = '0.3';
         });
         showToast('50-50 استعمال! دو آپشنز ختم', 'success');
     } else if (type === 'time') {
@@ -564,28 +666,81 @@ function playSound(isCorrect) {
 function createConfetti() {
     for (let i = 0; i < 150; i++) {
         const confetti = document.createElement('div');
-        confetti.style.position = 'fixed';
-        confetti.style.width = '12px';
-        confetti.style.height = '12px';
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-        confetti.style.left = `${Math.random() * 100}%`;
-        confetti.style.top = '-20px';
-        confetti.style.borderRadius = '50%';
-        confetti.style.zIndex = '1000';
-        confetti.style.pointerEvents = 'none';
-        confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
+        confetti.style.cssText = `
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: hsl(${Math.random() * 360}, 100%, 50%);
+            left: ${Math.random() * 100}%;
+            top: -20px;
+            border-radius: 50%;
+            z-index: 1000;
+            pointer-events: none;
+            animation: confettiFall ${Math.random() * 3 + 2}s linear forwards;
+        `;
         document.body.appendChild(confetti);
         setTimeout(() => confetti.remove(), 5000);
     }
 }
 
+// ==================== SHARING ====================
+function shareQuiz(platform) {
+    const url = window.location.href;
+    const score = document.getElementById('finalScoreValue')?.textContent || '0';
+    const text = `میں نے اسلامیات کوئز میں ${score}% سکور حاصل کیا! آپ بھی try کریں۔`;
+    
+    let shareUrl = '';
+    switch(platform) {
+        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`; break;
+        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; break;
+        case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`; break;
+        case 'linkedin': shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; break;
+    }
+    if (shareUrl) {
+        window.open(shareUrl, '_blank');
+        recordShare(platform);
+    }
+    showToast(`${platform} پر شیئر کر دیا!`, 'success');
+}
+
+function copyPageUrl() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        showToast('لنک کاپی ہو گیا!', 'success');
+        recordShare('copy');
+    }).catch(() => {
+        showToast('لنک کاپی کرنے میں ناکامی', 'error');
+    });
+}
+
+// ==================== TOAST & LOADING ====================
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+function showLoading(message) {
+    const overlay = document.getElementById('loadingOverlay');
+    document.getElementById('loadingMessage').textContent = message;
+    overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
 // ==================== UI THEMES & SCROLL ====================
 function setupTheme() {
-    const saved = localStorage.getItem('theme') || 'light';
+    const saved = localStorage.getItem('theme') || 'dark';
     if (saved === 'dark') document.body.setAttribute('data-theme', 'dark');
+    else document.body.setAttribute('data-theme', 'light');
     document.getElementById('themeToggle').onclick = () => {
         const isDark = document.body.getAttribute('data-theme') === 'dark';
-        if (isDark) { document.body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
+        if (isDark) { document.body.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); }
         else { document.body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
     };
 }
@@ -597,12 +752,69 @@ function setupScrollButtons() {
     down.onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
+// ==================== TYPEWRITER ====================
+function setupTypewriter() {
+    const phrases = [
+        '📖 قرآن و حدیث کی روشنی میں',
+        '🕌 اسلامی تعلیمات سیکھیں',
+        '⭐ 35 منفرد سوالات فی لیول',
+        '🤖 AI پاورڈ کوئز',
+        '📚 اپنے علم کو بہتر بنائیں'
+    ];
+    let i = 0, charIndex = 0, isDeleting = false;
+    const el = document.getElementById('typewriterText');
+    
+    function type() {
+        const current = phrases[i];
+        if (isDeleting) {
+            el.textContent = current.substring(0, charIndex--);
+            if (charIndex < 0) {
+                isDeleting = false;
+                i = (i + 1) % phrases.length;
+                setTimeout(type, 1000);
+                return;
+            }
+            setTimeout(type, 40);
+        } else {
+            el.textContent = current.substring(0, charIndex++);
+            if (charIndex > current.length) {
+                isDeleting = true;
+                setTimeout(type, 2000);
+                return;
+            }
+            setTimeout(type, 60);
+        }
+    }
+    type();
+}
+
+// ==================== PREMIUM ====================
 function isPremium() { return localStorage.getItem('isPremium') === 'true'; }
 function showPremiumModal() { document.getElementById('premiumModal').style.display = 'flex'; }
 function closePremiumModal() { document.getElementById('premiumModal').style.display = 'none'; }
 
+// ==================== STARS BACKGROUND ====================
+function createStars() {
+    const bg = document.getElementById('spaceBg');
+    for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 3 + 1;
+        star.style.cssText = `
+            width: ${size}px;
+            height: ${size}px;
+            top: ${Math.random() * 100}%;
+            left: ${Math.random() * 100}%;
+            --duration: ${Math.random() * 3 + 2}s;
+            animation-delay: ${Math.random() * 5}s;
+        `;
+        bg.appendChild(star);
+    }
+}
+
 // ==================== EVENT LISTENERS ====================
 function setupEventListeners() {
+    // Level buttons
     document.querySelectorAll('.level-start-btn').forEach(btn => {
         btn.onclick = (e) => {
             const level = parseInt(btn.closest('.level-card').getAttribute('data-level'));
@@ -610,34 +822,49 @@ function setupEventListeners() {
         };
     });
     
+    // Quiz nav
     document.getElementById('nextBtn').onclick = nextQuestion;
     document.getElementById('prevBtn').onclick = prevQuestion;
+    
+    // Powerups
     document.getElementById('fiftyBtn').onclick = () => usePowerup('fifty');
     document.getElementById('timeBtn').onclick = () => usePowerup('time');
     document.getElementById('hintBtn').onclick = () => usePowerup('hint');
     document.getElementById('skipBtn').onclick = () => usePowerup('skip');
+    
+    // Audio
     document.getElementById('readAloudBtn').onclick = readAloud;
     document.getElementById('speechAnswerBtn').onclick = startSpeechRecognition;
+    
+    // Results
     document.getElementById('tryAgainBtn').onclick = () => startQuiz(currentState.level);
     document.getElementById('changeLevelBtn').onclick = () => {
         document.getElementById('resultsContainer').style.display = 'none';
         document.getElementById('levelsContainer').style.display = 'block';
     };
     
+    // Reactions - Main page
     document.querySelectorAll('.reaction-mini-btn').forEach(btn => {
         btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), true);
     });
+    
+    // Reactions - Results
+    document.querySelectorAll('.reaction-emoji').forEach(btn => {
+        btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), false);
+    });
+    
+    // Share buttons
     document.querySelectorAll('.share-mini-btn').forEach(btn => {
         if (btn.id === 'copyPageUrlBtn') btn.onclick = copyPageUrl;
         else btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
     });
-    document.querySelectorAll('.reaction-emoji').forEach(btn => {
-        btn.onclick = () => addReaction(btn.getAttribute('data-emoji'), false);
-    });
+    
+    // Social icons
     document.querySelectorAll('.social-icon').forEach(btn => {
         btn.onclick = () => shareQuiz(btn.getAttribute('data-platform'));
     });
     
+    // Modal
     document.getElementById('closeModalBtn').onclick = closePremiumModal;
     document.getElementById('maybeLaterBtn').onclick = closePremiumModal;
     document.getElementById('upgradeBtn').onclick = () => {
@@ -645,26 +872,66 @@ function setupEventListeners() {
         showToast('پرییمیم ایکٹیویٹ! 🎉', 'success');
         closePremiumModal();
     };
-    document.getElementById('statsBtn').onclick = () => showToast(`کل پلے: ${toolUsageCount}`, 'info');
+    
+    // Stats button
+    document.getElementById('statsBtn').onclick = () => {
+        fetchStats();
+        showToast(`کل پلے: ${toolUsageCount}`, 'info');
+    };
+    
+    // Home & Back buttons
+    document.getElementById('homeBtn').onclick = () => {
+        window.location.href = 'https://magicrills.com';
+    };
+    document.getElementById('backBtn').onclick = () => {
+        window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+    };
 }
 
 // ==================== INITIALIZATION ====================
-function init() {
+async function init() {
+    // Setup
     setupTheme();
     setupScrollButtons();
+    setupTypewriter();
+    createStars();
     setupEventListeners();
-    incrementUsage('islamic_quiz_total');
     
+    // Load stats
+    await fetchStats();
+    await syncReactions();
+    
+    // Usage
+    await incrementUsage();
+    
+    // Streak
     const savedStreak = localStorage.getItem('islamicStreak') || '0';
     document.getElementById('streakCount').textContent = savedStreak;
+    
+    // Hero stats
+    document.getElementById('heroTotalUsers').textContent = '15,000+';
+    document.getElementById('heroTotalQuestions').textContent = '10,000+';
     document.getElementById('totalUsersCount').textContent = '15,000+';
     document.getElementById('totalQuestionsCount').textContent = '10,000+';
+    
+    // Initialize followers (local)
+    let followers = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_followers`) || '0');
+    if (followers === 0) {
+        followers = Math.floor(Math.random() * 50) + 10;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_followers`, followers);
+    }
+    document.getElementById('dashFollowers').textContent = followers.toLocaleString();
     
     showToast('السلام علیکم! اسلامیات کوئز میں خوش آمدید 🤲', 'success');
 }
 
+// ==================== ADD PULSE ANIMATION ====================
 const style = document.createElement('style');
-style.textContent = `@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }`;
+style.textContent = `
+    @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+`;
 document.head.appendChild(style);
 
+// ==================== DOM READY ====================
 document.addEventListener('DOMContentLoaded', init);
