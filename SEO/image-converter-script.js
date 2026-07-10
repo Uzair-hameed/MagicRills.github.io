@@ -1,9 +1,9 @@
-// ==================== API Configuration for TiDB ====================
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000/api' 
-    : '/api';  // Vercel will handle this automatically
+// ==================== Cloudflare Workers API Configuration ====================
+const API_BASE_URL = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
-const TOOL_ID = 'image_converter_tool';
+const TOOL_SLUG = 'image-converter-pro';
+const TOOL_NAME = 'Image Converter Pro';
 
 // ==================== Global Variables ====================
 let canvas = document.getElementById('canvas');
@@ -28,6 +28,7 @@ function getUserId() {
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
+    if (!toast) return;
     toast.textContent = message;
     toast.classList.add('show');
     toast.style.background = type === 'error' ? '#dc3545' : '#28a745';
@@ -37,134 +38,247 @@ function showToast(message, type = 'success') {
 }
 
 function showLoading() {
-    document.getElementById('loadingSpinner').style.display = 'flex';
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) spinner.style.display = 'flex';
 }
 
 function hideLoading() {
-    document.getElementById('loadingSpinner').style.display = 'none';
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) spinner.style.display = 'none';
 }
 
-// ==================== TiDB API Calls ====================
+// ==================== Cloudflare API Calls ====================
 async function apiCall(endpoint, method = 'GET', data = null) {
     try {
         const options = {
             method,
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
             }
         };
         if (data) {
             options.body = JSON.stringify(data);
         }
         
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        const url = `${API_BASE_URL}${endpoint}`;
+        console.log(`🌐 API Call: ${method} ${url}`);
+        
+        const response = await fetch(url, options);
+        const responseData = await response.json();
+        
+        console.log(`📦 API Response:`, responseData);
         
         if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
+            throw new Error(`API Error: ${response.status} - ${responseData.message || 'Unknown error'}`);
         }
         
-        return await response.json();
+        return responseData;
     } catch (error) {
-        console.error('API Error:', error);
-        // Fallback to localStorage if API fails
+        console.warn('⚠️ API Error, using localStorage fallback:', error.message);
         return handleLocalStorageFallback(endpoint, method, data);
     }
 }
 
-// LocalStorage Fallback (when TiDB is not available)
+// ==================== LocalStorage Fallback ====================
 function handleLocalStorageFallback(endpoint, method, data) {
-    const storageKey = `tool_${TOOL_ID}`;
+    const storageKey = `tool_${TOOL_SLUG}`;
     let storage = JSON.parse(localStorage.getItem(storageKey) || '{}');
     
-    if (endpoint.includes('/usage')) {
-        if (method === 'GET') {
-            return { count: storage.usageCount || 0 };
-        } else if (method === 'POST') {
-            storage.usageCount = (storage.usageCount || 0) + 1;
+    // Initialize default stats if not exists
+    if (!storage.stats) {
+        storage.stats = {
+            usage: 0,
+            views: 0,
+            shares: 0,
+            followers: 0
+        };
+    }
+    if (!storage.reactions) {
+        storage.reactions = {
+            like: 0,
+            love: 0,
+            wow: 0,
+            sad: 0,
+            angry: 0,
+            laugh: 0,
+            celebrate: 0
+        };
+    }
+    if (!storage.shares) {
+        storage.shares = {
+            facebook: 0,
+            twitter: 0,
+            linkedin: 0,
+            whatsapp: 0,
+            email: 0,
+            copy: 0
+        };
+    }
+    if (!storage.userReactions) storage.userReactions = {};
+
+    // Handle different endpoints
+    if (endpoint === '/api/usage') {
+        if (method === 'POST') {
+            storage.stats.usage = (storage.stats.usage || 0) + 1;
             localStorage.setItem(storageKey, JSON.stringify(storage));
-            return { count: storage.usageCount, success: true };
+            return { 
+                success: true, 
+                count: storage.stats.usage,
+                stats: storage.stats
+            };
         }
     }
-    
-    if (endpoint.includes('/reactions') && method === 'GET') {
-        return { reactions: storage.reactions || { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 } };
-    }
-    
-    if (endpoint.includes('/reaction') && method === 'POST') {
-        const emoji = data.emoji;
-        if (!storage.reactions) storage.reactions = {};
-        if (!storage.userReactions) storage.userReactions = {};
-        
-        if (storage.userReactions[userId] && storage.userReactions[userId][emoji]) {
-            return { success: false, already_reacted: true };
+
+    if (endpoint === '/api/reactions') {
+        if (method === 'GET') {
+            return { 
+                success: true, 
+                reactions: storage.reactions 
+            };
         }
-        
-        storage.reactions[emoji] = (storage.reactions[emoji] || 0) + 1;
-        if (!storage.userReactions[userId]) storage.userReactions[userId] = {};
-        storage.userReactions[userId][emoji] = true;
-        
-        localStorage.setItem(storageKey, JSON.stringify(storage));
-        return { success: true };
+        if (method === 'POST') {
+            const emoji = data.emoji;
+            if (!storage.userReactions[userId]) storage.userReactions[userId] = {};
+            
+            if (storage.userReactions[userId][emoji]) {
+                return { 
+                    success: false, 
+                    already_reacted: true,
+                    message: 'You already reacted with this emoji!'
+                };
+            }
+            
+            storage.reactions[emoji] = (storage.reactions[emoji] || 0) + 1;
+            storage.userReactions[userId][emoji] = true;
+            localStorage.setItem(storageKey, JSON.stringify(storage));
+            return { 
+                success: true, 
+                reactions: storage.reactions 
+            };
+        }
     }
-    
-    if (endpoint.includes('/shares') && method === 'GET') {
-        return { shares: storage.shares || { facebook: 0, twitter: 0, linkedin: 0, whatsapp: 0, email: 0 } };
+
+    if (endpoint === '/api/shares') {
+        if (method === 'GET') {
+            return { 
+                success: true, 
+                shares: storage.shares,
+                stats: storage.stats
+            };
+        }
+        if (method === 'POST') {
+            const platform = data.platform;
+            storage.shares[platform] = (storage.shares[platform] || 0) + 1;
+            storage.stats.shares = (storage.stats.shares || 0) + 1;
+            localStorage.setItem(storageKey, JSON.stringify(storage));
+            return { 
+                success: true, 
+                shares: storage.shares,
+                stats: storage.stats
+            };
+        }
     }
-    
-    if (endpoint.includes('/share') && method === 'POST') {
-        const platform = data.platform;
-        if (!storage.shares) storage.shares = {};
-        storage.shares[platform] = (storage.shares[platform] || 0) + 1;
-        localStorage.setItem(storageKey, JSON.stringify(storage));
-        return { success: true };
+
+    if (endpoint === '/api/stats') {
+        return { 
+            success: true, 
+            stats: storage.stats,
+            reactions: storage.reactions,
+            shares: storage.shares
+        };
     }
-    
-    if (endpoint.includes('/page-share') && method === 'POST') {
-        storage.pageShares = (storage.pageShares || 0) + 1;
-        localStorage.setItem(storageKey, JSON.stringify(storage));
-        return { success: true };
-    }
-    
+
     return { success: true };
 }
 
-// ==================== Usage Counter ====================
-async function incrementUsageCount() {
-    const result = await apiCall(`/tool/${TOOL_ID}/usage`, 'POST', { user_id: userId });
-    if (result && result.count !== undefined) {
-        document.getElementById('usageCount').textContent = result.count;
-        showToast('✅ Tool usage recorded!');
+// ==================== Stats Functions ====================
+async function loadStats() {
+    try {
+        showLoading();
+        const result = await apiCall(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        hideLoading();
+        
+        if (result && result.success) {
+            updateStatsUI(result.stats || result);
+            updateReactionsUI(result.reactions || {});
+            updateSharesUI(result.shares || {});
+            return result;
+        }
+        return null;
+    } catch (error) {
+        hideLoading();
+        console.error('Error loading stats:', error);
+        return null;
     }
 }
 
-async function loadUsageCount() {
-    const result = await apiCall(`/tool/${TOOL_ID}/usage`);
-    if (result && result.count !== undefined) {
-        document.getElementById('usageCount').textContent = result.count;
+async function incrementUsage() {
+    try {
+        const result = await apiCall('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME,
+            user_id: userId
+        });
+        
+        if (result && result.success) {
+            updateStatsUI(result.stats || { usage: result.count });
+            console.log('📊 Usage incremented:', result.count);
+        }
+        return result;
+    } catch (error) {
+        console.error('Error incrementing usage:', error);
+        return null;
+    }
+}
+
+function updateStatsUI(stats) {
+    const usageEl = document.getElementById('usageCount');
+    const viewsEl = document.getElementById('viewsCount');
+    const sharesEl = document.getElementById('sharesCount');
+    const followersEl = document.getElementById('followersCount');
+    
+    if (usageEl) usageEl.textContent = stats.usage || 0;
+    if (viewsEl) viewsEl.textContent = stats.views || 0;
+    if (sharesEl) sharesEl.textContent = stats.shares || 0;
+    if (followersEl) followersEl.textContent = stats.followers || 0;
+}
+
+function updateReactionsUI(reactions) {
+    if (!reactions) return;
+    for (const [emoji, count] of Object.entries(reactions)) {
+        const reactionDiv = document.querySelector(`.reaction[data-emoji="${emoji}"] .reaction-count`);
+        if (reactionDiv) reactionDiv.textContent = count;
+    }
+}
+
+function updateSharesUI(shares) {
+    if (!shares) return;
+    for (const [platform, count] of Object.entries(shares)) {
+        const shareSpan = document.querySelector(`.social-icon[data-social="${platform}"] .share-count`);
+        if (shareSpan) shareSpan.textContent = count;
     }
 }
 
 // ==================== Reactions (7 Emojis) ====================
 async function loadReactions() {
-    const result = await apiCall(`/tool/${TOOL_ID}/reactions`);
-    if (result && result.reactions) {
-        for (const [emoji, count] of Object.entries(result.reactions)) {
-            const reactionDiv = document.querySelector(`.reaction[data-emoji="${emoji}"] .reaction-count`);
-            if (reactionDiv) reactionDiv.textContent = count;
-        }
+    const result = await apiCall('/api/reactions', 'GET');
+    if (result && result.success && result.reactions) {
+        updateReactionsUI(result.reactions);
     }
 }
 
 async function addReaction(emoji) {
     showLoading();
-    const result = await apiCall(`/tool/${TOOL_ID}/reaction`, 'POST', { 
-        user_id: userId, 
-        emoji: emoji 
+    const result = await apiCall('/api/reactions', 'POST', {
+        tool_slug: TOOL_SLUG,
+        user_id: userId,
+        emoji: emoji
     });
     hideLoading();
     
     if (result && result.success) {
-        await loadReactions();
+        updateReactionsUI(result.reactions);
         showToast(`✨ ${getEmojiName(emoji)} reaction added!`);
     } else if (result && result.already_reacted) {
         showToast(`⚠️ You already reacted with ${getEmojiName(emoji)}!`, 'error');
@@ -186,29 +300,31 @@ function getEmojiName(emoji) {
 
 // ==================== Social Share ====================
 async function loadShareCounts() {
-    const result = await apiCall(`/tool/${TOOL_ID}/shares`);
-    if (result && result.shares) {
-        for (const [platform, count] of Object.entries(result.shares)) {
-            const shareSpan = document.querySelector(`.social-icon[data-social="${platform}"] .share-count`);
-            if (shareSpan) shareSpan.textContent = count;
-        }
+    const result = await apiCall('/api/shares', 'GET');
+    if (result && result.success && result.shares) {
+        updateSharesUI(result.shares);
+        updateStatsUI(result.stats || {});
     }
 }
 
 async function recordShare(platform) {
-    const result = await apiCall(`/tool/${TOOL_ID}/share`, 'POST', {
+    const result = await apiCall('/api/shares', 'POST', {
+        tool_slug: TOOL_SLUG,
         user_id: userId,
         platform: platform
     });
     
     if (result && result.success) {
-        await loadShareCounts();
+        updateSharesUI(result.shares);
+        updateStatsUI(result.stats || {});
+        return true;
     }
+    return false;
 }
 
 function shareOnSocial(platform) {
     const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent('Image Converter Pro - Free Image Editing Tool with 6 Formats');
+    const title = encodeURIComponent('Image Converter Pro - Convert, Resize, Edit Images with 6 Formats');
     let shareUrl = '';
     
     switch(platform) {
@@ -227,6 +343,9 @@ function shareOnSocial(platform) {
         case 'email':
             shareUrl = `mailto:?subject=${title}&body=${url}`;
             break;
+        case 'copy':
+            copyPageUrl();
+            return;
     }
     
     if (shareUrl) {
@@ -236,15 +355,22 @@ function shareOnSocial(platform) {
     }
 }
 
-// ==================== Page Share ====================
+// ==================== Page Share (Copy Link) ====================
 async function copyPageUrl() {
     try {
         await navigator.clipboard.writeText(window.location.href);
         showToast('🔗 Link copied to clipboard!');
-        
-        await apiCall(`/tool/${TOOL_ID}/page-share`, 'POST', { user_id: userId });
+        await recordShare('copy');
     } catch (err) {
-        showToast('Failed to copy link', 'error');
+        // Fallback
+        const input = document.createElement('input');
+        input.value = window.location.href;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('🔗 Link copied to clipboard!');
+        await recordShare('copy');
     }
 }
 
@@ -314,7 +440,7 @@ function resizeAndConvert() {
     let formatDisplay = format.toUpperCase();
     if (format === 'jpeg') formatDisplay = 'JPEG';
     showToast(`✅ Image converted to ${formatDisplay}!`);
-    incrementUsageCount();
+    incrementUsage();
 }
 
 function cropImage() {
@@ -406,6 +532,40 @@ function flipVertical() {
     drawImage();
 }
 
+// ==================== AI Integration ====================
+async function processWithAI() {
+    if (!currentImage) {
+        showToast('Please upload an image first!', 'error');
+        return;
+    }
+    
+    showLoading();
+    showToast('🤖 AI is processing your image...', 'success');
+    
+    // Simulate AI processing delay
+    setTimeout(() => {
+        hideLoading();
+        showToast('✨ AI enhanced your image! (Demo)');
+        // Apply some AI-like enhancement
+        applyAIEnhancement();
+    }, 2000);
+}
+
+function applyAIEnhancement() {
+    // Simple enhancement simulation
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+        // Enhance contrast and brightness
+        data[i] = Math.min(255, data[i] * 1.1 + 10);
+        data[i + 1] = Math.min(255, data[i + 1] * 1.1 + 10);
+        data[i + 2] = Math.min(255, data[i + 2] * 1.1 + 10);
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+}
+
 // ==================== Scroll Functions ====================
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -417,7 +577,7 @@ function scrollToBottom() {
 
 // ==================== Theme Switcher ====================
 function initThemeSwitcher() {
-    const savedTheme = localStorage.getItem('theme') || 'default';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     document.body.className = `theme-${savedTheme}`;
     
     document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -430,129 +590,252 @@ function initThemeSwitcher() {
     });
 }
 
-// ==================== Event Listeners ====================
-document.getElementById('imageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+// ==================== Typewriter Effect ====================
+function initTypewriter() {
+    const element = document.getElementById('typewriter-text');
+    if (!element) return;
     
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-            originalImage = img;
-            currentImage = img;
-            currentRotation = 0;
-            currentFlipH = false;
-            currentFlipV = false;
-            currentFilter = 'none';
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            showToast('📸 Image uploaded successfully!');
-        };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-});
+    const words = [
+        'Convert Images Instantly 🚀',
+        '6 Formats Supported 📸',
+        'AI Powered Enhancement 🤖',
+        'Resize & Crop ✂️',
+        'Remove Background 🧹',
+        'Apply Filters 🎨'
+    ];
+    
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    
+    function type() {
+        const currentWord = words[wordIndex];
+        const isComplete = charIndex === currentWord.length;
+        
+        if (isDeleting) {
+            element.textContent = currentWord.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentWord.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let speed = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && isComplete) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            speed = 500;
+        }
+        
+        setTimeout(type, speed);
+    }
+    
+    type();
+}
 
-document.getElementById('uploadArea').addEventListener('click', () => {
-    document.getElementById('imageInput').click();
-});
-
-const uploadArea = document.getElementById('uploadArea');
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '#667eea';
-});
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.style.borderColor = '#ccc';
-});
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '#ccc';
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                originalImage = img;
-                currentImage = img;
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                showToast('📸 Image uploaded via drag & drop!');
+// ==================== Event Listeners ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Image upload
+    const imageInput = document.getElementById('imageInput');
+    const uploadArea = document.getElementById('uploadArea');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    originalImage = img;
+                    currentImage = img;
+                    currentRotation = 0;
+                    currentFlipH = false;
+                    currentFlipV = false;
+                    currentFilter = 'none';
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    showToast('📸 Image uploaded successfully!');
+                };
+                img.src = event.target.result;
             };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
+        });
     }
-});
-
-// Buttons
-document.getElementById('convertBtn').addEventListener('click', resizeAndConvert);
-document.getElementById('cropBtn').addEventListener('click', cropImage);
-document.getElementById('removeBgBtn').addEventListener('click', removeBackground);
-document.getElementById('resetBtn').addEventListener('click', resetImage);
-document.getElementById('rotateLeftBtn').addEventListener('click', rotateLeft);
-document.getElementById('rotateRightBtn').addEventListener('click', rotateRight);
-document.getElementById('flipHorizontalBtn').addEventListener('click', flipHorizontal);
-document.getElementById('flipVerticalBtn').addEventListener('click', flipVertical);
-document.getElementById('pageShareBtn').addEventListener('click', copyPageUrl);
-document.getElementById('backHomeBtn').addEventListener('click', () => {
-    window.location.href = '/';
-});
-
-document.getElementById('qualitySlider').addEventListener('input', (e) => {
-    document.getElementById('qualityValue').textContent = e.target.value;
-});
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
-        drawImage();
-        showToast(`🎨 ${btn.textContent} filter applied!`);
-    });
-});
-
-document.querySelectorAll('.reaction').forEach(reaction => {
-    reaction.addEventListener('click', () => {
-        const emoji = reaction.dataset.emoji;
-        addReaction(emoji);
-    });
-});
-
-document.querySelectorAll('.social-icon').forEach(icon => {
-    icon.addEventListener('click', (e) => {
-        e.preventDefault();
-        const platform = icon.dataset.social;
-        shareOnSocial(platform);
-    });
-});
-
-document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
-document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
-
-window.addEventListener('scroll', () => {
-    const upBtn = document.getElementById('scrollUpBtn');
-    if (window.scrollY > 200) {
-        upBtn.style.display = 'flex';
-    } else {
-        upBtn.style.display = 'none';
+    
+    if (uploadArea) {
+        uploadArea.addEventListener('click', () => {
+            if (imageInput) imageInput.click();
+        });
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#00d4ff';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.2)';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.2)';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        originalImage = img;
+                        currentImage = img;
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        showToast('📸 Image uploaded via drag & drop!');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     }
+    
+    // Buttons
+    const convertBtn = document.getElementById('convertBtn');
+    if (convertBtn) convertBtn.addEventListener('click', resizeAndConvert);
+    
+    const cropBtn = document.getElementById('cropBtn');
+    if (cropBtn) cropBtn.addEventListener('click', cropImage);
+    
+    const removeBgBtn = document.getElementById('removeBgBtn');
+    if (removeBgBtn) removeBgBtn.addEventListener('click', removeBackground);
+    
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', resetImage);
+    
+    const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+    if (rotateLeftBtn) rotateLeftBtn.addEventListener('click', rotateLeft);
+    
+    const rotateRightBtn = document.getElementById('rotateRightBtn');
+    if (rotateRightBtn) rotateRightBtn.addEventListener('click', rotateRight);
+    
+    const flipHBtn = document.getElementById('flipHorizontalBtn');
+    if (flipHBtn) flipHBtn.addEventListener('click', flipHorizontal);
+    
+    const flipVBtn = document.getElementById('flipVerticalBtn');
+    if (flipVBtn) flipVBtn.addEventListener('click', flipVertical);
+    
+    const pageShareBtn = document.getElementById('pageShareBtn');
+    if (pageShareBtn) pageShareBtn.addEventListener('click', copyPageUrl);
+    
+    const backHomeBtn = document.getElementById('backHomeBtn');
+    if (backHomeBtn) {
+        backHomeBtn.addEventListener('click', () => {
+            window.location.href = 'https://magicrills.com';
+        });
+    }
+    
+    const backCategoryBtn = document.getElementById('backCategoryBtn');
+    if (backCategoryBtn) {
+        backCategoryBtn.addEventListener('click', () => {
+            window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+        });
+    }
+    
+    const aiBtn = document.getElementById('aiEnhanceBtn');
+    if (aiBtn) aiBtn.addEventListener('click', processWithAI);
+    
+    // Quality slider
+    const qualitySlider = document.getElementById('qualitySlider');
+    if (qualitySlider) {
+        qualitySlider.addEventListener('input', (e) => {
+            const qualityValue = document.getElementById('qualityValue');
+            if (qualityValue) qualityValue.textContent = e.target.value;
+        });
+    }
+    
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            drawImage();
+            showToast(`🎨 ${btn.textContent} filter applied!`);
+        });
+    });
+    
+    // Reactions
+    document.querySelectorAll('.reaction').forEach(reaction => {
+        reaction.addEventListener('click', () => {
+            const emoji = reaction.dataset.emoji;
+            addReaction(emoji);
+        });
+    });
+    
+    // Social icons
+    document.querySelectorAll('.social-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => {
+            e.preventDefault();
+            const platform = icon.dataset.social;
+            shareOnSocial(platform);
+        });
+    });
+    
+    // Scroll buttons
+    const scrollUpBtn = document.getElementById('scrollUpBtn');
+    const scrollDownBtn = document.getElementById('scrollDownBtn');
+    
+    if (scrollUpBtn) scrollUpBtn.addEventListener('click', scrollToTop);
+    if (scrollDownBtn) scrollDownBtn.addEventListener('click', scrollToBottom);
+    
+    window.addEventListener('scroll', () => {
+        if (scrollUpBtn) {
+            if (window.scrollY > 200) {
+                scrollUpBtn.style.display = 'flex';
+            } else {
+                scrollUpBtn.style.display = 'none';
+            }
+        }
+    });
 });
 
 // ==================== Initialize ====================
 async function init() {
     showLoading();
+    
+    // Theme
     initThemeSwitcher();
-    await loadUsageCount();
+    
+    // Typewriter
+    initTypewriter();
+    
+    // Load stats
+    await loadStats();
+    
+    // Load reactions
     await loadReactions();
+    
+    // Load shares
     await loadShareCounts();
+    
+    // Increment usage on load
+    await incrementUsage();
+    
     hideLoading();
-    showToast('✨ Tool ready! 6 formats available - PNG, JPEG, WEBP, BMP, JPG, GIF');
+    showToast('✨ Image Converter Pro ready!');
+    console.log('🚀 Tool initialized:', TOOL_NAME);
 }
 
-init();
+// Run when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
