@@ -1,13 +1,16 @@
 /* ========================================
    MagicRills Image Resizer - Complete JavaScript
-   40+ Features - 100% Working
+   Cloudflare Workers API Integration
+   Dark Space Theme | 40+ Features
    ======================================== */
 
 document.addEventListener('DOMContentLoaded', function() {
 
 // ===== CONFIG =====
-const TOOL_ID = 'magicrills_image_resizer';
+const TOOL_SLUG = 'image-resizer';
 const TOOL_NAME = 'MagicRills Image Resizer';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 // ===== GLOBAL VARIABLES =====
 let selectedFiles = [];
@@ -16,7 +19,9 @@ let currentRotation = 0;
 let currentFlipH = false;
 let currentFlipV = false;
 let usageCount = 0;
-let reactionData = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+let viewCount = 0;
+let shareCount = 0;
+let reactionData = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 };
 
 // Settings
 let currentSettings = {
@@ -54,6 +59,8 @@ const fileInfo = document.getElementById('fileInfo');
 const fileCountSpan = document.getElementById('fileCount');
 const clearFilesBtn = document.getElementById('clearFilesBtn');
 const processBtn = document.getElementById('processBtn');
+const heroProcessBtn = document.getElementById('heroProcessBtn');
+const heroUploadBtn = document.getElementById('heroUploadBtn');
 const progressContainer = document.getElementById('progressContainer');
 const progressFill = document.getElementById('progressFill');
 const progressText = document.getElementById('progressText');
@@ -65,6 +72,9 @@ const printAllBtn = document.getElementById('printAllBtn');
 const clearResultsBtn = document.getElementById('clearResultsBtn');
 const resultsCount = document.getElementById('resultsCount');
 const usageCountSpan = document.getElementById('usageCount');
+const heroUsageCount = document.getElementById('heroUsageCount');
+const heroViewsCount = document.getElementById('heroViewsCount');
+const heroSharesCount = document.getElementById('heroSharesCount');
 const pageShareBtn = document.getElementById('pageShareBtn');
 const scrollUpBtn = document.getElementById('scrollUpBtn');
 const scrollDownBtn = document.getElementById('scrollDownBtn');
@@ -101,6 +111,7 @@ const comparisonSection = document.getElementById('comparisonSection');
 const comparisonContainer = document.getElementById('comparisonContainer');
 const exifPanel = document.getElementById('exifPanel');
 const exifData = document.getElementById('exifData');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 
 // Filter elements
 const filterBtns = document.querySelectorAll('.filter-btn');
@@ -125,15 +136,261 @@ const tabResize = document.getElementById('tabResize');
 const tabFilters = document.getElementById('tabFilters');
 const tabTransform = document.getElementById('tabTransform');
 const tabWatermark = document.getElementById('tabWatermark');
+const tabAI = document.getElementById('tabAI');
+
+// AI elements
+const aiActions = document.querySelectorAll('.ai-action');
+
+// Typewriter
+const typewriterText = document.getElementById('typewriterText');
+
+// ===== TYPEWRITER EFFECT =====
+const typewriterPhrases = [
+    'Image Resizer',
+    'Image Editor',
+    'Batch Processor',
+    'Filter Master',
+    'AI Enhanced'
+];
+
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function typewriterEffect() {
+    const currentPhrase = typewriterPhrases[phraseIndex];
+    
+    if (isDeleting) {
+        typewriterText.textContent = currentPhrase.substring(0, charIndex - 1);
+        charIndex--;
+    } else {
+        typewriterText.textContent = currentPhrase.substring(0, charIndex + 1);
+        charIndex++;
+    }
+    
+    let speed = isDeleting ? 50 : 100;
+    
+    if (!isDeleting && charIndex === currentPhrase.length) {
+        speed = 2000;
+        isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % typewriterPhrases.length;
+        speed = 500;
+    }
+    
+    setTimeout(typewriterEffect, speed);
+}
+
+// Start typewriter
+if (typewriterText) {
+    typewriterEffect();
+}
+
+// ===== CLOUDFLARE WORKERS API =====
+
+// Generic API call with fallback
+async function callAPI(endpoint, method = 'GET', data = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            }
+        };
+        
+        if (data && (method === 'POST' || method === 'PUT')) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using fallback:', error);
+        return null;
+    }
+}
+
+// ===== API FUNCTIONS =====
+
+// 1. Get Tool Stats
+async function getToolStats() {
+    try {
+        const data = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`);
+        if (data && data.success) {
+            usageCount = data.usage || 0;
+            viewCount = data.views || 0;
+            shareCount = data.shares || 0;
+            if (data.reactions) {
+                reactionData = data.reactions;
+            }
+            updateStatsUI();
+            return data;
+        }
+    } catch (error) {
+        console.warn('Failed to fetch stats, using localStorage fallback');
+    }
+    
+    // Fallback to localStorage
+    usageCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+    viewCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_views`) || '0');
+    shareCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+    
+    const savedReactions = localStorage.getItem(`${TOOL_SLUG}_reactions`);
+    if (savedReactions) {
+        reactionData = JSON.parse(savedReactions);
+    }
+    
+    updateStatsUI();
+    return { usage: usageCount, views: viewCount, shares: shareCount, reactions: reactionData };
+}
+
+// 2. Increment Usage (called on tool load)
+async function incrementUsage() {
+    try {
+        const data = await callAPI('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME
+        });
+        if (data && data.success) {
+            usageCount = data.count || usageCount + 1;
+            updateStatsUI();
+            localStorage.setItem(`${TOOL_SLUG}_usage`, usageCount);
+            return data;
+        }
+    } catch (error) {
+        console.warn('Usage increment failed, using localStorage fallback');
+    }
+    
+    // Fallback
+    usageCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0') + 1;
+    localStorage.setItem(`${TOOL_SLUG}_usage`, usageCount);
+    updateStatsUI();
+    return { count: usageCount };
+}
+
+// 3. Record View (called on tool load)
+async function recordView() {
+    try {
+        const data = await callAPI('/api/views', 'POST', {
+            tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME
+        });
+        if (data && data.success) {
+            viewCount = data.count || viewCount + 1;
+            updateStatsUI();
+            localStorage.setItem(`${TOOL_SLUG}_views`, viewCount);
+            return data;
+        }
+    } catch (error) {
+        console.warn('View record failed, using localStorage fallback');
+    }
+    
+    // Fallback
+    viewCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_views`) || '0') + 1;
+    localStorage.setItem(`${TOOL_SLUG}_views`, viewCount);
+    updateStatsUI();
+    return { count: viewCount };
+}
+
+// 4. Record Share
+async function recordShare(platform) {
+    try {
+        const data = await callAPI('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME,
+            platform: platform
+        });
+        if (data && data.success) {
+            shareCount = data.count || shareCount + 1;
+            updateStatsUI();
+            localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
+            return data;
+        }
+    } catch (error) {
+        console.warn('Share record failed, using localStorage fallback');
+    }
+    
+    // Fallback
+    shareCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0') + 1;
+    localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
+    updateStatsUI();
+    return { count: shareCount };
+}
+
+// 5. Add Reaction
+async function addReaction(reactionType) {
+    try {
+        const data = await callAPI('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            reaction: reactionType
+        });
+        if (data && data.success) {
+            reactionData[reactionType] = data.count || (reactionData[reactionType] || 0) + 1;
+            updateReactionUI();
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactionData));
+            return data;
+        }
+    } catch (error) {
+        console.warn('Reaction add failed, using localStorage fallback');
+    }
+    
+    // Fallback
+    reactionData[reactionType] = (reactionData[reactionType] || 0) + 1;
+    updateReactionUI();
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactionData));
+    return { count: reactionData[reactionType] };
+}
+
+// ===== UI UPDATE FUNCTIONS =====
+
+function updateStatsUI() {
+    // Usage
+    if (usageCountSpan) usageCountSpan.textContent = usageCount;
+    if (heroUsageCount) heroUsageCount.textContent = usageCount;
+    
+    // Views
+    if (heroViewsCount) heroViewsCount.textContent = viewCount;
+    
+    // Shares
+    if (heroSharesCount) heroSharesCount.textContent = shareCount;
+}
+
+function updateReactionUI() {
+    for (const [reaction, count] of Object.entries(reactionData)) {
+        const btn = document.querySelector(`.reaction[data-reaction="${reaction}"]`);
+        if (btn) {
+            const span = btn.querySelector('.reaction-count');
+            if (span) span.textContent = count || 0;
+        }
+    }
+}
 
 // ===== HELPER FUNCTIONS =====
+
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
     const toast = document.createElement('div');
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-info-circle'
+    };
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    toast.innerHTML = `<i class="fas ${iconMap[type] || 'fa-info-circle'}"></i> ${message}`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    
+    setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+    }, 3000);
 }
 
 function showLoading(show) {
@@ -147,7 +404,7 @@ function showLoading(show) {
     }
 }
 
-// Add spin animation
+// Add spin animation if not exists
 if (!document.querySelector('#spinStyle')) {
     const spinStyle = document.createElement('style');
     spinStyle.id = 'spinStyle';
@@ -155,100 +412,19 @@ if (!document.querySelector('#spinStyle')) {
     document.head.appendChild(spinStyle);
 }
 
-// ===== TIDB API CALLS =====
-async function getUsageCount() {
-    try {
-        const res = await fetch(`/api/usage?toolId=${TOOL_ID}`);
-        const data = await res.json();
-        usageCount = data.count || 0;
-        if (usageCountSpan) usageCountSpan.textContent = usageCount;
-    } catch (error) {
-        usageCount = parseInt(localStorage.getItem(`${TOOL_ID}_usage`) || '0');
-        if (usageCountSpan) usageCountSpan.textContent = usageCount;
-    }
-}
-
-async function incrementUsage() {
-    try {
-        await fetch('/api/usage/increment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolId: TOOL_ID, toolName: TOOL_NAME })
-        });
-        usageCount++;
-        if (usageCountSpan) usageCountSpan.textContent = usageCount;
-        localStorage.setItem(`${TOOL_ID}_usage`, usageCount);
-    } catch (error) {
-        usageCount++;
-        if (usageCountSpan) usageCountSpan.textContent = usageCount;
-        localStorage.setItem(`${TOOL_ID}_usage`, usageCount);
-    }
-}
-
-async function getReactions() {
-    try {
-        const res = await fetch(`/api/reactions?toolId=${TOOL_ID}`);
-        const data = await res.json();
-        if (data.reactions) reactionData = data.reactions;
-        updateReactionUI();
-    } catch (error) {
-        const saved = localStorage.getItem(`${TOOL_ID}_reactions`);
-        if (saved) reactionData = JSON.parse(saved);
-        updateReactionUI();
-    }
-}
-
-async function addReaction(reactionType) {
-    try {
-        await fetch('/api/reactions/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolId: TOOL_ID, reaction: reactionType })
-        });
-        reactionData[reactionType]++;
-        updateReactionUI();
-        localStorage.setItem(`${TOOL_ID}_reactions`, JSON.stringify(reactionData));
-        showToast(`${reactionType} reaction added!`, 'success');
-    } catch (error) {
-        reactionData[reactionType]++;
-        updateReactionUI();
-        localStorage.setItem(`${TOOL_ID}_reactions`, JSON.stringify(reactionData));
-        showToast(`${reactionType} reaction added!`, 'success');
-    }
-}
-
-function updateReactionUI() {
-    for (const [reaction, count] of Object.entries(reactionData)) {
-        const btn = document.querySelector(`.reaction[data-reaction="${reaction}"]`);
-        if (btn) {
-            const span = btn.querySelector('.reaction-count');
-            if (span) span.textContent = count;
-        }
-    }
-}
-
-async function recordShare(platform) {
-    try {
-        await fetch('/api/share/record', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolId: TOOL_ID, platform })
-        });
-    } catch (error) {}
-}
-
 // ===== FILE HANDLING =====
+
 function handleFileSelect(event) {
     selectedFiles = Array.from(event.target.files);
     if (selectedFiles.length === 0) return;
-
+    
     fileInfo.style.display = 'flex';
     fileCountSpan.textContent = selectedFiles.length;
-
+    
     const batchListDiv = document.getElementById('batchListDiv');
     if (batchListDiv) {
         if (selectedFiles.length > 1) {
-            batchListDiv.innerHTML = '<div class="batch-list"><i class="fas fa-layer-group"></i> <strong>' + selectedFiles.length + '</strong> files ready<br><small>Click Process to resize all</small></div>';
+            batchListDiv.innerHTML = `<div class="batch-list"><i class="fas fa-layer-group"></i> <strong>${selectedFiles.length}</strong> files ready<br><small>Click Process to resize all</small></div>`;
         } else {
             batchListDiv.innerHTML = '';
         }
@@ -290,6 +466,7 @@ function clearFiles() {
 }
 
 // ===== RESIZE MODE =====
+
 function updateResizeMode() {
     const mode = resizeMode.value;
     
@@ -326,6 +503,7 @@ function applyPreset() {
 }
 
 // ===== FORMAT HANDLING =====
+
 function initFormatButtons() {
     document.querySelectorAll('.format-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -339,6 +517,7 @@ function initFormatButtons() {
 }
 
 // ===== FILTER HANDLING =====
+
 function initFilters() {
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -347,11 +526,7 @@ function initFilters() {
             const filter = btn.dataset.filter;
             selectedFilter.value = filter;
             
-            if (filter !== 'none') {
-                filterDetailOptions.style.display = 'block';
-            } else {
-                filterDetailOptions.style.display = 'none';
-            }
+            filterDetailOptions.style.display = (filter !== 'none') ? 'block' : 'none';
         });
     });
     
@@ -370,6 +545,7 @@ function initFilters() {
 }
 
 // ===== TRANSFORM HANDLING =====
+
 function initTransforms() {
     rotateBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -393,6 +569,7 @@ function initTransforms() {
 }
 
 // ===== TAB HANDLING =====
+
 function initTabs() {
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -404,16 +581,19 @@ function initTabs() {
             tabFilters.style.display = 'none';
             tabTransform.style.display = 'none';
             tabWatermark.style.display = 'none';
+            if (tabAI) tabAI.style.display = 'none';
             
             if (tab === 'resize') tabResize.style.display = 'block';
             else if (tab === 'filters') tabFilters.style.display = 'block';
             else if (tab === 'transform') tabTransform.style.display = 'block';
             else if (tab === 'watermark') tabWatermark.style.display = 'block';
+            else if (tab === 'ai' && tabAI) tabAI.style.display = 'block';
         });
     });
 }
 
 // ===== WATERMARK HANDLING =====
+
 function initWatermark() {
     addWatermark.addEventListener('change', () => {
         watermarkDetailOptions.style.display = addWatermark.checked ? 'block' : 'none';
@@ -423,7 +603,23 @@ function initWatermark() {
     });
 }
 
+// ===== AI HANDLING =====
+
+function initAI() {
+    aiActions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.dataset.ai;
+            if (selectedFiles.length === 0) {
+                showToast('Please upload images first', 'warning');
+                return;
+            }
+            showToast(`AI ${action} feature coming soon!`, 'warning');
+        });
+    });
+}
+
 // ===== GET FILTER STRING =====
+
 function getFilterString() {
     const filters = [];
     const filterType = selectedFilter.value;
@@ -446,19 +642,18 @@ function getFilterString() {
 }
 
 // ===== PROCESS IMAGE =====
+
 async function processImages() {
     if (selectedFiles.length === 0) {
         showToast('Please select images first', 'warning');
         return;
     }
-
+    
     showLoading(true);
     progressContainer.style.display = 'block';
     processedImages = [];
     imageGrid.innerHTML = '';
-
-    await incrementUsage();
-
+    
     // Gather all settings
     currentSettings.resizeMode = resizeMode.value;
     currentSettings.percentage = parseInt(percentageSlider.value);
@@ -484,7 +679,7 @@ async function processImages() {
     currentSettings.flipH = currentFlipH;
     currentSettings.flipV = currentFlipV;
     currentSettings.batchRename = batchRename.checked;
-
+    
     for (let i = 0; i < selectedFiles.length; i++) {
         progressFill.style.width = `${(i / selectedFiles.length) * 100}%`;
         progressText.textContent = `Processing ${i + 1} of ${selectedFiles.length}: ${selectedFiles[i].name}`;
@@ -498,7 +693,7 @@ async function processImages() {
             showToast(`Failed to process ${selectedFiles[i].name}`, 'error');
         }
     }
-
+    
     progressFill.style.width = '100%';
     progressText.textContent = `Completed! ${processedImages.length} images processed`;
     resultsSection.style.display = 'block';
@@ -508,7 +703,7 @@ async function processImages() {
     if (processedImages.length > 0) {
         showComparison();
     }
-
+    
     showLoading(false);
     setTimeout(() => {
         progressContainer.style.display = 'none';
@@ -712,6 +907,7 @@ function showComparison() {
 }
 
 // ===== DOWNLOAD ALL =====
+
 async function downloadAllImages() {
     if (processedImages.length === 0) return;
     
@@ -764,16 +960,33 @@ function clearResults() {
 }
 
 // ===== SOCIAL SHARING =====
+
 async function shareOnPlatform(platform) {
     const url = encodeURIComponent(window.location.href);
     const text = encodeURIComponent('Resize your images for free at MagicRills!');
     
     let shareUrl = '';
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-    else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
-    else if (platform === 'email') shareUrl = `mailto:?subject=Image Resizer&body=${text}%0A%0A${url}`;
+    if (platform === 'facebook') {
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+    } else if (platform === 'twitter') {
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+    } else if (platform === 'linkedin') {
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
+    } else if (platform === 'whatsapp') {
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+    } else if (platform === 'email') {
+        shareUrl = `mailto:?subject=Image Resizer&body=${text}%0A%0A${url}`;
+    } else if (platform === 'copy') {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            await recordShare('copy_link');
+            showToast('Link copied to clipboard!', 'success');
+            return;
+        } catch (err) {
+            showToast('Failed to copy link', 'error');
+            return;
+        }
+    }
     
     if (shareUrl) {
         window.open(shareUrl, '_blank', 'width=600,height=400');
@@ -793,6 +1006,7 @@ async function sharePage() {
 }
 
 // ===== THEME =====
+
 function toggleTheme() {
     document.body.classList.toggle('dark-mode');
     const isDark = document.body.classList.contains('dark-mode');
@@ -817,7 +1031,19 @@ function loadTheme() {
     }
 }
 
+// ===== MOBILE MENU =====
+
+function initMobileMenu() {
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            const links = document.querySelector('.nav-links');
+            if (links) links.classList.toggle('open');
+        });
+    }
+}
+
 // ===== KEYBOARD SHORTCUTS =====
+
 function initKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'p') {
@@ -837,18 +1063,39 @@ function initKeyboardShortcuts() {
 }
 
 // ===== EVENT LISTENERS =====
+
 function initEventListeners() {
+    // File upload
     browseBtn.addEventListener('click', () => fileInput.click());
+    if (heroUploadBtn) {
+        heroUploadBtn.addEventListener('click', () => fileInput.click());
+    }
+    if (heroProcessBtn) {
+        heroProcessBtn.addEventListener('click', () => {
+            if (selectedFiles.length === 0) {
+                fileInput.click();
+            } else {
+                processImages();
+            }
+        });
+    }
     fileInput.addEventListener('change', handleFileSelect);
     clearFilesBtn.addEventListener('click', clearFiles);
     processBtn.addEventListener('click', processImages);
+    
+    // Results
     downloadAllBtn.addEventListener('click', downloadAllImages);
     copyAllBtn.addEventListener('click', copyAllImages);
     printAllBtn.addEventListener('click', printAllImages);
     clearResultsBtn.addEventListener('click', clearResults);
+    
+    // Share
     pageShareBtn.addEventListener('click', sharePage);
+    
+    // Theme
     themeToggle.addEventListener('click', toggleTheme);
     
+    // Resize mode
     resizeMode.addEventListener('change', updateResizeMode);
     percentageSlider.addEventListener('input', () => {
         percentageValue.textContent = percentageSlider.value;
@@ -877,21 +1124,41 @@ function initEventListeners() {
 }
 
 // ===== INITIALIZE =====
+
 async function init() {
+    // Load theme
+    loadTheme();
+    
+    // Mobile menu
+    initMobileMenu();
+    
+    // Initialize all components
     initEventListeners();
     initFormatButtons();
     initFilters();
     initTransforms();
     initTabs();
     initWatermark();
+    initAI();
     initKeyboardShortcuts();
     updateResizeMode();
-    loadTheme();
-    await getUsageCount();
-    await getReactions();
+    
+    // Get stats from API
+    await getToolStats();
+    
+    // Increment usage on load
+    await incrementUsage();
+    
+    // Record view
+    await recordView();
+    
+    // Update reaction UI
+    updateReactionUI();
+    
     showToast('Image Resizer ready! 40+ features available', 'success');
 }
 
+// Start the application
 init();
 
 }); // End DOMContentLoaded
