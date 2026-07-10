@@ -3,362 +3,524 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    
-    <!-- PRIMARY SEO -->
-    <title>Free Image Resizer Tool - AI Tool for SEO & Web Design</title>
-    <meta name="description" content="Resize images instantly with our free AI tool. Perfect for SEO, web design, and social media. Optimize images for faster loading and better rankings.">
-    <meta name="keywords" content="image resizer, SEO tool, web design, image optimizer, free image tool, AI image resizer">
+    <title>MagicRills Image Resizer - Free Online Image Resizer & Editor | 40+ Features</title>
+    <meta name="description" content="Free online image resizer with 40+ features. Resize, compress, filter, watermark, batch process images instantly. No upload, 100% client-side. Professional image editor.">
+    <meta name="keywords" content="image resizer, free image resizer, online image resizer, resize images, image editor, photo resizer, batch image resizer, image compressor, watermark, image filters">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://magicrills.com/SEO/magicrills-image-resizer-tool.html">
+    <link rel="canonical" href="https://magicrills.com/image-resizer">
     
-    <!-- OPEN GRAPH -->
-    <meta property="og:title" content="Free Image Resizer Tool - AI Tool for SEO & Web Design">
-    <meta property="og:description" content="Resize images instantly with our free AI tool. Perfect for SEO, web design, and social media. Optimize images for faster loading and better rankings.">
-    <meta property="og:url" content="https://magicrills.com/SEO/magicrills-image-resizer-tool.html">
+    <!-- Open Graph -->
+    <meta property="og:title" content="MagicRills Image Resizer - Free Online Image Resizer & Editor">
+    <meta property="og:description" content="Resize, compress, filter, watermark, and batch process images for free. 40+ professional features.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://magicrills.com/pics/og-magicrills-image-resizer-tool.webp">
+    <meta property="og:url" content="https://magicrills.com/image-resizer">
+    <meta property="og:image" content="https://magicrills.com/assets/og-image-resizer.jpg">
     
-    <!-- TWITTER -->
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Free Image Resizer Tool - AI Tool for SEO & Web Design">
-    <meta name="twitter:description" content="Resize images instantly with our free AI tool. Perfect for SEO, web design, and social media. Optimize images for faster loading and better rankings.">
-    <meta name="twitter:image" content="https://magicrills.com/pics/og-magicrills-image-resizer-tool.webp">
+    <meta name="twitter:title" content="MagicRills Image Resizer - Free Online Image Editor">
+    <meta name="twitter:description" content="40+ features to resize, filter, watermark, and batch process images. Free & client-side.">
     
-    <!-- STYLES & FONTS -->
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "MagicRills Image Resizer",
+        "description": "Free online image resizer with 40+ features. Resize, compress, filter, watermark, batch process images.",
+        "applicationCategory": "Multimedia",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="magicrills-image-resizer-tool.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
-
 <body>
 
+<!-- NAVIGATION -->
+<nav class="main-nav">
+    <div class="nav-container">
+        <a href="https://magicrills.com" class="nav-logo">
+            <i class="fas fa-crystal-ball"></i>
+            <span>Magic<span>Rills</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="https://magicrills.com" class="nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="https://magicrills.com/category-pages/mixed-tools.html" class="nav-link"><i class="fas fa-arrow-left"></i> Back</a>
+            <button class="page-share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share</button>
+            <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+        </div>
+        <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    </div>
+</nav>
+
 <div class="container">
-    <!-- Header -->
-    <header>
-        <div class="header-top">
-            <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
-            <a href="/" class="nav-link"><i class="fas fa-arrow-left"></i> Back</a>
-            <button class="page-share-btn" id="pageShareBtn"><i class="fas fa-share-alt"></i> Share Page</button>
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-robot"></i> AI-Powered Image Editor
+            </div>
+            <h1 class="hero-title">
+                <span class="gradient-text">MagicRills</span><br>
+                <span class="typewriter-wrapper">
+                    <span class="typewriter-text" id="typewriterText"></span>
+                </span>
+            </h1>
+            <p class="hero-description">
+                Professional image resizer with <strong>40+ features</strong>. Resize, compress, filter, 
+                watermark, and batch process images instantly. <strong>100% free & client-side</strong> 
+                — your images never leave your device.
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <i class="fas fa-users"></i>
+                    <span><span id="heroUsageCount">0</span>+ Users</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="fas fa-eye"></i>
+                    <span><span id="heroViewsCount">0</span>+ Views</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="fas fa-share-alt"></i>
+                    <span><span id="heroSharesCount">0</span>+ Shares</span>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <button class="hero-btn primary" id="heroProcessBtn"><i class="fas fa-magic"></i> Start Editing</button>
+                <button class="hero-btn secondary" id="heroUploadBtn"><i class="fas fa-cloud-upload-alt"></i> Upload Images</button>
+            </div>
         </div>
-        
-        <div class="logo-area">
-            <i class="fas fa-expand-alt"></i>
-            <h1>MagicRills Image Resizer <span class="badge">40+ Features</span></h1>
+        <div class="hero-visual">
+            <div class="hero-animation">
+                <div class="floating-image image-1"><i class="fas fa-image"></i></div>
+                <div class="floating-image image-2"><i class="fas fa-crop-alt"></i></div>
+                <div class="floating-image image-3"><i class="fas fa-magic"></i></div>
+                <div class="floating-image image-4"><i class="fas fa-layer-group"></i></div>
+                <div class="floating-image image-5"><i class="fas fa-filter"></i></div>
+                <div class="floating-image image-6"><i class="fas fa-water"></i></div>
+                <div class="orbital-ring"></div>
+                <div class="center-glow"></div>
+            </div>
         </div>
-        
-        <div class="usage-stats">
-            <i class="fas fa-chart-line"></i>
-            Used <span id="usageCount">0</span> times
-        </div>
-        
-        <p class="description">Professional image resizer with resize, compress, filters, watermark, batch processing & more. 100% free & client-side.</p>
-    </header>
+    </section>
 
-    <!-- Main Grid -->
-    <div class="main-grid">
-        <!-- Upload Section -->
-        <div class="card">
-            <h3><i class="fas fa-cloud-upload-alt"></i> Upload Images</h3>
-            
-            <div class="drop-zone" id="dropZone">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Drag & Drop Images Here</p>
-                <button class="btn btn-primary" id="browseBtn"><i class="fas fa-folder-open"></i> Browse Files</button>
-                <input type="file" id="fileInput" accept="image/*" multiple style="display: none">
-            </div>
-            
-            <div class="file-info" id="fileInfo" style="display: none;">
-                <i class="fas fa-images"></i>
-                <span id="fileCount">0</span> file(s) selected
-                <button class="btn-icon" id="clearFilesBtn"><i class="fas fa-trash"></i></button>
-            </div>
-            
-            <div id="batchListDiv"></div>
-            
-            <!-- EXIF Info Panel -->
-            <div id="exifPanel" style="display: none;" class="exif-panel">
-                <h4><i class="fas fa-info-circle"></i> Image Information</h4>
-                <div id="exifData"></div>
-            </div>
-        </div>
-
-        <!-- Options Section -->
-        <div class="card">
-            <h3><i class="fas fa-sliders-h"></i> Resize & Edit Options</h3>
-            
-            <!-- Tab Navigation -->
-            <div class="tab-nav">
-                <button class="tab-btn active" data-tab="resize">Resize</button>
-                <button class="tab-btn" data-tab="filters">Filters</button>
-                <button class="tab-btn" data-tab="transform">Transform</button>
-                <button class="tab-btn" data-tab="watermark">Watermark</button>
+    <!-- TOOL SECTION -->
+    <div class="tool-section">
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="card neon-card">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Upload Images</h3>
+                
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & Drop Images Here</p>
+                    <button class="btn btn-primary" id="browseBtn"><i class="fas fa-folder-open"></i> Browse Files</button>
+                    <input type="file" id="fileInput" accept="image/*" multiple style="display: none">
+                </div>
+                
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <i class="fas fa-images"></i>
+                    <span id="fileCount">0</span> file(s) selected
+                    <button class="btn-icon" id="clearFilesBtn"><i class="fas fa-trash"></i></button>
+                </div>
+                
+                <div id="batchListDiv"></div>
+                
+                <!-- EXIF Info Panel -->
+                <div id="exifPanel" style="display: none;" class="exif-panel">
+                    <h4><i class="fas fa-info-circle"></i> Image Information</h4>
+                    <div id="exifData"></div>
+                </div>
             </div>
 
-            <!-- Tab 1: Resize -->
-            <div id="tabResize" class="tab-content active">
-                <div class="form-group">
-                    <label>Resize Mode</label>
-                    <select id="resizeMode" class="form-control">
-                        <option value="percentage">Percentage (%)</option>
-                        <option value="dimensions">Custom Dimensions</option>
-                        <option value="preset">Preset Sizes</option>
-                        <option value="width">Fit to Width</option>
-                        <option value="height">Fit to Height</option>
-                        <option value="filesize">Target File Size (KB)</option>
-                    </select>
+            <!-- Options Section -->
+            <div class="card neon-card">
+                <h3><i class="fas fa-sliders-h"></i> Resize & Edit Options</h3>
+                
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-tab="resize"><i class="fas fa-expand-alt"></i> Resize</button>
+                    <button class="tab-btn" data-tab="filters"><i class="fas fa-filter"></i> Filters</button>
+                    <button class="tab-btn" data-tab="transform"><i class="fas fa-rotate"></i> Transform</button>
+                    <button class="tab-btn" data-tab="watermark"><i class="fas fa-water"></i> Watermark</button>
+                    <button class="tab-btn" data-tab="ai"><i class="fas fa-robot"></i> AI</button>
                 </div>
 
-                <div id="percentageMode">
+                <!-- Tab 1: Resize -->
+                <div id="tabResize" class="tab-content active">
                     <div class="form-group">
-                        <label>Scale: <span id="percentageValue">100</span>%</label>
-                        <input type="range" id="percentageSlider" min="1" max="200" value="100" class="form-control">
-                    </div>
-                </div>
-
-                <div id="dimensionsMode" style="display: none;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Width (px)</label>
-                            <input type="number" id="targetWidth" class="form-control" placeholder="Auto">
-                        </div>
-                        <div class="form-group">
-                            <label>Height (px)</label>
-                            <input type="number" id="targetHeight" class="form-control" placeholder="Auto">
-                        </div>
-                    </div>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="maintainAspect" checked> Maintain Aspect Ratio
-                    </label>
-                </div>
-
-                <div id="presetMode" style="display: none;">
-                    <div class="form-group">
-                        <label>Social Media Presets</label>
-                        <select id="presetSelect" class="form-control">
-                            <option value="">Select preset...</option>
-                            <option value="instagram_post">📸 Instagram Post (1080x1080)</option>
-                            <option value="instagram_story">📱 Instagram Story (1080x1920)</option>
-                            <option value="facebook_post">👍 Facebook Post (1200x630)</option>
-                            <option value="twitter_post">🐦 Twitter Post (1600x900)</option>
-                            <option value="youtube_thumbnail">🎬 YouTube Thumbnail (1280x720)</option>
-                            <option value="linkedin_post">💼 LinkedIn Post (1200x627)</option>
+                        <label>Resize Mode</label>
+                        <select id="resizeMode" class="form-control">
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="dimensions">Custom Dimensions</option>
+                            <option value="preset">Preset Sizes</option>
+                            <option value="width">Fit to Width</option>
+                            <option value="height">Fit to Height</option>
+                            <option value="filesize">Target File Size (KB)</option>
                         </select>
                     </div>
-                </div>
 
-                <div id="widthMode" style="display: none;">
-                    <div class="form-group">
-                        <label>Target Width (px)</label>
-                        <input type="number" id="fitWidth" class="form-control">
-                    </div>
-                </div>
-
-                <div id="heightMode" style="display: none;">
-                    <div class="form-group">
-                        <label>Target Height (px)</label>
-                        <input type="number" id="fitHeight" class="form-control">
-                    </div>
-                </div>
-
-                <div id="filesizeMode" style="display: none;">
-                    <div class="form-group">
-                        <label>Target Size (KB)</label>
-                        <input type="number" id="targetSizeKB" class="form-control" placeholder="e.g., 100">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Output Format</label>
-                    <div class="format-buttons">
-                        <button type="button" class="format-btn active" data-format="original">Original</button>
-                        <button type="button" class="format-btn" data-format="jpeg">JPEG</button>
-                        <button type="button" class="format-btn" data-format="png">PNG</button>
-                        <button type="button" class="format-btn" data-format="webp">WebP</button>
-                    </div>
-                    <input type="hidden" id="outputFormat" value="original">
-                </div>
-
-                <div class="form-group" id="qualityGroup" style="display: none;">
-                    <label>Quality: <span id="qualityValue">80</span>%</label>
-                    <input type="range" id="qualitySlider" min="1" max="100" value="80" class="form-control">
-                </div>
-            </div>
-
-            <!-- Tab 2: Filters -->
-            <div id="tabFilters" class="tab-content" style="display: none;">
-                <div class="form-group">
-                    <label>Apply Filter</label>
-                    <div class="filter-buttons">
-                        <button type="button" class="filter-btn active" data-filter="none">None</button>
-                        <button type="button" class="filter-btn" data-filter="grayscale">Grayscale</button>
-                        <button type="button" class="filter-btn" data-filter="sepia">Sepia</button>
-                        <button type="button" class="filter-btn" data-filter="blur">Blur</button>
-                        <button type="button" class="filter-btn" data-filter="brightness">Brightness</button>
-                        <button type="button" class="filter-btn" data-filter="contrast">Contrast</button>
-                        <button type="button" class="filter-btn" data-filter="invert">Invert</button>
-                        <button type="button" class="filter-btn" data-filter="saturate">Saturate</button>
-                    </div>
-                    <input type="hidden" id="selectedFilter" value="none">
-                </div>
-
-                <div id="filterDetailOptions" style="display: none;">
-                    <div class="form-group">
-                        <label>Brightness: <span id="brightnessVal">0</span></label>
-                        <input type="range" id="brightnessFilter" min="-100" max="100" value="0" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Contrast: <span id="contrastVal">0</span></label>
-                        <input type="range" id="contrastFilter" min="-100" max="100" value="0" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Blur: <span id="blurVal">0</span>px</label>
-                        <input type="range" id="blurFilter" min="0" max="10" value="0" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Saturate: <span id="saturateVal">100</span>%</label>
-                        <input type="range" id="saturateFilter" min="0" max="200" value="100" class="form-control">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab 3: Transform -->
-            <div id="tabTransform" class="tab-content" style="display: none;">
-                <div class="form-group">
-                    <label>Rotate</label>
-                    <div class="transform-row">
-                        <button type="button" class="transform-btn" data-rotate="90">Rotate 90°</button>
-                        <button type="button" class="transform-btn" data-rotate="180">Rotate 180°</button>
-                        <button type="button" class="transform-btn" data-rotate="270">Rotate 270°</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Flip</label>
-                    <div class="transform-row">
-                        <button type="button" class="transform-btn" data-flip="horizontal">Flip Horizontal</button>
-                        <button type="button" class="transform-btn" data-flip="vertical">Flip Vertical</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="batchRename"> Batch Rename (image_1, image_2...)
-                    </label>
-                </div>
-            </div>
-
-            <!-- Tab 4: Watermark -->
-            <div id="tabWatermark" class="tab-content" style="display: none;">
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="addWatermark"> Enable Watermark
-                    </label>
-                </div>
-                <div id="watermarkDetailOptions">
-                    <div class="form-group">
-                        <label>Watermark Text</label>
-                        <input type="text" id="watermarkText" value="© MagicRills" class="form-control">
-                    </div>
-                    <div class="form-row">
+                    <div id="percentageMode">
                         <div class="form-group">
-                            <label>Position</label>
-                            <select id="watermarkPosition" class="form-control">
-                                <option value="bottom-right">Bottom Right</option>
-                                <option value="bottom-left">Bottom Left</option>
-                                <option value="top-right">Top Right</option>
-                                <option value="top-left">Top Left</option>
-                                <option value="center">Center</option>
+                            <label>Scale: <span id="percentageValue">100</span>%</label>
+                            <input type="range" id="percentageSlider" min="1" max="200" value="100" class="form-control neon-range">
+                        </div>
+                    </div>
+
+                    <div id="dimensionsMode" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Width (px)</label>
+                                <input type="number" id="targetWidth" class="form-control" placeholder="Auto">
+                            </div>
+                            <div class="form-group">
+                                <label>Height (px)</label>
+                                <input type="number" id="targetHeight" class="form-control" placeholder="Auto">
+                            </div>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="maintainAspect" checked> Maintain Aspect Ratio
+                        </label>
+                    </div>
+
+                    <div id="presetMode" style="display: none;">
+                        <div class="form-group">
+                            <label>Social Media Presets</label>
+                            <select id="presetSelect" class="form-control">
+                                <option value="">Select preset...</option>
+                                <option value="instagram_post">📸 Instagram Post (1080x1080)</option>
+                                <option value="instagram_story">📱 Instagram Story (1080x1920)</option>
+                                <option value="facebook_post">👍 Facebook Post (1200x630)</option>
+                                <option value="twitter_post">🐦 Twitter Post (1600x900)</option>
+                                <option value="youtube_thumbnail">🎬 YouTube Thumbnail (1280x720)</option>
+                                <option value="linkedin_post">💼 LinkedIn Post (1200x627)</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div id="widthMode" style="display: none;">
                         <div class="form-group">
-                            <label>Opacity: <span id="opacityValue">50</span>%</label>
-                            <input type="range" id="watermarkOpacity" min="10" max="100" value="50" class="form-control">
+                            <label>Target Width (px)</label>
+                            <input type="number" id="fitWidth" class="form-control">
+                        </div>
+                    </div>
+
+                    <div id="heightMode" style="display: none;">
+                        <div class="form-group">
+                            <label>Target Height (px)</label>
+                            <input type="number" id="fitHeight" class="form-control">
+                        </div>
+                    </div>
+
+                    <div id="filesizeMode" style="display: none;">
+                        <div class="form-group">
+                            <label>Target Size (KB)</label>
+                            <input type="number" id="targetSizeKB" class="form-control" placeholder="e.g., 100">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Output Format</label>
+                        <div class="format-buttons">
+                            <button type="button" class="format-btn active" data-format="original">Original</button>
+                            <button type="button" class="format-btn" data-format="jpeg">JPEG</button>
+                            <button type="button" class="format-btn" data-format="png">PNG</button>
+                            <button type="button" class="format-btn" data-format="webp">WebP</button>
+                        </div>
+                        <input type="hidden" id="outputFormat" value="original">
+                    </div>
+
+                    <div class="form-group" id="qualityGroup" style="display: none;">
+                        <label>Quality: <span id="qualityValue">80</span>%</label>
+                        <input type="range" id="qualitySlider" min="1" max="100" value="80" class="form-control neon-range">
+                    </div>
+                </div>
+
+                <!-- Tab 2: Filters -->
+                <div id="tabFilters" class="tab-content" style="display: none;">
+                    <div class="form-group">
+                        <label>Apply Filter</label>
+                        <div class="filter-buttons">
+                            <button type="button" class="filter-btn active" data-filter="none">None</button>
+                            <button type="button" class="filter-btn" data-filter="grayscale">Grayscale</button>
+                            <button type="button" class="filter-btn" data-filter="sepia">Sepia</button>
+                            <button type="button" class="filter-btn" data-filter="blur">Blur</button>
+                            <button type="button" class="filter-btn" data-filter="brightness">Brightness</button>
+                            <button type="button" class="filter-btn" data-filter="contrast">Contrast</button>
+                            <button type="button" class="filter-btn" data-filter="invert">Invert</button>
+                            <button type="button" class="filter-btn" data-filter="saturate">Saturate</button>
+                        </div>
+                        <input type="hidden" id="selectedFilter" value="none">
+                    </div>
+
+                    <div id="filterDetailOptions" style="display: none;">
+                        <div class="form-group">
+                            <label>Brightness: <span id="brightnessVal">0</span></label>
+                            <input type="range" id="brightnessFilter" min="-100" max="100" value="0" class="form-control neon-range">
+                        </div>
+                        <div class="form-group">
+                            <label>Contrast: <span id="contrastVal">0</span></label>
+                            <input type="range" id="contrastFilter" min="-100" max="100" value="0" class="form-control neon-range">
+                        </div>
+                        <div class="form-group">
+                            <label>Blur: <span id="blurVal">0</span>px</label>
+                            <input type="range" id="blurFilter" min="0" max="10" value="0" class="form-control neon-range">
+                        </div>
+                        <div class="form-group">
+                            <label>Saturate: <span id="saturateVal">100</span>%</label>
+                            <input type="range" id="saturateFilter" min="0" max="200" value="100" class="form-control neon-range">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Transform -->
+                <div id="tabTransform" class="tab-content" style="display: none;">
+                    <div class="form-group">
+                        <label>Rotate</label>
+                        <div class="transform-row">
+                            <button type="button" class="transform-btn" data-rotate="90">Rotate 90°</button>
+                            <button type="button" class="transform-btn" data-rotate="180">Rotate 180°</button>
+                            <button type="button" class="transform-btn" data-rotate="270">Rotate 270°</button>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Font Size (px)</label>
-                        <input type="number" id="watermarkFontSize" value="20" class="form-control">
+                        <label>Flip</label>
+                        <div class="transform-row">
+                            <button type="button" class="transform-btn" data-flip="horizontal">Flip Horizontal</button>
+                            <button type="button" class="transform-btn" data-flip="vertical">Flip Vertical</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="batchRename"> Batch Rename (image_1, image_2...)
+                        </label>
                     </div>
                 </div>
-            </div>
 
-            <button class="btn btn-success btn-block" id="processBtn">
-                <i class="fas fa-magic"></i> Process Images
-            </button>
-
-            <div id="progressContainer" style="display: none;">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+                <!-- Tab 4: Watermark -->
+                <div id="tabWatermark" class="tab-content" style="display: none;">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="addWatermark"> Enable Watermark
+                        </label>
+                    </div>
+                    <div id="watermarkDetailOptions">
+                        <div class="form-group">
+                            <label>Watermark Text</label>
+                            <input type="text" id="watermarkText" value="© MagicRills" class="form-control">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Position</label>
+                                <select id="watermarkPosition" class="form-control">
+                                    <option value="bottom-right">Bottom Right</option>
+                                    <option value="bottom-left">Bottom Left</option>
+                                    <option value="top-right">Top Right</option>
+                                    <option value="top-left">Top Left</option>
+                                    <option value="center">Center</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Opacity: <span id="opacityValue">50</span>%</label>
+                                <input type="range" id="watermarkOpacity" min="10" max="100" value="50" class="form-control neon-range">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Font Size (px)</label>
+                            <input type="number" id="watermarkFontSize" value="20" class="form-control">
+                        </div>
+                    </div>
                 </div>
-                <div class="progress-text" id="progressText">Processing...</div>
+
+                <!-- Tab 5: AI (New) -->
+                <div id="tabAI" class="tab-content" style="display: none;">
+                    <div class="ai-features">
+                        <div class="ai-card">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <h4>AI Enhance</h4>
+                            <p>Auto enhance image quality, color, and sharpness</p>
+                            <button class="btn btn-primary ai-action" data-ai="enhance">Enhance</button>
+                        </div>
+                        <div class="ai-card">
+                            <i class="fas fa-paint-brush"></i>
+                            <h4>AI Background Removal</h4>
+                            <p>Remove background automatically with AI</p>
+                            <button class="btn btn-primary ai-action" data-ai="remove-bg">Remove BG</button>
+                        </div>
+                        <div class="ai-card">
+                            <i class="fas fa-expand"></i>
+                            <h4>AI Upscale</h4>
+                            <p>Upscale images up to 4x with AI</p>
+                            <button class="btn btn-primary ai-action" data-ai="upscale">Upscale</button>
+                        </div>
+                        <div class="ai-card">
+                            <i class="fas fa-palette"></i>
+                            <h4>AI Colorize</h4>
+                            <p>Colorize black & white images with AI</p>
+                            <button class="btn btn-primary ai-action" data-ai="colorize">Colorize</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-success btn-block glow-btn" id="processBtn">
+                    <i class="fas fa-magic"></i> Process Images
+                </button>
+
+                <div id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Processing...</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Comparison Section -->
-    <div id="comparisonSection" style="display: none;" class="comparison-section">
-        <h3><i class="fas fa-chart-line"></i> Before/After Comparison</h3>
-        <div id="comparisonContainer" class="comparison-container"></div>
-    </div>
+        <!-- Comparison Section -->
+        <div id="comparisonSection" style="display: none;" class="comparison-section neon-card">
+            <h3><i class="fas fa-chart-line"></i> Before/After Comparison</h3>
+            <div id="comparisonContainer" class="comparison-container"></div>
+        </div>
 
-    <!-- Results Section -->
-    <div id="resultsSection" style="display: none;">
-        <div class="section-header">
-            <h3><i class="fas fa-images"></i> Processed Images <span id="resultsCount">0</span></h3>
-            <div class="result-actions">
-                <button class="btn btn-primary" id="downloadAllBtn"><i class="fas fa-download"></i> ZIP Download</button>
-                <button class="btn btn-outline" id="copyAllBtn"><i class="fas fa-copy"></i> Copy All</button>
-                <button class="btn btn-outline" id="printAllBtn"><i class="fas fa-print"></i> Print</button>
-                <button class="btn btn-danger" id="clearResultsBtn"><i class="fas fa-trash"></i> Clear</button>
+        <!-- Results Section -->
+        <div id="resultsSection" style="display: none;">
+            <div class="section-header">
+                <h3><i class="fas fa-images"></i> Processed Images <span id="resultsCount">0</span></h3>
+                <div class="result-actions">
+                    <button class="btn btn-primary" id="downloadAllBtn"><i class="fas fa-download"></i> ZIP Download</button>
+                    <button class="btn btn-outline" id="copyAllBtn"><i class="fas fa-copy"></i> Copy All</button>
+                    <button class="btn btn-outline" id="printAllBtn"><i class="fas fa-print"></i> Print</button>
+                    <button class="btn btn-danger" id="clearResultsBtn"><i class="fas fa-trash"></i> Clear</button>
+                </div>
+            </div>
+            <div class="image-grid" id="imageGrid"></div>
+        </div>
+
+        <!-- Reactions Section -->
+        <div class="reactions-section neon-card">
+            <h3><i class="fas fa-heart"></i> What do you think?</h3>
+            <div class="reactions">
+                <button class="reaction" data-reaction="like">👍 <span class="reaction-count">0</span></button>
+                <button class="reaction" data-reaction="love">❤️ <span class="reaction-count">0</span></button>
+                <button class="reaction" data-reaction="wow">😮 <span class="reaction-count">0</span></button>
+                <button class="reaction" data-reaction="sad">😢 <span class="reaction-count">0</span></button>
+                <button class="reaction" data-reaction="laugh">😂 <span class="reaction-count">0</span></button>
+                <button class="reaction" data-reaction="celebrate">🎉 <span class="reaction-count">0</span></button>
             </div>
         </div>
-        <div class="image-grid" id="imageGrid"></div>
-    </div>
 
-    <!-- Reactions Section -->
-    <div class="reactions-section">
-        <h3><i class="fas fa-heart"></i> What do you think?</h3>
-        <div class="reactions">
-            <button class="reaction" data-reaction="like">👍 <span class="reaction-count">0</span></button>
-            <button class="reaction" data-reaction="love">❤️ <span class="reaction-count">0</span></button>
-            <button class="reaction" data-reaction="wow">😮 <span class="reaction-count">0</span></button>
-            <button class="reaction" data-reaction="sad">😢 <span class="reaction-count">0</span></button>
-            <button class="reaction" data-reaction="angry">😠 <span class="reaction-count">0</span></button>
-            <button class="reaction" data-reaction="laugh">😂 <span class="reaction-count">0</span></button>
-            <button class="reaction" data-reaction="celebrate">🎉 <span class="reaction-count">0</span></button>
+        <!-- Social Share -->
+        <div class="social-share neon-card">
+            <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
+            <div class="share-buttons">
+                <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
+                <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+                <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button class="share-btn" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+                <button class="share-btn" data-platform="copy"><i class="fas fa-copy"></i> Copy Link</button>
+            </div>
         </div>
-    </div>
 
-    <!-- Social Share -->
-    <div class="social-share">
-        <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
-        <div class="share-buttons">
-            <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
-            <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
-            <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
-            <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            <button class="share-btn" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+        <!-- Feature Checklist (3D Style) -->
+        <div class="checklist-section neon-card">
+            <h3><i class="fas fa-check-double"></i> Professional Features</h3>
+            <div class="checklist-grid">
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-expand-alt"></i></div>
+                    <div class="checklist-content">
+                        <h4>Image Resize</h4>
+                        <p>Resize images to any dimensions with aspect ratio lock</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-compress-alt"></i></div>
+                    <div class="checklist-content">
+                        <h4>Image Compression</h4>
+                        <p>Optimize images for web with quality control</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-filter"></i></div>
+                    <div class="checklist-content">
+                        <h4>Image Filters</h4>
+                        <p>Apply grayscale, sepia, blur, brightness, contrast & more</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-water"></i></div>
+                    <div class="checklist-content">
+                        <h4>Watermark</h4>
+                        <p>Add custom text watermark with position & opacity control</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="checklist-content">
+                        <h4>Batch Processing</h4>
+                        <p>Process multiple images at once with batch rename</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-robot"></i></div>
+                    <div class="checklist-content">
+                        <h4>AI Integration</h4>
+                        <p>AI enhance, background removal, upscale & colorize</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-rotate"></i></div>
+                    <div class="checklist-content">
+                        <h4>Transform Tools</h4>
+                        <p>Rotate, flip horizontal/vertical with one click</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checklist-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="checklist-content">
+                        <h4>Privacy First</h4>
+                        <p>100% client-side processing, images never leave your device</p>
+                    </div>
+                    <div class="checklist-badge"><i class="fas fa-check-circle"></i></div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- Shortcuts -->
-    <div class="shortcuts-bar">
-        <i class="fas fa-keyboard"></i> Keyboard Shortcuts: 
-        <kbd>Ctrl+P</kbd> Process | 
-        <kbd>Ctrl+D</kbd> Download All | 
-        <kbd>Ctrl+Z</kbd> Reset | 
-        <kbd>Ctrl+S</kbd> Save Settings
-    </div>
+        <!-- Shortcuts -->
+        <div class="shortcuts-bar neon-card">
+            <i class="fas fa-keyboard"></i> Keyboard Shortcuts: 
+            <kbd>Ctrl+P</kbd> Process | 
+            <kbd>Ctrl+D</kbd> Download All | 
+            <kbd>Ctrl+Z</kbd> Reset | 
+            <kbd>Ctrl+S</kbd> Save Settings
+        </div>
 
-    <div class="privacy-notice">
-        <i class="fas fa-lock"></i> Your privacy is protected. All processing happens in your browser. No images are uploaded to any server.
+        <div class="privacy-notice">
+            <i class="fas fa-lock"></i> Your privacy is protected. All processing happens in your browser. No images are uploaded to any server.
+        </div>
     </div>
 </div>
 
 <!-- Scroll Buttons -->
 <button class="scroll-btn scroll-up" id="scrollUpBtn" style="display: none;"><i class="fas fa-arrow-up"></i></button>
 <button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
-
-<!-- Theme Toggle -->
-<button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
