@@ -1,130 +1,284 @@
 /* ============================================
-   AI SPEECH GENERATOR - COMPLETE FIXED JS
-   All features working, 7 reactions, tabs fixed
+   AI SPEECH GENERATOR - CLOUDFLARE WORKERS API
+   Professional, Modern, Fully AI-Integrated
+   Version 3.0
    ============================================ */
 
-// Configuration
-const TOOL_SLUG = 'ai-speech-generator';
-const TOOL_NAME = 'AI Speech Generator';
-const CATEGORY = 'student';
-const WORKER_URL = 'https://auto-speech-generator.uzairhameed01.workers.dev';
-const API_BASE = '/api';
-
-let userId = localStorage.getItem('userId');
-if (!userId) {
-    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('userId', userId);
-}
-
-let speechHistory = [];
-let currentSpeech = '';
-let grammarIssues = [];
-let currentUtterance = null;
-
-// DOM Elements
-const usageCountSpan = document.getElementById('usageCount');
-const aiScoreSpan = document.getElementById('aiScore');
-const speechCountSpan = document.getElementById('speechCount');
-const speechContent = document.getElementById('speechContent');
-const loadingContainer = document.getElementById('loadingContainer');
-const speechResult = document.getElementById('speechResult');
-const generateBtn = document.getElementById('generateBtn');
-const clearBtn = document.getElementById('clearBtn');
-const suggestTopicBtn = document.getElementById('suggestTopicBtn');
-const listenBtn = document.getElementById('listenBtn');
-const stopListenBtn = document.getElementById('stopListenBtn');
-const copyBtn = document.getElementById('copyBtn');
-const downloadTxtBtn = document.getElementById('downloadTxtBtn');
-const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-const downloadAudioBtn = document.getElementById('downloadAudioBtn');
-const applyGrammarBtn = document.getElementById('applyGrammarBtn');
-const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const exportDataBtn = document.getElementById('exportDataBtn');
-const importDataBtn = document.getElementById('importDataBtn');
-const importFile = document.getElementById('importFile');
-const pageShareBtn = document.getElementById('pageShareBtn');
-const scrollUpBtn = document.getElementById('scrollUpBtn');
-const scrollDownBtn = document.getElementById('scrollDownBtn');
-
-// Smart Mode buttons
-const analyzeTextBtn = document.getElementById('analyzeTextBtn');
-const improveTextBtn = document.getElementById('improveTextBtn');
-const shortenBtn = document.getElementById('shortenBtn');
-const lengthenBtn = document.getElementById('lengthenBtn');
-const changeToneBtn = document.getElementById('changeToneBtn');
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    TOOL_SLUG: 'ai-speech-generator',
+    TOOL_NAME: 'AI Speech Generator',
+    CATEGORY: 'student',
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    EMOJIS: ['like', 'love', 'wow', 'sad', 'laugh', 'angry', 'celebrate']
+};
 
 // ============================================
-// TiDB API Calls
+// STATE MANAGEMENT
 // ============================================
+let state = {
+    userId: localStorage.getItem('userId') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    currentSpeech: '',
+    grammarIssues: [],
+    speechHistory: JSON.parse(localStorage.getItem('speechHistoryV3') || '[]'),
+    darkMode: localStorage.getItem('darkMode') === 'true',
+    utterance: null
+};
+
+// Save userId
+localStorage.setItem('userId', state.userId);
+
+// ============================================
+// DOM REFS
+// ============================================
+const DOM = {
+    usageCount: document.getElementById('usageCount'),
+    aiScore: document.getElementById('aiScore'),
+    speechCount: document.getElementById('speechCount'),
+    shareCount: document.getElementById('shareCount'),
+    speechContent: document.getElementById('speechContent'),
+    loadingContainer: document.getElementById('loadingContainer'),
+    speechResult: document.getElementById('speechResult'),
+    generateBtn: document.getElementById('generateBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    suggestTopicBtn: document.getElementById('suggestTopicBtn'),
+    listenBtn: document.getElementById('listenBtn'),
+    stopListenBtn: document.getElementById('stopListenBtn'),
+    copyBtn: document.getElementById('copyBtn'),
+    downloadTxtBtn: document.getElementById('downloadTxtBtn'),
+    downloadPdfBtn: document.getElementById('downloadPdfBtn'),
+    downloadAudioBtn: document.getElementById('downloadAudioBtn'),
+    applyGrammarBtn: document.getElementById('applyGrammarBtn'),
+    clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+    darkModeToggle: document.getElementById('darkModeToggle'),
+    exportDataBtn: document.getElementById('exportDataBtn'),
+    importDataBtn: document.getElementById('importDataBtn'),
+    importFile: document.getElementById('importFile'),
+    pageShareBtn: document.getElementById('pageShareBtn'),
+    scrollUpBtn: document.getElementById('scrollUpBtn'),
+    scrollDownBtn: document.getElementById('scrollDownBtn'),
+    toast: document.getElementById('toast'),
+    toastMsg: document.getElementById('toastMsg'),
+    speechForm: document.getElementById('speechForm'),
+    topic: document.getElementById('topic'),
+    description: document.getElementById('description'),
+    duration: document.getElementById('duration'),
+    gradeLevel: document.getElementById('gradeLevel'),
+    speechTone: document.getElementById('speechTone'),
+    speechLang: document.getElementById('speechLang'),
+    autoGrammarCheck: document.getElementById('autoGrammarCheck'),
+    autoEnhance: document.getElementById('autoEnhance'),
+    addQuotes: document.getElementById('addQuotes'),
+    // Smart Mode
+    analyzeTextBtn: document.getElementById('analyzeTextBtn'),
+    improveTextBtn: document.getElementById('improveTextBtn'),
+    shortenBtn: document.getElementById('shortenBtn'),
+    lengthenBtn: document.getElementById('lengthenBtn'),
+    changeToneBtn: document.getElementById('changeToneBtn'),
+    smartResult: document.getElementById('smartResult'),
+    smartAnalysis: document.getElementById('smartAnalysis'),
+    // Typewriter
+    typewriterText: document.getElementById('typewriterText')
+};
+
+// ============================================
+// API CALLS - CLOUDFLARE WORKERS
+// ============================================
+
+// 1. Usage Counter Increment
 async function trackUsage() {
     try {
-        await fetch(`${API_BASE}/usage/increment`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, tool_name: TOOL_NAME, category: CATEGORY, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: CONFIG.TOOL_SLUG,
+                tool_name: CONFIG.TOOL_NAME,
+                category: CONFIG.CATEGORY,
+                user_id: state.userId
+            })
         });
-        usageCountSpan.textContent = (parseInt(usageCountSpan.textContent) || 0) + 1;
-    } catch(e) { console.error(e); }
+        if (response.ok) {
+            const data = await response.json();
+            updateStat('usageCount', data.count || 0);
+            return data;
+        }
+        throw new Error('API failed');
+    } catch (error) {
+        // Fallback: LocalStorage
+        let count = parseInt(localStorage.getItem('usageCount_' + CONFIG.TOOL_SLUG) || '0');
+        count++;
+        localStorage.setItem('usageCount_' + CONFIG.TOOL_SLUG, count);
+        updateStat('usageCount', count);
+        console.warn('Usage track fallback (LocalStorage):', count);
+        return { count };
+    }
 }
 
+// 2. Add/Get Reactions
 async function addReaction(emoji) {
     try {
-        const response = await fetch(`${API_BASE}/reactions/add`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: CONFIG.TOOL_SLUG,
+                emoji: emoji,
+                user_id: state.userId
+            })
         });
-        const data = await response.json();
-        const span = document.getElementById(`${emoji}Count`);
-        if (span) span.textContent = data.count;
-        showToast(getEmojiName(emoji) + ' reaction!');
-    } catch(e) { console.error(e); }
+        if (response.ok) {
+            const data = await response.json();
+            updateReactionCount(emoji, data.count || 0);
+            showToast(getEmojiName(emoji) + ' reaction!');
+            return data;
+        }
+        throw new Error('API failed');
+    } catch (error) {
+        // Fallback: LocalStorage
+        let count = parseInt(localStorage.getItem('reaction_' + CONFIG.TOOL_SLUG + '_' + emoji) || '0');
+        count++;
+        localStorage.setItem('reaction_' + CONFIG.TOOL_SLUG + '_' + emoji, count);
+        updateReactionCount(emoji, count);
+        showToast(getEmojiName(emoji) + ' reaction! (Offline)');
+        return { count };
+    }
 }
 
+// 3. Record Shares
 async function trackShare(platform) {
     try {
-        await fetch(`${API_BASE}/shares/add`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, share_type: 'tool', user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: CONFIG.TOOL_SLUG,
+                platform: platform,
+                share_type: 'tool',
+                user_id: state.userId
+            })
         });
-    } catch(e) { console.error(e); }
+        if (response.ok) {
+            const data = await response.json();
+            updateStat('shareCount', data.count || 0);
+            return data;
+        }
+        throw new Error('API failed');
+    } catch (error) {
+        let count = parseInt(localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || '0');
+        count++;
+        localStorage.setItem('shareCount_' + CONFIG.TOOL_SLUG, count);
+        updateStat('shareCount', count);
+        return { count };
+    }
 }
 
+// 4. Get Tool Stats
 async function loadStats() {
     try {
-        const response = await fetch(`${API_BASE}/tools/stats?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        usageCountSpan.textContent = data.total_usage || 0;
-        const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-        emojis.forEach(e => {
-            const span = document.getElementById(`${e}Count`);
-            if (span) span.textContent = data[`${e}_count`] || 0;
+        const response = await fetch(`${CONFIG.API_BASE}/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': CONFIG.API_KEY
+            }
         });
-    } catch(e) { console.error(e); }
+        if (response.ok) {
+            const data = await response.json();
+            updateStat('usageCount', data.total_usage || 0);
+            updateStat('shareCount', data.total_shares || 0);
+            CONFIG.EMOJIS.forEach(emoji => {
+                const count = data[`${emoji}_count`] || 0;
+                updateReactionCount(emoji, count);
+            });
+            return data;
+        }
+        throw new Error('API failed');
+    } catch (error) {
+        // Fallback: Load from LocalStorage
+        const usage = localStorage.getItem('usageCount_' + CONFIG.TOOL_SLUG) || '0';
+        const shares = localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || '0';
+        updateStat('usageCount', parseInt(usage));
+        updateStat('shareCount', parseInt(shares));
+        CONFIG.EMOJIS.forEach(emoji => {
+            const count = localStorage.getItem('reaction_' + CONFIG.TOOL_SLUG + '_' + emoji) || '0';
+            updateReactionCount(emoji, parseInt(count));
+        });
+        console.warn('Stats loaded from LocalStorage fallback');
+        return {};
+    }
 }
 
 // ============================================
-// Speech Generation
+// UI UPDATE FUNCTIONS
 // ============================================
+
+function updateStat(statId, value) {
+    const el = document.getElementById(statId === 'usageCount' ? 'usageCount' : 
+                                   statId === 'shareCount' ? 'shareCount' : 
+                                   statId === 'speechCount' ? 'speechCount' : null);
+    if (el) el.textContent = value;
+}
+
+function updateReactionCount(emoji, count) {
+    const span = document.getElementById(`${emoji}Count`);
+    if (span) span.textContent = count;
+}
+
+function updateSpeechStats(text) {
+    const words = text.split(/\s+/).length;
+    const readTime = Math.ceil(words / 150);
+    const quality = Math.min(100, 70 + Math.floor(Math.random() * 30));
+    
+    const wordSpan = document.getElementById('wordCount');
+    const readSpan = document.getElementById('readTime');
+    const qualitySpan = document.getElementById('qualityBadge');
+    
+    if (wordSpan) wordSpan.textContent = words;
+    if (readSpan) readSpan.textContent = readTime;
+    if (qualitySpan) qualitySpan.textContent = quality + '%';
+    
+    // AI Score
+    const aiScore = Math.floor(Math.random() * 20) + 80;
+    if (DOM.aiScore) DOM.aiScore.textContent = aiScore + '%';
+}
+
+function updateSpeechCount() {
+    const count = state.speechHistory.length;
+    if (DOM.speechCount) DOM.speechCount.textContent = count;
+}
+
+// ============================================
+// SPEECH GENERATION
+// ============================================
+
 async function generateSpeech(e) {
     e.preventDefault();
     
-    const topic = document.getElementById('topic').value;
+    const topic = DOM.topic.value.trim();
     if (!topic) {
         showToast('Please enter a topic', 'error');
         return;
     }
     
-    const duration = document.getElementById('duration').value;
-    const description = document.getElementById('description').value;
-    const gradeLevel = document.getElementById('gradeLevel').value;
-    const speechTone = document.getElementById('speechTone').value;
-    const speechLang = document.getElementById('speechLang').value;
-    const autoGrammar = document.getElementById('autoGrammarCheck').checked;
-    const autoEnhance = document.getElementById('autoEnhance').checked;
-    const addQuotes = document.getElementById('addQuotes').checked;
+    const duration = DOM.duration.value;
+    const description = DOM.description.value.trim();
+    const gradeLevel = DOM.gradeLevel.value;
+    const speechTone = DOM.speechTone.value;
+    const speechLang = DOM.speechLang.value;
+    const autoGrammar = DOM.autoGrammarCheck.checked;
+    const autoEnhance = DOM.autoEnhance.checked;
+    const addQuotes = DOM.addQuotes.checked;
     
     showLoading(true);
     await trackUsage();
@@ -145,53 +299,56 @@ Requirements:
 - Use age-appropriate vocabulary`;
 
     try {
-        const response = await fetch(`${WORKER_URL}/api/generate-speech`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/generate-speech`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
             body: JSON.stringify({ prompt })
         });
         
-        const data = await response.json();
-        currentSpeech = data.speech || generateFallbackSpeech(topic, duration, gradeLevel, speechTone);
-        
-        speechContent.innerHTML = currentSpeech;
-        updateStats(currentSpeech);
-        
-        if (autoGrammar) {
-            await checkGrammar(currentSpeech);
+        let speech;
+        if (response.ok) {
+            const data = await response.json();
+            speech = data.speech || generateFallbackSpeech(topic, duration, gradeLevel, speechTone);
+        } else {
+            throw new Error('API failed');
         }
         
-        saveToHistory(topic, currentSpeech);
-        updateSpeechCount();
-        calculateAIScore();
+        displaySpeech(speech, topic, autoGrammar);
         
-        speechResult.style.display = 'block';
-        showToast('Speech generated successfully!');
-        speechResult.scrollIntoView({ behavior: 'smooth' });
-        
-    } catch(error) {
-        currentSpeech = generateFallbackSpeech(topic, duration, gradeLevel, speechTone);
-        speechContent.innerHTML = currentSpeech;
-        updateStats(currentSpeech);
-        speechResult.style.display = 'block';
+    } catch (error) {
+        const fallback = generateFallbackSpeech(topic, duration, gradeLevel, speechTone);
+        displaySpeech(fallback, topic, autoGrammar);
         showToast('Speech generated (offline mode)', 'warning');
     }
     
     showLoading(false);
 }
 
-function animateLoadingSteps() {
-    const steps = ['step1', 'step2', 'step3', 'step4'];
-    steps.forEach((step, i) => {
-        setTimeout(() => {
-            const el = document.getElementById(step);
-            if (el) el.classList.add('active');
-        }, i * 800);
-    });
+function displaySpeech(speech, topic, autoGrammar) {
+    state.currentSpeech = speech;
+    DOM.speechContent.innerHTML = speech;
+    updateSpeechStats(speech);
+    
+    if (autoGrammar) {
+        checkGrammar(speech);
+    }
+    
+    saveToHistory(topic, speech);
+    updateSpeechCount();
+    calculateAIScore();
+    
+    DOM.speechResult.style.display = 'block';
+    showToast('Speech generated successfully!');
+    DOM.speechResult.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateFallbackSpeech(topic, duration, gradeLevel, tone) {
-    const gradeName = gradeLevel === 'elementary' ? 'young' : gradeLevel === 'middle' ? 'middle school' : gradeLevel === 'high' ? 'high school' : 'college';
+    const gradeName = gradeLevel === 'elementary' ? 'young' : 
+                     gradeLevel === 'middle' ? 'middle school' : 
+                     gradeLevel === 'high' ? 'high school' : 'college';
     return `Good morning respected teachers and dear friends,
 
 Today, I am honored to speak about "${topic}".
@@ -209,33 +366,55 @@ Thank you for listening to my speech. I hope you found it informative and inspir
 - Thank you`;
 }
 
+function animateLoadingSteps() {
+    const steps = ['step1', 'step2', 'step3', 'step4'];
+    steps.forEach((step, i) => {
+        setTimeout(() => {
+            const el = document.getElementById(step);
+            if (el) el.classList.add('active');
+        }, i * 800);
+    });
+}
+
+function calculateAIScore() {
+    const score = Math.floor(Math.random() * 20) + 80;
+    if (DOM.aiScore) DOM.aiScore.textContent = score + '%';
+}
+
 // ============================================
-// Grammar Check
+// GRAMMAR CHECK
 // ============================================
+
 async function checkGrammar(text) {
     try {
-        const response = await fetch(`${WORKER_URL}/api/grammar-check`, {
+        const response = await fetch(`${CONFIG.API_BASE}/api/grammar-check`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
             body: JSON.stringify({ text: text.substring(0, 2000) })
         });
-        const data = await response.json();
         
-        if (data.success && data.issues && data.issues.length > 0) {
-            grammarIssues = data.issues;
-            displayGrammarIssues();
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.issues && data.issues.length > 0) {
+                state.grammarIssues = data.issues;
+                displayGrammarIssues();
+            }
         }
-    } catch(e) { console.error('Grammar check failed:', e); }
+    } catch (e) {
+        console.warn('Grammar check failed:', e);
+    }
 }
 
 function displayGrammarIssues() {
     const panel = document.getElementById('grammarPanel');
     const list = document.getElementById('grammarIssuesList');
     
-    if (!panel || !list) return;
-    if (grammarIssues.length === 0) return;
+    if (!panel || !list || state.grammarIssues.length === 0) return;
     
-    list.innerHTML = grammarIssues.map(issue => `
+    list.innerHTML = state.grammarIssues.map(issue => `
         <div class="grammar-issue">
             ${issue.message}
             <div class="grammar-suggestion">💡 ${issue.suggestion}</div>
@@ -246,116 +425,108 @@ function displayGrammarIssues() {
 }
 
 function applyGrammarFixes() {
-    let fixedText = currentSpeech;
-    grammarIssues.forEach(issue => {
+    let fixedText = state.currentSpeech;
+    state.grammarIssues.forEach(issue => {
         if (issue.offset !== undefined && issue.length !== undefined) {
             fixedText = fixedText.substring(0, issue.offset) + issue.suggestion + fixedText.substring(issue.offset + issue.length);
         }
     });
-    currentSpeech = fixedText;
-    speechContent.innerHTML = currentSpeech;
-    updateStats(currentSpeech);
+    state.currentSpeech = fixedText;
+    DOM.speechContent.innerHTML = fixedText;
+    updateSpeechStats(fixedText);
     document.getElementById('grammarPanel').style.display = 'none';
-    grammarIssues = [];
+    state.grammarIssues = [];
     showToast('Grammar fixes applied!');
 }
 
 // ============================================
-// Smart Mode Functions
+// SMART MODE FUNCTIONS
 // ============================================
+
 async function analyzeSpeech() {
-    if (!currentSpeech) {
+    if (!state.currentSpeech) {
         showToast('Generate a speech first', 'error');
         return;
     }
     
     showLoading(true, 'Analyzing your speech...');
     setTimeout(() => {
-        const resultDiv = document.getElementById('smartResult');
-        const analysisDiv = document.getElementById('smartAnalysis');
+        const wordCount = state.currentSpeech.split(/\s+/).length;
+        const readability = wordCount > 500 ? 'Good' : 'Average';
+        const score = Math.min(95, 70 + Math.floor(Math.random() * 25));
         
-        if (analysisDiv) {
-            const wordCount = currentSpeech.split(/\s+/).length;
-            const readability = wordCount > 500 ? 'Good' : 'Average';
-            const score = Math.min(95, 70 + Math.floor(Math.random() * 25));
-            
-            analysisDiv.innerHTML = `
-                <div class="analysis-result">
-                    <p><strong>📊 Word Count:</strong> ${wordCount} words</p>
-                    <p><strong>📖 Readability:</strong> ${readability}</p>
-                    <p><strong>🎯 Detected Tone:</strong> ${document.getElementById('speechTone').value || 'Motivational'}</p>
-                    <p><strong>⭐ Quality Score:</strong> ${score}/100</p>
-                    <p><strong>💡 Suggestion:</strong> ${score > 80 ? 'Great speech! Keep up the good work.' : 'Consider adding more examples and personal stories.'}</p>
-                </div>
-            `;
-        }
+        DOM.smartAnalysis.innerHTML = `
+            <div class="analysis-result">
+                <p><strong>📊 Word Count:</strong> ${wordCount} words</p>
+                <p><strong>📖 Readability:</strong> ${readability}</p>
+                <p><strong>🎯 Detected Tone:</strong> ${DOM.speechTone.value || 'Motivational'}</p>
+                <p><strong>⭐ Quality Score:</strong> ${score}/100</p>
+                <p><strong>💡 Suggestion:</strong> ${score > 80 ? 'Great speech! Keep up the good work.' : 'Consider adding more examples and personal stories.'}</p>
+            </div>
+        `;
         
-        if (resultDiv) resultDiv.style.display = 'block';
+        DOM.smartResult.style.display = 'block';
         showToast('Analysis complete!');
         showLoading(false);
     }, 1500);
 }
 
 async function improveSpeech() {
-    if (!currentSpeech) {
+    if (!state.currentSpeech) {
         showToast('Generate a speech first', 'error');
         return;
     }
     
     showLoading(true, 'Improving your speech...');
     setTimeout(() => {
-        currentSpeech = currentSpeech + '\n\nRemember: "The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt\n\nKeep striving for excellence!';
-        speechContent.innerHTML = currentSpeech;
-        updateStats(currentSpeech);
+        state.currentSpeech = state.currentSpeech + '\n\nRemember: "The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt\n\nKeep striving for excellence!';
+        DOM.speechContent.innerHTML = state.currentSpeech;
+        updateSpeechStats(state.currentSpeech);
         showToast('Speech improved! Added inspirational elements.');
         showLoading(false);
     }, 1500);
 }
 
-async function suggestTopic() {
-    showLoading(true, 'AI thinking of topics...');
-    setTimeout(() => {
-        const topics = [
-            'Importance of Education', 'Climate Change and Our Future', 'Digital Literacy in Modern Age',
-            'Mental Health Awareness', 'Sustainable Living', 'Leadership Skills for Students',
-            'The Power of Kindness', 'Bullying Prevention', 'Career Planning for Students',
-            'Artificial Intelligence and Future Jobs', 'Space Exploration Benefits', 'Cultural Diversity'
-        ];
-        document.getElementById('topic').value = topics[Math.floor(Math.random() * topics.length)];
-        showToast('Topic suggested!');
-        showLoading(false);
-    }, 800);
+function suggestTopic() {
+    const topics = [
+        'Importance of Education', 'Climate Change and Our Future', 'Digital Literacy in Modern Age',
+        'Mental Health Awareness', 'Sustainable Living', 'Leadership Skills for Students',
+        'The Power of Kindness', 'Bullying Prevention', 'Career Planning for Students',
+        'Artificial Intelligence and Future Jobs', 'Space Exploration Benefits', 'Cultural Diversity',
+        'The Power of Teamwork', 'Environmental Conservation', 'Social Media Responsibility',
+        'The Importance of Reading', 'STEM Education', 'Youth Empowerment'
+    ];
+    DOM.topic.value = topics[Math.floor(Math.random() * topics.length)];
+    showToast('Topic suggested!');
 }
 
 // ============================================
-// History Functions
+// HISTORY FUNCTIONS
 // ============================================
+
 function saveToHistory(topic, speech) {
-    const history = JSON.parse(localStorage.getItem('speechHistoryV2') || '[]');
-    history.unshift({
+    state.speechHistory.unshift({
         id: Date.now(),
         topic: topic,
         preview: speech.substring(0, 100),
         fullSpeech: speech,
         date: new Date().toISOString()
     });
-    if (history.length > 20) history.pop();
-    localStorage.setItem('speechHistoryV2', JSON.stringify(history));
+    if (state.speechHistory.length > 20) state.speechHistory.pop();
+    localStorage.setItem('speechHistoryV3', JSON.stringify(state.speechHistory));
     loadHistory();
 }
 
 function loadHistory() {
-    const history = JSON.parse(localStorage.getItem('speechHistoryV2') || '[]');
     const container = document.getElementById('historyList');
-    
     if (!container) return;
     
-    if (history.length === 0) {
+    if (state.speechHistory.length === 0) {
         container.innerHTML = '<div class="empty-state">No speeches yet. Create your first speech!</div>';
         return;
     }
     
-    container.innerHTML = history.map(item => `
+    container.innerHTML = state.speechHistory.map(item => `
         <div class="history-item" data-id="${item.id}">
             <div class="history-title">${escapeHtml(item.topic)}</div>
             <div class="history-date">${new Date(item.date).toLocaleString()}</div>
@@ -366,14 +537,14 @@ function loadHistory() {
     document.querySelectorAll('.history-item').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.id);
-            const found = history.find(h => h.id === id);
+            const found = state.speechHistory.find(h => h.id === id);
             if (found) {
-                currentSpeech = found.fullSpeech;
-                speechContent.innerHTML = currentSpeech;
-                updateStats(currentSpeech);
-                speechResult.style.display = 'block';
+                state.currentSpeech = found.fullSpeech;
+                DOM.speechContent.innerHTML = state.currentSpeech;
+                updateSpeechStats(state.currentSpeech);
+                DOM.speechResult.style.display = 'block';
                 showToast('Loaded from history!');
-                document.querySelector('.smart-tab[data-tab="create"]').click();
+                switchTab('create');
             }
         });
     });
@@ -381,38 +552,29 @@ function loadHistory() {
 
 function clearHistory() {
     if (confirm('Delete all saved speeches?')) {
-        localStorage.removeItem('speechHistoryV2');
+        state.speechHistory = [];
+        localStorage.removeItem('speechHistoryV3');
         loadHistory();
         updateSpeechCount();
         showToast('History cleared!');
     }
 }
 
-function updateSpeechCount() {
-    const history = JSON.parse(localStorage.getItem('speechHistoryV2') || '[]');
-    if (speechCountSpan) speechCountSpan.textContent = history.length;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 // ============================================
-// Media Functions
+// MEDIA FUNCTIONS
 // ============================================
+
 function listenToSpeech() {
-    if (!currentSpeech) {
+    if (!state.currentSpeech) {
         showToast('No speech to listen', 'error');
         return;
     }
     if (window.speechSynthesis) {
-        if (currentUtterance) window.speechSynthesis.cancel();
-        currentUtterance = new SpeechSynthesisUtterance(currentSpeech);
-        currentUtterance.rate = 0.9;
-        currentUtterance.pitch = 1;
-        window.speechSynthesis.speak(currentUtterance);
+        if (state.utterance) window.speechSynthesis.cancel();
+        state.utterance = new SpeechSynthesisUtterance(state.currentSpeech);
+        state.utterance.rate = 0.9;
+        state.utterance.pitch = 1;
+        window.speechSynthesis.speak(state.utterance);
         showToast('Playing speech...');
     } else {
         showToast('Text-to-speech not supported', 'error');
@@ -427,14 +589,19 @@ function stopSpeech() {
 }
 
 function copyToClipboard() {
-    if (!currentSpeech) return;
-    navigator.clipboard.writeText(currentSpeech);
+    if (!state.currentSpeech) return;
+    navigator.clipboard.writeText(state.currentSpeech);
     showToast('Copied to clipboard!');
 }
 
+function copyShareLink() {
+    navigator.clipboard.writeText(window.location.href);
+    showToast('Link copied!');
+}
+
 function downloadAsTXT() {
-    if (!currentSpeech) return;
-    const blob = new Blob([currentSpeech], { type: 'text/plain' });
+    if (!state.currentSpeech) return;
+    const blob = new Blob([state.currentSpeech], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -445,12 +612,12 @@ function downloadAsTXT() {
 }
 
 async function downloadAsPDF() {
-    if (!currentSpeech) return;
+    if (!state.currentSpeech) return;
     showLoading(true, 'Creating PDF...');
     try {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
-        const lines = pdf.splitTextToSize(currentSpeech, 180);
+        const lines = pdf.splitTextToSize(state.currentSpeech, 180);
         pdf.text(lines, 10, 10);
         pdf.save(`speech-${Date.now()}.pdf`);
         showToast('PDF downloaded!');
@@ -459,62 +626,13 @@ async function downloadAsPDF() {
 }
 
 function downloadAsAudio() {
-    if (!currentSpeech) return;
+    if (!state.currentSpeech) return;
     showToast('Use the Listen button to hear your speech', 'warning');
 }
 
 // ============================================
-// Helper Functions
+// SHARE FUNCTIONS
 // ============================================
-function updateStats(text) {
-    const words = text.split(/\s+/).length;
-    const readTime = Math.ceil(words / 150);
-    const quality = Math.min(100, 70 + Math.floor(Math.random() * 30));
-    
-    const wordSpan = document.getElementById('wordCount');
-    const readSpan = document.getElementById('readTime');
-    const qualitySpan = document.getElementById('qualityBadge');
-    
-    if (wordSpan) wordSpan.textContent = words;
-    if (readSpan) readSpan.textContent = readTime;
-    if (qualitySpan) qualitySpan.textContent = quality + '%';
-}
-
-function calculateAIScore() {
-    const score = Math.floor(Math.random() * 20) + 80;
-    if (aiScoreSpan) aiScoreSpan.textContent = score + '%';
-}
-
-function showToast(msg, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toastMsg');
-    if (!toast || !toastMsg) return;
-    toastMsg.textContent = msg;
-    toast.classList.remove('hidden');
-    toast.style.background = type === 'error' ? '#ef4444' : '#333';
-    setTimeout(() => toast.classList.add('hidden'), 3000);
-}
-
-function showLoading(show, msg = 'AI is creating your speech...') {
-    const loadingMsg = document.getElementById('loadingMessage');
-    if (loadingMsg) loadingMsg.textContent = msg;
-    if (loadingContainer) loadingContainer.style.display = show ? 'block' : 'none';
-    if (generateBtn) generateBtn.disabled = show;
-    
-    if (!show) {
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    }
-}
-
-function getEmojiName(emoji) {
-    const names = { like: '👍 Like', love: '❤️ Love', wow: '😮 Wow', sad: '😢 Sad', angry: '😠 Angry', laugh: '😂 Laugh', celebrate: '🎉 Celebrate' };
-    return names[emoji] || emoji;
-}
-
-function sharePage() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied!');
-}
 
 function shareTool(platform) {
     const url = encodeURIComponent(window.location.href);
@@ -527,15 +645,75 @@ function shareTool(platform) {
     if (shareUrl) { window.open(shareUrl); trackShare(platform); showToast(`Shared on ${platform}!`); }
 }
 
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark);
-    if (darkModeToggle) {
-        darkModeToggle.textContent = isDark ? 'On' : 'Off';
-        darkModeToggle.classList.toggle('active', isDark);
+function sharePage() {
+    navigator.clipboard.writeText(window.location.href);
+    showToast('Link copied!');
+}
+
+// ============================================
+// UI HELPERS
+// ============================================
+
+function showToast(msg, type = 'success') {
+    if (!DOM.toast || !DOM.toastMsg) return;
+    DOM.toastMsg.textContent = msg;
+    DOM.toast.classList.remove('hidden');
+    DOM.toast.style.background = type === 'error' ? 'rgba(255,0,0,0.2)' : 
+                                 type === 'warning' ? 'rgba(255,215,0,0.2)' : 'rgba(0,245,255,0.1)';
+    DOM.toast.style.borderColor = type === 'error' ? '#ff0000' : 
+                                  type === 'warning' ? '#ffd700' : 'var(--neon-primary)';
+    setTimeout(() => DOM.toast.classList.add('hidden'), 3000);
+}
+
+function showLoading(show, msg = 'AI is creating your speech...') {
+    const loadingMsg = document.getElementById('loadingMessage');
+    if (loadingMsg) loadingMsg.textContent = msg;
+    if (DOM.loadingContainer) DOM.loadingContainer.style.display = show ? 'block' : 'none';
+    if (DOM.generateBtn) DOM.generateBtn.disabled = show;
+    
+    if (!show) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
     }
-    showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+}
+
+function getEmojiName(emoji) {
+    const names = { 
+        like: '👍 Like', 
+        love: '❤️ Love', 
+        wow: '😮 Wow', 
+        sad: '😢 Sad', 
+        laugh: '😂 Laugh', 
+        angry: '😠 Angry', 
+        celebrate: '🎉 Celebrate' 
+    };
+    return names[emoji] || emoji;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.smart-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    
+    const tab = document.querySelector(`.smart-tab[data-tab="${tabId}"]`);
+    if (tab) tab.classList.add('active');
+    const panel = document.getElementById(`${tabId}-tab`);
+    if (panel) panel.classList.add('active');
+}
+
+function toggleDarkMode() {
+    state.darkMode = !state.darkMode;
+    document.body.classList.toggle('dark-mode', state.darkMode);
+    localStorage.setItem('darkMode', state.darkMode);
+    if (DOM.darkModeToggle) {
+        DOM.darkModeToggle.textContent = state.darkMode ? 'On' : 'Off';
+        DOM.darkModeToggle.classList.toggle('active', state.darkMode);
+    }
+    showToast(state.darkMode ? 'Dark mode enabled' : 'Light mode enabled');
 }
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -543,8 +721,8 @@ function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, b
 
 function exportData() {
     const data = {
-        history: localStorage.getItem('speechHistoryV2'),
-        settings: { darkMode: localStorage.getItem('darkMode') }
+        history: state.speechHistory,
+        settings: { darkMode: state.darkMode }
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -557,66 +735,102 @@ function exportData() {
 }
 
 function importData() {
-    importFile.click();
-}
-
-if (importFile) {
-    importFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (data.history) localStorage.setItem('speechHistoryV2', data.history);
-                if (data.settings?.darkMode === 'true') toggleDarkMode();
-                loadHistory();
-                updateSpeechCount();
-                showToast('Data imported!');
-            } catch(err) { showToast('Invalid file', 'error'); }
-        };
-        reader.readAsText(file);
-        importFile.value = '';
-    });
+    DOM.importFile.click();
 }
 
 // ============================================
-// Event Listeners
+// TYPEWRITER ANIMATION
 // ============================================
-function initEventListeners() {
-    const speechForm = document.getElementById('speechForm');
-    if (speechForm) speechForm.addEventListener('submit', generateSpeech);
-    if (clearBtn) clearBtn.addEventListener('click', () => { document.getElementById('speechForm').reset(); showToast('Form cleared!'); });
-    if (suggestTopicBtn) suggestTopicBtn.addEventListener('click', suggestTopic);
-    if (listenBtn) listenBtn.addEventListener('click', listenToSpeech);
-    if (stopListenBtn) stopListenBtn.addEventListener('click', stopSpeech);
-    if (copyBtn) copyBtn.addEventListener('click', copyToClipboard);
-    if (downloadTxtBtn) downloadTxtBtn.addEventListener('click', downloadAsTXT);
-    if (downloadPdfBtn) downloadPdfBtn.addEventListener('click', downloadAsPDF);
-    if (downloadAudioBtn) downloadAudioBtn.addEventListener('click', downloadAsAudio);
-    if (applyGrammarBtn) applyGrammarBtn.addEventListener('click', applyGrammarFixes);
-    if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', clearHistory);
-    if (darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
-    if (exportDataBtn) exportDataBtn.addEventListener('click', exportData);
-    if (importDataBtn) importDataBtn.addEventListener('click', importData);
-    if (pageShareBtn) pageShareBtn.addEventListener('click', sharePage);
-    if (scrollUpBtn) scrollUpBtn.addEventListener('click', scrollToTop);
-    if (scrollDownBtn) scrollDownBtn.addEventListener('click', scrollToBottom);
+
+function startTypewriter() {
+    const phrases = [
+        'Create amazing speeches in seconds',
+        'AI-powered speech generator',
+        'Perfect for students & teachers',
+        '7 languages supported',
+        'Real-time grammar check',
+        'Text-to-speech enabled',
+        'Professional speeches instantly'
+    ];
     
-    // Smart Mode buttons
-    if (analyzeTextBtn) analyzeTextBtn.addEventListener('click', analyzeSpeech);
-    if (improveTextBtn) improveTextBtn.addEventListener('click', improveSpeech);
-    if (shortenBtn) shortenBtn.addEventListener('click', () => showToast('Shorten feature coming soon', 'warning'));
-    if (lengthenBtn) lengthenBtn.addEventListener('click', () => showToast('Lengthen feature coming soon', 'warning'));
-    if (changeToneBtn) changeToneBtn.addEventListener('click', () => showToast('Change tone feature coming soon', 'warning'));
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = DOM.typewriterText;
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            isDeleting = true;
+            setTimeout(type, 2000);
+            return;
+        }
+        
+        if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            setTimeout(type, 500);
+            return;
+        }
+        
+        const speed = isDeleting ? 50 : 100;
+        setTimeout(type, speed);
+    }
+    
+    type();
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+function initEventListeners() {
+    // Form submit
+    if (DOM.speechForm) DOM.speechForm.addEventListener('submit', generateSpeech);
+    
+    // Buttons
+    if (DOM.clearBtn) DOM.clearBtn.addEventListener('click', () => { 
+        DOM.speechForm.reset(); 
+        showToast('Form cleared!'); 
+    });
+    if (DOM.suggestTopicBtn) DOM.suggestTopicBtn.addEventListener('click', suggestTopic);
+    if (DOM.listenBtn) DOM.listenBtn.addEventListener('click', listenToSpeech);
+    if (DOM.stopListenBtn) DOM.stopListenBtn.addEventListener('click', stopSpeech);
+    if (DOM.copyBtn) DOM.copyBtn.addEventListener('click', copyToClipboard);
+    if (DOM.downloadTxtBtn) DOM.downloadTxtBtn.addEventListener('click', downloadAsTXT);
+    if (DOM.downloadPdfBtn) DOM.downloadPdfBtn.addEventListener('click', downloadAsPDF);
+    if (DOM.downloadAudioBtn) DOM.downloadAudioBtn.addEventListener('click', downloadAsAudio);
+    if (DOM.applyGrammarBtn) DOM.applyGrammarBtn.addEventListener('click', applyGrammarFixes);
+    if (DOM.clearHistoryBtn) DOM.clearHistoryBtn.addEventListener('click', clearHistory);
+    if (DOM.darkModeToggle) DOM.darkModeToggle.addEventListener('click', toggleDarkMode);
+    if (DOM.exportDataBtn) DOM.exportDataBtn.addEventListener('click', exportData);
+    if (DOM.importDataBtn) DOM.importDataBtn.addEventListener('click', importData);
+    if (DOM.pageShareBtn) DOM.pageShareBtn.addEventListener('click', sharePage);
+    if (DOM.scrollUpBtn) DOM.scrollUpBtn.addEventListener('click', scrollToTop);
+    if (DOM.scrollDownBtn) DOM.scrollDownBtn.addEventListener('click', scrollToBottom);
+    
+    // Smart Mode
+    if (DOM.analyzeTextBtn) DOM.analyzeTextBtn.addEventListener('click', analyzeSpeech);
+    if (DOM.improveTextBtn) DOM.improveTextBtn.addEventListener('click', improveSpeech);
+    if (DOM.shortenBtn) DOM.shortenBtn.addEventListener('click', () => showToast('Shorten feature coming soon', 'warning'));
+    if (DOM.lengthenBtn) DOM.lengthenBtn.addEventListener('click', () => showToast('Lengthen feature coming soon', 'warning'));
+    if (DOM.changeToneBtn) DOM.changeToneBtn.addEventListener('click', () => showToast('Change tone feature coming soon', 'warning'));
     
     // Duration buttons
     document.querySelectorAll('.duration-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const durationInput = document.getElementById('duration');
-            if (durationInput) durationInput.value = btn.dataset.duration;
+            DOM.duration.value = btn.dataset.duration;
         });
     });
     
@@ -625,8 +839,7 @@ function initEventListeners() {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const gradeInput = document.getElementById('gradeLevel');
-            if (gradeInput) gradeInput.value = btn.dataset.grade;
+            DOM.gradeLevel.value = btn.dataset.grade;
         });
     });
     
@@ -635,8 +848,7 @@ function initEventListeners() {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const toneInput = document.getElementById('speechTone');
-            if (toneInput) toneInput.value = btn.dataset.tone;
+            DOM.speechTone.value = btn.dataset.tone;
         });
     });
     
@@ -645,8 +857,7 @@ function initEventListeners() {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const langInput = document.getElementById('speechLang');
-            if (langInput) langInput.value = btn.dataset.lang;
+            DOM.speechLang.value = btn.dataset.lang;
         });
     });
     
@@ -666,61 +877,94 @@ function initEventListeners() {
         });
     });
     
-    // Scroll button visibility
-    window.addEventListener('scroll', () => {
-        if (scrollUpBtn) scrollUpBtn.classList.toggle('hidden', window.scrollY <= 200);
-    });
-    
-    // Tabs - FIXED
+    // Tabs
     document.querySelectorAll('.smart-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabId = tab.getAttribute('data-tab');
-            if (!tabId) return;
-            
-            document.querySelectorAll('.smart-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            
-            tab.classList.add('active');
-            const activePanel = document.getElementById(`${tabId}-tab`);
-            if (activePanel) activePanel.classList.add('active');
+            if (tabId) switchTab(tabId);
         });
     });
     
+    // Import file
+    if (DOM.importFile) {
+        DOM.importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.history) {
+                        state.speechHistory = data.history;
+                        localStorage.setItem('speechHistoryV3', JSON.stringify(state.speechHistory));
+                    }
+                    if (data.settings?.darkMode !== undefined) {
+                        state.darkMode = data.settings.darkMode;
+                        document.body.classList.toggle('dark-mode', state.darkMode);
+                        localStorage.setItem('darkMode', state.darkMode);
+                        if (DOM.darkModeToggle) {
+                            DOM.darkModeToggle.textContent = state.darkMode ? 'On' : 'Off';
+                            DOM.darkModeToggle.classList.toggle('active', state.darkMode);
+                        }
+                    }
+                    loadHistory();
+                    updateSpeechCount();
+                    showToast('Data imported!');
+                } catch(err) { showToast('Invalid file', 'error'); }
+            };
+            reader.readAsText(file);
+            DOM.importFile.value = '';
+        });
+    }
+    
+    // Scroll button visibility
+    window.addEventListener('scroll', () => {
+        if (DOM.scrollUpBtn) DOM.scrollUpBtn.classList.toggle('hidden', window.scrollY <= 200);
+    });
+    
     // Auto-save description
-    const descriptionField = document.getElementById('description');
-    if (descriptionField) {
-        descriptionField.addEventListener('input', () => {
-            localStorage.setItem('speechDescriptionDraft', descriptionField.value);
+    if (DOM.description) {
+        DOM.description.addEventListener('input', () => {
+            localStorage.setItem('speechDescriptionDraft', DOM.description.value);
         });
         const savedDesc = localStorage.getItem('speechDescriptionDraft');
-        if (savedDesc) descriptionField.value = savedDesc;
+        if (savedDesc) DOM.description.value = savedDesc;
     }
 }
 
 // ============================================
-// Initialize
+// INITIALIZATION
 // ============================================
+
 function init() {
-    initEventListeners();
-    loadStats();
-    loadHistory();
-    updateSpeechCount();
-    
-    const savedDark = localStorage.getItem('darkMode');
-    if (savedDark === 'true') {
+    // Load saved dark mode
+    if (state.darkMode) {
         document.body.classList.add('dark-mode');
-        if (darkModeToggle) {
-            darkModeToggle.textContent = 'On';
-            darkModeToggle.classList.add('active');
+        if (DOM.darkModeToggle) {
+            DOM.darkModeToggle.textContent = 'On';
+            DOM.darkModeToggle.classList.add('active');
         }
     }
     
     // Set default duration
-    const durationInput = document.getElementById('duration');
-    if (durationInput) durationInput.value = '5';
+    DOM.duration.value = '5';
     
-    showToast('AI Speech Generator ready!');
+    // Load data
+    loadStats();
+    loadHistory();
+    updateSpeechCount();
+    
+    // Start typewriter
+    startTypewriter();
+    
+    // Init events
+    initEventListeners();
+    
+    // Show ready
+    setTimeout(() => showToast('AI Speech Generator ready! 🚀'), 500);
 }
 
-// Start the app
-init();
+// ============================================
+// START THE APP
+// ============================================
+document.addEventListener('DOMContentLoaded', init);
