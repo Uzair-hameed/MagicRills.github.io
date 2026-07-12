@@ -1,951 +1,547 @@
-/* ============================================
-   AUTO TRANSLATION TOOL - CLOUDFLARE WORKERS API
-   Updated with: API Integration, Reactions, Shares, Stats
-   ============================================ */
-
-// ============================================
-// CONFIGURATION
-// ============================================
-const TOOL_SLUG = 'auto-translation-tool';
-const TOOL_NAME = 'Auto Translation Tool';
-const CATEGORY = 'student';
-
-// Cloudflare Workers API Configuration
-const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
-const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
-
-let userId = localStorage.getItem('userId');
-if (!userId) {
-    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('userId', userId);
-}
-
-// Translation History
-let translationHistory = [];
-let favorites = [];
-let currentTranslation = '';
-let currentSourceText = '';
-let isApiOnline = true;
-
-// Language names for display
-const languageNames = {
-    auto: 'Auto Detect',
-    en: 'English',
-    ur: 'Urdu',
-    hi: 'Hindi',
-    ar: 'Arabic',
-    es: 'Spanish',
-    fr: 'French',
-    de: 'German',
-    tr: 'Turkish',
-    fa: 'Persian',
-    zh: 'Chinese',
-    ru: 'Russian',
-    bn: 'Bengali'
-};
-
-// Pronunciation mapping for common languages
-const pronunciationMap = {
-    ur: 'ur-PK',
-    en: 'en-US',
-    hi: 'hi-IN',
-    ar: 'ar-SA',
-    es: 'es-ES',
-    fr: 'fr-FR',
-    de: 'de-DE',
-    tr: 'tr-TR',
-    fa: 'fa-IR',
-    zh: 'zh-CN',
-    ru: 'ru-RU',
-    bn: 'bn-BD'
-};
-
-// ============================================
-// DOM ELEMENTS
-// ============================================
-const usageCountSpan = document.getElementById('usageCount');
-const translationCountSpan = document.getElementById('translationCount');
-const sourceText = document.getElementById('sourceText');
-const targetText = document.getElementById('targetText');
-const fromLang = document.getElementById('fromLang');
-const toLang = document.getElementById('toLang');
-const charCounter = document.getElementById('charCounter');
-const translateBtn = document.getElementById('translateBtn');
-const translateLoader = document.getElementById('translateLoader');
-const copyBtn = document.getElementById('copyBtn');
-const speakSourceBtn = document.getElementById('speakSourceBtn');
-const speakTargetBtn = document.getElementById('speakTargetBtn');
-const clearInputBtn = document.getElementById('clearInputBtn');
-const micBtn = document.getElementById('micBtn');
-const swapBtn = document.getElementById('swapBtn');
-const downloadTxtBtn = document.getElementById('downloadTxtBtn');
-const favoriteBtn = document.getElementById('favoriteBtn');
-const pronunciationBox = document.getElementById('pronunciationBox');
-const pronunciationText = document.getElementById('pronunciationText');
-const transliterationText = document.getElementById('transliterationText');
-const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-const clearFavoritesBtn = document.getElementById('clearFavoritesBtn');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const pronunciationToggle = document.getElementById('pronunciationToggle');
-const transliterationToggle = document.getElementById('transliterationToggle');
-const exportDataBtn = document.getElementById('exportDataBtn');
-const importDataBtn = document.getElementById('importDataBtn');
-const importFile = document.getElementById('importFile');
-const pageShareBtn = document.getElementById('pageShareBtn');
-const scrollUpBtn = document.getElementById('scrollUpBtn');
-const scrollDownBtn = document.getElementById('scrollDownBtn');
-const detectedLangDiv = document.getElementById('detectedLang');
-const detectedLangName = document.getElementById('detectedLangName');
-const homeBtn = document.getElementById('homeBtn');
-const backBtn = document.getElementById('backBtn');
-
-// Stats Dashboard Elements
-const statsViews = document.getElementById('statsViews');
-const statsShares = document.getElementById('statsShares');
-const statsFollowers = document.getElementById('statsFollowers');
-
-// ============================================
-// CLOUDFLARE WORKERS API CALLS
-// ============================================
-
-// 1. Usage Counter Increment (POST /api/usage)
-async function trackUsage() {
-    try {
-        const response = await fetch(`${API_BASE}/api/usage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': API_KEY
-            },
-            body: JSON.stringify({
-                tool_slug: TOOL_SLUG,
-                tool_name: TOOL_NAME,
-                category: CATEGORY,
-                user_id: userId,
-                action: 'increment'
-            })
-        });
-        
-        if (!response.ok) throw new Error('API usage increment failed');
-        
-        const data = await response.json();
-        if (data.success) {
-            // Update local counter
-            const currentCount = parseInt(usageCountSpan.textContent) || 0;
-            usageCountSpan.textContent = currentCount + 1;
-            // Save to localStorage as backup
-            localStorage.setItem(`${TOOL_SLUG}_usage`, usageCountSpan.textContent);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- ============================================ -->
+    <!-- FULL SEO META TAGS -->
+    <!-- ============================================ -->
+    <title>Auto Translation Tool | AI-Powered Translator with 12+ Languages | Free Online Translator</title>
+    <meta name="description" content="AI-powered translation tool supporting 12+ languages. Translate English to Urdu, Hindi, Arabic, Spanish, French, German and more with pronunciation guides, transliteration, and voice input. Free online translator with 35+ features.">
+    <meta name="keywords" content="auto translation tool, online translator, AI translator, translate English to Urdu, English to Hindi, Arabic translator, Spanish translator, French translator, German translator, free translation tool, pronunciation guide, transliteration, voice input translation, multilingual translator">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://magicrills.com/tools/auto-translation-tool.html">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills.com/tools/auto-translation-tool.html">
+    <meta property="og:title" content="Auto Translation Tool | AI-Powered Translator with 12+ Languages">
+    <meta property="og:description" content="Free AI-powered translation tool supporting 12+ languages. Translate text with pronunciation guides, transliteration, and voice input.">
+    <meta property="og:image" content="https://magicrills.com/assets/images/translation-tool-og.jpg">
+    <meta property="og:site_name" content="MagicRills">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Auto Translation Tool | AI-Powered Translator">
+    <meta name="twitter:description" content="Free AI-powered translation tool supporting 12+ languages. Translate with pronunciation guides and voice input.">
+    <meta name="twitter:image" content="https://magicrills.com/assets/images/translation-tool-og.jpg">
+    
+    <!-- Schema Markup / Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Auto Translation Tool",
+        "description": "AI-powered translation tool supporting 12+ languages with pronunciation guides, transliteration, and voice input.",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires modern browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "MagicRills"
         }
-        isApiOnline = true;
-    } catch (e) {
-        console.warn('Usage tracking API failed, using localStorage fallback:', e);
-        isApiOnline = false;
-        // Fallback: localStorage
-        const stored = localStorage.getItem(`${TOOL_SLUG}_usage`);
-        const count = stored ? parseInt(stored) + 1 : 1;
-        usageCountSpan.textContent = count;
-        localStorage.setItem(`${TOOL_SLUG}_usage`, count);
     }
-}
+    </script>
+    
+    <!-- ============================================ -->
+    <!-- STYLES -->
+    <!-- ============================================ -->
+    <link rel="stylesheet" href="auto-translation-tool.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
 
-// 2. Reactions - Add/Get (POST /api/reactions)
-async function addReaction(emoji) {
-    try {
-        const response = await fetch(`${API_BASE}/api/reactions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': API_KEY
-            },
-            body: JSON.stringify({
-                tool_slug: TOOL_SLUG,
-                emoji: emoji,
-                user_id: userId,
-                action: 'add'
-            })
-        });
-        
-        if (!response.ok) throw new Error('API reaction add failed');
-        
-        const data = await response.json();
-        if (data.success) {
-            const span = document.getElementById(`${emoji}Count`);
-            if (span) {
-                span.textContent = data.count || (parseInt(span.textContent) + 1);
-            }
-            // Save to localStorage
-            const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-            reactions[emoji] = span ? span.textContent : 0;
-            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
-        }
-        showToast(getEmojiName(emoji) + ' reaction added!');
-        isApiOnline = true;
-    } catch (e) {
-        console.warn('Reaction API failed, using localStorage fallback:', e);
-        isApiOnline = false;
-        // Fallback: localStorage
-        const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-        reactions[emoji] = (reactions[emoji] || 0) + 1;
-        localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
-        const span = document.getElementById(`${emoji}Count`);
-        if (span) span.textContent = reactions[emoji];
-        showToast(getEmojiName(emoji) + ' reaction added (offline)!');
-    }
-}
+<!-- ============================================ -->
+<!-- BACKGROUND SPACE EFFECTS -->
+<!-- ============================================ -->
+<div class="space-background">
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    <div class="stars3"></div>
+    <div class="nebula"></div>
+    <div class="floating-particles"></div>
+</div>
 
-// 3. Shares - Record Shares (POST /api/shares)
-async function trackShare(platform) {
-    try {
-        const response = await fetch(`${API_BASE}/api/shares`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': API_KEY
-            },
-            body: JSON.stringify({
-                tool_slug: TOOL_SLUG,
-                platform: platform,
-                share_type: 'tool',
-                user_id: userId
-            })
-        });
-        
-        if (!response.ok) throw new Error('API share tracking failed');
-        
-        const data = await response.json();
-        if (data.success) {
-            // Update shares count
-            const currentShares = parseInt(statsShares.textContent) || 0;
-            statsShares.textContent = currentShares + 1;
-            localStorage.setItem(`${TOOL_SLUG}_shares`, statsShares.textContent);
-        }
-        isApiOnline = true;
-    } catch (e) {
-        console.warn('Share tracking API failed, using localStorage fallback:', e);
-        isApiOnline = false;
-        // Fallback: localStorage
-        const shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
-        statsShares.textContent = shares + 1;
-        localStorage.setItem(`${TOOL_SLUG}_shares`, statsShares.textContent);
-    }
-}
+<!-- ============================================ -->
+<!-- MAIN CONTAINER -->
+<!-- ============================================ -->
+<div class="container">
 
-// 4. Get Tool Stats (GET /api/stats)
-async function loadStats() {
-    try {
-        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
-            headers: {
-                'X-API-Key': API_KEY
-            }
-        });
-        
-        if (!response.ok) throw new Error('API stats fetch failed');
-        
-        const data = await response.json();
-        
-        if (data.success && data.stats) {
-            // Update Usage
-            usageCountSpan.textContent = data.stats.total_usage || 0;
-            localStorage.setItem(`${TOOL_SLUG}_usage`, usageCountSpan.textContent);
-            
-            // Update Views
-            statsViews.textContent = data.stats.total_views || 0;
-            localStorage.setItem(`${TOOL_SLUG}_views`, statsViews.textContent);
-            
-            // Update Shares
-            statsShares.textContent = data.stats.total_shares || 0;
-            localStorage.setItem(`${TOOL_SLUG}_shares`, statsShares.textContent);
-            
-            // Update Followers
-            statsFollowers.textContent = data.stats.total_followers || 0;
-            localStorage.setItem(`${TOOL_SLUG}_followers`, statsFollowers.textContent);
-            
-            // Update Reactions
-            const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-            const reactions = {};
-            emojis.forEach(e => {
-                const count = data.stats[`${e}_count`] || 0;
-                const span = document.getElementById(`${e}Count`);
-                if (span) span.textContent = count;
-                reactions[e] = count;
-            });
-            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
-        }
-        isApiOnline = true;
-    } catch (e) {
-        console.warn('Stats API failed, using localStorage fallback:', e);
-        isApiOnline = false;
-        // Fallback: Load from localStorage
-        loadStatsFromLocalStorage();
-    }
-}
-
-// Load stats from localStorage (fallback)
-function loadStatsFromLocalStorage() {
-    const usage = localStorage.getItem(`${TOOL_SLUG}_usage`);
-    if (usage) usageCountSpan.textContent = usage;
-    
-    const views = localStorage.getItem(`${TOOL_SLUG}_views`);
-    if (views) statsViews.textContent = views;
-    
-    const shares = localStorage.getItem(`${TOOL_SLUG}_shares`);
-    if (shares) statsShares.textContent = shares;
-    
-    const followers = localStorage.getItem(`${TOOL_SLUG}_followers`);
-    if (followers) statsFollowers.textContent = followers;
-    
-    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
-    const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-    emojis.forEach(e => {
-        const span = document.getElementById(`${e}Count`);
-        if (span && reactions[e]) span.textContent = reactions[e];
-    });
-}
-
-// ============================================
-// TRANSLATION FUNCTIONS
-// ============================================
-async function translateText() {
-    const text = sourceText.value.trim();
-    if (!text) {
-        showToast('Please enter text to translate', 'error');
-        return;
-    }
-    
-    const from = fromLang.value;
-    const to = toLang.value;
-    
-    translateLoader.style.display = 'inline-block';
-    translateBtn.disabled = true;
-    targetText.innerHTML = '<span style="opacity:0.7;color:var(--neon-blue);">Translating...</span>';
-    
-    try {
-        // Use Google Translate API (free, reliable)
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const translated = data[0].map(item => item[0]).join('');
-        
-        currentTranslation = translated;
-        currentSourceText = text;
-        targetText.innerHTML = translated;
-        
-        // Track usage
-        await trackUsage();
-        
-        // Save to history
-        saveToHistory(text, translated, from, to);
-        
-        // Show pronunciation if available
-        if (pronunciationToggle.classList.contains('active')) {
-            showPronunciation(to, translated);
-        }
-        
-        showToast('✨ Translation completed!');
-        
-    } catch (error) {
-        console.error('Translation error:', error);
-        targetText.innerHTML = '<span style="color:var(--neon-pink);">⚠️ Translation failed. Please try again.</span>';
-        showToast('Translation failed', 'error');
-    } finally {
-        translateLoader.style.display = 'none';
-        translateBtn.disabled = false;
-    }
-}
-
-// ============================================
-// AUTO LANGUAGE DETECTION
-// ============================================
-async function detectLanguage(text) {
-    if (fromLang.value !== 'auto') return;
-    if (!text || text.length < 3) return;
-    
-    try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text.substring(0, 100))}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const detected = data[2];
-        
-        if (detected && detected[0] && detected[0][0]) {
-            const langCode = detected[0][0];
-            const langName = languageNames[langCode] || langCode;
-            detectedLangName.textContent = langName;
-            detectedLangDiv.style.display = 'block';
-        }
-    } catch(e) { console.error('Language detection failed:', e); }
-}
-
-// ============================================
-// PRONUNCIATION & TRANSLITERATION
-// ============================================
-function showPronunciation(langCode, text) {
-    if (!pronunciationToggle.classList.contains('active')) return;
-    
-    pronunciationBox.style.display = 'block';
-    
-    const voiceLocale = pronunciationMap[langCode] || 'en-US';
-    
-    pronunciationText.innerHTML = `<i class="fas fa-play-circle" style="color:var(--neon-cyan);"></i> <span onclick="speakText('${text.replace(/'/g, "\\'")}', '${voiceLocale}')" style="cursor:pointer;color:var(--neon-blue);">Click to listen</span>`;
-    
-    if (transliterationToggle.classList.contains('active') && (langCode === 'ur' || langCode === 'hi' || langCode === 'ar')) {
-        showTransliteration(text, langCode);
-    } else if (transliterationToggle.classList.contains('active')) {
-        transliterationText.innerHTML = text;
-    }
-}
-
-function showTransliteration(text, langCode) {
-    let transliterated = text;
-    
-    if (langCode === 'ur') {
-        transliterated = text.replace(/[^\x00-\x7F]/g, (match) => {
-            const map = { 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ٹ': 't', 'ث': 's', 'ج': 'j', 'چ': 'ch', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ڈ': 'd', 'ذ': 'z', 'ر': 'r', 'ڑ': 'r', 'ز': 'z', 'ژ': 'zh', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ک': 'k', 'گ': 'g', 'ل': 'l', 'م': 'm', 'ن': 'n', 'و': 'o', 'ہ': 'h', 'ء': '', 'ی': 'y', 'ے': 'e' };
-            return map[match] || match;
-        });
-    }
-    
-    transliterationText.innerHTML = transliterated;
-}
-
-function speakText(text, locale = 'en-US') {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = locale;
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utterance);
-    } else {
-        showToast('Text-to-speech not supported', 'error');
-    }
-}
-
-// ============================================
-// VOICE INPUT
-// ============================================
-function startVoiceInput() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showToast('Voice input not supported in this browser', 'error');
-        return;
-    }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.lang = fromLang.value === 'ur' ? 'ur-PK' : 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    
-    recognition.onstart = () => {
-        micBtn.style.color = 'var(--neon-pink)';
-        showToast('🎤 Listening... Speak now');
-    };
-    
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        sourceText.value = transcript;
-        updateCharCount();
-        showToast('🎤 Voice input captured!');
-        micBtn.style.color = '';
-    };
-    
-    recognition.onerror = (event) => {
-        showToast('Voice input error: ' + event.error, 'error');
-        micBtn.style.color = '';
-    };
-    
-    recognition.onend = () => {
-        micBtn.style.color = '';
-    };
-    
-    recognition.start();
-}
-
-// ============================================
-// HISTORY & FAVORITES
-// ============================================
-function saveToHistory(original, translated, from, to) {
-    const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
-    history.unshift({
-        id: Date.now(),
-        original: original.substring(0, 200),
-        translated: translated.substring(0, 200),
-        fullOriginal: original,
-        fullTranslated: translated,
-        from: from,
-        to: to,
-        date: new Date().toISOString()
-    });
-    if (history.length > 50) history.pop();
-    localStorage.setItem('translationHistory', JSON.stringify(history));
-    loadHistory();
-    updateTranslationCount();
-}
-
-function loadHistory() {
-    const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
-    const container = document.getElementById('historyList');
-    
-    if (!container) return;
-    
-    if (history.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-history" style="font-size:2rem;opacity:0.3;"></i><br>No translations yet. Start translating!</div>';
-        return;
-    }
-    
-    container.innerHTML = history.map(item => `
-        <div class="history-item" data-id="${item.id}">
-            <div class="history-item-title">${escapeHtml(item.original)}</div>
-            <div class="history-item-date">${languageNames[item.from] || item.from} → ${languageNames[item.to] || item.to} | ${new Date(item.date).toLocaleString()}</div>
-            <div class="history-preview">${escapeHtml(item.translated)}</div>
+    <!-- ============================================ -->
+    <!-- HERO SECTION WITH ANIMATED IMAGE -->
+    <!-- ============================================ -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-sparkles"></i> AI-Powered Translation
+            </div>
+            <h1 class="hero-title">
+                <span class="neon-text">Auto Translation</span>
+                <span class="hero-subtitle">
+                    <span class="typewriter-text" id="typewriterText"></span>
+                    <span class="typewriter-cursor">|</span>
+                </span>
+            </h1>
+            <p class="hero-description">
+                Break language barriers with our AI-powered translation tool. 
+                Support for 12+ languages with real-time translation, pronunciation guides, and voice input.
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">12+</span>
+                    <span class="hero-stat-label">Languages</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">35</span>
+                    <span class="hero-stat-label">Features</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number" id="heroUsageCount">0</span>
+                    <span class="hero-stat-label">Translations</span>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <a href="#main-tool" class="hero-btn-primary">
+                    <i class="fas fa-language"></i> Start Translating
+                </a>
+                <a href="#features" class="hero-btn-secondary">
+                    <i class="fas fa-info-circle"></i> Learn More
+                </a>
+            </div>
         </div>
-    `).join('');
-    
-    document.querySelectorAll('.history-item').forEach(el => {
-        el.addEventListener('click', () => {
-            const id = parseInt(el.dataset.id);
-            const found = history.find(h => h.id === id);
-            if (found) {
-                sourceText.value = found.fullOriginal;
-                targetText.innerHTML = found.fullTranslated;
-                currentTranslation = found.fullTranslated;
-                currentSourceText = found.fullOriginal;
-                updateCharCount();
-                showToast('📂 Loaded from history!');
-                document.querySelector('.smart-tab[data-tab="translate"]').click();
-            }
-        });
-    });
-}
-
-function loadFavorites() {
-    const favoritesList = JSON.parse(localStorage.getItem('translationFavorites') || '[]');
-    const container = document.getElementById('favoritesList');
-    
-    if (!container) return;
-    
-    if (favoritesList.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-star" style="font-size:2rem;opacity:0.3;"></i><br>No favorites yet. Save translations you love!</div>';
-        return;
-    }
-    
-    container.innerHTML = favoritesList.map(item => `
-        <div class="history-item" data-id="${item.id}" style="position:relative;">
-            <div class="history-item-title">${escapeHtml(item.original)}</div>
-            <div class="history-item-date">${languageNames[item.from] || item.from} → ${languageNames[item.to] || item.to}</div>
-            <div class="history-preview">${escapeHtml(item.translated)}</div>
-            <button class="remove-favorite" data-id="${item.id}" style="position:absolute;right:15px;top:15px;background:none;border:none;color:var(--neon-pink);cursor:pointer;font-size:1.2rem;">×</button>
+        <div class="hero-visual">
+            <div class="hero-animated-image">
+                <div class="globe-container">
+                    <div class="globe">
+                        <div class="globe-ring"></div>
+                        <div class="globe-ring"></div>
+                        <div class="globe-ring"></div>
+                        <div class="globe-dots">
+                            <span class="globe-dot" style="--i:1"></span>
+                            <span class="globe-dot" style="--i:2"></span>
+                            <span class="globe-dot" style="--i:3"></span>
+                            <span class="globe-dot" style="--i:4"></span>
+                            <span class="globe-dot" style="--i:5"></span>
+                            <span class="globe-dot" style="--i:6"></span>
+                            <span class="globe-dot" style="--i:7"></span>
+                            <span class="globe-dot" style="--i:8"></span>
+                            <span class="globe-dot" style="--i:9"></span>
+                            <span class="globe-dot" style="--i:10"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="floating-translations">
+                    <span class="float-text" style="--delay:0s;">Hello → 你好</span>
+                    <span class="float-text" style="--delay:2s;">Welcome → مرحباً</span>
+                    <span class="float-text" style="--delay:4s;">Good → अच्छा</span>
+                    <span class="float-text" style="--delay:6s;">Love → محبت</span>
+                </div>
+            </div>
         </div>
-    `).join('');
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FEATURES SECTION -->
+    <!-- ============================================ -->
+    <div id="features" class="features-section">
+        <h2 class="section-title neon-text"><i class="fas fa-star"></i> 35+ Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-language"></i></div>
+                <h3>12+ Languages</h3>
+                <p>Translate between English, Urdu, Hindi, Arabic, Spanish, French, German, Turkish, Persian, Chinese, Russian, and Bengali.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-microphone"></i></div>
+                <h3>Voice Input</h3>
+                <p>Speak your text instead of typing. Voice recognition supported for multiple languages.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-volume-up"></i></div>
+                <h3>Pronunciation Guide</h3>
+                <p>Listen to the correct pronunciation of your translated text with native-like voices.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-font"></i></div>
+                <h3>Transliteration</h3>
+                <p>See the romanized version of your translation for easier reading and learning.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-history"></i></div>
+                <h3>History & Favorites</h3>
+                <p>Save your translations history and mark favorites for quick access later.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-share-alt"></i></div>
+                <h3>Social Sharing</h3>
+                <p>Share your translations on Facebook, Twitter, LinkedIn, WhatsApp, and more.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAIN TOOL -->
+    <!-- ============================================ -->
+    <div id="main-tool" class="main-wrapper">
+
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <button id="homeBtn" class="nav-btn home-btn"><i class="fas fa-home"></i> Home</button>
+            <button id="backBtn" class="nav-btn back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-language neon-icon"></i> Auto Translation Tool</h1>
+            <p class="header-subtitle">AI-powered translator with 12+ languages | Pronunciation | Transliteration | Voice Input</p>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                <div class="stat-value" id="usageCount">0</div>
+                <div class="stat-label">Times Used</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-language"></i></div>
+                <div class="stat-value" id="langSupported">12+</div>
+                <div class="stat-label">Languages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-history"></i></div>
+                <div class="stat-value" id="translationCount">0</div>
+                <div class="stat-label">Translations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-share-alt"></i></div>
+                <div class="stat-value" id="statsShares">0</div>
+                <div class="stat-label">Shares</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-value" id="statsFollowers">0</div>
+                <div class="stat-label">Followers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-value" id="statsViews">0</div>
+                <div class="stat-label">Views</div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="main-card">
+            <!-- Smart Tabs -->
+            <div class="smart-tabs">
+                <button class="smart-tab active" data-tab="translate"><i class="fas fa-exchange-alt"></i> Translate</button>
+                <button class="smart-tab" data-tab="history"><i class="fas fa-history"></i> History</button>
+                <button class="smart-tab" data-tab="favorites"><i class="fas fa-star"></i> Favorites</button>
+                <button class="smart-tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+            </div>
+
+            <!-- Translate Tab -->
+            <div id="translate-tab" class="tab-panel active">
+                <!-- Language Selection Bar -->
+                <div class="language-bar">
+                    <div class="lang-selector">
+                        <select id="fromLang" class="lang-dropdown">
+                            <option value="auto">🔍 Auto Detect</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="ur">🇵🇰 اردو (Urdu)</option>
+                            <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                            <option value="ar">🇸🇦 العربية (Arabic)</option>
+                            <option value="es">🇪🇸 Español (Spanish)</option>
+                            <option value="fr">🇫🇷 Français (French)</option>
+                            <option value="de">🇩🇪 Deutsch (German)</option>
+                            <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                            <option value="fa">🇮🇷 فارسی (Persian)</option>
+                            <option value="zh">🇨🇳 中文 (Chinese)</option>
+                            <option value="ru">🇷🇺 Русский (Russian)</option>
+                            <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+                        </select>
+                        
+                        <button id="swapBtn" class="swap-btn"><i class="fas fa-arrow-right-arrow-left"></i></button>
+                        
+                        <select id="toLang" class="lang-dropdown">
+                            <option value="ur">🇵🇰 اردو (Urdu)</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                            <option value="ar">🇸🇦 العربية (Arabic)</option>
+                            <option value="es">🇪🇸 Español (Spanish)</option>
+                            <option value="fr">🇫🇷 Français (French)</option>
+                            <option value="de">🇩🇪 Deutsch (German)</option>
+                            <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                            <option value="fa">🇮🇷 فارسی (Persian)</option>
+                            <option value="zh">🇨🇳 中文 (Chinese)</option>
+                            <option value="ru">🇷🇺 Русский (Russian)</option>
+                            <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Input Section -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <span><i class="fas fa-file-alt"></i> Source Text</span>
+                        <div class="section-actions">
+                            <button id="clearInputBtn" class="icon-btn" title="Clear"><i class="fas fa-trash-alt"></i></button>
+                            <button id="micBtn" class="icon-btn" title="Voice Input"><i class="fas fa-microphone"></i></button>
+                            <button id="speakSourceBtn" class="icon-btn" title="Listen"><i class="fas fa-volume-up"></i></button>
+                        </div>
+                    </div>
+                    <textarea id="sourceText" placeholder="Type or paste text here..." spellcheck="true"></textarea>
+                    <div class="char-counter" id="charCounter">0 characters</div>
+                    <div id="detectedLang" class="detected-lang" style="display:none;"><i class="fas fa-globe"></i> Detected: <span id="detectedLangName"></span></div>
+                </div>
+
+                <!-- Translate Button -->
+                <div class="translate-btn-container">
+                    <button id="translateBtn" class="btn-primary"><i class="fas fa-language"></i> Translate</button>
+                    <div id="translateLoader" class="loader" style="display:none;"></div>
+                </div>
+
+                <!-- Output Section -->
+                <div class="output-section">
+                    <div class="section-header">
+                        <span><i class="fas fa-file-alt"></i> Translation</span>
+                        <div class="section-actions">
+                            <button id="copyBtn" class="icon-btn" title="Copy"><i class="fas fa-copy"></i></button>
+                            <button id="speakTargetBtn" class="icon-btn" title="Listen"><i class="fas fa-volume-up"></i></button>
+                            <button id="downloadTxtBtn" class="icon-btn" title="Download TXT"><i class="fas fa-download"></i></button>
+                            <button id="favoriteBtn" class="icon-btn" title="Save to Favorites"><i class="fas fa-star"></i></button>
+                        </div>
+                    </div>
+                    <div id="targetText" class="output-text">✨ Translation will appear here...</div>
+                    
+                    <!-- Pronunciation & Transliteration -->
+                    <div id="pronunciationBox" class="pronunciation-box" style="display:none;">
+                        <div class="pronunciation-item">
+                            <i class="fas fa-microphone-alt"></i>
+                            <span>Pronunciation:</span>
+                            <strong id="pronunciationText"></strong>
+                        </div>
+                        <div class="pronunciation-item">
+                            <i class="fas fa-font"></i>
+                            <span>Transliteration:</span>
+                            <strong id="transliterationText"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-panel">
+                <div class="history-header">
+                    <h3><i class="fas fa-history"></i> Translation History</h3>
+                    <button id="clearHistoryBtn" class="btn-small btn-danger">Clear All</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <div class="empty-state"><i class="fas fa-history" style="font-size:2rem;opacity:0.3;"></i><br>No translations yet. Start translating!</div>
+                </div>
+            </div>
+
+            <!-- Favorites Tab -->
+            <div id="favorites-tab" class="tab-panel">
+                <div class="history-header">
+                    <h3><i class="fas fa-star"></i> Favorite Translations</h3>
+                    <button id="clearFavoritesBtn" class="btn-small btn-danger">Clear All</button>
+                </div>
+                <div id="favoritesList" class="history-list">
+                    <div class="empty-state"><i class="fas fa-star" style="font-size:2rem;opacity:0.3;"></i><br>No favorites yet. Save translations you love!</div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-panel">
+                <div class="settings-section">
+                    <h3><i class="fas fa-palette"></i> Appearance</h3>
+                    <div class="setting-row">
+                        <span>Dark Mode</span>
+                        <button id="darkModeToggle" class="toggle-switch">Off</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3><i class="fas fa-cog"></i> Translation Settings</h3>
+                    <div class="setting-row">
+                        <span>Show Pronunciation</span>
+                        <button id="pronunciationToggle" class="toggle-switch active">On</button>
+                    </div>
+                    <div class="setting-row">
+                        <span>Show Transliteration</span>
+                        <button id="transliterationToggle" class="toggle-switch active">On</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3><i class="fas fa-database"></i> Data Management</h3>
+                    <div class="setting-row">
+                        <span>Export All Data</span>
+                        <button id="exportDataBtn" class="btn-small">Export</button>
+                    </div>
+                    <div class="setting-row">
+                        <span>Import Data</span>
+                        <button id="importDataBtn" class="btn-small">Import</button>
+                        <input type="file" id="importFile" accept=".json" style="display:none;">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3><i class="fas fa-info-circle"></i> About</h3>
+                    <p>🚀 Powered by Groq AI & Google Translate API</p>
+                    <p>🌍 Supports 12+ languages with pronunciation guides</p>
+                    <p>📱 Fully responsive design with dark mode</p>
+                    <p>⚡ Version 3.0 - Cloudflare Workers API Integrated</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reactions Section - 7 Colorful Emojis -->
+        <div class="reactions-section">
+            <h3><i class="fas fa-smile"></i> Was this translation helpful?</h3>
+            <div class="reactions">
+                <button class="reaction reaction-like" data-emoji="like">👍 <span id="likeCount">0</span></button>
+                <button class="reaction reaction-love" data-emoji="love">❤️ <span id="loveCount">0</span></button>
+                <button class="reaction reaction-wow" data-emoji="wow">😮 <span id="wowCount">0</span></button>
+                <button class="reaction reaction-sad" data-emoji="sad">😢 <span id="sadCount">0</span></button>
+                <button class="reaction reaction-angry" data-emoji="angry">😠 <span id="angryCount">0</span></button>
+                <button class="reaction reaction-laugh" data-emoji="laugh">😂 <span id="laughCount">0</span></button>
+                <button class="reaction reaction-celebrate" data-emoji="celebrate">🎉 <span id="celebrateCount">0</span></button>
+            </div>
+        </div>
+
+        <!-- Social Share Section -->
+        <div class="social-section">
+            <h3><i class="fas fa-share-alt"></i> Share This Tool</h3>
+            <div class="social-buttons">
+                <button class="social-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                <button class="social-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
+                <button class="social-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+                <button class="social-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button class="social-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+            </div>
+        </div>
+
+        <!-- Page Share -->
+        <div class="page-share">
+            <button id="pageShareBtn" class="page-share-btn"><i class="fas fa-link"></i> Copy Tool Link</button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🚀 Powered by Groq AI | 12+ Languages | Urdu/Hindi/Arabic Support | Free Translation Tool</p>
+            <p class="footer-links">
+                <a href="https://magicrills.com">Home</a> • 
+                <a href="https://magicrills.com/category-pages/mixed-tools.html">All Tools</a> • 
+                <a href="https://magicrills.com/about">About</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- TOAST NOTIFICATION -->
+<!-- ============================================ -->
+<div id="toast" class="toast hidden"><span id="toastMsg"></span></div>
+
+<!-- ============================================ -->
+<!-- SCROLL BUTTONS -->
+<!-- ============================================ -->
+<button id="scrollUpBtn" class="scroll-btn scroll-up hidden"><i class="fas fa-arrow-up"></i></button>
+<button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
+
+<!-- ============================================ -->
+<!-- SCRIPTS -->
+<!-- ============================================ -->
+<script src="auto-translation-tool.js"></script>
+
+<!-- ============================================ -->
+<!-- TYPEWRITER ANIMATION SCRIPT -->
+<!-- ============================================ -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Typewriter Animation
+    const phrases = [
+        'Translate English to Urdu',
+        'AI-Powered Translation',
+        '12+ Languages Supported',
+        'Voice Input Available',
+        'Pronunciation Guide',
+        'Transliteration Support',
+        'Free & Easy to Use'
+    ];
     
-    document.querySelectorAll('.history-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-favorite')) return;
-            const id = parseInt(el.dataset.id);
-            const found = favoritesList.find(f => f.id === id);
-            if (found) {
-                sourceText.value = found.fullOriginal;
-                targetText.innerHTML = found.fullTranslated;
-                updateCharCount();
-                showToast('⭐ Loaded from favorites!');
-                document.querySelector('.smart-tab[data-tab="translate"]').click();
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterElement = document.getElementById('typewriterText');
+    const cursorElement = document.querySelector('.typewriter-cursor');
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let speed = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            speed = 500;
+        }
+        
+        setTimeout(typeEffect, speed);
+    }
+    
+    typeEffect();
+
+    // Update hero usage count from stats
+    setTimeout(() => {
+        const usageCount = document.getElementById('usageCount');
+        const heroUsage = document.getElementById('heroUsageCount');
+        if (usageCount && heroUsage) {
+            heroUsage.textContent = usageCount.textContent;
+        }
+    }, 1000);
+
+    // Animate stats on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
             }
         });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.stat-card, .feature-card').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
     });
-    
-    document.querySelectorAll('.remove-favorite').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = parseInt(btn.dataset.id);
-            let favs = JSON.parse(localStorage.getItem('translationFavorites') || '[]');
-            favs = favs.filter(f => f.id !== id);
-            localStorage.setItem('translationFavorites', JSON.stringify(favs));
-            loadFavorites();
-            showToast('Removed from favorites');
-        });
-    });
-}
+});
+</script>
 
-function saveToFavorites() {
-    if (!currentTranslation || !currentSourceText) {
-        showToast('No translation to save', 'error');
-        return;
-    }
-    
-    const favoritesList = JSON.parse(localStorage.getItem('translationFavorites') || '[]');
-    const exists = favoritesList.some(f => f.fullOriginal === currentSourceText && f.fullTranslated === currentTranslation);
-    
-    if (exists) {
-        showToast('Already in favorites', 'warning');
-        return;
-    }
-    
-    favoritesList.unshift({
-        id: Date.now(),
-        original: currentSourceText.substring(0, 100),
-        translated: currentTranslation.substring(0, 100),
-        fullOriginal: currentSourceText,
-        fullTranslated: currentTranslation,
-        from: fromLang.value,
-        to: toLang.value,
-        date: new Date().toISOString()
-    });
-    
-    localStorage.setItem('translationFavorites', JSON.stringify(favoritesList));
-    loadFavorites();
-    showToast('⭐ Saved to favorites!');
-}
-
-function clearHistory() {
-    if (confirm('Delete all translation history?')) {
-        localStorage.removeItem('translationHistory');
-        loadHistory();
-        updateTranslationCount();
-        showToast('History cleared!');
-    }
-}
-
-function clearFavorites() {
-    if (confirm('Delete all favorites?')) {
-        localStorage.removeItem('translationFavorites');
-        loadFavorites();
-        showToast('Favorites cleared!');
-    }
-}
-
-function updateTranslationCount() {
-    const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
-    translationCountSpan.textContent = history.length;
-}
-
-// ============================================
-// HELPERS
-// ============================================
-function updateCharCount() {
-    const count = sourceText.value.length;
-    charCounter.textContent = count + ' characters';
-    
-    if (fromLang.value === 'auto' && count > 5) {
-        detectLanguage(sourceText.value);
-    } else {
-        detectedLangDiv.style.display = 'none';
-    }
-}
-
-function copyToClipboard() {
-    if (!currentTranslation) {
-        showToast('Nothing to copy', 'error');
-        return;
-    }
-    navigator.clipboard.writeText(currentTranslation);
-    showToast('📋 Copied to clipboard!');
-}
-
-function swapLanguages() {
-    const fromVal = fromLang.value;
-    const toVal = toLang.value;
-    fromLang.value = toVal;
-    toLang.value = fromVal;
-    
-    const sourceVal = sourceText.value;
-    const targetVal = targetText.innerHTML;
-    if (sourceVal && targetVal && targetVal !== 'Translation will appear here...' && targetVal !== 'Translation will appear here...') {
-        sourceText.value = targetVal;
-        targetText.innerHTML = sourceVal;
-        currentSourceText = targetVal;
-        currentTranslation = sourceVal;
-        updateCharCount();
-    }
-    
-    showToast('🔄 Languages swapped!');
-}
-
-function downloadAsTXT() {
-    if (!currentTranslation) {
-        showToast('No translation to download', 'error');
-        return;
-    }
-    const content = `Original (${languageNames[fromLang.value]}):\n${currentSourceText}\n\nTranslation (${languageNames[toLang.value]}):\n${currentTranslation}\n\nDate: ${new Date().toLocaleString()}\nTool: Auto Translation Tool`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `translation-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('📥 Downloaded as TXT!');
-}
-
-function speakSource() {
-    const text = sourceText.value;
-    if (!text) {
-        showToast('No text to speak', 'error');
-        return;
-    }
-    const locale = pronunciationMap[fromLang.value] || 'en-US';
-    speakText(text, locale);
-}
-
-function speakTarget() {
-    if (!currentTranslation) {
-        showToast('No translation to speak', 'error');
-        return;
-    }
-    const locale = pronunciationMap[toLang.value] || 'en-US';
-    speakText(currentTranslation, locale);
-}
-
-function clearInput() {
-    sourceText.value = '';
-    targetText.innerHTML = 'Translation will appear here...';
-    currentTranslation = '';
-    currentSourceText = '';
-    updateCharCount();
-    detectedLangDiv.style.display = 'none';
-    pronunciationBox.style.display = 'none';
-    showToast('🗑️ Cleared!');
-}
-
-function exportData() {
-    const data = {
-        history: localStorage.getItem('translationHistory'),
-        favorites: localStorage.getItem('translationFavorites'),
-        settings: {
-            darkMode: localStorage.getItem('darkMode'),
-            pronunciation: localStorage.getItem('pronunciationEnabled'),
-            transliteration: localStorage.getItem('transliterationEnabled')
-        }
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `translation-data-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('📦 Data exported!');
-}
-
-function importData() {
-    importFile.click();
-}
-
-if (importFile) {
-    importFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (data.history) localStorage.setItem('translationHistory', data.history);
-                if (data.favorites) localStorage.setItem('translationFavorites', data.favorites);
-                if (data.settings?.darkMode === 'true') toggleDarkMode();
-                loadHistory();
-                loadFavorites();
-                updateTranslationCount();
-                showToast('📦 Data imported!');
-            } catch(err) { showToast('Invalid file', 'error'); }
-        };
-        reader.readAsText(file);
-        importFile.value = '';
-    });
-}
-
-function sharePage() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('🔗 Link copied!');
-}
-
-function shareTool(platform) {
-    const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent('Auto Translation Tool');
-    let shareUrl = '';
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
-    else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${title}%20${url}`;
-    else if (platform === 'email') shareUrl = `mailto:?subject=${title}&body=${url}`;
-    if (shareUrl) { 
-        window.open(shareUrl); 
-        trackShare(platform); 
-        showToast(`📤 Shared on ${platform}!`); 
-    }
-}
-
-function goHome() {
-    window.location.href = 'https://magicrills.com';
-}
-
-function goBack() {
-    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
-}
-
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark);
-    if (darkModeToggle) {
-        darkModeToggle.textContent = isDark ? 'On' : 'Off';
-        darkModeToggle.classList.toggle('active', isDark);
-    }
-    showToast(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled');
-}
-
-function togglePronunciation() {
-    pronunciationToggle.classList.toggle('active');
-    const isOn = pronunciationToggle.classList.contains('active');
-    localStorage.setItem('pronunciationEnabled', isOn);
-    if (!isOn) pronunciationBox.style.display = 'none';
-    else if (currentTranslation) showPronunciation(toLang.value, currentTranslation);
-    showToast(isOn ? '🔊 Pronunciation on' : '🔇 Pronunciation off');
-}
-
-function toggleTransliteration() {
-    transliterationToggle.classList.toggle('active');
-    const isOn = transliterationToggle.classList.contains('active');
-    localStorage.setItem('transliterationEnabled', isOn);
-    if (!isOn && pronunciationBox) {
-        const transItem = pronunciationBox.querySelector('.pronunciation-item:last-child');
-        if (transItem) transItem.style.display = 'none';
-    } else if (isOn && currentTranslation) {
-        showTransliteration(currentTranslation, toLang.value);
-    }
-    showToast(isOn ? '🔤 Transliteration on' : '🔤 Transliteration off');
-}
-
-function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
-
-function showToast(msg, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toastMsg');
-    if (!toast || !toastMsg) return;
-    toastMsg.textContent = msg;
-    toast.classList.remove('hidden');
-    toast.style.background = type === 'error' ? 'var(--neon-pink)' : 'rgba(0,20,40,0.95)';
-    toast.style.border = '1px solid ' + (type === 'error' ? 'var(--neon-pink)' : 'var(--neon-cyan)');
-    setTimeout(() => toast.classList.add('hidden'), 3000);
-}
-
-function getEmojiName(emoji) {
-    const names = { like: '👍 Like', love: '❤️ Love', wow: '😮 Wow', sad: '😢 Sad', angry: '😠 Angry', laugh: '😂 Laugh', celebrate: '🎉 Celebrate' };
-    return names[emoji] || emoji;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ============================================
-// TABS
-// ============================================
-function initTabs() {
-    document.querySelectorAll('.smart-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabId = tab.getAttribute('data-tab');
-            document.querySelectorAll('.smart-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            tab.classList.add('active');
-            const activePanel = document.getElementById(`${tabId}-tab`);
-            if (activePanel) activePanel.classList.add('active');
-            
-            if (tabId === 'history') loadHistory();
-            if (tabId === 'favorites') loadFavorites();
-        });
-    });
-}
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
-function initEventListeners() {
-    translateBtn.addEventListener('click', translateText);
-    copyBtn.addEventListener('click', copyToClipboard);
-    speakSourceBtn.addEventListener('click', speakSource);
-    speakTargetBtn.addEventListener('click', speakTarget);
-    clearInputBtn.addEventListener('click', clearInput);
-    micBtn.addEventListener('click', startVoiceInput);
-    swapBtn.addEventListener('click', swapLanguages);
-    downloadTxtBtn.addEventListener('click', downloadAsTXT);
-    favoriteBtn.addEventListener('click', saveToFavorites);
-    clearHistoryBtn.addEventListener('click', clearHistory);
-    clearFavoritesBtn.addEventListener('click', clearFavorites);
-    darkModeToggle.addEventListener('click', toggleDarkMode);
-    pronunciationToggle.addEventListener('click', togglePronunciation);
-    transliterationToggle.addEventListener('click', toggleTransliteration);
-    exportDataBtn.addEventListener('click', exportData);
-    importDataBtn.addEventListener('click', importData);
-    pageShareBtn.addEventListener('click', sharePage);
-    scrollUpBtn.addEventListener('click', scrollToTop);
-    scrollDownBtn.addEventListener('click', scrollToBottom);
-    
-    if (homeBtn) homeBtn.addEventListener('click', goHome);
-    if (backBtn) backBtn.addEventListener('click', goBack);
-    
-    sourceText.addEventListener('input', updateCharCount);
-    
-    document.querySelectorAll('.reaction').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const emoji = btn.dataset.emoji;
-            if (emoji) addReaction(emoji);
-        });
-    });
-    
-    document.querySelectorAll('.social-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const platform = btn.dataset.platform;
-            if (platform) shareTool(platform);
-        });
-    });
-    
-    window.addEventListener('scroll', () => {
-        if (scrollUpBtn) scrollUpBtn.classList.toggle('hidden', window.scrollY <= 200);
-    });
-}
-
-// ============================================
-// INITIALIZE
-// ============================================
-function init() {
-    initTabs();
-    initEventListeners();
-    loadStats();
-    loadHistory();
-    loadFavorites();
-    updateTranslationCount();
-    
-    const savedDark = localStorage.getItem('darkMode');
-    if (savedDark === 'true') {
-        document.body.classList.add('dark-mode');
-        if (darkModeToggle) {
-            darkModeToggle.textContent = 'On';
-            darkModeToggle.classList.add('active');
-        }
-    }
-    
-    const savedPron = localStorage.getItem('pronunciationEnabled');
-    if (savedPron === 'false') {
-        pronunciationToggle.classList.remove('active');
-    }
-    
-    const savedTrans = localStorage.getItem('transliterationEnabled');
-    if (savedTrans === 'false') {
-        transliterationToggle.classList.remove('active');
-    }
-    
-    targetText.innerHTML = '✨ Translation will appear here...';
-    showToast('🚀 Translation Tool ready!');
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
-
-// Make functions globally accessible for inline onclick
-window.speakText = speakText;
-window.goHome = goHome;
-window.goBack = goBack;
+</body>
+</html>
