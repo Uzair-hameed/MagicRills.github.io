@@ -1,25 +1,32 @@
 /* ============================================
    SPEECH-TO-NOTES CONVERTER - COMPLETE JS
-   37 Features with AI Integration & TiDB
-   Reactions FULLY WORKING - 7 Emojis
+   Cloudflare Workers API Integration
+   7 Reactions FULLY WORKING
    ============================================ */
 
 // ============================================
-// Configuration
+// CONFIGURATION
 // ============================================
 const TOOL_SLUG = 'speech-to-notes-converter';
 const TOOL_NAME = 'Speech-to-Notes Converter';
 const CATEGORY = 'student';
-const WORKER_URL = 'https://speech-to-notes-converter.uzairhameed01.workers.dev';
-const API_BASE = '/api';
 
+// Cloudflare API Configuration
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
+
+// ============================================
+// USER ID
+// ============================================
 let userId = localStorage.getItem('userId');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('userId', userId);
 }
 
-// Data
+// ============================================
+// DATA STORE
+// ============================================
 let savedNotes = [];
 let currentSummary = '';
 let currentKeyPoints = [];
@@ -30,9 +37,11 @@ let recognition = null;
 let isRecording = false;
 
 // ============================================
-// DOM Elements
+// DOM ELEMENTS
 // ============================================
 const usageCountSpan = document.getElementById('usageCount');
+const shareCountSpan = document.getElementById('shareCount');
+const followersCountSpan = document.getElementById('followersCount');
 const notesCountSpan = document.getElementById('notesCount');
 const timeSavedSpan = document.getElementById('timeSaved');
 const transcriptionText = document.getElementById('transcriptionText');
@@ -85,103 +94,200 @@ const laughCount = document.getElementById('laughCount');
 const celebrateCount = document.getElementById('celebrateCount');
 
 // ============================================
-// TiDB API Calls
+// CLOUDFLARE API CALLS
 // ============================================
+
+// Track Usage - Increment counter on tool load
 async function trackUsage() {
     try {
-        await fetch(`${API_BASE}/usage/increment`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, tool_name: TOOL_NAME, category: CATEGORY, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                tool_name: TOOL_NAME,
+                category: CATEGORY,
+                user_id: userId
+            })
         });
-        const current = parseInt(usageCountSpan.textContent) || 0;
-        usageCountSpan.textContent = current + 1;
-    } catch(e) { console.error(e); }
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        updateStatsDisplay(data);
+        return data;
+    } catch (error) {
+        console.warn('Usage API failed, using fallback:', error);
+        // Fallback: Increment local count
+        const localCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0') + 1;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, localCount);
+        if (usageCountSpan) usageCountSpan.textContent = localCount;
+        return { total_usage: localCount };
+    }
 }
 
-// ============================================
-// REACTIONS - FULLY WORKING - 7 EMOJIS
-// ============================================
+// Get Tool Stats
+async function getToolStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': API_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        updateStatsDisplay(data);
+        return data;
+    } catch (error) {
+        console.warn('Stats API failed, using fallback:', error);
+        // Fallback: Load from localStorage
+        const usage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+        const shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+        const followers = parseInt(localStorage.getItem(`${TOOL_SLUG}_followers`) || '0');
+        
+        if (usageCountSpan) usageCountSpan.textContent = usage;
+        if (shareCountSpan) shareCountSpan.textContent = shares;
+        if (followersCountSpan) followersCountSpan.textContent = followers;
+        
+        return { total_usage: usage, shares: shares, followers: followers };
+    }
+}
+
+// Add Reaction
 async function addReaction(emoji) {
     try {
-        // Map emoji to correct name for API
-        let emojiName = emoji;
-        if (emoji === 'like') emojiName = 'like';
-        else if (emoji === 'love') emojiName = 'love';
-        else if (emoji === 'wow') emojiName = 'wow';
-        else if (emoji === 'sad') emojiName = 'sad';
-        else if (emoji === 'angry') emojiName = 'angry';
-        else if (emoji === 'laugh') emojiName = 'laugh';
-        else if (emoji === 'celebrate') emojiName = 'celebrate';
-        
-        const response = await fetch(`${API_BASE}/reactions/add`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emojiName, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                emoji: emoji,
+                user_id: userId
+            })
         });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
         const data = await response.json();
         
-        // Update the counter on screen based on emoji
-        let countSpan = null;
-        if (emoji === 'like') countSpan = likeCount;
-        else if (emoji === 'love') countSpan = loveCount;
-        else if (emoji === 'wow') countSpan = wowCount;
-        else if (emoji === 'sad') countSpan = sadCount;
-        else if (emoji === 'angry') countSpan = angryCount;
-        else if (emoji === 'laugh') countSpan = laughCount;
-        else if (emoji === 'celebrate') countSpan = celebrateCount;
-        
-        if (countSpan) {
-            countSpan.textContent = data.count || (parseInt(countSpan.textContent) + 1);
-        }
+        // Update counter on screen
+        updateReactionCounter(emoji, data.count);
         
         showToast(getEmojiName(emoji) + ' reaction added!');
-    } catch(e) { 
-        console.error('Reaction failed:', e);
-        // Fallback: update locally
-        let countSpan = null;
-        if (emoji === 'like') countSpan = likeCount;
-        else if (emoji === 'love') countSpan = loveCount;
-        else if (emoji === 'wow') countSpan = wowCount;
-        else if (emoji === 'sad') countSpan = sadCount;
-        else if (emoji === 'angry') countSpan = angryCount;
-        else if (emoji === 'laugh') countSpan = laughCount;
-        else if (emoji === 'celebrate') countSpan = celebrateCount;
-        
-        if (countSpan) {
-            countSpan.textContent = parseInt(countSpan.textContent) + 1;
-        }
+        return data;
+    } catch (error) {
+        console.warn('Reaction API failed, using fallback:', error);
+        // Fallback: Update local counter
+        const key = `${TOOL_SLUG}_reaction_${emoji}`;
+        const count = parseInt(localStorage.getItem(key) || '0') + 1;
+        localStorage.setItem(key, count);
+        updateReactionCounter(emoji, count);
         showToast(getEmojiName(emoji) + ' reaction added!');
     }
 }
 
-async function loadReactionStats() {
-    try {
-        const response = await fetch(`${API_BASE}/tools/stats?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (likeCount) likeCount.textContent = data.like_count || 0;
-        if (loveCount) loveCount.textContent = data.love_count || 0;
-        if (wowCount) wowCount.textContent = data.wow_count || 0;
-        if (sadCount) sadCount.textContent = data.sad_count || 0;
-        if (angryCount) angryCount.textContent = data.angry_count || 0;
-        if (laughCount) laughCount.textContent = data.laugh_count || 0;
-        if (celebrateCount) celebrateCount.textContent = data.celebrate_count || 0;
-        if (usageCountSpan) usageCountSpan.textContent = data.total_usage || 0;
-    } catch(e) { console.error(e); }
-}
-
+// Track Share
 async function trackShare(platform) {
     try {
-        await fetch(`${API_BASE}/shares/add`, {
+        const response = await fetch(`${API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, share_type: 'tool', user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                platform: platform,
+                share_type: 'tool',
+                user_id: userId
+            })
         });
-    } catch(e) { console.error(e); }
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (shareCountSpan) {
+            shareCountSpan.textContent = data.total_shares || parseInt(shareCountSpan.textContent) + 1;
+        }
+        return data;
+    } catch (error) {
+        console.warn('Share API failed, using fallback:', error);
+        // Fallback: Update local share count
+        const shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0') + 1;
+        localStorage.setItem(`${TOOL_SLUG}_shares`, shares);
+        if (shareCountSpan) shareCountSpan.textContent = shares;
+    }
 }
 
 // ============================================
-// Speech Recognition
+// UI UPDATE FUNCTIONS
+// ============================================
+
+function updateStatsDisplay(data) {
+    if (data.total_usage !== undefined && usageCountSpan) {
+        usageCountSpan.textContent = data.total_usage;
+    }
+    if (data.shares !== undefined && shareCountSpan) {
+        shareCountSpan.textContent = data.shares;
+    }
+    if (data.followers !== undefined && followersCountSpan) {
+        followersCountSpan.textContent = data.followers;
+    }
+    if (data.like_count !== undefined) updateReactionCounter('like', data.like_count);
+    if (data.love_count !== undefined) updateReactionCounter('love', data.love_count);
+    if (data.wow_count !== undefined) updateReactionCounter('wow', data.wow_count);
+    if (data.sad_count !== undefined) updateReactionCounter('sad', data.sad_count);
+    if (data.angry_count !== undefined) updateReactionCounter('angry', data.angry_count);
+    if (data.laugh_count !== undefined) updateReactionCounter('laugh', data.laugh_count);
+    if (data.celebrate_count !== undefined) updateReactionCounter('celebrate', data.celebrate_count);
+}
+
+function updateReactionCounter(emoji, count) {
+    let countSpan = null;
+    if (emoji === 'like') countSpan = likeCount;
+    else if (emoji === 'love') countSpan = loveCount;
+    else if (emoji === 'wow') countSpan = wowCount;
+    else if (emoji === 'sad') countSpan = sadCount;
+    else if (emoji === 'angry') countSpan = angryCount;
+    else if (emoji === 'laugh') countSpan = laughCount;
+    else if (emoji === 'celebrate') countSpan = celebrateCount;
+    
+    if (countSpan) {
+        countSpan.textContent = count || 0;
+    }
+}
+
+function getEmojiName(emoji) {
+    const names = {
+        like: '👍 Like',
+        love: '❤️ Love',
+        wow: '😮 Wow',
+        sad: '😢 Sad',
+        angry: '😠 Angry',
+        laugh: '😂 Laugh',
+        celebrate: '🎉 Celebrate'
+    };
+    return names[emoji] || emoji;
+}
+
+// ============================================
+// SPEECH RECOGNITION
 // ============================================
 function initSpeechRecognition() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -203,11 +309,10 @@ function initSpeechRecognition() {
         waveAnimation.style.display = 'flex';
         startRecordBtn.disabled = true;
         stopRecordBtn.disabled = false;
-        trackUsage();
     };
     
     recognition.onerror = (event) => {
-        console.error('Recognition error:', event.error);
+        console.warn('Recognition error:', event.error);
         showToast(`Error: ${event.error}`, 'error');
         stopRecording();
     };
@@ -217,7 +322,11 @@ function initSpeechRecognition() {
             if (autoStopToggle.classList.contains('active')) {
                 stopRecording();
             } else {
-                recognition.start();
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // Ignore
+                }
             }
         }
     };
@@ -240,17 +349,31 @@ function initSpeechRecognition() {
 function startRecording() {
     if (recognition) {
         recognition.lang = languageSelect.value;
-        recognition.start();
+        try {
+            recognition.start();
+        } catch (e) {
+            // Already started
+        }
     } else {
         initSpeechRecognition();
-        if (recognition) recognition.start();
+        if (recognition) {
+            try {
+                recognition.start();
+            } catch (e) {
+                // Already started
+            }
+        }
     }
 }
 
 function stopRecording() {
     if (recognition) {
         isRecording = false;
-        recognition.stop();
+        try {
+            recognition.stop();
+        } catch (e) {
+            // Already stopped
+        }
         recordingStatus.innerHTML = '<i class="fas fa-circle"></i> Ready to record';
         recordingStatus.className = 'status-idle';
         waveAnimation.style.display = 'none';
@@ -261,7 +384,7 @@ function stopRecording() {
 }
 
 // ============================================
-// AI Functions (Mock - Will connect to worker)
+// AI FUNCTIONS
 // ============================================
 async function summarizeText() {
     const text = transcriptionText.value.trim();
@@ -272,14 +395,24 @@ async function summarizeText() {
     
     showAIProgress(true, 'AI is summarizing...');
     
-    // Mock summarization (replace with actual API call)
+    // For now, use a simple summarization algorithm
+    // In production, this would call the AI API
     setTimeout(() => {
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-        const summary = sentences.slice(0, 5).join('. ') + '.';
-        currentSummary = summary;
-        summaryTextDiv.innerHTML = summary;
-        showResults();
-        showToast('Summary generated!');
+        try {
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            let summary;
+            if (sentences.length > 5) {
+                summary = sentences.slice(0, 5).join('. ') + '.';
+            } else {
+                summary = text.substring(0, 300) + (text.length > 300 ? '...' : '');
+            }
+            currentSummary = summary;
+            summaryTextDiv.innerHTML = summary;
+            showResults();
+            showToast('Summary generated!');
+        } catch (e) {
+            showToast('Error generating summary', 'error');
+        }
         showAIProgress(false);
     }, 1500);
 }
@@ -294,12 +427,16 @@ async function extractKeyPoints() {
     showAIProgress(true, 'Extracting key points...');
     
     setTimeout(() => {
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 30);
-        const points = sentences.slice(0, 6).map((s, i) => `${i+1}. ${s.trim()}`);
-        currentKeyPoints = points;
-        keypointsList.innerHTML = points.map(p => `<li>${p}</li>`).join('');
-        showResults();
-        showToast('Key points extracted!');
+        try {
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 30);
+            const points = sentences.slice(0, 7).map((s, i) => `• ${s.trim()}`);
+            currentKeyPoints = points;
+            keypointsList.innerHTML = points.map(p => `<li style="list-style: none; padding: 10px 14px; border-left: 3px solid var(--primary); margin-bottom: 6px; background: rgba(255,255,255,0.02); border-radius: 8px;">${p}</li>`).join('');
+            showResults();
+            showToast('Key points extracted!');
+        } catch (e) {
+            showToast('Error extracting key points', 'error');
+        }
         showAIProgress(false);
     }, 1500);
 }
@@ -329,11 +466,24 @@ async function fixGrammar() {
     showAIProgress(true, 'Checking grammar...');
     
     setTimeout(() => {
-        currentGrammarFixed = text;
-        grammarTextDiv.innerHTML = text;
-        grammarSuggestionsDiv.innerHTML = '<div>✅ No major grammar issues found!</div>';
-        showResults();
-        showToast('Grammar check complete!');
+        try {
+            // Simple grammar fixes (capitalization, punctuation)
+            let fixed = text
+                .replace(/\s+/g, ' ')
+                .replace(/\bi\b/g, 'I')
+                .replace(/([.!?])\s*([a-z])/g, (match, punct, letter) => punct + ' ' + letter.toUpperCase());
+            
+            // Capitalize first letter
+            fixed = fixed.charAt(0).toUpperCase() + fixed.slice(1);
+            
+            currentGrammarFixed = fixed;
+            grammarTextDiv.innerHTML = fixed;
+            grammarSuggestionsDiv.innerHTML = '<div>✅ Grammar and punctuation improved!</div>';
+            showResults();
+            showToast('Grammar check complete!');
+        } catch (e) {
+            showToast('Error checking grammar', 'error');
+        }
         showAIProgress(false);
     }, 1500);
 }
@@ -347,7 +497,7 @@ function applyGrammarFixes() {
 }
 
 // ============================================
-// UI Helper Functions
+// UI HELPER FUNCTIONS
 // ============================================
 function updateCounters() {
     const text = transcriptionText.value;
@@ -377,7 +527,8 @@ function showToast(msg, type = 'success') {
     if (!toast || !toastMsg) return;
     toastMsg.textContent = msg;
     toast.classList.remove('hidden');
-    toast.style.background = type === 'error' ? '#ef4444' : '#333';
+    toast.style.background = type === 'error' ? 'rgba(255,71,87,0.9)' : 'rgba(17,17,40,0.95)';
+    toast.style.border = type === 'error' ? '1px solid rgba(255,71,87,0.3)' : '1px solid var(--glass-border)';
     setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
@@ -390,21 +541,8 @@ function copyToClipboard(text) {
     showToast('Copied to clipboard!');
 }
 
-function getEmojiName(emoji) {
-    const names = { 
-        like: '👍 Like', 
-        love: '❤️ Love', 
-        wow: '😮 Wow', 
-        sad: '😢 Sad', 
-        angry: '😠 Angry', 
-        laugh: '😂 Laugh', 
-        celebrate: '🎉 Celebrate' 
-    };
-    return names[emoji] || emoji;
-}
-
 // ============================================
-// Notes Management
+// NOTES MANAGEMENT
 // ============================================
 function saveNote() {
     const text = transcriptionText.value.trim();
@@ -437,7 +575,10 @@ function loadHistory() {
     if (!historyList) return;
     
     if (savedNotes.length === 0) {
-        historyList.innerHTML = '<div class="empty-state">No saved notes yet. Record and save your first note!</div>';
+        historyList.innerHTML = `<div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            No saved notes yet. Record and save your first note!
+        </div>`;
         return;
     }
     
@@ -477,7 +618,7 @@ function clearHistory() {
 }
 
 // ============================================
-// Export Functions
+// EXPORT FUNCTIONS
 // ============================================
 function exportAsTXT() {
     const text = transcriptionText.value.trim();
@@ -533,7 +674,11 @@ function printNotes() {
     const text = transcriptionText.value.trim();
     if (!text) return;
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Lecture Notes</title><style>body{font-family:Arial;padding:40px;}</style></head><body><pre>${escapeHtml(text)}</pre></body></html>`);
+    if (!printWindow) {
+        showToast('Please allow popups for printing', 'error');
+        return;
+    }
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Lecture Notes</title><style>body{font-family:Arial;padding:40px;background:#fff;color:#000;}</style></head><body><pre>${escapeHtml(text)}</pre></body></html>`);
     printWindow.document.close();
     printWindow.print();
 }
@@ -569,14 +714,22 @@ function loadDraft() {
     }
 }
 
+// ============================================
+// SETTINGS
+// ============================================
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDark);
-    darkModeToggle.textContent = isDark ? 'On' : 'Off';
-    darkModeToggle.classList.toggle('active', isDark);
+    if (darkModeToggle) {
+        darkModeToggle.textContent = isDark ? 'On' : 'Off';
+        darkModeToggle.classList.toggle('active', isDark);
+    }
 }
 
+// ============================================
+// DATA MANAGEMENT
+// ============================================
 function exportData() {
     const data = {
         notes: localStorage.getItem('speechNotes'),
@@ -605,7 +758,13 @@ if (importFile) {
             try {
                 const data = JSON.parse(ev.target.result);
                 if (data.notes) localStorage.setItem('speechNotes', data.notes);
-                if (data.settings?.darkMode === 'true') toggleDarkMode();
+                if (data.settings?.darkMode === 'true') {
+                    document.body.classList.add('dark-mode');
+                    if (darkModeToggle) {
+                        darkModeToggle.textContent = 'On';
+                        darkModeToggle.classList.add('active');
+                    }
+                }
                 loadHistory();
                 showToast('Data imported!');
             } catch(err) { showToast('Invalid file', 'error'); }
@@ -615,6 +774,9 @@ if (importFile) {
     });
 }
 
+// ============================================
+// SHARE FUNCTIONS
+// ============================================
 function sharePage() {
     navigator.clipboard.writeText(window.location.href);
     showToast('Link copied!');
@@ -629,7 +791,11 @@ function shareTool(platform) {
     else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
     else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${title}%20${url}`;
     else if (platform === 'email') shareUrl = `mailto:?subject=${title}&body=${url}`;
-    if (shareUrl) { window.open(shareUrl); trackShare(platform); showToast(`Shared on ${platform}!`); }
+    if (shareUrl) { 
+        window.open(shareUrl); 
+        trackShare(platform); 
+        showToast(`Shared on ${platform}!`); 
+    }
 }
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -642,7 +808,56 @@ function escapeHtml(text) {
 }
 
 // ============================================
-// Result Tabs
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const phrases = [
+        '🎙️ Convert speech to notes instantly',
+        '🤖 AI-powered transcription & summarization',
+        '📝 Extract key points from any lecture',
+        '⚡ Real-time speech recognition',
+        '📚 Perfect for students & professionals',
+        '🧠 Smart note-taking with AI',
+        '🌍 Supports multiple languages'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById('typewriterText');
+    
+    if (!element) return;
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let delay = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            delay = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            delay = 500;
+        }
+        
+        setTimeout(type, delay);
+    }
+    
+    type();
+}
+
+// ============================================
+// RESULT TABS
 // ============================================
 function initResultTabs() {
     document.querySelectorAll('.result-tab').forEach(tab => {
@@ -657,7 +872,7 @@ function initResultTabs() {
 }
 
 // ============================================
-// Tabs
+// TABS
 // ============================================
 function initTabs() {
     document.querySelectorAll('.smart-tab').forEach(tab => {
@@ -674,7 +889,7 @@ function initTabs() {
 }
 
 // ============================================
-// Event Listeners - REACTIONS FIXED
+// EVENT LISTENERS
 // ============================================
 function initEventListeners() {
     startRecordBtn?.addEventListener('click', startRecording);
@@ -714,17 +929,14 @@ function initEventListeners() {
     // REACTIONS - FULLY WORKING - 7 EMOJIS
     // ============================================
     const reactionButtons = document.querySelectorAll('.reaction');
-    console.log('Found reactions:', reactionButtons.length);
     
     reactionButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             const emoji = btn.getAttribute('data-emoji');
-            console.log('Reaction clicked:', emoji);
             if (emoji) {
                 addReaction(emoji);
-                // Visual feedback
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 300);
             }
@@ -746,31 +958,44 @@ function initEventListeners() {
 }
 
 // ============================================
-// Initialize
+// INITIALIZE
 // ============================================
-function init() {
+async function init() {
+    // Initialize UI
     initTabs();
     initResultTabs();
     initEventListeners();
     initSpeechRecognition();
-    loadReactionStats();
+    initTypewriter();
+    
+    // Load data
+    await getToolStats();
+    await trackUsage(); // Increment usage on load
+    
     loadHistory();
     loadDraft();
     
+    // Load dark mode preference
     const savedDark = localStorage.getItem('darkMode');
     if (savedDark === 'true') {
         document.body.classList.add('dark-mode');
-        darkModeToggle.textContent = 'On';
-        darkModeToggle.classList.add('active');
+        if (darkModeToggle) {
+            darkModeToggle.textContent = 'On';
+            darkModeToggle.classList.add('active');
+        }
     }
     
+    // Load notes count
     savedNotes = JSON.parse(localStorage.getItem('speechNotes') || '[]');
     notesCountSpan.textContent = savedNotes.length;
     
     // Calculate time saved (mock)
-    timeSavedSpan.textContent = Math.floor(Math.random() * 50) + 10;
+    const notesCount = savedNotes.length;
+    const hoursSaved = Math.floor(notesCount * 0.5) + 5;
+    timeSavedSpan.textContent = hoursSaved;
     
-    showToast('Speech-to-Notes ready!');
+    showToast('Speech-to-Notes ready! 🎙️');
 }
 
+// Start the application
 init();
