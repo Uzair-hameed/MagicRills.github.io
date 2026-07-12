@@ -1,265 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- ============================================ -->
+    <!-- META TAGS - FULL SEO OPTIMIZATION -->
+    <!-- ============================================ -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- PRIMARY SEO -->
-    <title>Free Speech to Notes Converter - AI Tool for Students</title>
-    <meta name="description" content="Convert speech to written notes instantly with our free AI tool. Perfect for students. Save time and capture every word from lectures.">
-    <meta name="keywords" content="speech to notes, voice to text, student tools, lecture notes, AI transcription, study helper">
+    <!-- Primary Meta Tags -->
+    <title>Speech-to-Notes Converter | AI-Powered Lecture Transcriber & Note Taker</title>
+    <meta name="title" content="Speech-to-Notes Converter | AI-Powered Lecture Transcriber & Note Taker">
+    <meta name="description" content="AI-powered speech to notes converter. Record lectures, get real-time transcriptions, AI summaries, key points, and study notes instantly. Free online tool.">
+    <meta name="keywords" content="speech to notes, lecture transcriber, AI note taker, voice to text, speech recognition, study tool, transcription, AI summary, student tool">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://magicrills.com/Student/speech-to-notes-converter.html">
+    <meta name="author" content="MagicRills">
+    <link rel="canonical" href="https://magicrills.com/tools/speech-to-notes-converter.html">
     
-    <!-- OPEN GRAPH -->
-    <meta property="og:title" content="Free Speech to Notes Converter - AI Tool for Students">
-    <meta property="og:description" content="Convert speech to written notes instantly with our free AI tool. Perfect for students. Save time and capture every word from lectures.">
-    <meta property="og:url" content="https://magicrills.com/Student/speech-to-notes-converter.html">
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://magicrills.com/pics/og-speech-to-notes-converter.webp.webp">
-    
-    <!-- TWITTER -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Free Speech to Notes Converter - AI Tool for Students">
-    <meta name="twitter:description" content="Convert speech to written notes instantly with our free AI tool. Perfect for students. Save time and capture every word from lectures.">
-    <meta name="twitter:image" content="https://magicrills.com/pics/og-speech-to-notes-converter.webp.webp">
-    
-    <!-- STYLES & FONTS -->
-    <link rel="stylesheet" href="speech-to-notes-converter.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
+    <meta property="og:url" content="https://magicrills.com/tools/speech-to-notes-converter.html">
+    <meta property="og:title" content="Speech-to-Notes Converter | AI-Powered Lecture Transcriber">
+    <meta property="og:description" content="Convert speech to notes instantly. AI-powered transcription, summarization, and key point extraction for students and professionals.">
+    <meta property="og:image" content="https://magicrills.com/assets/images/og-speech-to-notes.jpg">
 
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://magicrills.com/tools/speech-to-notes-converter.html">
+    <meta property="twitter:title" content="Speech-to-Notes Converter | AI-Powered Lecture Transcriber">
+    <meta property="twitter:description" content="Convert speech to notes instantly. AI-powered transcription, summarization, and key point extraction.">
+    <meta property="twitter:image" content="https://magicrills.com/assets/images/og-speech-to-notes.jpg">
+
+    <!-- Schema / Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Speech-to-Notes Converter",
+        "description": "AI-powered speech to notes converter. Record lectures, get transcriptions, AI summaries, and key points instantly.",
+        "applicationCategory": "Educational Application",
+        "browserRequirements": "Requires Chrome with Web Speech API support",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "url": "https://magicrills.com/tools/speech-to-notes-converter.html"
+    }
+    </script>
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="speech-to-notes-converter.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
 <body>
 
-<div class="container">
-    <!-- Header -->
-    <div class="header">
-        <h1><i class="fas fa-microphone-alt"></i> Speech-to-Notes Converter</h1>
-        <p>AI-powered lecture transcriber | Real-time speech recognition | Smart summaries</p>
-    </div>
+    <!-- ============================================ -->
+    <!-- CONTAINER -->
+    <!-- ============================================ -->
+    <div class="container">
 
-    <!-- Stats Dashboard -->
-    <div class="stats-dashboard">
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-eye"></i></div>
-            <div class="stat-value" id="usageCount">0</div>
-            <div class="stat-label">Times Used</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
-            <div class="stat-value" id="notesCount">0</div>
-            <div class="stat-label">Notes Saved</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-clock"></i></div>
-            <div class="stat-value" id="timeSaved">0</div>
-            <div class="stat-label">Hours Saved</div>
-        </div>
-    </div>
-
-    <!-- Main Card -->
-    <div class="main-card">
-        <!-- Smart Tabs -->
-        <div class="smart-tabs">
-            <button class="smart-tab active" data-tab="record"><i class="fas fa-microphone"></i> Record</button>
-            <button class="smart-tab" data-tab="history"><i class="fas fa-history"></i> History</button>
-            <button class="smart-tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
-        </div>
-
-        <!-- Record Tab -->
-        <div id="record-tab" class="tab-panel active">
-            <!-- Language Selector -->
-            <div class="language-bar">
-                <label><i class="fas fa-language"></i> Language</label>
-                <select id="languageSelect">
-                    <option value="en-US">🇬🇧 English (US)</option>
-                    <option value="en-GB">🇬🇧 English (UK)</option>
-                    <option value="ur-PK">🇵🇰 Urdu</option>
-                    <option value="hi-IN">🇮🇳 Hindi</option>
-                    <option value="ar-SA">🇸🇦 Arabic</option>
-                    <option value="es-ES">🇪🇸 Spanish</option>
-                </select>
+        <!-- ============================================ -->
+        <!-- NAVIGATION BAR -->
+        <!-- ============================================ -->
+        <nav class="nav-bar" aria-label="Main Navigation">
+            <div class="nav-left">
+                <a href="https://magicrills.com" class="nav-btn" aria-label="Home">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="https://magicrills.com/category-pages/mixed-tools.html" class="nav-btn" aria-label="Back to Tools">
+                    <i class="fas fa-arrow-left"></i> Back to Tools
+                </a>
             </div>
+            <div class="nav-right">
+                <span style="color: var(--dark-muted); font-size: 0.8rem;">
+                    <i class="fas fa-microchip" style="color: var(--neon-blue);"></i> AI-Powered
+                </span>
+            </div>
+        </nav>
 
-            <!-- Recording Section -->
-            <div class="recording-section">
-                <div id="recordingStatus" class="status-idle">
-                    <i class="fas fa-circle"></i> Ready to record
+        <!-- ============================================ -->
+        <!-- HERO SECTION - AI POWERED WITH TYPEWRITER -->
+        <!-- ============================================ -->
+        <section class="hero-section" aria-label="Tool Hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-sparkles"></i> AI-Powered Tool
                 </div>
-                
-                <div class="wave-animation" id="waveAnimation" style="display:none;">
-                    <span></span><span></span><span></span><span></span><span></span>
+                <h1 class="hero-title">
+                    Speech-to-<span class="highlight">Notes</span> Converter
+                </h1>
+                <div class="typewriter-container">
+                    <span class="typewriter-text" id="typewriterText"></span>
                 </div>
-
-                <div class="button-group">
-                    <button id="startRecordBtn" class="btn-primary"><i class="fas fa-play"></i> Start Recording</button>
-                    <button id="stopRecordBtn" class="btn-danger" disabled><i class="fas fa-stop"></i> Stop</button>
-                    <button id="clearBtn" class="btn-secondary"><i class="fas fa-trash-alt"></i> Clear</button>
+                <p style="color: var(--dark-muted); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.7;">
+                    Record lectures, meetings, or any speech and get instant AI-powered transcriptions, 
+                    summaries, and key points. Perfect for students and professionals.
+                </p>
+                <div class="hero-actions">
+                    <button class="hero-btn-primary" onclick="document.getElementById('startRecordBtn').click()">
+                        <i class="fas fa-microphone"></i> Start Recording
+                    </button>
+                    <a href="#features" class="hero-btn-secondary">
+                        <i class="fas fa-list-check"></i> Features
+                    </a>
                 </div>
             </div>
+            <div class="hero-image">
+                <div class="hero-image-wrapper">
+                    <div class="orbit-ring"></div>
+                    <div class="orbit-ring"></div>
+                    <div class="floating-icon"><i class="fas fa-microphone"></i></div>
+                    <div class="floating-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="floating-icon"><i class="fas fa-brain"></i></div>
+                    <div class="floating-icon"><i class="fas fa-magic"></i></div>
+                    <div class="floating-icon"><i class="fas fa-robot"></i></div>
+                </div>
+            </div>
+        </section>
 
-            <!-- Transcription Section -->
-            <div class="transcription-section">
-                <div class="section-header">
-                    <h3><i class="fas fa-file-alt"></i> Transcription</h3>
-                    <div class="section-actions">
-                        <span id="wordCounter" class="counter-badge">0 words</span>
-                        <span id="charCounter" class="counter-badge">0 chars</span>
-                        <button id="copyTranscriptionBtn" class="icon-btn" title="Copy"><i class="fas fa-copy"></i></button>
+        <!-- ============================================ -->
+        <!-- STATS DASHBOARD - REAL DATA (NO FAKE DATES) -->
+        <!-- ============================================ -->
+        <div class="stats-dashboard" aria-label="Tool Statistics">
+            <div class="stat-card">
+                <span class="stat-icon neon-blue"><i class="fas fa-eye"></i></span>
+                <span class="stat-value" id="usageCount">0</span>
+                <span class="stat-label">Total Usage</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon neon-pink"><i class="fas fa-share-alt"></i></span>
+                <span class="stat-value" id="shareCount">0</span>
+                <span class="stat-label">Shares</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon neon-purple"><i class="fas fa-users"></i></span>
+                <span class="stat-value" id="followersCount">0</span>
+                <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon neon-green"><i class="fas fa-clock"></i></span>
+                <span class="stat-value" id="timeSaved">0</span>
+                <span class="stat-label">Hours Saved</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon neon-yellow"><i class="fas fa-file-alt"></i></span>
+                <span class="stat-value" id="notesCount">0</span>
+                <span class="stat-label">Notes Saved</span>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MAIN CARD -->
+        <!-- ============================================ -->
+        <main class="main-card" role="main">
+
+            <!-- Smart Tabs -->
+            <div class="smart-tabs" role="tablist">
+                <button class="smart-tab active" data-tab="record" role="tab" aria-selected="true">
+                    <i class="fas fa-microphone"></i> Record
+                </button>
+                <button class="smart-tab" data-tab="history" role="tab" aria-selected="false">
+                    <i class="fas fa-history"></i> History
+                </button>
+                <button class="smart-tab" data-tab="settings" role="tab" aria-selected="false">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
+
+            <!-- ============================================ -->
+            <!-- RECORD TAB -->
+            <!-- ============================================ -->
+            <div id="record-tab" class="tab-panel active" role="tabpanel">
+
+                <!-- Language Selector -->
+                <div class="language-bar">
+                    <label for="languageSelect"><i class="fas fa-language"></i> Language</label>
+                    <select id="languageSelect">
+                        <option value="en-US">🇬🇧 English (US)</option>
+                        <option value="en-GB">🇬🇧 English (UK)</option>
+                        <option value="ur-PK">🇵🇰 Urdu</option>
+                        <option value="hi-IN">🇮🇳 Hindi</option>
+                        <option value="ar-SA">🇸🇦 Arabic</option>
+                        <option value="es-ES">🇪🇸 Spanish</option>
+                        <option value="fr-FR">🇫🇷 French</option>
+                        <option value="de-DE">🇩🇪 German</option>
+                        <option value="zh-CN">🇨🇳 Chinese</option>
+                    </select>
+                </div>
+
+                <!-- Recording Section -->
+                <div class="recording-section">
+                    <div id="recordingStatus" class="status-idle">
+                        <i class="fas fa-circle"></i> Ready to record
+                    </div>
+                    
+                    <div class="wave-animation" id="waveAnimation" style="display:none;" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span><span></span>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="startRecordBtn" class="btn-primary" aria-label="Start Recording">
+                            <i class="fas fa-play"></i> Start Recording
+                        </button>
+                        <button id="stopRecordBtn" class="btn-danger" disabled aria-label="Stop Recording">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                        <button id="clearBtn" class="btn-secondary" aria-label="Clear Text">
+                            <i class="fas fa-trash-alt"></i> Clear
+                        </button>
                     </div>
                 </div>
-                <textarea id="transcriptionText" placeholder="Your transcribed text will appear here... Start recording or paste text..."></textarea>
-            </div>
 
-            <!-- AI Actions -->
-            <div class="ai-actions-bar">
-                <button id="summarizeBtn" class="btn-ai"><i class="fas fa-magic"></i> AI Summarize</button>
-                <button id="keyPointsBtn" class="btn-ai"><i class="fas fa-list-ul"></i> Extract Key Points</button>
-                <button id="bulletPointsBtn" class="btn-ai"><i class="fas fa-bullseye"></i> Bullet Points</button>
-                <button id="grammarFixBtn" class="btn-ai"><i class="fas fa-spell-check"></i> Fix Grammar</button>
-            </div>
-
-            <!-- Loading -->
-            <div id="aiLoading" class="ai-loading" style="display:none;">
-                <div class="spinner"></div>
-                <p>AI is processing your text...</p>
-            </div>
-
-            <!-- Results Section -->
-            <div id="resultsSection" class="results-section" style="display:none;">
-                <div class="result-tabs">
-                    <button class="result-tab active" data-result="summary">📝 Summary</button>
-                    <button class="result-tab" data-result="keypoints">📌 Key Points</button>
-                    <button class="result-tab" data-result="grammar">✅ Grammar Fix</button>
-                </div>
-                
-                <div id="summaryResult" class="result-content active">
-                    <div class="result-header">
-                        <span><i class="fas fa-file-alt"></i> AI Summary</span>
-                        <button id="copySummaryBtn" class="icon-btn"><i class="fas fa-copy"></i></button>
+                <!-- Transcription Section -->
+                <div class="transcription-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-file-alt"></i> Transcription</h3>
+                        <div class="section-actions">
+                            <span id="wordCounter" class="counter-badge">0 words</span>
+                            <span id="charCounter" class="counter-badge">0 chars</span>
+                            <button id="copyTranscriptionBtn" class="icon-btn" title="Copy Transcription" aria-label="Copy Transcription">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div id="summaryText" class="result-text"></div>
+                    <textarea id="transcriptionText" placeholder="Your transcribed text will appear here... Start recording or paste text..." aria-label="Transcription text area"></textarea>
                 </div>
-                
-                <div id="keypointsResult" class="result-content">
-                    <div class="result-header">
-                        <span><i class="fas fa-list"></i> Key Points</span>
-                        <button id="copyKeypointsBtn" class="icon-btn"><i class="fas fa-copy"></i></button>
-                    </div>
-                    <div id="keypointsList" class="result-list"></div>
+
+                <!-- AI Actions Bar -->
+                <div class="ai-actions-bar">
+                    <button id="summarizeBtn" class="btn-ai"><i class="fas fa-magic"></i> AI Summarize</button>
+                    <button id="keyPointsBtn" class="btn-ai"><i class="fas fa-list-ul"></i> Key Points</button>
+                    <button id="bulletPointsBtn" class="btn-ai"><i class="fas fa-bullseye"></i> Bullet Points</button>
+                    <button id="grammarFixBtn" class="btn-ai"><i class="fas fa-spell-check"></i> Fix Grammar</button>
                 </div>
-                
-                <div id="grammarResult" class="result-content">
-                    <div class="result-header">
-                        <span><i class="fas fa-spell-check"></i> Grammar & Punctuation</span>
-                        <button id="applyGrammarBtn" class="btn-small">Apply Fixes</button>
+
+                <!-- AI Loading -->
+                <div id="aiLoading" class="ai-loading" style="display:none;" role="status">
+                    <div class="spinner"></div>
+                    <p>AI is processing your text...</p>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- RESULTS SECTION - 3D STYLE CHECKLIST -->
+                <!-- ============================================ -->
+                <div id="resultsSection" class="results-section" style="display:none;">
+                    <div class="result-tabs" role="tablist">
+                        <button class="result-tab active" data-result="summary" role="tab" aria-selected="true">
+                            <i class="fas fa-file-alt"></i> Summary
+                        </button>
+                        <button class="result-tab" data-result="keypoints" role="tab" aria-selected="false">
+                            <i class="fas fa-list-check"></i> Key Points
+                        </button>
+                        <button class="result-tab" data-result="grammar" role="tab" aria-selected="false">
+                            <i class="fas fa-spell-check"></i> Grammar
+                        </button>
                     </div>
-                    <div id="grammarText" class="result-text"></div>
-                    <div id="grammarSuggestions" class="grammar-suggestions"></div>
+                    
+                    <!-- Summary Result -->
+                    <div id="summaryResult" class="result-content active" role="tabpanel">
+                        <div class="result-header">
+                            <span><i class="fas fa-file-alt"></i> AI Summary</span>
+                            <button id="copySummaryBtn" class="icon-btn" title="Copy Summary" aria-label="Copy Summary">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div id="summaryText" class="result-text"></div>
+                    </div>
+                    
+                    <!-- Key Points Result - 3D Checklist -->
+                    <div id="keypointsResult" class="result-content" role="tabpanel">
+                        <div class="result-header">
+                            <span><i class="fas fa-list-check"></i> Key Points</span>
+                            <button id="copyKeypointsBtn" class="icon-btn" title="Copy Key Points" aria-label="Copy Key Points">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div id="keypointsList" class="result-list" style="list-style: none; padding: 0;">
+                            <!-- Key points will be rendered as 3D checklist items -->
+                        </div>
+                    </div>
+                    
+                    <!-- Grammar Result -->
+                    <div id="grammarResult" class="result-content" role="tabpanel">
+                        <div class="result-header">
+                            <span><i class="fas fa-spell-check"></i> Grammar & Punctuation</span>
+                            <button id="applyGrammarBtn" class="btn-small">Apply Fixes</button>
+                        </div>
+                        <div id="grammarText" class="result-text"></div>
+                        <div id="grammarSuggestions" class="grammar-suggestions"></div>
+                    </div>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="export-buttons">
+                    <button id="saveNoteBtn" class="btn-primary"><i class="fas fa-save"></i> Save Note</button>
+                    <button id="exportTxtBtn" class="btn-secondary"><i class="fas fa-file-alt"></i> TXT</button>
+                    <button id="exportPdfBtn" class="btn-secondary"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button id="exportDocBtn" class="btn-secondary"><i class="fas fa-file-word"></i> DOC</button>
+                    <button id="printBtn" class="btn-secondary"><i class="fas fa-print"></i> Print</button>
                 </div>
             </div>
 
-            <!-- Export Buttons -->
-            <div class="export-buttons">
-                <button id="saveNoteBtn" class="btn-primary"><i class="fas fa-save"></i> Save Note</button>
-                <button id="exportTxtBtn" class="btn-secondary"><i class="fas fa-file-alt"></i> TXT</button>
-                <button id="exportPdfBtn" class="btn-secondary"><i class="fas fa-file-pdf"></i> PDF</button>
-                <button id="exportDocBtn" class="btn-secondary"><i class="fas fa-file-word"></i> DOC</button>
-                <button id="printBtn" class="btn-secondary"><i class="fas fa-print"></i> Print</button>
+            <!-- ============================================ -->
+            <!-- HISTORY TAB -->
+            <!-- ============================================ -->
+            <div id="history-tab" class="tab-panel" role="tabpanel">
+                <div class="history-header">
+                    <h3><i class="fas fa-history"></i> Saved Notes</h3>
+                    <button id="clearHistoryBtn" class="btn-danger">Clear All</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        No saved notes yet. Record and save your first note!
+                    </div>
+                </div>
             </div>
+
+            <!-- ============================================ -->
+            <!-- SETTINGS TAB -->
+            <!-- ============================================ -->
+            <div id="settings-tab" class="tab-panel" role="tabpanel">
+                <div class="settings-section">
+                    <h3><i class="fas fa-palette"></i> Appearance</h3>
+                    <div class="setting-row">
+                        <span><i class="fas fa-moon"></i> Dark Mode</span>
+                        <button id="darkModeToggle" class="toggle-switch">On</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3><i class="fas fa-cog"></i> Settings</h3>
+                    <div class="setting-row">
+                        <span>Auto-stop after silence</span>
+                        <button id="autoStopToggle" class="toggle-switch active">On</button>
+                    </div>
+                    <div class="setting-row">
+                        <span>Auto-save Draft</span>
+                        <button id="autoSaveToggle" class="toggle-switch active">On</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3><i class="fas fa-database"></i> Data Management</h3>
+                    <div class="setting-row">
+                        <span>Export All Data</span>
+                        <button id="exportDataBtn" class="btn-small">Export JSON</button>
+                    </div>
+                    <div class="setting-row">
+                        <span>Import Data</span>
+                        <button id="importDataBtn" class="btn-small">Import JSON</button>
+                        <input type="file" id="importFile" accept=".json" style="display:none;" aria-label="Import JSON file">
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ============================================ -->
+        <!-- REACTIONS SECTION - 7 COLORFUL EMOJIS -->
+        <!-- ============================================ -->
+        <section class="reactions-section" aria-label="Rate this tool">
+            <h3><i class="fas fa-smile"></i> Was this tool helpful?</h3>
+            <div class="reactions">
+                <button class="reaction" data-emoji="like" aria-label="Like">
+                    👍 <span class="count" id="likeCount">0</span>
+                </button>
+                <button class="reaction" data-emoji="love" aria-label="Love">
+                    ❤️ <span class="count" id="loveCount">0</span>
+                </button>
+                <button class="reaction" data-emoji="wow" aria-label="Wow">
+                    😮 <span class="count" id="wowCount">0</span>
+                </button>
+                <button class="reaction" data-emoji="sad" aria-label="Sad">
+                    😢 <span class="count" id="sadCount">0</span>
+                </button>
+                <button class="reaction" data-emoji="angry" aria-label="Angry">
+                    😠 <span class="count" id="angryCount">0</span>
+                </button>
+                <button class="reaction" data-emoji="laugh" aria-label="Laugh">
+                    😂 <span class="count" id="laughCount">0</span>
+                </button>
+                <button class="reaction" data-emoji="celebrate" aria-label="Celebrate">
+                    🎉 <span class="count" id="celebrateCount">0</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SOCIAL SHARE SECTION -->
+        <!-- ============================================ -->
+        <section class="social-section" aria-label="Share this tool">
+            <h3><i class="fas fa-share-alt"></i> Share this tool</h3>
+            <div class="social-buttons">
+                <button class="social-btn facebook" data-platform="facebook" aria-label="Share on Facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </button>
+                <button class="social-btn twitter" data-platform="twitter" aria-label="Share on Twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <button class="social-btn linkedin" data-platform="linkedin" aria-label="Share on LinkedIn">
+                    <i class="fab fa-linkedin-in"></i> LinkedIn
+                </button>
+                <button class="social-btn whatsapp" data-platform="whatsapp" aria-label="Share on WhatsApp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button class="social-btn email" data-platform="email" aria-label="Share via Email">
+                    <i class="fas fa-envelope"></i> Email
+                </button>
+            </div>
+        </section>
+
+        <!-- Page Share -->
+        <div class="page-share">
+            <button id="pageShareBtn" class="page-share-btn" aria-label="Copy link to this tool">
+                <i class="fas fa-link"></i> Copy Link to This Tool
+            </button>
         </div>
 
-        <!-- History Tab -->
-        <div id="history-tab" class="tab-panel">
-            <div class="history-header">
-                <h3><i class="fas fa-history"></i> Saved Notes</h3>
-                <button id="clearHistoryBtn" class="btn-danger">Clear All</button>
-            </div>
-            <div id="historyList" class="history-list">
-                <div class="empty-state">No saved notes yet. Record and save your first note!</div>
-            </div>
-        </div>
-
-        <!-- Settings Tab -->
-        <div id="settings-tab" class="tab-panel">
-            <div class="settings-section">
-                <h3><i class="fas fa-palette"></i> Appearance</h3>
-                <div class="setting-row">
-                    <span><i class="fas fa-moon"></i> Dark Mode</span>
-                    <button id="darkModeToggle" class="toggle-switch">Off</button>
-                </div>
-            </div>
-            <div class="settings-section">
-                <h3><i class="fas fa-cog"></i> Settings</h3>
-                <div class="setting-row">
-                    <span>Auto-stop after silence</span>
-                    <button id="autoStopToggle" class="toggle-switch active">On</button>
-                </div>
-                <div class="setting-row">
-                    <span>Auto-save Draft</span>
-                    <button id="autoSaveToggle" class="toggle-switch active">On</button>
-                </div>
-            </div>
-            <div class="settings-section">
-                <h3><i class="fas fa-database"></i> Data Management</h3>
-                <div class="setting-row">
-                    <span>Export All Data</span>
-                    <button id="exportDataBtn" class="btn-small">Export JSON</button>
-                </div>
-                <div class="setting-row">
-                    <span>Import Data</span>
-                    <button id="importDataBtn" class="btn-small">Import JSON</button>
-                    <input type="file" id="importFile" accept=".json" style="display:none;">
-                </div>
-            </div>
-        </div>
+        <!-- ============================================ -->
+        <!-- FOOTER -->
+        <!-- ============================================ -->
+        <footer class="footer">
+            <p>
+                🚀 <span class="powered">Powered by <i class="fas fa-bolt"></i> Groq AI</span> | 
+                Smart Lecture Transcription &amp; Note Taking Tool
+            </p>
+            <p style="margin-top: 6px; opacity: 0.5; font-size: 0.7rem;">
+                © 2026 <a href="https://magicrills.com" style="color: var(--primary); text-decoration: none;">MagicRills</a> | 
+                <a href="https://magicrills.com/privacy" style="color: var(--dark-muted); text-decoration: none;">Privacy</a> |
+                <a href="https://magicrills.com/terms" style="color: var(--dark-muted); text-decoration: none;">Terms</a>
+            </p>
+        </footer>
     </div>
 
     <!-- ============================================ -->
-    <!-- REACTIONS SECTION - 7 EMOJIS FULLY WORKING -->
+    <!-- TOAST NOTIFICATION -->
     <!-- ============================================ -->
-    <div class="reactions-section">
-        <h3><i class="fas fa-smile"></i> Was this tool helpful?</h3>
-        <div class="reactions">
-            <button class="reaction" data-emoji="like">👍 <span id="likeCount">0</span></button>
-            <button class="reaction" data-emoji="love">❤️ <span id="loveCount">0</span></button>
-            <button class="reaction" data-emoji="wow">😮 <span id="wowCount">0</span></button>
-            <button class="reaction" data-emoji="sad">😢 <span id="sadCount">0</span></button>
-            <button class="reaction" data-emoji="angry">😠 <span id="angryCount">0</span></button>
-            <button class="reaction" data-emoji="laugh">😂 <span id="laughCount">0</span></button>
-            <button class="reaction" data-emoji="celebrate">🎉 <span id="celebrateCount">0</span></button>
-        </div>
+    <div id="toast" class="toast hidden" role="alert" aria-live="polite">
+        <span id="toastMsg"></span>
     </div>
 
-    <!-- Social Share Section -->
-    <div class="social-section">
-        <div class="social-buttons">
-            <button class="social-btn facebook" data-platform="facebook"><i class="fab fa-facebook-f"></i> Share</button>
-            <button class="social-btn twitter" data-platform="twitter"><i class="fab fa-twitter"></i> Share</button>
-            <button class="social-btn linkedin" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> Share</button>
-            <button class="social-btn whatsapp" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> Share</button>
-            <button class="social-btn email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
-        </div>
-    </div>
+    <!-- ============================================ -->
+    <!-- SCROLL BUTTONS -->
+    <!-- ============================================ -->
+    <button id="scrollUpBtn" class="scroll-btn scroll-up hidden" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button id="scrollDownBtn" class="scroll-btn scroll-down" aria-label="Scroll to bottom">
+        <i class="fas fa-arrow-down"></i>
+    </button>
 
-    <!-- Page Share -->
-    <div class="page-share">
-        <button id="pageShareBtn" class="page-share-btn"><i class="fas fa-link"></i> Share This Tool</button>
-    </div>
-
-    <div class="footer">
-        <p>🚀 Powered by Groq AI | Smart Lecture Transcription & Note Taking Tool</p>
-    </div>
-</div>
-
-<!-- Toast Notification -->
-<div id="toast" class="toast hidden"><span id="toastMsg"></span></div>
-
-<!-- Scroll Buttons -->
-<button id="scrollUpBtn" class="scroll-btn scroll-up hidden"><i class="fas fa-arrow-up"></i></button>
-<button id="scrollDownBtn" class="scroll-btn scroll-down"><i class="fas fa-arrow-down"></i></button>
-
-<script src="speech-to-notes-converter.js"></script>
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================ -->
+    <script src="speech-to-notes-converter.js"></script>
 </body>
 </html>
