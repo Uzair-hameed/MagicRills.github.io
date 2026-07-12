@@ -1,8 +1,8 @@
 /* ============================================
    STUDY PLANNER - COMPLETE JAVASCRIPT
-   45 Features with TiDB Integration & Groq AI
-   Reactions FULLY WORKING - 7 Emojis
-   Multiple Themes Support
+   Cloudflare Workers API Integration
+   Full Reactions (7 Emojis) + Share + Stats
+   Dark Space Theme + Neon Effects
    ============================================ */
 
 // ============================================
@@ -11,8 +11,8 @@
 const TOOL_SLUG = 'study-planner';
 const TOOL_NAME = 'Study Planner';
 const CATEGORY = 'student';
-const WORKER_URL = 'https://study-planner.uzairhameed01.workers.dev';
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 let userId = localStorage.getItem('userId');
 if (!userId) {
@@ -38,6 +38,8 @@ let currentTaskId = null;
 let pomodoroChart = null;
 let categoryChart = null;
 let focusChart = null;
+let usageCount = 0;
+let shareCount = 0;
 
 // Quotes for motivation
 const quotes = [
@@ -117,95 +119,201 @@ const laughCount = document.getElementById('laughCount');
 const celebrateCount = document.getElementById('celebrateCount');
 
 // ============================================
-// TiDB API Calls
+// Cloudflare Workers API Calls
 // ============================================
-async function trackUsage() {
+
+// Helper function for API calls with fallback
+async function callApi(endpoint, method = 'GET', body = null) {
+    const url = `${API_BASE}${endpoint}`;
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+        }
+    };
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+    
     try {
-        await fetch(`${API_BASE}/usage/increment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, tool_name: TOOL_NAME, category: CATEGORY, user_id: userId })
-        });
-        usageCountSpan.textContent = (parseInt(usageCountSpan.textContent) || 0) + 1;
-    } catch(e) { console.error(e); }
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
+        return null;
+    }
 }
 
-// ============================================
-// REACTIONS - FULLY WORKING - 7 EMOJIS
-// ============================================
+// 1. Usage Counter Increment
+async function trackUsage() {
+    try {
+        const result = await callApi('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            tool_name: TOOL_NAME,
+            category: CATEGORY,
+            user_id: userId
+        });
+        if (result && result.success) {
+            usageCount = result.count || (parseInt(usageCountSpan.textContent) || 0) + 1;
+            usageCountSpan.textContent = usageCount;
+            localStorage.setItem('usageCount', usageCount);
+        } else {
+            // Fallback: LocalStorage
+            usageCount = parseInt(localStorage.getItem('usageCount') || '0') + 1;
+            usageCountSpan.textContent = usageCount;
+            localStorage.setItem('usageCount', usageCount);
+        }
+    } catch(e) {
+        console.error('Usage tracking failed:', e);
+        // Fallback: LocalStorage
+        usageCount = parseInt(localStorage.getItem('usageCount') || '0') + 1;
+        usageCountSpan.textContent = usageCount;
+        localStorage.setItem('usageCount', usageCount);
+    }
+}
+
+// 2. Reactions API
 async function addReaction(emoji) {
     try {
-        let emojiName = emoji;
-        if (emoji === 'like') emojiName = 'like';
-        else if (emoji === 'love') emojiName = 'love';
-        else if (emoji === 'wow') emojiName = 'wow';
-        else if (emoji === 'sad') emojiName = 'sad';
-        else if (emoji === 'angry') emojiName = 'angry';
-        else if (emoji === 'laugh') emojiName = 'laugh';
-        else if (emoji === 'celebrate') emojiName = 'celebrate';
-        
-        const response = await fetch(`${API_BASE}/reactions/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emojiName, user_id: userId })
+        const result = await callApi('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            emoji: emoji,
+            user_id: userId
         });
-        const data = await response.json();
         
-        let countSpan = null;
-        if (emoji === 'like') countSpan = likeCount;
-        else if (emoji === 'love') countSpan = loveCount;
-        else if (emoji === 'wow') countSpan = wowCount;
-        else if (emoji === 'sad') countSpan = sadCount;
-        else if (emoji === 'angry') countSpan = angryCount;
-        else if (emoji === 'laugh') countSpan = laughCount;
-        else if (emoji === 'celebrate') countSpan = celebrateCount;
-        
-        if (countSpan) {
-            countSpan.textContent = data.count || (parseInt(countSpan.textContent) + 1);
+        if (result && result.success) {
+            updateReactionCount(emoji, result.count);
+            showToast(getEmojiName(emoji) + ' reaction added!');
+        } else {
+            // Fallback: LocalStorage
+            updateReactionCountLocal(emoji);
+            showToast(getEmojiName(emoji) + ' reaction added!');
         }
-        
-        showToast(getEmojiName(emoji) + ' reaction added!');
-    } catch(e) { 
+    } catch(e) {
         console.error('Reaction failed:', e);
-        let countSpan = null;
-        if (emoji === 'like') countSpan = likeCount;
-        else if (emoji === 'love') countSpan = loveCount;
-        else if (emoji === 'wow') countSpan = wowCount;
-        else if (emoji === 'sad') countSpan = sadCount;
-        else if (emoji === 'angry') countSpan = angryCount;
-        else if (emoji === 'laugh') countSpan = laughCount;
-        else if (emoji === 'celebrate') countSpan = celebrateCount;
-        
-        if (countSpan) {
-            countSpan.textContent = parseInt(countSpan.textContent) + 1;
-        }
+        updateReactionCountLocal(emoji);
         showToast(getEmojiName(emoji) + ' reaction added!');
     }
 }
 
 async function loadReactionStats() {
     try {
-        const response = await fetch(`${API_BASE}/tools/stats?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (likeCount) likeCount.textContent = data.like_count || 0;
-        if (loveCount) loveCount.textContent = data.love_count || 0;
-        if (wowCount) wowCount.textContent = data.wow_count || 0;
-        if (sadCount) sadCount.textContent = data.sad_count || 0;
-        if (angryCount) angryCount.textContent = data.angry_count || 0;
-        if (laughCount) laughCount.textContent = data.laugh_count || 0;
-        if (celebrateCount) celebrateCount.textContent = data.celebrate_count || 0;
-        if (usageCountSpan) usageCountSpan.textContent = data.total_usage || 0;
-    } catch(e) { console.error(e); }
+        const result = await callApi(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            const stats = result.data;
+            if (likeCount) likeCount.textContent = stats.like_count || 0;
+            if (loveCount) loveCount.textContent = stats.love_count || 0;
+            if (wowCount) wowCount.textContent = stats.wow_count || 0;
+            if (sadCount) sadCount.textContent = stats.sad_count || 0;
+            if (angryCount) angryCount.textContent = stats.angry_count || 0;
+            if (laughCount) laughCount.textContent = stats.laugh_count || 0;
+            if (celebrateCount) celebrateCount.textContent = stats.celebrate_count || 0;
+            if (usageCountSpan) usageCountSpan.textContent = stats.total_usage || 0;
+        } else {
+            // Fallback: Load from LocalStorage
+            loadReactionStatsLocal();
+        }
+    } catch(e) {
+        console.error('Load stats failed:', e);
+        loadReactionStatsLocal();
+    }
 }
 
+// 3. Shares API
 async function trackShare(platform) {
     try {
-        await fetch(`${API_BASE}/shares/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, share_type: 'tool', user_id: userId })
+        const result = await callApi('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            share_type: 'tool',
+            user_id: userId
         });
-    } catch(e) { console.error(e); }
+        if (result && result.success) {
+            shareCount = result.count || 0;
+            localStorage.setItem('shareCount', shareCount);
+        } else {
+            // Fallback: LocalStorage
+            shareCount = parseInt(localStorage.getItem('shareCount') || '0') + 1;
+            localStorage.setItem('shareCount', shareCount);
+        }
+    } catch(e) {
+        console.error('Share tracking failed:', e);
+        shareCount = parseInt(localStorage.getItem('shareCount') || '0') + 1;
+        localStorage.setItem('shareCount', shareCount);
+    }
+}
+
+// 4. Get Tool Stats
+async function loadToolStats() {
+    try {
+        const result = await callApi(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.success) {
+            const stats = result.data;
+            // Usage already loaded from stats
+            if (usageCountSpan) usageCountSpan.textContent = stats.total_usage || 0;
+            // Other stats can be displayed in dashboard
+        }
+    } catch(e) {
+        console.error('Load tool stats failed:', e);
+    }
+}
+
+// ============================================
+// LocalStorage Fallback Functions
+// ============================================
+
+function updateReactionCount(emoji, count) {
+    const span = getReactionSpan(emoji);
+    if (span) span.textContent = count;
+}
+
+function updateReactionCountLocal(emoji) {
+    const key = `reaction_${emoji}`;
+    let count = parseInt(localStorage.getItem(key) || '0') + 1;
+    localStorage.setItem(key, count);
+    const span = getReactionSpan(emoji);
+    if (span) span.textContent = count;
+}
+
+function getReactionSpan(emoji) {
+    const map = {
+        'like': likeCount,
+        'love': loveCount,
+        'wow': wowCount,
+        'sad': sadCount,
+        'angry': angryCount,
+        'laugh': laughCount,
+        'celebrate': celebrateCount
+    };
+    return map[emoji] || null;
+}
+
+function loadReactionStatsLocal() {
+    const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+    emojis.forEach(emoji => {
+        const count = parseInt(localStorage.getItem(`reaction_${emoji}`) || '0');
+        const span = getReactionSpan(emoji);
+        if (span) span.textContent = count;
+    });
+    const usage = parseInt(localStorage.getItem('usageCount') || '0');
+    if (usageCountSpan) usageCountSpan.textContent = usage;
+}
+
+function getEmojiName(emoji) {
+    const names = {
+        like: '👍 Like',
+        love: '❤️ Love',
+        wow: '😮 Wow',
+        sad: '😢 Sad',
+        angry: '😠 Angry',
+        laugh: '😂 Laugh',
+        celebrate: '🎉 Celebrate'
+    };
+    return names[emoji] || emoji;
 }
 
 // ============================================
@@ -244,12 +352,10 @@ function resetTimer() {
 
 function updateTimer() {
     if (currentTime <= 0) {
-        // Timer finished
         clearInterval(timerInterval);
         isTimerRunning = false;
         
         if (!isBreakTime) {
-            // Pomodoro completed
             sessionsCompleted++;
             trackUsage();
             updatePomodoroStats();
@@ -266,7 +372,6 @@ function updateTimer() {
                 timerType.textContent = '☕ Short Break';
             }
         } else {
-            // Break completed
             breaksCompleted++;
             isBreakTime = false;
             currentTime = pomodoroDuration * 60;
@@ -416,7 +521,12 @@ function saveTask() {
 
 function renderTasks() {
     if (tasks.length === 0) {
-        tasksList.innerHTML = '<div class="empty-state">No tasks yet. Click "Add Task" to get started!</div>';
+        tasksList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-tasks" style="font-size:3rem;display:block;margin-bottom:10px;"></i>
+                No tasks yet. Click "Add Task" to get started!
+            </div>
+        `;
         return;
     }
     
@@ -438,16 +548,15 @@ function renderTasks() {
                 <span>📂 ${task.category}</span>
                 <span>🍅 ${task.pomodoros || 0} sessions</span>
             </div>
-            ${task.notes ? `<div class="task-notes" style="font-size:0.75rem;color:var(--gray);margin-top:5px;">📝 ${escapeHtml(task.notes)}</div>` : ''}
+            ${task.notes ? `<div class="task-notes">📝 ${escapeHtml(task.notes)}</div>` : ''}
             <div class="task-actions">
                 ${!task.completed ? `<button class="btn-small complete-task" data-id="${task.id}">✅ Complete</button>` : ''}
-                <button class="btn-small select-task" data-id="${task.id}">🎯 Select for Pomodoro</button>
+                <button class="btn-small select-task" data-id="${task.id}">🎯 Select</button>
                 <button class="btn-small delete-task" data-id="${task.id}">🗑️ Delete</button>
             </div>
         </div>
     `).join('');
     
-    // Add event listeners
     document.querySelectorAll('.complete-task').forEach(btn => {
         btn.addEventListener('click', () => completeTask(parseInt(btn.dataset.id)));
     });
@@ -502,7 +611,7 @@ function loadTasks() {
 }
 
 // ============================================
-// AI Smart Prioritization
+// AI Smart Prioritization (Simulated)
 // ============================================
 async function aiPrioritize() {
     if (tasks.length === 0) {
@@ -510,18 +619,13 @@ async function aiPrioritize() {
         return;
     }
     
-    showToast('AI is analyzing your tasks...', 'info');
+    showToast('🤖 AI is analyzing your tasks...', 'info');
     
-    // Simple prioritization algorithm (simulating AI)
+    // Simulated AI prioritization
     const today = new Date();
     const prioritized = [...tasks].sort((a, b) => {
-        // Completed tasks go to bottom
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
-        
-        // Priority weight
         const priorityWeight = { high: 100, medium: 50, low: 25 };
-        
-        // Urgency based on deadline
         let urgencyA = 0, urgencyB = 0;
         if (a.deadline) {
             const daysA = Math.ceil((new Date(a.deadline) - today) / (1000 * 60 * 60 * 24));
@@ -531,18 +635,15 @@ async function aiPrioritize() {
             const daysB = Math.ceil((new Date(b.deadline) - today) / (1000 * 60 * 60 * 24));
             urgencyB = Math.max(0, 50 - daysB * 5);
         }
-        
         const scoreA = priorityWeight[a.priority] + urgencyA;
         const scoreB = priorityWeight[b.priority] + urgencyB;
-        
         return scoreB - scoreA;
     });
     
-    // Reorder tasks based on priority
     tasks = prioritized;
     saveTasks();
     renderTasks();
-    showToast('Tasks reordered by priority!');
+    showToast('✨ Tasks reordered by AI priority!');
 }
 
 // ============================================
@@ -551,7 +652,12 @@ async function aiPrioritize() {
 function generateStudyPlan() {
     const incompleteTasks = tasks.filter(t => !t.completed);
     if (incompleteTasks.length === 0) {
-        studyPlanDiv.innerHTML = '<div class="empty-state">All tasks completed! Great job! 🎉</div>';
+        studyPlanDiv.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-trophy" style="font-size:3rem;display:block;margin-bottom:10px;color:gold;"></i>
+                All tasks completed! Great job! 🎉
+            </div>
+        `;
         return;
     }
     
@@ -582,7 +688,7 @@ function generateStudyPlan() {
     }
     
     studyPlanDiv.innerHTML = planHTML;
-    showToast('Study plan generated!');
+    showToast('📅 Study plan generated!');
 }
 
 // ============================================
@@ -606,8 +712,28 @@ function updateCharts() {
     if (ctx) {
         pomodoroChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: last7Days, datasets: [{ label: 'Pomodoros', data: pomodoroValues, backgroundColor: 'var(--primary)', borderRadius: 8 }] },
-            options: { responsive: true, maintainAspectRatio: true }
+            data: { 
+                labels: last7Days, 
+                datasets: [{ 
+                    label: 'Pomodoros', 
+                    data: pomodoroValues, 
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderRadius: 8,
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-color') || '#fff' } }
+                },
+                scales: {
+                    y: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-color') || '#aaa' } },
+                    x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-color') || '#aaa' } }
+                }
+            }
         });
     }
     
@@ -623,8 +749,19 @@ function updateCharts() {
     if (ctx2) {
         categoryChart = new Chart(ctx2, {
             type: 'pie',
-            data: { labels: ['Math', 'Science', 'Language', 'History', 'Other'], datasets: [{ data: Object.values(categories), backgroundColor: ['#4a6fa5', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'] }] },
-            options: { responsive: true }
+            data: { 
+                labels: ['Math', 'Science', 'Language', 'History', 'Other'], 
+                datasets: [{ 
+                    data: Object.values(categories), 
+                    backgroundColor: ['#667eea', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'] 
+                }] 
+            },
+            options: { 
+                responsive: true,
+                plugins: {
+                    legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-color') || '#fff' } }
+                }
+            }
         });
     }
 }
@@ -641,11 +778,11 @@ function updateFocusScore() {
 // Export Functions
 // ============================================
 async function exportToPDF() {
-    showToast('PDF export feature coming soon', 'info');
+    showToast('📄 PDF export coming soon', 'info');
 }
 
 async function exportToWord() {
-    showToast('Word export feature coming soon', 'info');
+    showToast('📄 Word export coming soon', 'info');
 }
 
 function exportAllData() {
@@ -662,15 +799,15 @@ function exportAllData() {
     a.download = `study-planner-data-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Data exported!');
+    showToast('📁 Data exported!');
 }
 
 function clearAllData() {
-    if (confirm('Are you sure? This will delete all your tasks and study data!')) {
+    if (confirm('⚠️ Are you sure? This will delete all your tasks and study data!')) {
         localStorage.clear();
         tasks = [];
         renderTasks();
-        showToast('All data cleared');
+        showToast('🗑️ All data cleared');
         location.reload();
     }
 }
@@ -703,8 +840,9 @@ function updateTimerSettings() {
     pomodoroDuration = parseInt(document.getElementById('pomodoroDuration').value);
     shortBreakDuration = parseInt(document.getElementById('shortBreakDuration').value);
     longBreakDuration = parseInt(document.getElementById('longBreakDuration').value);
+    localStorage.setItem('pomodoroDuration', pomodoroDuration);
     resetTimer();
-    showToast('Timer settings updated!');
+    showToast('⏱️ Timer settings updated!');
 }
 
 // ============================================
@@ -715,13 +853,10 @@ function showToast(msg, type = 'success') {
     const toastMsg = document.getElementById('toastMsg');
     toastMsg.textContent = msg;
     toast.classList.remove('hidden');
-    toast.style.background = type === 'error' ? '#f44336' : type === 'info' ? '#2196f3' : '#333';
+    toast.style.background = type === 'error' ? 'rgba(244,67,54,0.9)' : type === 'info' ? 'rgba(33,150,243,0.9)' : 'rgba(0,0,0,0.9)';
+    toast.style.border = '1px solid rgba(255,255,255,0.1)';
+    toast.style.backdropFilter = 'blur(10px)';
     setTimeout(() => toast.classList.add('hidden'), 3000);
-}
-
-function getEmojiName(emoji) {
-    const names = { like: '👍 Like', love: '❤️ Love', wow: '😮 Wow', sad: '😢 Sad', angry: '😠 Angry', laugh: '😂 Laugh', celebrate: '🎉 Celebrate' };
-    return names[emoji] || emoji;
 }
 
 function escapeHtml(text) {
@@ -731,8 +866,20 @@ function escapeHtml(text) {
 }
 
 function sharePage() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied!');
+    if (navigator.share) {
+        navigator.share({
+            title: 'Study Planner - Pomodoro Technique',
+            text: 'Check out this amazing AI-powered study planner!',
+            url: window.location.href
+        }).then(() => {
+            trackShare('native');
+            showToast('📤 Shared successfully!');
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        trackShare('copy');
+        showToast('📋 Link copied!');
+    }
 }
 
 function shareTool(platform) {
@@ -743,8 +890,12 @@ function shareTool(platform) {
     else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
     else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
     else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${title}%20${url}`;
-    else if (platform === 'email') shareUrl = `mailto:?subject=${title}&body=${url}`;
-    if (shareUrl) { window.open(shareUrl); trackShare(platform); showToast(`Shared on ${platform}!`); }
+    else if (platform === 'email') shareUrl = `mailto:?subject=${title}&body=Check this out: ${url}`;
+    if (shareUrl) { 
+        window.open(shareUrl, '_blank'); 
+        trackShare(platform); 
+        showToast(`📤 Shared on ${platform}!`); 
+    }
 }
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -763,15 +914,60 @@ function initTabs() {
             document.getElementById(`${tabId}-tab`).classList.add('active');
             
             if (tabId === 'analytics') {
-                updateCharts();
-                updateFocusScore();
+                setTimeout(() => {
+                    updateCharts();
+                    updateFocusScore();
+                }, 100);
             }
         });
     });
 }
 
 // ============================================
-// Event Listeners - REACTIONS FIXED
+// Typewriter Animation
+// ============================================
+function initTypewriter() {
+    const heroTitle = document.querySelector('.hero-title');
+    if (!heroTitle) return;
+    
+    const texts = [
+        '🎯 Master Your Study Time',
+        '🧠 AI-Powered Learning',
+        '⚡ Pomodoro Technique',
+        '📚 Smart Study Planning'
+    ];
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    
+    function typeEffect() {
+        const currentText = texts[textIndex];
+        if (isDeleting) {
+            heroTitle.textContent = currentText.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            heroTitle.textContent = currentText.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        if (!isDeleting && charIndex === currentText.length) {
+            isDeleting = true;
+            setTimeout(typeEffect, 2000);
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            textIndex = (textIndex + 1) % texts.length;
+            setTimeout(typeEffect, 500);
+        } else {
+            const speed = isDeleting ? 50 : 100;
+            setTimeout(typeEffect, speed);
+        }
+    }
+    
+    setTimeout(typeEffect, 500);
+}
+
+// ============================================
+// Event Listeners
 // ============================================
 function initEventListeners() {
     startTimerBtn.addEventListener('click', startTimer);
@@ -792,22 +988,18 @@ function initEventListeners() {
     scrollUpBtn.addEventListener('click', scrollToTop);
     scrollDownBtn.addEventListener('click', scrollToBottom);
     
-    // Timer settings
     document.getElementById('pomodoroDuration').addEventListener('change', updateTimerSettings);
     document.getElementById('shortBreakDuration').addEventListener('change', updateTimerSettings);
     document.getElementById('longBreakDuration').addEventListener('change', updateTimerSettings);
     
-    // Filter buttons
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const period = btn.dataset.period;
-            updateCharts(period);
+            updateCharts();
         });
     });
     
-    // Theme options
     themeOptions.forEach(opt => {
         opt.addEventListener('click', () => {
             const color = opt.dataset.color;
@@ -815,12 +1007,8 @@ function initEventListeners() {
         });
     });
     
-    // Daily quote
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    quoteText.textContent = randomQuote;
-    
     // ============================================
-    // REACTIONS - FULLY WORKING - 7 EMOJIS
+    // REACTIONS - 7 EMOJIS FULLY WORKING
     // ============================================
     document.querySelectorAll('.reaction').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -835,7 +1023,6 @@ function initEventListeners() {
         });
     });
     
-    // Social share buttons
     document.querySelectorAll('.social-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const platform = btn.dataset.platform;
@@ -843,7 +1030,6 @@ function initEventListeners() {
         });
     });
     
-    // Scroll button visibility
     window.addEventListener('scroll', () => {
         if (scrollUpBtn) scrollUpBtn.classList.toggle('hidden', window.scrollY <= 200);
     });
@@ -852,27 +1038,30 @@ function initEventListeners() {
 // ============================================
 // Initialize
 // ============================================
-function init() {
+async function init() {
     initTabs();
     initEventListeners();
-    loadReactionStats();
+    initTypewriter();
+    
+    // Load data from API
+    await loadReactionStats();
+    await loadToolStats();
+    
+    // Load local data
     loadTasks();
     loadTimerState();
     updateTodayStats();
     updateCharts();
     updateFocusScore();
     
-    // Set minimum date for deadline
     const today = new Date().toISOString().split('T')[0];
     newTaskDeadline.min = today;
     
-    // Load theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme && savedTheme !== 'blue') {
         changeTheme(savedTheme);
     }
     
-    // Load dark mode
     const savedDark = localStorage.getItem('darkMode');
     if (savedDark === 'true') {
         document.body.classList.add('dark-mode');
@@ -880,24 +1069,25 @@ function init() {
         darkModeToggle.classList.add('active');
     }
     
-    // Load timer settings
     const savedPomodoro = localStorage.getItem('pomodoroDuration');
     if (savedPomodoro) {
         document.getElementById('pomodoroDuration').value = savedPomodoro;
         pomodoroDuration = parseInt(savedPomodoro);
     }
     
-    // Calculate streak
     const streak = Math.floor(Math.random() * 30) + 1;
     streakCountSpan.textContent = streak;
     
-    // Calculate total study time
     const pomodoroData = JSON.parse(localStorage.getItem('pomodoroData') || '{}');
     let totalMinutes = 0;
     Object.values(pomodoroData).forEach(val => totalMinutes += val * (pomodoroDuration || 25));
     totalStudyTimeSpan.textContent = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
     
-    showToast('Study Planner ready! Let\'s get productive!');
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    quoteText.textContent = randomQuote;
+    
+    showToast('🚀 Study Planner ready!');
 }
 
-init();
+// Start the app
+document.addEventListener('DOMContentLoaded', init);
