@@ -1,16 +1,18 @@
 /* ============================================
-   AUTO TRANSLATION TOOL - COMPLETE JAVASCRIPT
-   35 Features with TiDB Integration & Groq AI
+   AUTO TRANSLATION TOOL - CLOUDFLARE WORKERS API
+   Updated with: API Integration, Reactions, Shares, Stats
    ============================================ */
 
 // ============================================
-// Configuration
+// CONFIGURATION
 // ============================================
 const TOOL_SLUG = 'auto-translation-tool';
 const TOOL_NAME = 'Auto Translation Tool';
 const CATEGORY = 'student';
-const WORKER_URL = 'https://auto-translation-tool.uzairhameed01.workers.dev';
-const API_BASE = '/api';
+
+// Cloudflare Workers API Configuration
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 let userId = localStorage.getItem('userId');
 if (!userId) {
@@ -23,6 +25,7 @@ let translationHistory = [];
 let favorites = [];
 let currentTranslation = '';
 let currentSourceText = '';
+let isApiOnline = true;
 
 // Language names for display
 const languageNames = {
@@ -58,7 +61,7 @@ const pronunciationMap = {
 };
 
 // ============================================
-// DOM Elements
+// DOM ELEMENTS
 // ============================================
 const usageCountSpan = document.getElementById('usageCount');
 const translationCountSpan = document.getElementById('translationCount');
@@ -93,60 +96,214 @@ const scrollUpBtn = document.getElementById('scrollUpBtn');
 const scrollDownBtn = document.getElementById('scrollDownBtn');
 const detectedLangDiv = document.getElementById('detectedLang');
 const detectedLangName = document.getElementById('detectedLangName');
+const homeBtn = document.getElementById('homeBtn');
+const backBtn = document.getElementById('backBtn');
+
+// Stats Dashboard Elements
+const statsViews = document.getElementById('statsViews');
+const statsShares = document.getElementById('statsShares');
+const statsFollowers = document.getElementById('statsFollowers');
 
 // ============================================
-// TiDB API Calls
+// CLOUDFLARE WORKERS API CALLS
 // ============================================
+
+// 1. Usage Counter Increment (POST /api/usage)
 async function trackUsage() {
     try {
-        await fetch(`${API_BASE}/usage/increment`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, tool_name: TOOL_NAME, category: CATEGORY, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                tool_name: TOOL_NAME,
+                category: CATEGORY,
+                user_id: userId,
+                action: 'increment'
+            })
         });
-        usageCountSpan.textContent = (parseInt(usageCountSpan.textContent) || 0) + 1;
-    } catch(e) { console.error(e); }
+        
+        if (!response.ok) throw new Error('API usage increment failed');
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update local counter
+            const currentCount = parseInt(usageCountSpan.textContent) || 0;
+            usageCountSpan.textContent = currentCount + 1;
+            // Save to localStorage as backup
+            localStorage.setItem(`${TOOL_SLUG}_usage`, usageCountSpan.textContent);
+        }
+        isApiOnline = true;
+    } catch (e) {
+        console.warn('Usage tracking API failed, using localStorage fallback:', e);
+        isApiOnline = false;
+        // Fallback: localStorage
+        const stored = localStorage.getItem(`${TOOL_SLUG}_usage`);
+        const count = stored ? parseInt(stored) + 1 : 1;
+        usageCountSpan.textContent = count;
+        localStorage.setItem(`${TOOL_SLUG}_usage`, count);
+    }
 }
 
+// 2. Reactions - Add/Get (POST /api/reactions)
 async function addReaction(emoji) {
     try {
-        const response = await fetch(`${API_BASE}/reactions/add`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                emoji: emoji,
+                user_id: userId,
+                action: 'add'
+            })
         });
+        
+        if (!response.ok) throw new Error('API reaction add failed');
+        
         const data = await response.json();
+        if (data.success) {
+            const span = document.getElementById(`${emoji}Count`);
+            if (span) {
+                span.textContent = data.count || (parseInt(span.textContent) + 1);
+            }
+            // Save to localStorage
+            const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+            reactions[emoji] = span ? span.textContent : 0;
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+        }
+        showToast(getEmojiName(emoji) + ' reaction added!');
+        isApiOnline = true;
+    } catch (e) {
+        console.warn('Reaction API failed, using localStorage fallback:', e);
+        isApiOnline = false;
+        // Fallback: localStorage
+        const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
         const span = document.getElementById(`${emoji}Count`);
-        if (span) span.textContent = data.count;
-        showToast(getEmojiName(emoji) + ' reaction!');
-    } catch(e) { console.error(e); }
+        if (span) span.textContent = reactions[emoji];
+        showToast(getEmojiName(emoji) + ' reaction added (offline)!');
+    }
 }
 
+// 3. Shares - Record Shares (POST /api/shares)
 async function trackShare(platform) {
     try {
-        await fetch(`${API_BASE}/shares/add`, {
+        const response = await fetch(`${API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, share_type: 'tool', user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                platform: platform,
+                share_type: 'tool',
+                user_id: userId
+            })
         });
-    } catch(e) { console.error(e); }
+        
+        if (!response.ok) throw new Error('API share tracking failed');
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update shares count
+            const currentShares = parseInt(statsShares.textContent) || 0;
+            statsShares.textContent = currentShares + 1;
+            localStorage.setItem(`${TOOL_SLUG}_shares`, statsShares.textContent);
+        }
+        isApiOnline = true;
+    } catch (e) {
+        console.warn('Share tracking API failed, using localStorage fallback:', e);
+        isApiOnline = false;
+        // Fallback: localStorage
+        const shares = parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+        statsShares.textContent = shares + 1;
+        localStorage.setItem(`${TOOL_SLUG}_shares`, statsShares.textContent);
+    }
 }
 
+// 4. Get Tool Stats (GET /api/stats)
 async function loadStats() {
     try {
-        const response = await fetch(`${API_BASE}/tools/stats?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        usageCountSpan.textContent = data.total_usage || 0;
-        const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-        emojis.forEach(e => {
-            const span = document.getElementById(`${e}Count`);
-            if (span) span.textContent = data[`${e}_count`] || 0;
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': API_KEY
+            }
         });
-    } catch(e) { console.error(e); }
+        
+        if (!response.ok) throw new Error('API stats fetch failed');
+        
+        const data = await response.json();
+        
+        if (data.success && data.stats) {
+            // Update Usage
+            usageCountSpan.textContent = data.stats.total_usage || 0;
+            localStorage.setItem(`${TOOL_SLUG}_usage`, usageCountSpan.textContent);
+            
+            // Update Views
+            statsViews.textContent = data.stats.total_views || 0;
+            localStorage.setItem(`${TOOL_SLUG}_views`, statsViews.textContent);
+            
+            // Update Shares
+            statsShares.textContent = data.stats.total_shares || 0;
+            localStorage.setItem(`${TOOL_SLUG}_shares`, statsShares.textContent);
+            
+            // Update Followers
+            statsFollowers.textContent = data.stats.total_followers || 0;
+            localStorage.setItem(`${TOOL_SLUG}_followers`, statsFollowers.textContent);
+            
+            // Update Reactions
+            const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+            const reactions = {};
+            emojis.forEach(e => {
+                const count = data.stats[`${e}_count`] || 0;
+                const span = document.getElementById(`${e}Count`);
+                if (span) span.textContent = count;
+                reactions[e] = count;
+            });
+            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactions));
+        }
+        isApiOnline = true;
+    } catch (e) {
+        console.warn('Stats API failed, using localStorage fallback:', e);
+        isApiOnline = false;
+        // Fallback: Load from localStorage
+        loadStatsFromLocalStorage();
+    }
+}
+
+// Load stats from localStorage (fallback)
+function loadStatsFromLocalStorage() {
+    const usage = localStorage.getItem(`${TOOL_SLUG}_usage`);
+    if (usage) usageCountSpan.textContent = usage;
+    
+    const views = localStorage.getItem(`${TOOL_SLUG}_views`);
+    if (views) statsViews.textContent = views;
+    
+    const shares = localStorage.getItem(`${TOOL_SLUG}_shares`);
+    if (shares) statsShares.textContent = shares;
+    
+    const followers = localStorage.getItem(`${TOOL_SLUG}_followers`);
+    if (followers) statsFollowers.textContent = followers;
+    
+    const reactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`) || '{}');
+    const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+    emojis.forEach(e => {
+        const span = document.getElementById(`${e}Count`);
+        if (span && reactions[e]) span.textContent = reactions[e];
+    });
 }
 
 // ============================================
-// Translation Functions
+// TRANSLATION FUNCTIONS
 // ============================================
 async function translateText() {
     const text = sourceText.value.trim();
@@ -160,7 +317,7 @@ async function translateText() {
     
     translateLoader.style.display = 'inline-block';
     translateBtn.disabled = true;
-    targetText.innerHTML = '<span style="opacity:0.7;">Translating...</span>';
+    targetText.innerHTML = '<span style="opacity:0.7;color:var(--neon-blue);">Translating...</span>';
     
     try {
         // Use Google Translate API (free, reliable)
@@ -184,11 +341,11 @@ async function translateText() {
             showPronunciation(to, translated);
         }
         
-        showToast('Translation completed!');
+        showToast('✨ Translation completed!');
         
     } catch (error) {
         console.error('Translation error:', error);
-        targetText.innerHTML = '<span style="color:var(--danger);">Translation failed. Please try again.</span>';
+        targetText.innerHTML = '<span style="color:var(--neon-pink);">⚠️ Translation failed. Please try again.</span>';
         showToast('Translation failed', 'error');
     } finally {
         translateLoader.style.display = 'none';
@@ -197,7 +354,7 @@ async function translateText() {
 }
 
 // ============================================
-// Auto Language Detection
+// AUTO LANGUAGE DETECTION
 // ============================================
 async function detectLanguage(text) {
     if (fromLang.value !== 'auto') return;
@@ -219,20 +376,17 @@ async function detectLanguage(text) {
 }
 
 // ============================================
-// Pronunciation & Transliteration
+// PRONUNCIATION & TRANSLITERATION
 // ============================================
 function showPronunciation(langCode, text) {
     if (!pronunciationToggle.classList.contains('active')) return;
     
     pronunciationBox.style.display = 'block';
     
-    // Get the voice locale
     const voiceLocale = pronunciationMap[langCode] || 'en-US';
     
-    // Simple pronunciation guide (text-to-speech friendly)
-    pronunciationText.innerHTML = `<i class="fas fa-play-circle"></i> <span onclick="speakText('${text.replace(/'/g, "\\'")}', '${voiceLocale}')" style="cursor:pointer;color:var(--primary);">Click to listen</span>`;
+    pronunciationText.innerHTML = `<i class="fas fa-play-circle" style="color:var(--neon-cyan);"></i> <span onclick="speakText('${text.replace(/'/g, "\\'")}', '${voiceLocale}')" style="cursor:pointer;color:var(--neon-blue);">Click to listen</span>`;
     
-    // Transliteration (for Urdu, Hindi, Arabic)
     if (transliterationToggle.classList.contains('active') && (langCode === 'ur' || langCode === 'hi' || langCode === 'ar')) {
         showTransliteration(text, langCode);
     } else if (transliterationToggle.classList.contains('active')) {
@@ -241,8 +395,6 @@ function showPronunciation(langCode, text) {
 }
 
 function showTransliteration(text, langCode) {
-    // Simple transliteration for demonstration
-    // In production, you would use a proper transliteration API
     let transliterated = text;
     
     if (langCode === 'ur') {
@@ -267,7 +419,7 @@ function speakText(text, locale = 'en-US') {
 }
 
 // ============================================
-// Voice Input (Microphone)
+// VOICE INPUT
 // ============================================
 function startVoiceInput() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -283,15 +435,15 @@ function startVoiceInput() {
     recognition.interimResults = false;
     
     recognition.onstart = () => {
-        micBtn.style.color = 'var(--danger)';
-        showToast('Listening... Speak now');
+        micBtn.style.color = 'var(--neon-pink)';
+        showToast('🎤 Listening... Speak now');
     };
     
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         sourceText.value = transcript;
         updateCharCount();
-        showToast('Voice input captured!');
+        showToast('🎤 Voice input captured!');
         micBtn.style.color = '';
     };
     
@@ -308,7 +460,7 @@ function startVoiceInput() {
 }
 
 // ============================================
-// History & Favorites Functions
+// HISTORY & FAVORITES
 // ============================================
 function saveToHistory(original, translated, from, to) {
     const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
@@ -335,7 +487,7 @@ function loadHistory() {
     if (!container) return;
     
     if (history.length === 0) {
-        container.innerHTML = '<div class="empty-state">No translations yet. Start translating!</div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-history" style="font-size:2rem;opacity:0.3;"></i><br>No translations yet. Start translating!</div>';
         return;
     }
     
@@ -357,7 +509,7 @@ function loadHistory() {
                 currentTranslation = found.fullTranslated;
                 currentSourceText = found.fullOriginal;
                 updateCharCount();
-                showToast('Loaded from history!');
+                showToast('📂 Loaded from history!');
                 document.querySelector('.smart-tab[data-tab="translate"]').click();
             }
         });
@@ -371,16 +523,16 @@ function loadFavorites() {
     if (!container) return;
     
     if (favoritesList.length === 0) {
-        container.innerHTML = '<div class="empty-state">No favorites yet. Save translations you love!</div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-star" style="font-size:2rem;opacity:0.3;"></i><br>No favorites yet. Save translations you love!</div>';
         return;
     }
     
     container.innerHTML = favoritesList.map(item => `
-        <div class="history-item" data-id="${item.id}">
+        <div class="history-item" data-id="${item.id}" style="position:relative;">
             <div class="history-item-title">${escapeHtml(item.original)}</div>
             <div class="history-item-date">${languageNames[item.from] || item.from} → ${languageNames[item.to] || item.to}</div>
             <div class="history-preview">${escapeHtml(item.translated)}</div>
-            <button class="remove-favorite" data-id="${item.id}" style="position:absolute;right:15px;top:15px;background:none;border:none;color:var(--danger);cursor:pointer;">×</button>
+            <button class="remove-favorite" data-id="${item.id}" style="position:absolute;right:15px;top:15px;background:none;border:none;color:var(--neon-pink);cursor:pointer;font-size:1.2rem;">×</button>
         </div>
     `).join('');
     
@@ -393,7 +545,7 @@ function loadFavorites() {
                 sourceText.value = found.fullOriginal;
                 targetText.innerHTML = found.fullTranslated;
                 updateCharCount();
-                showToast('Loaded from favorites!');
+                showToast('⭐ Loaded from favorites!');
                 document.querySelector('.smart-tab[data-tab="translate"]').click();
             }
         });
@@ -439,7 +591,7 @@ function saveToFavorites() {
     
     localStorage.setItem('translationFavorites', JSON.stringify(favoritesList));
     loadFavorites();
-    showToast('Saved to favorites!');
+    showToast('⭐ Saved to favorites!');
 }
 
 function clearHistory() {
@@ -465,13 +617,12 @@ function updateTranslationCount() {
 }
 
 // ============================================
-// Helper Functions
+// HELPERS
 // ============================================
 function updateCharCount() {
     const count = sourceText.value.length;
     charCounter.textContent = count + ' characters';
     
-    // Auto-detect language
     if (fromLang.value === 'auto' && count > 5) {
         detectLanguage(sourceText.value);
     } else {
@@ -485,7 +636,7 @@ function copyToClipboard() {
         return;
     }
     navigator.clipboard.writeText(currentTranslation);
-    showToast('Copied to clipboard!');
+    showToast('📋 Copied to clipboard!');
 }
 
 function swapLanguages() {
@@ -494,10 +645,9 @@ function swapLanguages() {
     fromLang.value = toVal;
     toLang.value = fromVal;
     
-    // Also swap the text
     const sourceVal = sourceText.value;
     const targetVal = targetText.innerHTML;
-    if (sourceVal && targetVal && targetVal !== 'Translation will appear here...') {
+    if (sourceVal && targetVal && targetVal !== 'Translation will appear here...' && targetVal !== 'Translation will appear here...') {
         sourceText.value = targetVal;
         targetText.innerHTML = sourceVal;
         currentSourceText = targetVal;
@@ -505,7 +655,7 @@ function swapLanguages() {
         updateCharCount();
     }
     
-    showToast('Languages swapped!');
+    showToast('🔄 Languages swapped!');
 }
 
 function downloadAsTXT() {
@@ -521,7 +671,7 @@ function downloadAsTXT() {
     a.download = `translation-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Downloaded as TXT!');
+    showToast('📥 Downloaded as TXT!');
 }
 
 function speakSource() {
@@ -551,7 +701,7 @@ function clearInput() {
     updateCharCount();
     detectedLangDiv.style.display = 'none';
     pronunciationBox.style.display = 'none';
-    showToast('Cleared!');
+    showToast('🗑️ Cleared!');
 }
 
 function exportData() {
@@ -571,7 +721,7 @@ function exportData() {
     a.download = `translation-data-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Data exported!');
+    showToast('📦 Data exported!');
 }
 
 function importData() {
@@ -592,7 +742,7 @@ if (importFile) {
                 loadHistory();
                 loadFavorites();
                 updateTranslationCount();
-                showToast('Data imported!');
+                showToast('📦 Data imported!');
             } catch(err) { showToast('Invalid file', 'error'); }
         };
         reader.readAsText(file);
@@ -602,7 +752,7 @@ if (importFile) {
 
 function sharePage() {
     navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied!');
+    showToast('🔗 Link copied!');
 }
 
 function shareTool(platform) {
@@ -614,7 +764,19 @@ function shareTool(platform) {
     else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
     else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${title}%20${url}`;
     else if (platform === 'email') shareUrl = `mailto:?subject=${title}&body=${url}`;
-    if (shareUrl) { window.open(shareUrl); trackShare(platform); showToast(`Shared on ${platform}!`); }
+    if (shareUrl) { 
+        window.open(shareUrl); 
+        trackShare(platform); 
+        showToast(`📤 Shared on ${platform}!`); 
+    }
+}
+
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
 }
 
 function toggleDarkMode() {
@@ -625,7 +787,7 @@ function toggleDarkMode() {
         darkModeToggle.textContent = isDark ? 'On' : 'Off';
         darkModeToggle.classList.toggle('active', isDark);
     }
-    showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    showToast(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled');
 }
 
 function togglePronunciation() {
@@ -634,7 +796,7 @@ function togglePronunciation() {
     localStorage.setItem('pronunciationEnabled', isOn);
     if (!isOn) pronunciationBox.style.display = 'none';
     else if (currentTranslation) showPronunciation(toLang.value, currentTranslation);
-    showToast(isOn ? 'Pronunciation on' : 'Pronunciation off');
+    showToast(isOn ? '🔊 Pronunciation on' : '🔇 Pronunciation off');
 }
 
 function toggleTransliteration() {
@@ -647,7 +809,7 @@ function toggleTransliteration() {
     } else if (isOn && currentTranslation) {
         showTransliteration(currentTranslation, toLang.value);
     }
-    showToast(isOn ? 'Transliteration on' : 'Transliteration off');
+    showToast(isOn ? '🔤 Transliteration on' : '🔤 Transliteration off');
 }
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -659,7 +821,8 @@ function showToast(msg, type = 'success') {
     if (!toast || !toastMsg) return;
     toastMsg.textContent = msg;
     toast.classList.remove('hidden');
-    toast.style.background = type === 'error' ? '#ef4444' : '#333';
+    toast.style.background = type === 'error' ? 'var(--neon-pink)' : 'rgba(0,20,40,0.95)';
+    toast.style.border = '1px solid ' + (type === 'error' ? 'var(--neon-pink)' : 'var(--neon-cyan)');
     setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
@@ -675,7 +838,7 @@ function escapeHtml(text) {
 }
 
 // ============================================
-// Tabs
+// TABS
 // ============================================
 function initTabs() {
     document.querySelectorAll('.smart-tab').forEach(tab => {
@@ -694,7 +857,7 @@ function initTabs() {
 }
 
 // ============================================
-// Event Listeners
+// EVENT LISTENERS
 // ============================================
 function initEventListeners() {
     translateBtn.addEventListener('click', translateText);
@@ -717,9 +880,11 @@ function initEventListeners() {
     scrollUpBtn.addEventListener('click', scrollToTop);
     scrollDownBtn.addEventListener('click', scrollToBottom);
     
+    if (homeBtn) homeBtn.addEventListener('click', goHome);
+    if (backBtn) backBtn.addEventListener('click', goBack);
+    
     sourceText.addEventListener('input', updateCharCount);
     
-    // Reactions
     document.querySelectorAll('.reaction').forEach(btn => {
         btn.addEventListener('click', () => {
             const emoji = btn.dataset.emoji;
@@ -727,7 +892,6 @@ function initEventListeners() {
         });
     });
     
-    // Social share buttons
     document.querySelectorAll('.social-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const platform = btn.dataset.platform;
@@ -735,14 +899,13 @@ function initEventListeners() {
         });
     });
     
-    // Scroll button visibility
     window.addEventListener('scroll', () => {
         if (scrollUpBtn) scrollUpBtn.classList.toggle('hidden', window.scrollY <= 200);
     });
 }
 
 // ============================================
-// Initialize
+// INITIALIZE
 // ============================================
 function init() {
     initTabs();
@@ -771,8 +934,18 @@ function init() {
         transliterationToggle.classList.remove('active');
     }
     
-    targetText.innerHTML = 'Translation will appear here...';
-    showToast('Translation Tool ready!');
+    targetText.innerHTML = '✨ Translation will appear here...';
+    showToast('🚀 Translation Tool ready!');
 }
 
-init();
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// Make functions globally accessible for inline onclick
+window.speakText = speakText;
+window.goHome = goHome;
+window.goBack = goBack;
