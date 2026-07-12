@@ -1,17 +1,18 @@
 /* ============================================
    CLASSROOM WEEKLY ROSTER GENERATOR - COMPLETE JS
-   34 Features with AI Integration & TiDB
-   Reactions Fixed - All 7 Emojis Working
+   Cloudflare Workers API Integration
+   Dark Space Theme with Neon Effects
+   Full AI Integration with Groq
    ============================================ */
 
 // ============================================
-// Configuration
+// Configuration - Cloudflare Workers API
 // ============================================
 const TOOL_SLUG = 'classroom-roster-generator';
 const TOOL_NAME = 'Classroom Weekly Roster Generator';
 const CATEGORY = 'teacher';
-const WORKER_URL = 'https://classroom-roster-generator.uzairhameed01.workers.dev';
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 let userId = localStorage.getItem('userId');
 if (!userId) {
@@ -32,6 +33,12 @@ let currentRoster = {
 };
 let savedRosters = [];
 let dutyCounts = {};
+let toolStats = {
+    usage: 0,
+    views: 0,
+    shares: 0,
+    followers: 0
+};
 
 // Days of week
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -47,6 +54,9 @@ const dayColors = {
 // DOM Elements
 // ============================================
 const usageCountSpan = document.getElementById('usageCount');
+const viewsCountSpan = document.getElementById('viewsCount');
+const sharesCountSpan = document.getElementById('sharesCount');
+const followersCountSpan = document.getElementById('followersCount');
 const studentCountSpan = document.getElementById('studentCount');
 const rosterCountSpan = document.getElementById('rosterCount');
 const gradeSelect = document.getElementById('gradeSelect');
@@ -59,6 +69,15 @@ const studentsList = document.getElementById('studentsList');
 const historyList = document.getElementById('historyList');
 const dutyStats = document.getElementById('dutyStats');
 const loadingOverlay = document.getElementById('loadingOverlay');
+const toast = document.getElementById('toast');
+const toastMsg = document.getElementById('toastMsg');
+
+// Typewriter elements
+const typewriterText = document.getElementById('typewriterText');
+
+// Navigation buttons
+const homeBtn = document.getElementById('homeBtn');
+const backBtn = document.getElementById('backBtn');
 
 // Buttons
 const aiGenerateBtn = document.getElementById('aiGenerateBtn');
@@ -95,96 +114,205 @@ const aiSuggestionBar = document.getElementById('aiSuggestionBar');
 const aiSuggestionText = document.getElementById('aiSuggestionText');
 
 // ============================================
-// TiDB API Calls
+// Cloudflare Workers API Calls
 // ============================================
+
+// 1. Track Usage - Increment Counter
 async function trackUsage() {
     try {
-        await fetch(`${API_BASE}/usage/increment`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, tool_name: TOOL_NAME, category: CATEGORY, user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                tool_name: TOOL_NAME,
+                category: CATEGORY,
+                user_id: userId
+            })
         });
-        const current = parseInt(usageCountSpan.textContent) || 0;
-        usageCountSpan.textContent = current + 1;
-    } catch(e) { console.error(e); }
-}
-
-async function addReaction(emoji) {
-    try {
-        // Map emoji to correct name
-        let emojiName = emoji;
-        if (emoji === 'like') emojiName = 'like';
-        else if (emoji === 'love') emojiName = 'love';
-        else if (emoji === 'wow') emojiName = 'wow';
-        else if (emoji === 'sad') emojiName = 'sad';
-        else if (emoji === 'angry') emojiName = 'angry';
-        else if (emoji === 'laugh') emojiName = 'laugh';
-        else if (emoji === 'celebrate') emojiName = 'celebrate';
         
-        const response = await fetch(`${API_BASE}/reactions/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emojiName, user_id: userId })
-        });
-        const data = await response.json();
-        
-        // Update the counter on screen
-        const countSpan = document.getElementById(`${emojiName}Count`);
-        if (countSpan) {
-            countSpan.textContent = data.count || (parseInt(countSpan.textContent) + 1);
+        if (response.ok) {
+            const data = await response.json();
+            updateUsageDisplay(data.count || 0);
         }
-        
-        showToast(getEmojiName(emoji) + ' reaction added!');
-    } catch(e) { 
-        console.error('Reaction failed:', e);
-        // Fallback: update locally
-        const countSpan = document.getElementById(`${emoji}Count`);
-        if (countSpan) {
-            countSpan.textContent = parseInt(countSpan.textContent) + 1;
-        }
-        showToast(getEmojiName(emoji) + ' reaction added!');
+        return true;
+    } catch(e) {
+        console.error('Usage tracking failed:', e);
+        // Fallback: LocalStorage
+        const localCount = parseInt(localStorage.getItem('tool_usage_' + TOOL_SLUG) || '0') + 1;
+        localStorage.setItem('tool_usage_' + TOOL_SLUG, localCount);
+        updateUsageDisplay(localCount);
+        return false;
     }
 }
 
-async function trackShare(platform) {
+// 2. Add/Get Reactions
+async function addReaction(emoji) {
     try {
-        await fetch(`${API_BASE}/shares/add`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, share_type: 'tool', user_id: userId })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                emoji: emoji,
+                user_id: userId
+            })
         });
-    } catch(e) { console.error(e); }
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateReactionDisplay(emoji, data.count);
+            showToast(getEmojiName(emoji) + ' reaction added! ✨');
+        }
+        return true;
+    } catch(e) {
+        console.error('Reaction failed:', e);
+        // Fallback: LocalStorage
+        const key = 'reaction_' + TOOL_SLUG + '_' + emoji;
+        const count = parseInt(localStorage.getItem(key) || '0') + 1;
+        localStorage.setItem(key, count);
+        updateReactionDisplay(emoji, count);
+        showToast(getEmojiName(emoji) + ' reaction added! ✨');
+        return false;
+    }
 }
 
+// 3. Record Shares
+async function trackShare(platform) {
+    try {
+        const response = await fetch(`${API_BASE}/api/shares`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                tool_slug: TOOL_SLUG,
+                platform: platform,
+                share_type: 'tool',
+                user_id: userId
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateSharesDisplay(data.count || 0);
+        }
+        return true;
+    } catch(e) {
+        console.error('Share tracking failed:', e);
+        // Fallback: LocalStorage
+        const shareCount = parseInt(localStorage.getItem('shares_' + TOOL_SLUG) || '0') + 1;
+        localStorage.setItem('shares_' + TOOL_SLUG, shareCount);
+        updateSharesDisplay(shareCount);
+        return false;
+    }
+}
+
+// 4. Get Tool Stats
 async function loadStats() {
     try {
-        const response = await fetch(`${API_BASE}/tools/stats?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (usageCountSpan) usageCountSpan.textContent = data.total_usage || 0;
-        
-        const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-        emojis.forEach(e => {
-            const span = document.getElementById(`${e}Count`);
-            if (span) span.textContent = data[`${e}_count`] || 0;
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: {
+                'X-API-Key': API_KEY
+            }
         });
-    } catch(e) { console.error(e); }
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Update dashboard stats
+            updateUsageDisplay(data.total_usage || 0);
+            updateViewsDisplay(data.total_views || 0);
+            updateSharesDisplay(data.total_shares || 0);
+            updateFollowersDisplay(data.total_followers || 0);
+            
+            // Update reactions
+            const emojis = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+            emojis.forEach(e => {
+                const count = data[e + '_count'] || 0;
+                updateReactionDisplay(e, count);
+            });
+        }
+        return true;
+    } catch(e) {
+        console.error('Stats load failed:', e);
+        // Fallback: Load from LocalStorage
+        loadStatsFromLocal();
+        return false;
+    }
 }
 
 // ============================================
-// AI Functions (Same as before)
+// Stats Display Update Functions
+// ============================================
+function updateUsageDisplay(count) {
+    if (usageCountSpan) usageCountSpan.textContent = count;
+    localStorage.setItem('usage_' + TOOL_SLUG, count);
+}
+
+function updateViewsDisplay(count) {
+    if (viewsCountSpan) viewsCountSpan.textContent = count;
+    localStorage.setItem('views_' + TOOL_SLUG, count);
+}
+
+function updateSharesDisplay(count) {
+    if (sharesCountSpan) sharesCountSpan.textContent = count;
+    localStorage.setItem('shares_' + TOOL_SLUG, count);
+}
+
+function updateFollowersDisplay(count) {
+    if (followersCountSpan) followersCountSpan.textContent = count;
+    localStorage.setItem('followers_' + TOOL_SLUG, count);
+}
+
+function updateReactionDisplay(emoji, count) {
+    const span = document.getElementById(emoji + 'Count');
+    if (span) span.textContent = count;
+    localStorage.setItem('reaction_' + TOOL_SLUG + '_' + emoji, count);
+}
+
+function loadStatsFromLocal() {
+    const usage = parseInt(localStorage.getItem('usage_' + TOOL_SLUG) || '0');
+    const views = parseInt(localStorage.getItem('views_' + TOOL_SLUG) || '0');
+    const shares = parseInt(localStorage.getItem('shares_' + TOOL_SLUG) || '0');
+    const followers = parseInt(localStorage.getItem('followers_' + TOOL_SLUG) || '0');
+    
+    updateUsageDisplay(usage);
+    updateViewsDisplay(views);
+    updateSharesDisplay(shares);
+    updateFollowersDisplay(followers);
+}
+
+// ============================================
+// AI Functions with Groq API
 // ============================================
 async function generateStudentNames() {
     const size = parseInt(classSize.value);
     const grade = gradeSelect.value;
     
-    showLoading(true, 'AI is generating student names...');
+    showLoading(true, '🤖 AI is generating student names...');
     
     try {
-        const response = await fetch(`${WORKER_URL}/api/generate-students`, {
+        const response = await fetch(`${API_BASE}/api/generate-students`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ grade: grade, count: size })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                grade: grade,
+                count: size,
+                tool_slug: TOOL_SLUG
+            })
         });
+        
         const data = await response.json();
         
         if (data.success && data.students) {
@@ -196,10 +324,10 @@ async function generateStudentNames() {
             saveStudentsToLocal();
             renderStudentsList();
             updateStudentCount();
-            showToast(`${students.length} students generated!`);
+            showToast(`🎓 ${students.length} students generated!`);
             
-            if (aiSuggestToggle.classList.contains('active')) {
-                showAISuggestion(`Generated ${students.length} student names for Grade ${grade}. Ready to create roster!`);
+            if (aiSuggestToggle && aiSuggestToggle.classList.contains('active')) {
+                showAISuggestion(`✨ Generated ${students.length} student names for Grade ${grade}. Ready to create roster!`);
             }
         } else {
             generateMockStudents();
@@ -214,28 +342,30 @@ async function generateStudentNames() {
 
 function generateMockStudents() {
     const size = parseInt(classSize.value);
-    const firstNames = ['Ahmad', 'Sarah', 'Omar', 'Fatima', 'Ali', 'Zainab', 'Hassan', 'Ayesha', 'Bilal', 'Mariam', 'Usman', 'Sana', 'Hamza', 'Kinza', 'Saad', 'Iqra', 'Rayan', 'Hira', 'Shahzaib', 'Laiba'];
+    const firstNames = ['Ahmad', 'Sarah', 'Omar', 'Fatima', 'Ali', 'Zainab', 'Hassan', 'Ayesha', 
+                       'Bilal', 'Mariam', 'Usman', 'Sana', 'Hamza', 'Kinza', 'Saad', 'Iqra', 
+                       'Rayan', 'Hira', 'Shahzaib', 'Laiba', 'Muhammad', 'Aisha', 'Ibrahim', 'Maryam'];
     students = [];
     for (let i = 0; i < size; i++) {
         students.push({
             id: Date.now() + i,
-            name: firstNames[i % firstNames.length] + ' ' + (Math.floor(i / firstNames.length) + 1),
+            name: firstNames[i % firstNames.length] + (i >= firstNames.length ? ' ' + (Math.floor(i / firstNames.length) + 1) : ''),
             dutyCount: 0
         });
     }
     saveStudentsToLocal();
     renderStudentsList();
     updateStudentCount();
-    showToast(`${students.length} students ready!`);
+    showToast(`🎓 ${students.length} students ready!`);
 }
 
 async function smartRosterGenerator() {
     if (students.length === 0) {
-        showToast('Please generate student names first!', 'error');
+        showToast('⚠️ Please generate student names first!', 'error');
         return;
     }
     
-    showLoading(true, 'AI is creating smart roster...');
+    showLoading(true, '🤖 AI is creating smart roster...');
     await trackUsage();
     
     const dutiesPerDayCount = parseInt(dutiesPerDay.value);
@@ -243,7 +373,38 @@ async function smartRosterGenerator() {
     // Reset duty counts
     students.forEach(s => s.dutyCount = 0);
     
-    // Create balanced roster
+    try {
+        // Try AI-powered roster generation
+        const response = await fetch(`${API_BASE}/api/generate-roster`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                students: students,
+                days: days,
+                duties_per_day: dutiesPerDayCount,
+                tool_slug: TOOL_SLUG
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.roster) {
+            currentRoster.days = data.roster;
+            renderRoster();
+            updateDutyStats();
+            saveToLocalStorage();
+            showToast('✨ Smart roster generated by AI!');
+            showLoading(false);
+            return;
+        }
+    } catch(e) {
+        console.error('AI roster generation failed, using fallback:', e);
+    }
+    
+    // Fallback: Balanced roster generation
     const shuffled = [...students];
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -271,12 +432,15 @@ async function smartRosterGenerator() {
     renderRoster();
     updateDutyStats();
     saveToLocalStorage();
-    showToast('Smart roster generated!');
+    showToast('✨ Smart roster generated!');
     showLoading(false);
 }
 
 function balanceDuties() {
-    if (students.length === 0) return;
+    if (students.length === 0) {
+        showToast('⚠️ No students available!', 'error');
+        return;
+    }
     
     const dutiesPerDayCount = parseInt(dutiesPerDay.value);
     const totalDuties = days.length * dutiesPerDayCount;
@@ -315,11 +479,14 @@ function balanceDuties() {
     
     renderRoster();
     updateDutyStats();
-    showToast('Duties balanced!');
+    showToast('⚖️ Duties balanced!');
 }
 
 function rotateDuties() {
-    if (students.length === 0) return;
+    if (students.length === 0) {
+        showToast('⚠️ No students available!', 'error');
+        return;
+    }
     
     // Simple rotation: move each duty to next student
     for (let day of days) {
@@ -350,7 +517,58 @@ function rotateDuties() {
     
     renderRoster();
     updateDutyStats();
-    showToast('Duties rotated!');
+    showToast('🔄 Duties rotated!');
+}
+
+// ============================================
+// Typewriter Animation
+// ============================================
+function initTypewriter() {
+    if (!typewriterText) return;
+    
+    const phrases = [
+        '✨ AI-Powered Duty Roster Generator',
+        '📚 Smart Classroom Management Tool',
+        '🎯 Balanced Weekly Duty Schedules',
+        '🤖 Intelligent Student Name Suggestions',
+        '📊 Real-time Duty Statistics',
+        '🌟 Create Perfect Rosters in Seconds'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let currentText = '';
+    
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            currentText = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            currentText = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        typewriterText.textContent = currentText;
+        typewriterText.style.borderRight = '2px solid var(--neon-cyan)';
+        
+        let typeSpeed = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            typeSpeed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            typeSpeed = 500;
+        }
+        
+        setTimeout(type, typeSpeed);
+    }
+    
+    setTimeout(type, 1000);
 }
 
 // ============================================
@@ -366,9 +584,9 @@ function renderRoster() {
         const hasEvent = currentRoster.events?.find(e => e.day === day);
         
         html += `
-            <div class="day-card" style="background: ${dayColors[day]}10">
+            <div class="day-card neon-border" style="background: ${dayColors[day]}15">
                 <div class="day-header" style="background: ${dayColors[day]}">
-                    ${day}
+                    <i class="fas fa-calendar-day"></i> ${day}
                     ${hasHoliday ? '<span class="holiday-marker">🎉 Holiday</span>' : ''}
                     ${hasEvent ? `<span class="event-marker">📌 ${hasEvent.title}</span>` : ''}
                 </div>
@@ -378,9 +596,9 @@ function renderRoster() {
         for (let i = 0; i < dutiesPerDayCount; i++) {
             const duty = duties[i] || { dutyNumber: i + 1, studentId: null, studentName: '' };
             html += `
-                <div class="duty-row">
-                    <div class="duty-number">${duty.dutyNumber}</div>
-                    <select class="duty-select" data-day="${day}" data-duty="${i}">
+                <div class="duty-row glass-effect">
+                    <div class="duty-number neon-text">${duty.dutyNumber}</div>
+                    <select class="duty-select neon-input" data-day="${day}" data-duty="${i}">
                         <option value="">-- Select Student --</option>
                         ${students.map(s => `<option value="${s.id}" ${duty.studentId === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
                     </select>
@@ -418,17 +636,22 @@ function renderStudentsList() {
     if (!studentsList) return;
     
     if (students.length === 0) {
-        studentsList.innerHTML = '<div class="empty-state">No students added yet. Use AI Generate or Add Student button.</div>';
+        studentsList.innerHTML = `
+            <div class="empty-state glass-effect">
+                <i class="fas fa-users" style="font-size: 3rem; color: var(--neon-cyan);"></i>
+                <p>No students added yet. Use AI Generate or Add Student button.</p>
+            </div>
+        `;
         return;
     }
     
     studentsList.innerHTML = students.map(student => `
-        <div class="student-item" data-id="${student.id}">
+        <div class="student-item glass-effect neon-border" data-id="${student.id}">
             <div>
-                <div class="student-name"><i class="fas fa-user"></i> ${escapeHtml(student.name)}</div>
-                <div class="student-duties">Duties: ${student.dutyCount || 0} times</div>
+                <div class="student-name"><i class="fas fa-user-graduate neon-text"></i> ${escapeHtml(student.name)}</div>
+                <div class="student-duties">📊 Duties: ${student.dutyCount || 0} times</div>
             </div>
-            <button class="delete-student" data-id="${student.id}"><i class="fas fa-trash-alt"></i></button>
+            <button class="delete-student neon-btn" data-id="${student.id}"><i class="fas fa-trash-alt"></i></button>
         </div>
     `).join('');
     
@@ -440,7 +663,7 @@ function renderStudentsList() {
             renderStudentsList();
             updateStudentCount();
             renderRoster();
-            showToast('Student removed');
+            showToast('🗑️ Student removed');
         });
     });
 }
@@ -450,11 +673,12 @@ function updateDutyStats() {
     
     const sorted = [...students].sort((a, b) => (b.dutyCount || 0) - (a.dutyCount || 0));
     dutyStats.innerHTML = `
+        <h4><i class="fas fa-chart-bar neon-text"></i> Duty Statistics</h4>
         <div class="duty-stats-grid">
             ${sorted.map(s => `
-                <div class="duty-stat-item">
-                    <span>${escapeHtml(s.name)}</span>
-                    <span><strong>${s.dutyCount || 0}</strong> duties</span>
+                <div class="duty-stat-item glass-effect">
+                    <span><i class="fas fa-user"></i> ${escapeHtml(s.name)}</span>
+                    <span><strong class="neon-text">${s.dutyCount || 0}</strong> duties</span>
                 </div>
             `).join('')}
         </div>
@@ -469,6 +693,11 @@ function updateStudentCount() {
 // Save/Load Functions
 // ============================================
 function saveRoster() {
+    if (students.length === 0) {
+        showToast('⚠️ No students to save!', 'error');
+        return;
+    }
+    
     const roster = {
         id: Date.now(),
         grade: gradeSelect.value,
@@ -487,7 +716,7 @@ function saveRoster() {
     
     renderHistory();
     updateRosterCount();
-    showToast('Roster saved!');
+    showToast('💾 Roster saved successfully!');
 }
 
 function loadRoster(roster) {
@@ -503,7 +732,7 @@ function loadRoster(roster) {
     renderRoster();
     updateStudentCount();
     updateDutyStats();
-    showToast('Roster loaded!');
+    showToast('📂 Roster loaded!');
 }
 
 function renderHistory() {
@@ -512,15 +741,20 @@ function renderHistory() {
     if (!historyList) return;
     
     if (saved.length === 0) {
-        historyList.innerHTML = '<div class="empty-state">No saved rosters yet.</div>';
+        historyList.innerHTML = `
+            <div class="empty-state glass-effect">
+                <i class="fas fa-history" style="font-size: 3rem; color: var(--neon-cyan);"></i>
+                <p>No saved rosters yet. Create and save your first roster!</p>
+            </div>
+        `;
         return;
     }
     
     historyList.innerHTML = saved.map(item => `
-        <div class="history-item" data-id="${item.id}">
-            <div class="history-title">Grade ${item.grade} - Week ${item.week}</div>
+        <div class="history-item glass-effect neon-border" data-id="${item.id}">
+            <div class="history-title"><i class="fas fa-calendar-alt neon-text"></i> Grade ${item.grade} - Week ${item.week}</div>
             <div class="history-date">${new Date(item.timestamp).toLocaleString()}</div>
-            <div class="history-preview">${item.notes ? item.notes.substring(0, 50) : 'No notes'}</div>
+            <div class="history-preview">${item.notes ? item.notes.substring(0, 50) : '📝 No notes'}</div>
         </div>
     `).join('');
     
@@ -575,14 +809,14 @@ function downloadAsWord() {
     a.download = `Weekly_Roster_Grade_${grade}_Week_${weekSelect.value}.doc`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Downloaded as Word!');
+    showToast('📄 Downloaded as Word!');
 }
 
 async function downloadAsPDF() {
-    showLoading(true, 'Generating PDF...');
+    showLoading(true, '📄 Generating PDF...');
     try {
         const element = document.getElementById('weeklySchedule');
-        const canvas = await html2canvas(element, { scale: 2 });
+        const canvas = await html2canvas(element, { scale: 2, backgroundColor: null });
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('l', 'mm', 'a4');
@@ -590,8 +824,10 @@ async function downloadAsPDF() {
         const imgHeight = canvas.height * imgWidth / canvas.width;
         pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
         pdf.save(`Roster_Grade_${gradeSelect.value}.pdf`);
-        showToast('PDF downloaded!');
-    } catch(e) { showToast('PDF generation failed', 'error'); }
+        showToast('📄 PDF downloaded!');
+    } catch(e) { 
+        showToast('PDF generation failed', 'error'); 
+    }
     showLoading(false);
 }
 
@@ -612,7 +848,7 @@ function downloadAsExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Weekly Roster');
     XLSX.writeFile(wb, `Roster_Grade_${gradeSelect.value}.xlsx`);
-    showToast('Downloaded as Excel!');
+    showToast('📊 Downloaded as Excel!');
 }
 
 function printRoster() {
@@ -632,7 +868,7 @@ function generatePrintHTML() {
         for (let i = 0; i < dutiesPerDayCount; i++) {
             dutyCells += `<td>${duties[i]?.studentName || '—'}</td>`;
         }
-        tableRows += `<tr><td style="background:${dayColors[day]};font-weight:bold;">${day}</td>${dutyCells}</tr>`;
+        tableRows += `<tr><td style="background:${dayColors[day]};font-weight:bold;color:white;">${day}</td>${dutyCells}</tr>`;
     }
     
     return `
@@ -640,23 +876,24 @@ function generatePrintHTML() {
         <html>
         <head><meta charset="UTF-8"><title>Weekly Classroom Roster</title>
         <style>
-            body { font-family: Arial, sans-serif; padding: 40px; }
-            h1 { color: #4A6FA5; text-align: center; }
+            body { font-family: Arial, sans-serif; padding: 40px; background: #0a0a1a; color: #fff; }
+            h1 { color: #00f0ff; text-align: center; text-shadow: 0 0 20px rgba(0,240,255,0.3); }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-            th { background: #4A6FA5; color: white; }
-            .notes { margin-top: 30px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+            th, td { border: 1px solid #1a1a3a; padding: 12px; text-align: left; }
+            th { background: #00f0ff; color: #0a0a1a; }
+            td { background: #0a0a1a; }
+            .notes { margin-top: 30px; padding: 20px; background: #0a0a1a; border: 1px solid #00f0ff; border-radius: 8px; }
         </style>
         </head>
         <body>
-            <h1>Classroom Weekly Roster</h1>
-            <h2>Grade ${gradeSelect.value} - Week ${weekSelect.value}</h2>
+            <h1>🏫 Classroom Weekly Roster</h1>
+            <h2 style="color: #00f0ff;">Grade ${gradeSelect.value} - Week ${weekSelect.value}</h2>
             <table>
                 <tr><th>Day</th>${Array(dutiesPerDayCount).fill().map((_,i) => `<th>Duty ${i+1}</th>`).join('')}</tr>
                 ${tableRows}
             </table>
             <div class="notes"><strong>📝 Notes:</strong><br>${teacherNotes.value || 'No notes'}</div>
-            <p style="margin-top: 30px; text-align: center;">Generated by Classroom Roster Tool</p>
+            <p style="margin-top: 30px; text-align: center; color: #666;">Generated by Classroom Roster Tool 🚀</p>
         </body>
         </html>
     `;
@@ -666,12 +903,11 @@ function generatePrintHTML() {
 // Helper Functions
 // ============================================
 function showToast(msg, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toastMsg');
     if (!toast || !toastMsg) return;
     toastMsg.textContent = msg;
     toast.classList.remove('hidden');
-    toast.style.background = type === 'error' ? '#E74C3C' : '#333';
+    toast.style.background = type === 'error' ? 'linear-gradient(135deg, #ff0040, #ff0066)' : 'linear-gradient(135deg, #00f0ff, #00ff88)';
+    toast.style.boxShadow = type === 'error' ? '0 0 30px rgba(255,0,64,0.3)' : '0 0 30px rgba(0,240,255,0.3)';
     setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
@@ -711,19 +947,23 @@ function getEmojiName(emoji) {
 }
 
 function resetRoster() {
-    currentRoster.days = {};
-    teacherNotes.value = '';
-    renderRoster();
-    showToast('Roster reset!');
+    if (confirm('⚠️ Reset everything? This will clear all duty assignments.')) {
+        currentRoster.days = {};
+        teacherNotes.value = '';
+        renderRoster();
+        showToast('🔄 Roster reset!');
+    }
 }
 
 function addHoliday() {
     const day = prompt('Enter day for holiday (Monday-Friday):');
     if (day && days.includes(day)) {
         if (!currentRoster.holidays) currentRoster.holidays = [];
-        currentRoster.holidays.push(day);
-        renderRoster();
-        showToast(`Holiday marked on ${day}!`);
+        if (!currentRoster.holidays.includes(day)) {
+            currentRoster.holidays.push(day);
+            renderRoster();
+            showToast(`🎉 Holiday marked on ${day}!`);
+        }
     }
 }
 
@@ -734,7 +974,7 @@ function addEvent() {
         if (!currentRoster.events) currentRoster.events = [];
         currentRoster.events.push({ day: day, title: title });
         renderRoster();
-        showToast(`Event added on ${day}!`);
+        showToast(`📌 Event added on ${day}!`);
     }
 }
 
@@ -749,7 +989,7 @@ function addStudent() {
         saveStudentsToLocal();
         renderStudentsList();
         updateStudentCount();
-        showToast('Student added!');
+        showToast('👨‍🎓 Student added!');
     }
 }
 
@@ -767,7 +1007,7 @@ function bulkAdd() {
         saveStudentsToLocal();
         renderStudentsList();
         updateStudentCount();
-        showToast(`${nameList.length} students added!`);
+        showToast(`👨‍🎓 ${nameList.length} students added!`);
     }
 }
 
@@ -776,7 +1016,7 @@ function clearHistory() {
         localStorage.removeItem('savedRosters');
         renderHistory();
         updateRosterCount();
-        showToast('History cleared!');
+        showToast('🗑️ History cleared!');
     }
 }
 
@@ -785,10 +1025,10 @@ function toggleDarkMode() {
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDark);
     if (darkModeToggle) {
-        darkModeToggle.textContent = isDark ? 'On' : 'Off';
+        darkModeToggle.textContent = isDark ? '🌙 On' : '☀️ Off';
         darkModeToggle.classList.toggle('active', isDark);
     }
-    showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    showToast(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled');
 }
 
 function changeTheme(colorTheme) {
@@ -802,7 +1042,7 @@ function changeTheme(colorTheme) {
         opt.classList.remove('selected');
         if (opt.dataset.color === colorTheme) opt.classList.add('selected');
     });
-    showToast(`${colorTheme} theme applied!`);
+    showToast(`🎨 ${colorTheme} theme applied!`);
 }
 
 function exportData() {
@@ -821,7 +1061,7 @@ function exportData() {
     a.download = `roster-data-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Data exported!');
+    showToast('💾 Data exported!');
 }
 
 function importData() {
@@ -845,7 +1085,7 @@ if (importFile) {
                 renderHistory();
                 updateRosterCount();
                 updateStudentCount();
-                showToast('Data imported!');
+                showToast('📂 Data imported!');
             } catch(err) { showToast('Invalid file', 'error'); }
         };
         reader.readAsText(file);
@@ -855,19 +1095,46 @@ if (importFile) {
 
 function sharePage() {
     navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied!');
+    showToast('🔗 Link copied!');
 }
 
 function shareTool(platform) {
     const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent('Classroom Weekly Roster Generator');
+    const title = encodeURIComponent('Classroom Weekly Roster Generator - AI-Powered Duty Scheduler');
     let shareUrl = '';
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
-    else if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${title}%20${url}`;
-    else if (platform === 'email') shareUrl = `mailto:?subject=${title}&body=${url}`;
-    if (shareUrl) { window.open(shareUrl); trackShare(platform); showToast(`Shared on ${platform}!`); }
+    
+    switch(platform) {
+        case 'facebook': 
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'twitter': 
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+            break;
+        case 'linkedin': 
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?u=${url}`;
+            break;
+        case 'whatsapp': 
+            shareUrl = `https://wa.me/?text=${title}%20${url}`;
+            break;
+        case 'email': 
+            shareUrl = `mailto:?subject=${title}&body=${url}`;
+            break;
+    }
+    
+    if (shareUrl) { 
+        window.open(shareUrl, '_blank');
+        trackShare(platform); 
+        showToast(`📤 Shared on ${platform}!`);
+    }
+}
+
+// Navigation
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
 }
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -897,26 +1164,43 @@ function initTabs() {
 // Event Listeners
 // ============================================
 function initEventListeners() {
+    // Navigation
+    homeBtn?.addEventListener('click', goHome);
+    backBtn?.addEventListener('click', goBack);
+    
+    // AI Buttons
     aiGenerateBtn?.addEventListener('click', generateStudentNames);
     smartRosterBtn?.addEventListener('click', smartRosterGenerator);
     balanceDutiesBtn?.addEventListener('click', balanceDuties);
     rotateDutiesBtn?.addEventListener('click', rotateDuties);
+    
+    // Save/Export
     saveRosterBtn?.addEventListener('click', saveRoster);
     downloadWordBtn?.addEventListener('click', downloadAsWord);
     downloadPdfBtn?.addEventListener('click', downloadAsPDF);
     downloadExcelBtn?.addEventListener('click', downloadAsExcel);
     printRosterBtn?.addEventListener('click', printRoster);
     resetRosterBtn?.addEventListener('click', resetRoster);
+    
+    // Students
     addStudentBtn?.addEventListener('click', addStudent);
     bulkAddBtn?.addEventListener('click', bulkAdd);
     aiSuggestStudentsBtn?.addEventListener('click', generateStudentNames);
+    
+    // History
     clearHistoryBtn?.addEventListener('click', clearHistory);
+    
+    // Settings
     darkModeToggle?.addEventListener('click', toggleDarkMode);
     exportDataBtn?.addEventListener('click', exportData);
     importDataBtn?.addEventListener('click', importData);
     pageShareBtn?.addEventListener('click', sharePage);
+    
+    // Scroll
     scrollUpBtn?.addEventListener('click', scrollToTop);
     scrollDownBtn?.addEventListener('click', scrollToBottom);
+    
+    // Notes & Events
     addHolidayBtn?.addEventListener('click', addHoliday);
     addEventBtn?.addEventListener('click', addEvent);
     applySuggestionBtn?.addEventListener('click', () => { aiSuggestionBar.style.display = 'none'; });
@@ -937,18 +1221,14 @@ function initEventListeners() {
     startDate?.addEventListener('change', () => { saveToLocalStorage(); });
     dutiesPerDay?.addEventListener('change', () => { renderRoster(); });
     
-    // ============================================
-    // REACTIONS - FIXED - 7 EMOJIS WORKING
-    // ============================================
+    // Reactions - All 7 working
     document.querySelectorAll('.reaction').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             const emoji = btn.getAttribute('data-emoji');
-            console.log('Reaction clicked:', emoji);
             if (emoji) {
                 addReaction(emoji);
-                // Visual feedback
                 btn.classList.add('active');
                 setTimeout(() => btn.classList.remove('active'), 300);
             }
@@ -972,10 +1252,18 @@ function initEventListeners() {
 // ============================================
 // Initialize
 // ============================================
-function init() {
+async function init() {
     initTabs();
     initEventListeners();
-    loadStats();
+    initTypewriter();
+    
+    // Load stats from API
+    await loadStats();
+    
+    // Track usage on load
+    await trackUsage();
+    
+    // Load data from localStorage
     loadFromLocalStorage();
     renderHistory();
     updateRosterCount();
@@ -991,21 +1279,24 @@ function init() {
         startDate.value = monday.toISOString().split('T')[0];
     }
     
+    // Load dark mode preference
     const savedDark = localStorage.getItem('darkMode');
     if (savedDark === 'true') {
         document.body.classList.add('dark-mode');
         if (darkModeToggle) {
-            darkModeToggle.textContent = 'On';
+            darkModeToggle.textContent = '🌙 On';
             darkModeToggle.classList.add('active');
         }
     }
     
+    // Load theme preference
     const savedTheme = localStorage.getItem('themeColor');
     if (savedTheme && savedTheme !== 'pastel') {
         changeTheme(savedTheme);
     }
     
-    showToast('Roster Generator ready!');
+    showToast('🚀 Roster Generator ready!');
 }
 
-init();
+// Start the app
+document.addEventListener('DOMContentLoaded', init);
