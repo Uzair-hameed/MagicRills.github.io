@@ -1,6 +1,6 @@
 // ============================================
 // MATHEMATICS MODELS IDEA GENERATOR - MAIN JS
-// FULLY INTEGRATED WITH GROK AI + TiDB
+// FULLY INTEGRATED WITH GROK AI + Cloudflare API
 // ============================================
 
 // ============================================
@@ -9,7 +9,9 @@
 
 const CONFIG = {
     TOOL_SLUG: 'mathematics-models-idea-generator',
-    API_BASE: '/api',
+    // Cloudflare API Configuration
+    CLOUDFLARE_API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    // Grok AI Configuration
     GROK_API_URL: 'https://api.x.ai/v1/chat/completions',
     GROK_API_KEY: '', // Add your xAI API key here
     USE_GROK: true,
@@ -150,46 +152,77 @@ function hideLoading() {
 }
 
 // ============================================
-// API CALLS - TiDB
+// API CALLS - Cloudflare Workers
 // ============================================
 
-async function apiCall(endpoint, method = 'GET', data = null) {
+// Cloudflare API Call Function
+async function callCloudflareAPI(endpoint, method = 'GET', data = null) {
     try {
         const options = {
             method,
             headers: {
                 'Content-Type': 'application/json',
+                'X-Tool-Slug': CONFIG.TOOL_SLUG,
+                'X-Tool-Name': 'Mathematics Models Idea Generator',
+                'X-Category': 'Teacher',
                 'X-User-Id': currentUserId
             }
         };
         if (data) options.body = JSON.stringify(data);
         
-        const response = await fetch(`${CONFIG.API_BASE}/${CONFIG.TOOL_SLUG}${endpoint}`, options);
+        const response = await fetch(`${CONFIG.CLOUDFLARE_API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
         return await response.json();
     } catch (error) {
-        console.error('API Error:', error);
+        console.warn('API call failed, using localStorage fallback:', error);
         return null;
     }
 }
 
 async function incrementUsage() {
-    const result = await apiCall('/usage', 'POST', { user_id: currentUserId });
-    if (result && result.total_usage) {
-        DOM.usageCount.textContent = result.total_usage;
-        if (DOM.heroUsageCount) DOM.heroUsageCount.textContent = result.total_usage;
-        return result.total_usage;
+    try {
+        const result = await callCloudflareAPI('/api/usage', 'POST', { 
+            tool_slug: CONFIG.TOOL_SLUG,
+            action: 'increment'
+        });
+        if (result && result.usage !== undefined) {
+            DOM.usageCount.textContent = result.usage;
+            if (DOM.heroUsageCount) DOM.heroUsageCount.textContent = result.usage;
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, result.usage);
+            return result.usage;
+        }
+    } catch (error) {
+        console.warn('Usage API failed:', error);
     }
-    return 0;
+    
+    // Fallback: local increment
+    let current = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0') + 1;
+    localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, current);
+    DOM.usageCount.textContent = current;
+    if (DOM.heroUsageCount) DOM.heroUsageCount.textContent = current;
+    return current;
 }
 
 async function getUsage() {
-    const result = await apiCall('/usage', 'GET');
-    if (result && result.count) {
-        DOM.usageCount.textContent = result.count;
-        if (DOM.heroUsageCount) DOM.heroUsageCount.textContent = result.count;
-        return result.count;
+    try {
+        const result = await callCloudflareAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result && result.usage !== undefined) {
+            DOM.usageCount.textContent = result.usage;
+            if (DOM.heroUsageCount) DOM.heroUsageCount.textContent = result.usage;
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, result.usage);
+            return result.usage;
+        }
+    } catch (error) {
+        console.warn('Stats API failed:', error);
     }
-    return 0;
+    
+    // Fallback: localStorage
+    const local = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`) || '0');
+    DOM.usageCount.textContent = local;
+    if (DOM.heroUsageCount) DOM.heroUsageCount.textContent = local;
+    return local;
 }
 
 async function addReaction(emoji) {
@@ -198,25 +231,33 @@ async function addReaction(emoji) {
         return false;
     }
     
-    const result = await apiCall('/reactions', 'POST', { emoji, user_id: currentUserId });
+    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
+    const reactionKey = emojiMap[emoji];
     
-    if (result && result.success !== false) {
-        userReactions[emoji] = true;
-        localStorage.setItem(`${CONFIG.TOOL_SLUG}_user_reactions`, JSON.stringify(userReactions));
-        if (result.counts) {
-            reactionsData = result.counts;
+    try {
+        const result = await callCloudflareAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            reaction: reactionKey,
+            action: 'add'
+        });
+        
+        if (result && result.reactions) {
+            reactionsData = result.reactions;
+            userReactions[emoji] = true;
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_user_reactions`, JSON.stringify(userReactions));
+            updateReactionUI();
+            showToast('Thanks for your feedback!', 'success');
+            return true;
         }
-        updateReactionUI();
-        showToast('Thanks for your feedback!', 'success');
-        return true;
+    } catch (error) {
+        console.warn('Reaction API failed:', error);
     }
     
     // Fallback
     if (!userReactions[emoji]) {
         userReactions[emoji] = true;
         localStorage.setItem(`${CONFIG.TOOL_SLUG}_user_reactions`, JSON.stringify(userReactions));
-        const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
-        reactionsData[emojiMap[emoji]] = (reactionsData[emojiMap[emoji]] || 0) + 1;
+        reactionsData[reactionKey] = (reactionsData[reactionKey] || 0) + 1;
         updateReactionUI();
         showToast('Thanks for your feedback!', 'success');
         return true;
@@ -225,33 +266,60 @@ async function addReaction(emoji) {
 }
 
 async function getReactions() {
-    const result = await apiCall('/reactions', 'GET');
-    if (result && result.reactions) {
-        reactionsData = result.reactions;
-        updateReactionUI();
-        return reactionsData;
+    try {
+        const result = await callCloudflareAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result && result.reactions) {
+            reactionsData = result.reactions;
+            updateReactionUI();
+            return reactionsData;
+        }
+    } catch (error) {
+        console.warn('Reactions API failed:', error);
     }
     return reactionsData;
 }
 
 async function addShare(platform) {
-    const result = await apiCall('/shares', 'POST', { platform, user_id: currentUserId });
-    if (result && result.success) {
-        const current = parseInt(DOM.shareCount.textContent) || 0;
-        DOM.shareCount.textContent = current + 1;
-        showToast(`Shared on ${platform}!`, 'success');
-        return true;
+    try {
+        const result = await callCloudflareAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            action: 'add'
+        });
+        
+        if (result && result.shares !== undefined) {
+            DOM.shareCount.textContent = result.shares;
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, result.shares);
+            showToast(`Shared on ${platform}!`, 'success');
+            return true;
+        }
+    } catch (error) {
+        console.warn('Share API failed:', error);
     }
-    return false;
+    
+    // Fallback
+    let current = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0') + 1;
+    localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, current);
+    DOM.shareCount.textContent = current;
+    showToast(`Shared on ${platform}!`, 'success');
+    return true;
 }
 
 async function getShares() {
-    const result = await apiCall('/shares', 'GET');
-    if (result && result.shares) {
-        DOM.shareCount.textContent = result.shares;
-        return result.shares;
+    try {
+        const result = await callCloudflareAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result && result.shares !== undefined) {
+            DOM.shareCount.textContent = result.shares;
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, result.shares);
+            return result.shares;
+        }
+    } catch (error) {
+        console.warn('Shares API failed:', error);
     }
-    return 0;
+    
+    const local = parseInt(localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`) || '0');
+    DOM.shareCount.textContent = local;
+    return local;
 }
 
 // ============================================
