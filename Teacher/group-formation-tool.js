@@ -1,14 +1,18 @@
 // ============================================
 // GROUP FORMATION TOOL - COMPLETE JS FILE
-// TiDB | Vercel | Grok API | Reactions (Fixed) | Usage Counter
-// 58 Features | Fully Integrated
+// Cloudflare Workers API | Grok AI Integration
+// Modern UI/UX | Full Features
 // ============================================
 
 // ============================================
-// API CONFIGURATION
+// API CONFIGURATION - CLOUDFLARE WORKERS
 // ============================================
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'group-formation-tool';
+const TOOL_NAME = 'Group Formation Tool';
+const CATEGORY = 'Teacher';
+
 let SESSION_ID = localStorage.getItem('session_id') || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 localStorage.setItem('session_id', SESSION_ID);
 
@@ -18,6 +22,7 @@ localStorage.setItem('session_id', SESSION_ID);
 let students = [];
 let groups = [];
 let currentGroups = [];
+let toolStats = { usage: 0, views: 0, shares: 0, followers: 0 };
 
 // Reactions Data
 let reactionsData = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
@@ -38,6 +43,17 @@ const REACTION_ELEMENT_IDS = {
     'like': 'reaction-like', 'love': 'reaction-love', 'wow': 'reaction-wow',
     'sad': 'reaction-sad', 'angry': 'reaction-angry',
     'laugh': 'reaction-laugh', 'celebrate': 'reaction-celebrate'
+};
+
+// Reaction Colors - Neon Theme
+const REACTION_COLORS = {
+    'like': '#4e54c8',
+    'love': '#ff6b6b',
+    'wow': '#feca57',
+    'sad': '#54a0ff',
+    'angry': '#ff4757',
+    'laugh': '#2ed573',
+    'celebrate': '#ff9ff3'
 };
 
 // ============================================
@@ -61,6 +77,8 @@ const exportTxtBtn = document.getElementById('exportTxtBtn');
 const exportExcelBtn = document.getElementById('exportExcelBtn');
 const conflictPairsInput = document.getElementById('conflictPairs');
 const assignLeadersCheckbox = document.getElementById('assignLeaders');
+const homeBtn = document.getElementById('homeBtn');
+const backBtn = document.getElementById('backBtn');
 
 // ============================================
 // TOAST NOTIFICATIONS
@@ -92,77 +110,65 @@ function showLoading(show) {
 }
 
 // ============================================
-// API CALLS - USAGE COUNTER (TiDB)
+// API CALLS - CLOUDFLARE WORKERS
 // ============================================
-async function fetchUsage() {
+
+// 1. USAGE COUNTER - POST /api/usage
+async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`);
+        const response = await fetch(`${API_BASE}/api/usage`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                tool_slug: TOOL_SLUG, 
+                user_id: SESSION_ID,
+                tool_name: TOOL_NAME,
+                category: CATEGORY
+            })
+        });
         const data = await response.json();
         if (data.success) {
             const counterEl = document.getElementById('usageCounter');
-            if (counterEl) counterEl.textContent = data.count || 0;
+            if (counterEl) counterEl.textContent = data.count || data.usage || 0;
+            updateStatsDisplay(data);
         }
+        return data;
     } catch (error) {
-        console.error('Usage fetch error:', error);
+        console.warn('Usage increment failed, using localStorage fallback');
+        // LocalStorage fallback
+        let localUsage = parseInt(localStorage.getItem('tool_usage') || '0');
+        localUsage++;
+        localStorage.setItem('tool_usage', localUsage);
         const counterEl = document.getElementById('usageCounter');
-        if (counterEl) counterEl.textContent = '0';
+        if (counterEl) counterEl.textContent = localUsage;
+        return { success: false, fallback: true, count: localUsage };
     }
 }
 
-async function incrementUsage() {
-    try {
-        await fetch(`${API_BASE}/${TOOL_SLUG}/usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: SESSION_ID })
-        });
-        fetchUsage();
-    } catch (error) {
-        console.error('Usage increment error:', error);
-    }
-}
-
-// ============================================
-// API CALLS - REACTIONS (TiDB) - FIXED
-// ============================================
+// 2. REACTIONS - POST /api/reactions
 async function fetchReactions() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`);
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
         const data = await response.json();
-        
         if (data.success && data.reactions) {
             reactionsData = data.reactions;
             updateReactionCountsDisplay();
+            saveReactionsToLocalStorage();
         } else if (data.reactions) {
             reactionsData = data.reactions;
             updateReactionCountsDisplay();
+            saveReactionsToLocalStorage();
         }
+        return data;
     } catch (error) {
-        console.error('Fetch reactions error:', error);
+        console.warn('Fetch reactions failed, using localStorage fallback');
         loadReactionsFromLocalStorage();
-    }
-}
-
-function updateReactionCountsDisplay() {
-    for (const [type, count] of Object.entries(reactionsData)) {
-        const elementId = REACTION_ELEMENT_IDS[type];
-        if (elementId) {
-            const element = document.getElementById(elementId);
-            if (element) element.textContent = count || 0;
-        }
-    }
-    updateReactionButtonsStyle();
-}
-
-function saveReactionsToLocalStorage() {
-    localStorage.setItem('tool_reactions', JSON.stringify(reactionsData));
-}
-
-function loadReactionsFromLocalStorage() {
-    const saved = localStorage.getItem('tool_reactions');
-    if (saved) {
-        reactionsData = JSON.parse(saved);
-        updateReactionCountsDisplay();
+        return { success: false, fallback: true };
     }
 }
 
@@ -182,10 +188,18 @@ async function addReaction(emoji) {
     showLoading(true);
     
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emoji: emoji, user_id: SESSION_ID, tool_slug: TOOL_SLUG })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                emoji: emoji, 
+                user_id: SESSION_ID, 
+                tool_slug: TOOL_SLUG,
+                reaction_type: reactionType
+            })
         });
         
         const data = await response.json();
@@ -216,11 +230,11 @@ async function addReaction(emoji) {
                 localStorage.setItem('user_reactions', JSON.stringify(userReactions));
                 updateReactionCountsDisplay();
                 saveReactionsToLocalStorage();
-                showToast(`Thank you! ${emoji}`, 'success');
+                showToast(`Thank you! ${emoji} (saved locally)`, 'success');
             }
         }
     } catch (error) {
-        console.error('Add reaction error:', error);
+        console.warn('Add reaction failed, using localStorage fallback');
         
         if (!userReactions[reactionType]) {
             reactionsData[reactionType] = (reactionsData[reactionType] || 0) + 1;
@@ -237,37 +251,134 @@ async function addReaction(emoji) {
     showLoading(false);
 }
 
+function updateReactionCountsDisplay() {
+    for (const [type, count] of Object.entries(reactionsData)) {
+        const elementId = REACTION_ELEMENT_IDS[type];
+        if (elementId) {
+            const element = document.getElementById(elementId);
+            if (element) element.textContent = count || 0;
+        }
+    }
+    updateReactionButtonsStyle();
+}
+
+function saveReactionsToLocalStorage() {
+    localStorage.setItem('tool_reactions', JSON.stringify(reactionsData));
+}
+
+function loadReactionsFromLocalStorage() {
+    const saved = localStorage.getItem('tool_reactions');
+    if (saved) {
+        reactionsData = JSON.parse(saved);
+        updateReactionCountsDisplay();
+    }
+}
+
 function updateReactionButtonsStyle() {
     const reactionBtns = document.querySelectorAll('.reaction-btn');
     reactionBtns.forEach(btn => {
         const emoji = btn.getAttribute('data-emoji');
         const type = EMOJI_TO_TYPE[emoji];
         if (userReactions[type]) {
-            btn.style.background = '#4e54c8';
+            btn.style.background = REACTION_COLORS[type] || '#4e54c8';
             btn.style.color = 'white';
-            btn.style.borderColor = '#4e54c8';
+            btn.style.borderColor = REACTION_COLORS[type] || '#4e54c8';
+            btn.style.boxShadow = `0 0 20px ${REACTION_COLORS[type] || '#4e54c8'}80`;
         } else {
             btn.style.background = '';
             btn.style.color = '';
             btn.style.borderColor = '';
+            btn.style.boxShadow = '';
         }
     });
 }
 
-// ============================================
-// API CALLS - SHARES (TiDB)
-// ============================================
+// 3. SHARES - POST /api/shares
 async function recordShare(platform) {
     try {
-        await fetch(`${API_BASE}/${TOOL_SLUG}/shares`, {
+        const response = await fetch(`${API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ platform: platform, user_id: SESSION_ID })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({ 
+                platform: platform, 
+                user_id: SESSION_ID,
+                tool_slug: TOOL_SLUG
+            })
         });
-        showToast(`Shared on ${platform}!`, 'success');
+        const data = await response.json();
+        if (data.success) {
+            showToast(`Shared on ${platform}!`, 'success');
+            updateStatsDisplay(data);
+        }
+        return data;
     } catch (error) {
-        console.error('Share record error:', error);
+        console.warn('Share record failed, using localStorage fallback');
+        let shares = parseInt(localStorage.getItem('tool_shares') || '0');
+        shares++;
+        localStorage.setItem('tool_shares', shares);
+        showToast(`Shared on ${platform}! (saved locally)`, 'success');
+        return { success: false, fallback: true };
     }
+}
+
+// 4. STATS - GET /api/stats
+async function fetchStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`, {
+            headers: { 'X-API-Key': API_KEY }
+        });
+        const data = await response.json();
+        if (data.success) {
+            toolStats = data.stats || data;
+            updateStatsDisplay(data);
+        }
+        return data;
+    } catch (error) {
+        console.warn('Fetch stats failed, using localStorage fallback');
+        loadStatsFromLocalStorage();
+        return { success: false, fallback: true };
+    }
+}
+
+function updateStatsDisplay(data) {
+    if (data.usage !== undefined) {
+        const el = document.getElementById('usageCounter');
+        if (el) el.textContent = data.usage;
+    }
+    if (data.views !== undefined) {
+        const el = document.getElementById('viewsCount');
+        if (el) el.textContent = data.views;
+    }
+    if (data.shares !== undefined) {
+        const el = document.getElementById('sharesCount');
+        if (el) el.textContent = data.shares;
+    }
+    if (data.followers !== undefined) {
+        const el = document.getElementById('followersCount');
+        if (el) el.textContent = data.followers;
+    }
+}
+
+function loadStatsFromLocalStorage() {
+    const usage = parseInt(localStorage.getItem('tool_usage') || '0');
+    const shares = parseInt(localStorage.getItem('tool_shares') || '0');
+    const views = parseInt(localStorage.getItem('tool_views') || '0');
+    const followers = parseInt(localStorage.getItem('tool_followers') || '0');
+    
+    const usageEl = document.getElementById('usageCounter');
+    if (usageEl) usageEl.textContent = usage;
+    
+    const viewsEl = document.getElementById('viewsCount');
+    if (viewsEl) viewsEl.textContent = views;
+    
+    const sharesEl = document.getElementById('sharesCount');
+    if (sharesEl) sharesEl.textContent = shares;
+    
+    const followersEl = document.getElementById('followersCount');
+    if (followersEl) followersEl.textContent = followers;
 }
 
 // ============================================
@@ -297,6 +408,17 @@ function copyLink() {
     navigator.clipboard.writeText(window.location.href);
     showToast('Link copied to clipboard!', 'success');
     recordShare('copy');
+}
+
+// ============================================
+// NAVIGATION FUNCTIONS
+// ============================================
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
 }
 
 // ============================================
@@ -446,7 +568,7 @@ function generateGroups() {
     incrementUsage();
     autoSaveDraft();
     showLoading(false);
-    showToast('Groups generated successfully!', 'success');
+    showToast('Groups generated successfully! 🎉', 'success');
 }
 
 function randomizeGroups() {
@@ -478,7 +600,7 @@ function randomizeGroups() {
     
     displayGroups();
     updateStatistics();
-    showToast('Groups randomized!', 'success');
+    showToast('Groups randomized! 🔀', 'success');
 }
 
 // ============================================
@@ -488,7 +610,9 @@ function displayGroups() {
     if (!groupsContainer) return;
     
     if (!groups || groups.length === 0) {
-        groupsContainer.innerHTML = '<div class="placeholder"><i class="fas fa-lightbulb"></i> Click "Generate Groups" to start</div>';
+        groupsContainer.innerHTML = `<div class="placeholder">
+            <i class="fas fa-lightbulb"></i> Click "Generate Groups" to start
+        </div>`;
         return;
     }
     
@@ -509,7 +633,7 @@ function displayGroups() {
         groupDiv.innerHTML = `
             <div class="group-header">
                 <i class="fas fa-users"></i> Group ${idx + 1} (${group.length} members)
-                ${assignLeadersCheckbox.checked ? `<span style="float:right"><i class="fas fa-crown"></i> Leader: ${group[0]?.name || 'N/A'}</span>` : ''}
+                ${assignLeadersCheckbox.checked ? `<span style="float:right"><i class="fas fa-crown"></i> Leader: ${escapeHtml(group[0]?.name || 'N/A')}</span>` : ''}
             </div>
             <div class="group-members">
                 ${group.map(s => `
@@ -576,9 +700,6 @@ function updateStatistics() {
     if (groupQualityEl) groupQualityEl.textContent = Math.round(qualityScore) + '%';
     
     if (skillBarEl) skillBarEl.style.width = `${(avgSkill / 10) * 100}%`;
-    
-    const socialBarEl = document.getElementById('socialBar');
-    if (socialBarEl) socialBarEl.style.width = `${(avgSocial / 10) * 100}%`;
 }
 
 // ============================================
@@ -605,11 +726,8 @@ function resetForm() {
     const skillBar = document.getElementById('skillBar');
     if (skillBar) skillBar.style.width = '0%';
     
-    const socialBar = document.getElementById('socialBar');
-    if (socialBar) socialBar.style.width = '0%';
-    
     localStorage.removeItem('group_tool_draft');
-    showToast('Form reset!', 'info');
+    showToast('Form reset! 🔄', 'info');
 }
 
 // ============================================
@@ -628,10 +746,18 @@ Lisa Davis, 9, 8
 James Wilson, 5, 5
 Jessica Taylor, 6, 7
 Daniel Anderson, 8, 6
-Jennifer Thomas, 7, 8`;
+Jennifer Thomas, 7, 8
+Christopher Lee, 6, 4
+Amanda Martinez, 8, 9
+Matthew Garcia, 5, 7
+Ashley Robinson, 7, 6
+Joshua Clark, 9, 5
+Megan Rodriguez, 6, 8
+Andrew Lewis, 4, 6
+Nicole Walker, 8, 7`;
     }
     parseStudents();
-    showToast('Sample data loaded!', 'success');
+    showToast('Sample data loaded! 📚', 'success');
     autoSaveDraft();
 }
 
@@ -672,7 +798,7 @@ function handleFileUpload(e) {
         
         if (studentsTextarea) studentsTextarea.value = studentLines.join('\n');
         parseStudents();
-        showToast(`${students.length} students imported!`, 'success');
+        showToast(`${students.length} students imported! 📥`, 'success');
         autoSaveDraft();
     };
     
@@ -730,7 +856,7 @@ async function exportAsPdf() {
     });
     
     doc.save('group-formation-report.pdf');
-    showToast('PDF downloaded!', 'success');
+    showToast('PDF downloaded! 📄', 'success');
 }
 
 function exportAsWord() {
@@ -791,7 +917,7 @@ function exportAsWord() {
     link.href = URL.createObjectURL(blob);
     link.download = 'group-formation-report.doc';
     link.click();
-    showToast('Word document downloaded!', 'success');
+    showToast('Word document downloaded! 📝', 'success');
 }
 
 function exportAsTxt() {
@@ -800,9 +926,9 @@ function exportAsTxt() {
         return;
     }
     
-    let content = '=' .repeat(60) + '\n';
+    let content = '='.repeat(60) + '\n';
     content += 'GROUP FORMATION REPORT\n';
-    content += '=' .repeat(60) + '\n\n';
+    content += '='.repeat(60) + '\n\n';
     content += `Total Students: ${students.length}\n`;
     content += `Total Groups: ${groups.length}\n`;
     content += `Generated on: ${new Date().toLocaleString()}\n\n`;
@@ -828,7 +954,7 @@ function exportAsTxt() {
     link.href = URL.createObjectURL(blob);
     link.download = 'group-formation-report.txt';
     link.click();
-    showToast('TXT file downloaded!', 'success');
+    showToast('TXT file downloaded! 📃', 'success');
 }
 
 function exportAsExcel() {
@@ -853,7 +979,7 @@ function exportAsExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Groups');
     XLSX.writeFile(wb, 'group-formation-report.xlsx');
-    showToast('Excel file downloaded!', 'success');
+    showToast('Excel file downloaded! 📊', 'success');
 }
 
 // ============================================
@@ -874,7 +1000,7 @@ function toggleTheme() {
     if (themeToggle) {
         themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> Light Mode' : '<i class="fas fa-moon"></i> Dark Mode';
     }
-    showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'info');
+    showToast(isDark ? 'Dark mode enabled 🌙' : 'Light mode enabled ☀️', 'info');
 }
 
 // ============================================
@@ -908,6 +1034,56 @@ function initTabs() {
 }
 
 // ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const element = document.getElementById('typewriter-text');
+    if (!element) return;
+    
+    const texts = [
+        'Smart AI-Powered Classroom Grouping',
+        'Balanced Groups with Skill Matching',
+        'Targeted Learning Groups',
+        'Social Dynamics Analysis',
+        'Real-time Group Optimization'
+    ];
+    
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    
+    function typeEffect() {
+        const currentText = texts[textIndex];
+        
+        if (isDeleting) {
+            element.textContent = currentText.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            element.textContent = currentText.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        if (!isDeleting && charIndex === currentText.length) {
+            isDeleting = true;
+            setTimeout(typeEffect, 2000);
+            return;
+        }
+        
+        if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            textIndex = (textIndex + 1) % texts.length;
+            setTimeout(typeEffect, 500);
+            return;
+        }
+        
+        const speed = isDeleting ? 50 : 100;
+        setTimeout(typeEffect, speed);
+    }
+    
+    typeEffect();
+}
+
+// ============================================
 // INITIALIZE REACTION BUTTONS
 // ============================================
 function initReactionButtons() {
@@ -927,6 +1103,31 @@ function handleReactionClick(event) {
 }
 
 // ============================================
+// AI INTEGRATION - Grok API Ready
+// ============================================
+async function callAIAssistant(prompt) {
+    try {
+        const response = await fetch(`${API_BASE}/api/ai`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                tool_slug: TOOL_SLUG,
+                context: { students: students, groups: groups }
+            })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.warn('AI call failed:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================
 // EVENT LISTENERS
 // ============================================
 function initEventListeners() {
@@ -942,6 +1143,8 @@ function initEventListeners() {
     if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
     if (scrollUpBtn) scrollUpBtn.addEventListener('click', scrollUp);
     if (scrollDownBtn) scrollDownBtn.addEventListener('click', scrollDown);
+    if (homeBtn) homeBtn.addEventListener('click', goHome);
+    if (backBtn) backBtn.addEventListener('click', goBack);
     
     if (studentsTextarea) studentsTextarea.addEventListener('input', autoSaveDraft);
     if (groupTypeSelect) groupTypeSelect.addEventListener('change', autoSaveDraft);
@@ -972,12 +1175,25 @@ function initEventListeners() {
 async function init() {
     initTheme();
     initTabs();
+    initTypewriter();
     initEventListeners();
     loadDraft();
     parseStudents();
-    await fetchUsage();
+    
+    // Load stats from API with fallback
+    await fetchStats();
     await fetchReactions();
-    showToast('Welcome to Group Formation Tool!', 'success');
+    
+    // Increment usage on load
+    await incrementUsage();
+    
+    showToast('Welcome to Group Formation Tool! 🚀', 'success');
+    
+    // Log API info
+    console.log('🔧 Tool initialized with Cloudflare Workers API');
+    console.log(`📊 API Base: ${API_BASE}`);
+    console.log(`🔑 Tool Slug: ${TOOL_SLUG}`);
+    console.log(`👤 Session ID: ${SESSION_ID}`);
 }
 
 // Start the application when DOM is ready
