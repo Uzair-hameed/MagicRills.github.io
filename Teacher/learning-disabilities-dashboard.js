@@ -3,6 +3,68 @@
 // All 8 Disabilities | Full Information | 10-Point Checklists
 // ============================================
 
+// ============================================
+// CLOUDFLARE WORKERS API CONFIGURATION (ADDED)
+// ============================================
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const TOOL_SLUG = 'learning-disabilities-dashboard';
+const TOOL_NAME = 'Learning Disabilities Assessment Tool';
+const CATEGORY = 'Teacher';
+
+// Cloudflare API Call Function (ADDED)
+async function callCloudflareAPI(endpoint, method = 'GET', data = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Tool-Slug': TOOL_SLUG,
+                'X-Tool-Name': TOOL_NAME,
+                'X-Category': CATEGORY
+            }
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using localStorage fallback:', error);
+        return null;
+    }
+}
+
+// Fetch Tool Stats from Cloudflare (ADDED)
+async function fetchToolStats() {
+    try {
+        const result = await callCloudflareAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result) {
+            if (result.usage) {
+                usageCount = result.usage;
+                document.getElementById('usage-counter').innerText = result.usage;
+                localStorage.setItem('ld_usageCount', result.usage);
+            }
+            if (result.shares) {
+                shareCount = result.shares;
+                document.getElementById('share-count').innerText = result.shares;
+                localStorage.setItem('ld_shareCount', result.shares);
+            }
+            if (result.views && document.getElementById('views-count')) {
+                document.getElementById('views-count').innerText = result.views;
+            }
+            if (result.followers && document.getElementById('followers-count')) {
+                document.getElementById('followers-count').innerText = result.followers;
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to fetch stats:', error);
+    }
+}
+
 let currentDisability = null;
 let usageCount = parseInt(localStorage.getItem('ld_usageCount') || '0');
 let shareCount = parseInt(localStorage.getItem('ld_shareCount') || '0');
@@ -1159,10 +1221,92 @@ function analyzeFileContent(file) {
 }
 
 // ==================== REACTIONS & SHARING ====================
-function addReaction(emoji) { const key = EMOJI_MAP[emoji]; if (key) { reactionsData[key]++; localStorage.setItem('ld_reactions', JSON.stringify(reactionsData)); updateReactionsUI(); showToast(`Thank you! ${emoji}`, 'success'); } }
-function updateReactionsUI() { const emojis = ['👍','❤️','😮','😢','😠','😂','🎉']; const html = emojis.map(e => `<button class="emoji-btn" onclick="addReaction('${e}')">${e} <span>${reactionsData[EMOJI_MAP[e]] || 0}</span></button>`).join(''); document.querySelectorAll('#reactions-container, #detail-reactions').forEach(el => { if (el) el.innerHTML = html; }); }
-function sharePlatform(platform) { let url = encodeURIComponent(window.location.href); let shareUrl = { facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`, twitter: `https://twitter.com/intent/tweet?url=${url}`, whatsapp: `https://wa.me/?text=${url}`, linkedin: `https://www.linkedin.com/sharing/share-offsite/?u=${url}` }[platform]; if (shareUrl) window.open(shareUrl, '_blank'); shareCount++; document.getElementById('share-count').innerText = shareCount; localStorage.setItem('ld_shareCount', shareCount); showToast(`Shared on ${platform}!`, 'success'); }
-function copyLink() { navigator.clipboard.writeText(window.location.href); shareCount++; document.getElementById('share-count').innerText = shareCount; localStorage.setItem('ld_shareCount', shareCount); showToast('Link copied!', 'success'); }
+// addReaction with Cloudflare API (UPDATED)
+async function addReaction(emoji) {
+    const key = EMOJI_MAP[emoji];
+    if (!key) return;
+    
+    try {
+        const result = await callCloudflareAPI('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            reaction: key,
+            action: 'add'
+        });
+        if (result && result.reactions) {
+            reactionsData = result.reactions;
+        } else {
+            reactionsData[key]++;
+        }
+    } catch (error) {
+        reactionsData[key]++;
+    }
+    
+    localStorage.setItem('ld_reactions', JSON.stringify(reactionsData));
+    updateReactionsUI();
+    showToast(`Thank you! ${emoji}`, 'success');
+}
+
+function updateReactionsUI() { 
+    const emojis = ['👍','❤️','😮','😢','😠','😂','🎉']; 
+    const html = emojis.map(e => `<button class="emoji-btn" onclick="addReaction('${e}')">${e} <span>${reactionsData[EMOJI_MAP[e]] || 0}</span></button>`).join(''); 
+    document.querySelectorAll('#reactions-container, #detail-reactions').forEach(el => { if (el) el.innerHTML = html; }); 
+}
+
+// sharePlatform with Cloudflare API (UPDATED)
+async function sharePlatform(platform) {
+    let url = encodeURIComponent(window.location.href);
+    let shareUrl = {
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+        twitter: `https://twitter.com/intent/tweet?url=${url}`,
+        whatsapp: `https://wa.me/?text=${url}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?u=${url}`
+    }[platform];
+    
+    if (shareUrl) window.open(shareUrl, '_blank');
+    
+    try {
+        const result = await callCloudflareAPI('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            action: 'add'
+        });
+        if (result && result.shares !== undefined) {
+            shareCount = result.shares;
+        } else {
+            shareCount++;
+        }
+    } catch (error) {
+        shareCount++;
+    }
+    
+    document.getElementById('share-count').innerText = shareCount;
+    localStorage.setItem('ld_shareCount', shareCount);
+    showToast(`Shared on ${platform}!`, 'success');
+}
+
+// copyLink with Cloudflare API (UPDATED)
+async function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    
+    try {
+        const result = await callCloudflareAPI('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: 'copy',
+            action: 'add'
+        });
+        if (result && result.shares !== undefined) {
+            shareCount = result.shares;
+        } else {
+            shareCount++;
+        }
+    } catch (error) {
+        shareCount++;
+    }
+    
+    document.getElementById('share-count').innerText = shareCount;
+    localStorage.setItem('ld_shareCount', shareCount);
+    showToast('Link copied!', 'success');
+}
 
 // ==================== STUDENT MANAGEMENT ====================
 function showAddStudentModal() { document.getElementById('student-modal').classList.remove('hidden'); }
@@ -1198,10 +1342,43 @@ function generateLessonPlan() {
 function exportLessonPlan() { const content = document.getElementById('generated-lesson')?.innerHTML || ''; const blob = new Blob([content], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `lesson_plan_${Date.now()}.html`; link.click(); }
 
 // ==================== UTILITIES ====================
-function incrementUsage() { usageCount++; document.getElementById('usage-counter').innerText = usageCount; localStorage.setItem('ld_usageCount', usageCount); }
-function showToast(msg, type) { const toast = document.createElement('div'); toast.className = 'toast'; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${msg}`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
-function toggleTheme() { const html = document.documentElement; const isDark = html.getAttribute('data-theme') === 'dark'; html.setAttribute('data-theme', isDark ? 'light' : 'dark'); localStorage.setItem('ld_theme', isDark ? 'light' : 'dark'); document.querySelector('#theme-toggle i').className = isDark ? 'fas fa-moon' : 'fas fa-sun'; }
-function setupShareUI() { const container = document.getElementById('share-container'); if (container) container.innerHTML = `<button class="share-btn" onclick="sharePlatform('facebook')"><i class="fab fa-facebook-f"></i></button><button class="share-btn" onclick="sharePlatform('twitter')"><i class="fab fa-twitter"></i></button><button class="share-btn" onclick="sharePlatform('whatsapp')"><i class="fab fa-whatsapp"></i></button><button class="share-btn" onclick="sharePlatform('linkedin')"><i class="fab fa-linkedin-in"></i></button><button class="share-btn" onclick="copyLink()"><i class="fas fa-link"></i></button>`; }
+// incrementUsage with Cloudflare API (UPDATED)
+async function incrementUsage() {
+    try {
+        const result = await callCloudflareAPI('/api/usage', 'POST', { 
+            tool_slug: TOOL_SLUG,
+            action: 'increment'
+        });
+        if (result && result.usage !== undefined) {
+            usageCount = result.usage;
+        } else {
+            usageCount++;
+        }
+    } catch (error) {
+        usageCount++;
+    }
+    localStorage.setItem('ld_usageCount', usageCount);
+    document.getElementById('usage-counter').innerText = usageCount;
+}
+
+function showToast(msg, type) { 
+    const toast = document.createElement('div'); 
+    toast.className = 'toast'; 
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${msg}`; 
+    document.body.appendChild(toast); 
+    setTimeout(() => toast.remove(), 3000); 
+}
+function toggleTheme() { 
+    const html = document.documentElement; 
+    const isDark = html.getAttribute('data-theme') === 'dark'; 
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark'); 
+    localStorage.setItem('ld_theme', isDark ? 'light' : 'dark'); 
+    document.querySelector('#theme-toggle i').className = isDark ? 'fas fa-moon' : 'fas fa-sun'; 
+}
+function setupShareUI() { 
+    const container = document.getElementById('share-container'); 
+    if (container) container.innerHTML = `<button class="share-btn" onclick="sharePlatform('facebook')"><i class="fab fa-facebook-f"></i></button><button class="share-btn" onclick="sharePlatform('twitter')"><i class="fab fa-twitter"></i></button><button class="share-btn" onclick="sharePlatform('whatsapp')"><i class="fab fa-whatsapp"></i></button><button class="share-btn" onclick="sharePlatform('linkedin')"><i class="fab fa-linkedin-in"></i></button><button class="share-btn" onclick="copyLink()"><i class="fas fa-link"></i></button>`; 
+}
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1212,6 +1389,12 @@ document.addEventListener('DOMContentLoaded', () => {
     students = JSON.parse(localStorage.getItem('ld_students') || '[]');
     document.getElementById('usage-counter').innerText = usageCount;
     document.getElementById('share-count').innerText = shareCount;
+    
+    // Fetch stats from Cloudflare API (ADDED)
+    fetchToolStats();
+    
+    // Increment usage on load (UPDATED with API)
+    incrementUsage();
     
     document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
     document.getElementById('back-btn')?.addEventListener('click', () => { document.getElementById('detail-view').classList.add('hidden'); document.getElementById('dashboard-view').classList.remove('hidden'); renderDashboard(); });
