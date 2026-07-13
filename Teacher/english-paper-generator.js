@@ -1,11 +1,17 @@
 // ============================================
 // ENGLISH PAPER GENERATOR - COMPLETE JS
-// Fixed: Reactions, DOC Export, Urdu Font, Professional Formatting
+// Cloudflare Workers API Integration
 // ============================================
 
-// Configuration
-const API_BASE = '/api';
-const TOOL_SLUG = 'english-paper-generator';
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'english-paper-generator',
+    CATEGORY: 'Mixed-Tools'
+};
+
 let currentUserId = localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 9);
 localStorage.setItem('userId', currentUserId);
 
@@ -13,6 +19,7 @@ let objectiveQuestions = [];
 let subjectiveQuestions = [];
 let urduQuestions = [];
 let autoSaveInterval = null;
+let statData = { usage: 0, views: 0, shares: 0, followers: 0 };
 
 // ============================================
 // TOAST NOTIFICATIONS
@@ -26,7 +33,7 @@ function showToast(message, type = 'info') {
     container.appendChild(toast);
     setTimeout(() => {
         if (toast && toast.remove) toast.remove();
-    }, 3000);
+    }, 3500);
 }
 
 // ============================================
@@ -41,15 +48,18 @@ function showLoading(show) {
 }
 
 // ============================================
-// API CALLS (Real TiDB Integration)
+// API CALLS (Cloudflare Workers)
 // ============================================
 async function callAPI(endpoint, method = 'GET', data = null) {
     try {
         showLoading(true);
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
         if (data) options.body = JSON.stringify(data);
         
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/${endpoint}`, options);
+        const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
         const result = await response.json();
         showLoading(false);
         return result;
@@ -61,43 +71,89 @@ async function callAPI(endpoint, method = 'GET', data = null) {
 }
 
 // ============================================
-// USAGE COUNTER (TiDB Connected)
+// USAGE COUNTER
 // ============================================
 async function updateUsageCounter() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`);
-        const data = await response.json();
-        const countEl = document.getElementById('usageCount');
-        if (countEl) countEl.textContent = data.count || 0;
-        
-        await fetch(`${API_BASE}/${TOOL_SLUG}/usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: currentUserId })
+        // Increment usage
+        const response = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: currentUserId
         });
+        
+        if (response.success) {
+            const countEl = document.getElementById('usageCount');
+            if (countEl) countEl.textContent = response.count || 0;
+            document.getElementById('statUsage').textContent = response.count || 0;
+        } else {
+            // Fallback to localStorage
+            let fallbackCount = parseInt(localStorage.getItem('usageCount_' + CONFIG.TOOL_SLUG) || '0');
+            fallbackCount += 1;
+            localStorage.setItem('usageCount_' + CONFIG.TOOL_SLUG, fallbackCount);
+            document.getElementById('usageCount').textContent = fallbackCount;
+            document.getElementById('statUsage').textContent = fallbackCount;
+        }
     } catch (error) {
         console.error('Usage counter error:', error);
-        const countEl = document.getElementById('usageCount');
-        if (countEl) countEl.textContent = '1,234';
+        // Fallback
+        let fallbackCount = parseInt(localStorage.getItem('usageCount_' + CONFIG.TOOL_SLUG) || '0');
+        fallbackCount += 1;
+        localStorage.setItem('usageCount_' + CONFIG.TOOL_SLUG, fallbackCount);
+        document.getElementById('usageCount').textContent = fallbackCount;
+        document.getElementById('statUsage').textContent = fallbackCount;
     }
 }
 
 // ============================================
-// REACTIONS SYSTEM (Fixed - Working)
+// STATS LOADER
+// ============================================
+async function loadStats() {
+    try {
+        const response = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (response.success && response.stats) {
+            statData = response.stats;
+            document.getElementById('statUsage').textContent = statData.usage || 0;
+            document.getElementById('statViews').textContent = statData.views || 0;
+            document.getElementById('statShares').textContent = statData.shares || 0;
+            document.getElementById('statFollowers').textContent = statData.followers || 0;
+        } else {
+            // Fallback to localStorage
+            document.getElementById('statUsage').textContent = localStorage.getItem('usageCount_' + CONFIG.TOOL_SLUG) || 0;
+            document.getElementById('statViews').textContent = localStorage.getItem('viewCount_' + CONFIG.TOOL_SLUG) || 0;
+            document.getElementById('statShares').textContent = localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || 0;
+        }
+    } catch (error) {
+        console.error('Load stats error:', error);
+        // Fallback
+        document.getElementById('statUsage').textContent = localStorage.getItem('usageCount_' + CONFIG.TOOL_SLUG) || 0;
+        document.getElementById('statViews').textContent = localStorage.getItem('viewCount_' + CONFIG.TOOL_SLUG) || 0;
+        document.getElementById('statShares').textContent = localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || 0;
+    }
+}
+
+// ============================================
+// REACTIONS SYSTEM
 // ============================================
 async function loadReactions() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`);
-        const data = await response.json();
-        if (data.success && data.reactions) {
-            const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+        const response = await callAPI(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (response.success && response.reactions) {
+            const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
             document.querySelectorAll('.reaction').forEach(reaction => {
                 const emojiText = reaction.getAttribute('data-emoji');
                 const reactionType = emojiMap[emojiText];
-                if (data.reactions[reactionType]) {
+                if (reactionType && response.reactions[reactionType] !== undefined) {
                     const countSpan = reaction.querySelector('.reaction-count');
-                    if (countSpan) countSpan.textContent = data.reactions[reactionType];
+                    if (countSpan) countSpan.textContent = response.reactions[reactionType];
                 }
+            });
+        } else {
+            // Fallback to localStorage
+            document.querySelectorAll('.reaction').forEach(reaction => {
+                const emoji = reaction.getAttribute('data-emoji');
+                const count = parseInt(localStorage.getItem('reaction_' + CONFIG.TOOL_SLUG + '_' + emoji) || '0');
+                const countSpan = reaction.querySelector('.reaction-count');
+                if (countSpan) countSpan.textContent = count;
             });
         }
     } catch (error) {
@@ -107,16 +163,16 @@ async function loadReactions() {
 
 async function addReaction(emoji) {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emoji, user_id: currentUserId })
+        const response = await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            emoji: emoji,
+            user_id: currentUserId
         });
-        const data = await response.json();
-        if (data.success) {
+        
+        if (response.success) {
             showToast(`Thank you for your ${emoji} reaction!`, 'success');
             await loadReactions();
-        } else if (data.already_reacted) {
+        } else if (response.already_reacted) {
             showToast('You already reacted with this emoji!', 'info');
         } else {
             showToast('Reaction added!', 'success');
@@ -124,16 +180,15 @@ async function addReaction(emoji) {
         }
     } catch (error) {
         console.error('Add reaction error:', error);
-        showToast('Reaction recorded!', 'success');
-        // Update local count anyway for better UX
+        // Fallback: update localStorage
+        const current = parseInt(localStorage.getItem('reaction_' + CONFIG.TOOL_SLUG + '_' + emoji) || '0');
+        localStorage.setItem('reaction_' + CONFIG.TOOL_SLUG + '_' + emoji, current + 1);
         const reaction = document.querySelector(`.reaction[data-emoji="${emoji}"]`);
         if (reaction) {
             const countSpan = reaction.querySelector('.reaction-count');
-            if (countSpan) {
-                let current = parseInt(countSpan.textContent) || 0;
-                countSpan.textContent = current + 1;
-            }
+            if (countSpan) countSpan.textContent = current + 1;
         }
+        showToast(`Reaction recorded: ${emoji}`, 'success');
     }
 }
 
@@ -142,25 +197,36 @@ async function addReaction(emoji) {
 // ============================================
 async function loadShareCount() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`);
-        const data = await response.json();
-        const shareEl = document.getElementById('shareCount');
-        if (shareEl) shareEl.textContent = data.shares || 0;
+        const response = await callAPI(`/api/shares?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (response.success) {
+            document.getElementById('shareCount').textContent = response.shares || 0;
+            document.getElementById('statShares').textContent = response.shares || 0;
+        } else {
+            // Fallback
+            document.getElementById('shareCount').textContent = localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || 0;
+            document.getElementById('statShares').textContent = localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || 0;
+        }
     } catch (error) {
         console.error('Load shares error:', error);
+        document.getElementById('shareCount').textContent = localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || 0;
     }
 }
 
 async function recordShare(platform) {
     try {
-        await fetch(`${API_BASE}/${TOOL_SLUG}/shares`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ platform, user_id: currentUserId })
+        await callAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            user_id: currentUserId
         });
         await loadShareCount();
     } catch (error) {
         console.error('Record share error:', error);
+        // Fallback
+        const current = parseInt(localStorage.getItem('shareCount_' + CONFIG.TOOL_SLUG) || '0');
+        localStorage.setItem('shareCount_' + CONFIG.TOOL_SLUG, current + 1);
+        document.getElementById('shareCount').textContent = current + 1;
+        document.getElementById('statShares').textContent = current + 1;
     }
 }
 
@@ -176,8 +242,18 @@ function shareOnPlatform(platform) {
     };
     
     if (platform === 'copy') {
-        navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied to clipboard!', 'success');
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('Link copied to clipboard!', 'success');
+        }).catch(() => {
+            // Fallback
+            const textarea = document.createElement('textarea');
+            textarea.value = window.location.href;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Link copied to clipboard!', 'success');
+        });
     } else if (shareUrls[platform]) {
         window.open(shareUrls[platform], '_blank', 'width=600,height=400');
         showToast(`Sharing on ${platform}...`, 'info');
@@ -189,7 +265,7 @@ function shareOnPlatform(platform) {
 // DARK/LIGHT MODE
 // ============================================
 function initDarkMode() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);
     const toggleBtn = document.getElementById('darkModeToggle');
     if (toggleBtn) toggleBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -205,6 +281,58 @@ function initDarkMode() {
             showToast(`${newTheme === 'dark' ? 'Dark' : 'Light'} mode activated`, 'info');
         });
     }
+}
+
+// ============================================
+// TYPEWRITER EFFECT
+// ============================================
+function initTypewriter() {
+    const phrases = [
+        'Create professional exam papers in minutes',
+        'Generate MCQs, Subjective & Urdu questions',
+        'AI-powered question generation',
+        'Download as PDF, DOC or TXT',
+        'Perfect for teachers and educators',
+        'اردو میں بھی پرچہ بنائیں'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterElement = document.getElementById('typewriterText');
+    if (!typewriterElement) return;
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        // Add cursor
+        const cursorSpan = document.createElement('span');
+        cursorSpan.className = 'cursor';
+        typewriterElement.appendChild(cursorSpan);
+        
+        let speed = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            speed = 500;
+        }
+        
+        setTimeout(typeEffect, speed);
+    }
+    
+    setTimeout(typeEffect, 1000);
 }
 
 // ============================================
@@ -227,11 +355,11 @@ function autoSaveDraft() {
         urduQuestions: urduQuestions,
         lastSaved: new Date().toISOString()
     };
-    localStorage.setItem('paperDraft', JSON.stringify(draft));
+    localStorage.setItem('paperDraft_' + CONFIG.TOOL_SLUG, JSON.stringify(draft));
 }
 
 function loadDraft() {
-    const draft = localStorage.getItem('paperDraft');
+    const draft = localStorage.getItem('paperDraft_' + CONFIG.TOOL_SLUG);
     if (draft) {
         try {
             const data = JSON.parse(draft);
@@ -251,7 +379,6 @@ function loadDraft() {
             renderObjectiveQuestions();
             renderSubjectiveQuestions();
             renderUrduQuestions();
-            showToast('Auto-saved draft loaded', 'info');
         } catch(e) { console.error('Load draft error:', e); }
     }
 }
@@ -294,7 +421,7 @@ function renderObjectiveQuestions() {
     if (!container) return;
     
     if (!objectiveQuestions.length) {
-        container.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">📝 No questions added yet. Click "+ Add MCQ Question" to start.</p>';
+        container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:40px;">📝 No questions added yet. Click "+ Add MCQ Question" to start.</p>';
         return;
     }
     
@@ -340,7 +467,7 @@ function renderObjectiveQuestions() {
                     <label>Correct Answer:</label>
                     <input type="text" class="correct-answer" data-id="${q.id}" value="${escapeHtml(q.correctAnswer || '')}" placeholder="Enter correct answer">
                 </div>
-                <div class="space-for-answer" style="min-height:30px; border:1px dashed #ccc; margin-top:10px;"></div>
+                <div class="space-for-answer" style="min-height:30px; border:1px dashed rgba(255,255,255,0.2); margin-top:10px;"></div>
             ` : ''}
         </div>
     `).join('');
@@ -365,7 +492,7 @@ function attachObjectiveEvents() {
             const question = objectiveQuestions.find(q => q.id === id);
             if (question) {
                 if (this.classList.contains('question-text')) question.text = this.value;
-                if (this.classList.contains('question-marks')) question.marks = parseInt(this.value);
+                if (this.classList.contains('question-marks')) question.marks = parseInt(this.value) || 1;
                 if (this.classList.contains('option-text')) {
                     if (!question.options) question.options = {};
                     question.options[this.dataset.opt] = this.value;
@@ -428,7 +555,7 @@ function renderSubjectiveQuestions() {
     if (!container) return;
     
     if (!subjectiveQuestions.length) {
-        container.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">📝 No subjective questions added yet.</p>';
+        container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:40px;">📝 No subjective questions added yet.</p>';
         return;
     }
     
@@ -482,8 +609,8 @@ function attachSubjectiveEvents() {
             const question = subjectiveQuestions.find(q => q.id === id);
             if (question) {
                 if (this.classList.contains('subj-question-text')) question.text = this.value;
-                if (this.classList.contains('subj-question-marks')) question.marks = parseInt(this.value);
-                if (this.classList.contains('answer-lines')) question.lines = parseInt(this.value);
+                if (this.classList.contains('subj-question-marks')) question.marks = parseInt(this.value) || 0;
+                if (this.classList.contains('answer-lines')) question.lines = parseInt(this.value) || 5;
                 if (this.classList.contains('comprehension-passage')) question.passage = this.value;
                 autoSaveDraft();
             }
@@ -529,7 +656,7 @@ function renderUrduQuestions() {
     if (!container) return;
     
     if (!urduQuestions.length) {
-        container.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">🕌 کوئی اردو سوال شامل نہیں کیا گیا</p>';
+        container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:40px;">🕌 کوئی اردو سوال شامل نہیں کیا گیا</p>';
         return;
     }
     
@@ -560,7 +687,7 @@ function renderUrduQuestions() {
                     `).join('')}
                 </div>
             ` : ''}
-            <div class="space-for-answer" style="min-height:40px; border-bottom:1px solid #ccc; margin-top:10px;"></div>
+            <div class="space-for-answer" style="min-height:40px; border-bottom:1px solid rgba(255,255,255,0.2); margin-top:10px;"></div>
         </div>
     `).join('');
     
@@ -584,7 +711,7 @@ function attachUrduEvents() {
             const question = urduQuestions.find(q => q.id === id);
             if (question) {
                 if (this.classList.contains('urdu-question-text')) question.text = this.value;
-                if (this.classList.contains('urdu-question-marks')) question.marks = parseInt(this.value);
+                if (this.classList.contains('urdu-question-marks')) question.marks = parseInt(this.value) || 0;
                 if (this.classList.contains('urdu-option-text')) {
                     if (!question.options) question.options = {};
                     question.options[this.dataset.opt] = this.value;
@@ -632,7 +759,7 @@ function escapeHtml(text) {
 }
 
 // ============================================
-// GENERATE PAPER PREVIEW (Professional Format)
+// GENERATE PAPER PREVIEW
 // ============================================
 function generatePreview() {
     const schoolName = document.getElementById('schoolName')?.value || 'School Name';
@@ -656,7 +783,6 @@ function generatePreview() {
     const englishFont = document.getElementById('englishFont')?.value || "'Times New Roman', Times, serif";
     const urduFont = document.getElementById('urduFont')?.value || "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif";
     
-    // Generate objective questions HTML
     let objectiveHTML = '';
     objectiveQuestions.forEach((q, idx) => {
         objectiveHTML += `
@@ -677,7 +803,6 @@ function generatePreview() {
         objectiveHTML += `</div>`;
     });
     
-    // Generate subjective questions HTML
     let subjectiveHTML = '';
     subjectiveQuestions.forEach((q, idx) => {
         if (q.type === 'Comprehension' && q.passage) {
@@ -699,7 +824,6 @@ function generatePreview() {
         }
     });
     
-    // Generate Urdu questions HTML
     let urduHTML = '';
     if (urduQuestions.length > 0) {
         urduHTML = `
@@ -729,7 +853,7 @@ function generatePreview() {
         `<img src="${logoPreview.src}" class="school-logo" style="max-width:80px; max-height:80px; position:absolute; right:20px; top:10px;">` : '';
     
     const previewHTML = `
-        <div class="paper-preview" style="font-family: ${englishFont}; padding: 40px; max-width: 100%; margin: 0 auto;">
+        <div class="paper-preview" style="font-family: ${englishFont}; padding: 40px; max-width: 100%; margin: 0 auto; background: #fff; color: #1a1a2e; border-radius: 8px;">
             <div class="paper-header" style="position: relative; text-align: center; border-bottom: 2px solid #1a1a2e; padding-bottom: 20px; margin-bottom: 30px;">
                 ${logoHTML}
                 <h2 style="margin-bottom: 5px;">${escapeHtml(schoolName)}</h2>
@@ -778,7 +902,7 @@ function generatePreview() {
 // ============================================
 function downloadPDF() {
     const element = document.getElementById('paperPreviewContainer');
-    if (!element || !element.innerHTML) {
+    if (!element || !element.innerHTML || element.innerHTML.includes('Generate your paper preview here')) {
         showToast('Generate preview first!', 'error');
         return;
     }
@@ -789,7 +913,7 @@ function downloadPDF() {
 
 function downloadDOC() {
     const content = document.getElementById('paperPreviewContainer')?.innerHTML || '';
-    if (!content) {
+    if (!content || content.includes('Generate your paper preview here')) {
         showToast('Generate preview first!', 'error');
         return;
     }
@@ -824,7 +948,7 @@ function downloadDOC() {
 
 function downloadTXT() {
     const content = document.getElementById('paperPreviewContainer')?.innerText || '';
-    if (!content) {
+    if (!content || content.includes('Generate your paper preview here')) {
         showToast('Generate preview first!', 'error');
         return;
     }
@@ -843,23 +967,22 @@ function downloadTXT() {
 async function callAIGenerate(endpoint, data) {
     showLoading(true);
     const outputDiv = document.getElementById('aiOutput');
-    if (outputDiv) outputDiv.innerHTML = '<p style="color: var(--gray);">Generating... ⏳</p>';
+    if (outputDiv) outputDiv.innerHTML = '<p style="color: rgba(255,255,255,0.6);">Generating... ⏳</p>';
     
     try {
-        const response = await fetch(`${API_BASE}/${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+        const response = await callAPI(`/api/${endpoint}`, 'POST', {
+            ...data,
+            tool_slug: CONFIG.TOOL_SLUG
         });
-        const result = await response.json();
         showLoading(false);
         if (outputDiv) {
-            outputDiv.innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit; background: var(--light); padding: 15px; border-radius: 8px;">${JSON.stringify(result, null, 2)}</pre>`;
-        }
-        if (result.success) {
-            showToast('AI generation complete!', 'success');
-        } else {
-            showToast('AI Error: ' + (result.error || 'Unknown'), 'error');
+            if (response.success) {
+                outputDiv.innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: rgba(255,255,255,0.9);">${JSON.stringify(response.data || response, null, 2)}</pre>`;
+                showToast('AI generation complete!', 'success');
+            } else {
+                outputDiv.innerHTML = `<p style="color: var(--danger);">Error: ${response.error || 'Unknown error'}</p>`;
+                showToast('AI Error: ' + (response.error || 'Unknown'), 'error');
+            }
         }
     } catch (error) {
         showLoading(false);
@@ -929,7 +1052,7 @@ function initEventListeners() {
         });
     });
     
-    // Reactions (Fixed - Working)
+    // Reactions
     document.querySelectorAll('.reaction').forEach(reaction => {
         reaction.addEventListener('click', () => {
             const emoji = reaction.getAttribute('data-emoji');
@@ -975,9 +1098,17 @@ async function init() {
     initTabs();
     initDarkMode();
     initScrollButtons();
+    initTypewriter();
     initEventListeners();
     loadDraft();
+    
+    // Load stats from API
+    await loadStats();
+    
+    // Update usage counter (increment)
     await updateUsageCounter();
+    
+    // Load reactions and shares
     await loadReactions();
     await loadShareCount();
     
@@ -986,7 +1117,19 @@ async function init() {
     autoSaveInterval = setInterval(autoSaveDraft, 30000);
     
     showToast('✨ Welcome to English Paper Generator!', 'success');
+    
+    // Record view
+    try {
+        await callAPI('/api/views', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: currentUserId
+        });
+    } catch (e) {
+        // Ignore view recording errors
+    }
 }
 
-// Start the app
+// ============================================
+// START THE APP
+// ============================================
 document.addEventListener('DOMContentLoaded', init);
