@@ -1,6 +1,6 @@
 /* ========================================
    Advanced Lesson Planner Tool JavaScript
-   Vercel API Endpoints Integration
+   Cloudflare Workers API Integration
    ======================================== */
 
 // ========================================
@@ -9,14 +9,22 @@
 let savedPlans = JSON.parse(localStorage.getItem('lessonPlans')) || [];
 let currentUser = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 let reactionStates = JSON.parse(localStorage.getItem('reactionStates')) || {};
-const toolSlug = 'advanced-lesson-planner';
-const API_BASE = '/api'; // Vercel Serverless Functions
+let toolSlug = 'advanced-lesson-planner';
+let toolName = 'Advanced Lesson Planner';
+
+// ========================================
+// Cloudflare Workers API Configuration
+// ========================================
+const CF_API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const CF_API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 if (!localStorage.getItem('userId')) {
     localStorage.setItem('userId', currentUser);
 }
 
-// Activity Database
+// ========================================
+// Activity Database (Local Fallback)
+// ========================================
 const activitySuggestions = {
     general: {
         Lecture: ["Mini-lecture with key points", "Interactive lecture with Q&A", "Guest speaker presentation"],
@@ -67,13 +75,16 @@ async function initializeTool() {
     renderSavedPlans();
     renderTemplates();
     attachEventListeners();
+    
+    // Cloudflare API Calls
     await loadGlobalUsageCount();
     await loadReactionsFromAPI();
     await loadShareCountFromAPI();
     await loadStats();
+    
     setupAutoSave();
     setupScrollButtons();
-    showToast('Welcome to Lesson Planner Pro!', 'success');
+    showToast('🚀 Welcome to Lesson Planner Pro!', 'success');
 }
 
 function setDefaultDate() {
@@ -94,9 +105,13 @@ function loadThemePreference() {
 function loadDraftFromLocalStorage() {
     const draft = localStorage.getItem(`${toolSlug}_draft`);
     if (draft) {
-        const data = JSON.parse(draft);
-        restoreFormData(data);
-        showToast('Draft restored', 'info');
+        try {
+            const data = JSON.parse(draft);
+            restoreFormData(data);
+            showToast('📝 Draft restored', 'info');
+        } catch (e) {
+            console.warn('Draft restore failed:', e);
+        }
     }
 }
 
@@ -157,7 +172,7 @@ function toggleTheme() {
         localStorage.setItem('theme', 'dark');
         document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun"></i>';
     }
-    showToast(`${isDark ? 'Light' : 'Dark'} mode activated`, 'success');
+    showToast(`${isDark ? '☀️ Light' : '🌙 Dark'} mode activated`, 'success');
 }
 
 // ========================================
@@ -315,7 +330,7 @@ function setInputValues(containerId, values) {
 }
 
 // ========================================
-// AI Functions (Grok API via Vercel)
+// AI Functions (Grok API via Cloudflare)
 // ========================================
 async function generateAISLOs() {
     const subject = document.getElementById('subject')?.value;
@@ -323,16 +338,19 @@ async function generateAISLOs() {
     const grade = document.getElementById('class')?.value;
     
     if (!subject) {
-        showToast('Please enter subject first', 'warning');
+        showToast('⚠️ Please enter subject first', 'warning');
         return;
     }
     
-    showLoading(true, 'AI is generating learning outcomes...');
+    showLoading(true, '🧠 AI is generating learning outcomes...');
     
     try {
-        const response = await fetch(`${API_BASE}/generate-slos`, {
+        const response = await fetch(`${CF_API_BASE}/api/generate-slos`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CF_API_KEY
+            },
             body: JSON.stringify({ subject, topic, grade })
         });
         
@@ -340,7 +358,7 @@ async function generateAISLOs() {
         
         if (data.success && data.slos) {
             setInputValues('slo-container', data.slos);
-            showToast('SLOs generated successfully!', 'success');
+            showToast('✅ SLOs generated successfully!', 'success');
             await incrementUsage();
         } else {
             generateLocalSLOs(subject);
@@ -390,7 +408,7 @@ function generateLocalSLOs(subject) {
     }
     
     setInputValues('slo-container', slos);
-    showToast('SLOs generated from local database', 'info');
+    showToast('📚 SLOs generated from local database', 'info');
 }
 
 async function generateActivitiesWithAI() {
@@ -398,21 +416,24 @@ async function generateActivitiesWithAI() {
     const methodologies = getCheckedMethodologies();
     
     if (!subject) {
-        showToast('Please enter subject first', 'warning');
+        showToast('⚠️ Please enter subject first', 'warning');
         return;
     }
     
     if (methodologies.length === 0) {
-        showToast('Please select at least one teaching methodology', 'warning');
+        showToast('⚠️ Please select at least one teaching methodology', 'warning');
         return;
     }
     
-    showLoading(true, 'AI is generating activities...');
+    showLoading(true, '🧠 AI is generating activities...');
     
     try {
-        const response = await fetch(`${API_BASE}/generate-activities`, {
+        const response = await fetch(`${CF_API_BASE}/api/generate-activities`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CF_API_KEY
+            },
             body: JSON.stringify({ subject, methodologies })
         });
         
@@ -420,7 +441,7 @@ async function generateActivitiesWithAI() {
         
         if (data.success && data.activities) {
             setInputValues('activities-container', data.activities);
-            showToast('Activities generated successfully!', 'success');
+            showToast('✅ Activities generated successfully!', 'success');
         } else {
             generateLocalActivities(subject, methodologies);
         }
@@ -449,9 +470,9 @@ function generateLocalActivities(subject, methodologies) {
     
     if (allActivities.length > 0) {
         setInputValues('activities-container', allActivities.slice(0, 5));
-        showToast('Activities generated from local database', 'info');
+        showToast('📚 Activities generated from local database', 'info');
     } else {
-        showToast('No activities found. Please add manually.', 'warning');
+        showToast('⚠️ No activities found. Please add manually.', 'warning');
     }
 }
 
@@ -459,16 +480,19 @@ async function generateFullLessonWithAI() {
     const formData = collectFormData();
     
     if (!formData.subject) {
-        showToast('Please fill subject first', 'warning');
+        showToast('⚠️ Please fill subject first', 'warning');
         return;
     }
     
-    showLoading(true, 'AI is creating your complete lesson plan...');
+    showLoading(true, '🧠 AI is creating your complete lesson plan...');
     
     try {
-        const response = await fetch(`${API_BASE}/generate-full-lesson`, {
+        const response = await fetch(`${CF_API_BASE}/api/generate-full-lesson`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CF_API_KEY
+            },
             body: JSON.stringify(formData)
         });
         
@@ -482,14 +506,14 @@ async function generateFullLessonWithAI() {
             if (data.hometask) document.getElementById('hometask').value = data.hometask;
             
             generatePlan();
-            showToast('Complete lesson plan generated!', 'success');
+            showToast('✅ Complete lesson plan generated!', 'success');
             await incrementUsage();
         } else {
-            showToast('AI generation failed. Please try again.', 'error');
+            showToast('❌ AI generation failed. Please try again.', 'error');
         }
     } catch (error) {
         console.error('AI Error:', error);
-        showToast('Failed to generate. Check your connection.', 'error');
+        showToast('❌ Failed to generate. Check your connection.', 'error');
     } finally {
         showLoading(false);
     }
@@ -614,7 +638,7 @@ function savePlan() {
     
     document.getElementById('saved-count').innerText = savedPlans.length;
     
-    showToast('Lesson plan saved successfully!', 'success');
+    showToast('✅ Lesson plan saved successfully!', 'success');
     localStorage.removeItem(`${toolSlug}_draft`);
     incrementUsage();
 }
@@ -659,7 +683,7 @@ function loadPlan(id) {
     
     switchTab('create-tab');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast(`Loaded: ${plan.title}`, 'success');
+    showToast(`📖 Loaded: ${plan.title}`, 'success');
 }
 
 function deletePlan(id) {
@@ -667,7 +691,7 @@ function deletePlan(id) {
         savedPlans = savedPlans.filter(p => p.id !== id);
         localStorage.setItem('lessonPlans', JSON.stringify(savedPlans));
         renderSavedPlans();
-        showToast('Plan deleted successfully', 'success');
+        showToast('🗑️ Plan deleted successfully', 'success');
     }
 }
 
@@ -764,7 +788,7 @@ function loadTemplate(index) {
         if (template.activities) setInputValues('activities-container', template.activities);
         
         switchTab('create-tab');
-        showToast(`Template "${template.subject}" loaded`, 'success');
+        showToast(`📋 Template "${template.subject}" loaded`, 'success');
     }
 }
 
@@ -774,7 +798,7 @@ function loadTemplate(index) {
 async function downloadPDF() {
     const previewContent = document.getElementById('preview-content');
     
-    showLoading(true, 'Generating PDF...');
+    showLoading(true, '📄 Generating PDF...');
     
     try {
         const { jsPDF } = window.jspdf;
@@ -789,11 +813,11 @@ async function downloadPDF() {
         doc.text(splitText, 15, 40);
         
         doc.save(`${subject.replace(/ /g, '_')}_Lesson_Plan.pdf`);
-        showToast('PDF downloaded successfully!', 'success');
+        showToast('✅ PDF downloaded successfully!', 'success');
         await incrementShare('pdf');
     } catch (error) {
         console.error('PDF Error:', error);
-        showToast('Failed to generate PDF', 'error');
+        showToast('❌ Failed to generate PDF', 'error');
     } finally {
         showLoading(false);
     }
@@ -809,7 +833,7 @@ function printPlan() {
     `);
     printWindow.document.close();
     printWindow.print();
-    showToast('Print dialog opened', 'success');
+    showToast('🖨️ Print dialog opened', 'success');
 }
 
 function exportDoc() {
@@ -827,7 +851,7 @@ function exportDoc() {
     a.download = `${subject.replace(/ /g, '_')}_Lesson_Plan.doc`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('DOC file downloaded', 'success');
+    showToast('✅ DOC file downloaded', 'success');
 }
 
 function exportTXT() {
@@ -840,7 +864,7 @@ function exportTXT() {
     a.download = `${subject.replace(/ /g, '_')}_Lesson_Plan.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('TXT file downloaded', 'success');
+    showToast('✅ TXT file downloaded', 'success');
 }
 
 // ========================================
@@ -873,39 +897,59 @@ function clearForm() {
         `;
         
         localStorage.removeItem(`${toolSlug}_draft`);
-        showToast('Form cleared', 'info');
+        showToast('🧹 Form cleared', 'info');
     }
 }
 
 // ========================================
-// API Functions (Vercel Serverless - TiDB Connected)
+// Cloudflare Workers API Functions
 // ========================================
+
+// 1. POST /api/usage - Usage Counter Increment
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/increment-usage`, {
+        const response = await fetch(`${CF_API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug, userId: currentUser })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CF_API_KEY
+            },
+            body: JSON.stringify({ 
+                toolSlug, 
+                toolName,
+                userId: currentUser,
+                action: 'increment'
+            })
         });
         const data = await response.json();
         if (data.success) {
             await loadGlobalUsageCount();
+        } else {
+            // Fallback to LocalStorage
+            fallbackIncrementUsage();
         }
     } catch (error) {
         console.error('Usage increment error:', error);
-        let localCount = localStorage.getItem(`${toolSlug}_local_count`) || 0;
-        localCount++;
-        localStorage.setItem(`${toolSlug}_local_count`, localCount);
-        document.getElementById('global-usage-count').innerText = localCount;
+        fallbackIncrementUsage();
     }
 }
 
+function fallbackIncrementUsage() {
+    let localCount = parseInt(localStorage.getItem(`${toolSlug}_local_count`) || '0');
+    localCount++;
+    localStorage.setItem(`${toolSlug}_local_count`, localCount);
+    document.getElementById('global-usage-count').innerText = localCount;
+}
+
+// GET /api/stats?tool_slug=:slug - Get Tool Stats
 async function loadGlobalUsageCount() {
     try {
-        const response = await fetch(`${API_BASE}/get-usage?toolSlug=${toolSlug}`);
+        const response = await fetch(`${CF_API_BASE}/api/stats?tool_slug=${toolSlug}`, {
+            headers: { 'X-API-Key': CF_API_KEY }
+        });
         const data = await response.json();
-        if (data.success && data.count !== undefined) {
-            document.getElementById('global-usage-count').innerText = data.count;
+        if (data.success && data.usage !== undefined) {
+            document.getElementById('global-usage-count').innerText = data.usage || 0;
         } else {
             const localCount = localStorage.getItem(`${toolSlug}_local_count`) || 0;
             document.getElementById('global-usage-count').innerText = localCount;
@@ -917,22 +961,31 @@ async function loadGlobalUsageCount() {
     }
 }
 
+// 2. POST /api/reactions - Add/Get Reactions
 async function addReaction(emoji) {
     const userId = currentUser;
     const reactionKey = `${toolSlug}_${emoji}_${userId}`;
     
     if (reactionStates[reactionKey]) {
-        showToast('You already reacted with this emoji!', 'warning');
+        showToast('⚠️ You already reacted with this emoji!', 'warning');
         return;
     }
     
-    showLoading(true, 'Saving your reaction...');
+    showLoading(true, '💾 Saving your reaction...');
     
     try {
-        const response = await fetch(`${API_BASE}/add-reaction`, {
+        const response = await fetch(`${CF_API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug, emoji, userId })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CF_API_KEY
+            },
+            body: JSON.stringify({ 
+                toolSlug, 
+                emoji, 
+                userId,
+                action: 'add'
+            })
         });
         
         const data = await response.json();
@@ -941,12 +994,13 @@ async function addReaction(emoji) {
             reactionStates[reactionKey] = true;
             localStorage.setItem('reactionStates', JSON.stringify(reactionStates));
             await loadReactionsFromAPI();
-            showToast(`Thanks for your feedback!`, 'success');
+            showToast(`❤️ Thanks for your feedback!`, 'success');
         } else {
             throw new Error('Failed to save');
         }
     } catch (error) {
         console.error('Reaction error:', error);
+        // Fallback to LocalStorage
         reactionStates[reactionKey] = true;
         localStorage.setItem('reactionStates', JSON.stringify(reactionStates));
         
@@ -954,7 +1008,7 @@ async function addReaction(emoji) {
         localCounts[emoji] = (localCounts[emoji] || 0) + 1;
         localStorage.setItem(`${toolSlug}_reactions`, JSON.stringify(localCounts));
         updateReactionCounts(localCounts);
-        showToast(`Thanks for your feedback! (Saved locally)`, 'success');
+        showToast(`❤️ Thanks for your feedback! (Saved locally)`, 'success');
     } finally {
         showLoading(false);
     }
@@ -962,7 +1016,9 @@ async function addReaction(emoji) {
 
 async function loadReactionsFromAPI() {
     try {
-        const response = await fetch(`${API_BASE}/get-reactions?toolSlug=${toolSlug}`);
+        const response = await fetch(`${CF_API_BASE}/api/reactions?tool_slug=${toolSlug}`, {
+            headers: { 'X-API-Key': CF_API_KEY }
+        });
         const data = await response.json();
         
         if (data.success && data.reactions) {
@@ -985,18 +1041,27 @@ function updateReactionCounts(counts) {
     }
 }
 
+// 3. POST /api/shares - Record Shares
 async function incrementShare(platform) {
     try {
-        const response = await fetch(`${API_BASE}/add-share`, {
+        const response = await fetch(`${CF_API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ toolSlug, platform, userId: currentUser })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CF_API_KEY
+            },
+            body: JSON.stringify({ 
+                toolSlug, 
+                platform, 
+                userId: currentUser,
+                action: 'add'
+            })
         });
         await response.json();
         await loadShareCountFromAPI();
     } catch (error) {
         console.error('Share increment error:', error);
-        let localShares = localStorage.getItem(`${toolSlug}_shares`) || 0;
+        let localShares = parseInt(localStorage.getItem(`${toolSlug}_shares`) || '0');
         localShares++;
         localStorage.setItem(`${toolSlug}_shares`, localShares);
         document.getElementById('share-count').innerText = `${localShares} shares`;
@@ -1005,7 +1070,9 @@ async function incrementShare(platform) {
 
 async function loadShareCountFromAPI() {
     try {
-        const response = await fetch(`${API_BASE}/get-shares?toolSlug=${toolSlug}`);
+        const response = await fetch(`${CF_API_BASE}/api/shares?tool_slug=${toolSlug}`, {
+            headers: { 'X-API-Key': CF_API_KEY }
+        });
         const data = await response.json();
         
         if (data.success && data.count !== undefined) {
@@ -1021,21 +1088,38 @@ async function loadShareCountFromAPI() {
     }
 }
 
+// 4. GET /api/stats - Get Tool Stats
 async function loadStats() {
     try {
-        const response = await fetch(`${API_BASE}/get-stats?toolSlug=${toolSlug}`);
+        const response = await fetch(`${CF_API_BASE}/api/stats?tool_slug=${toolSlug}`, {
+            headers: { 'X-API-Key': CF_API_KEY }
+        });
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('total-lessons-count').innerText = data.totalLessons || savedPlans.length;
-            document.getElementById('total-shares-count').innerText = data.totalShares || 0;
+            document.getElementById('total-lessons-count').innerText = data.usage || savedPlans.length;
+            document.getElementById('total-shares-count').innerText = data.shares || 0;
             document.getElementById('avg-rating').innerText = data.avgRating || '4.8';
+            
+            // Update usage count from stats
+            if (data.usage !== undefined) {
+                document.getElementById('global-usage-count').innerText = data.usage;
+            }
         } else {
+            // Fallback to local data
             document.getElementById('total-lessons-count').innerText = savedPlans.length;
+            const localShares = localStorage.getItem(`${toolSlug}_shares`) || 0;
+            document.getElementById('total-shares-count').innerText = localShares;
+            const localUsage = localStorage.getItem(`${toolSlug}_local_count`) || 0;
+            document.getElementById('global-usage-count').innerText = localUsage;
         }
     } catch (error) {
         console.error('Load stats error:', error);
         document.getElementById('total-lessons-count').innerText = savedPlans.length;
+        const localShares = localStorage.getItem(`${toolSlug}_shares`) || 0;
+        document.getElementById('total-shares-count').innerText = localShares;
+        const localUsage = localStorage.getItem(`${toolSlug}_local_count`) || 0;
+        document.getElementById('global-usage-count').innerText = localUsage;
     }
 }
 
@@ -1049,14 +1133,14 @@ function shareOnFacebook() {
 }
 
 function shareOnTwitter() {
-    const text = encodeURIComponent('Check out this Advanced Lesson Planner Tool!');
+    const text = encodeURIComponent('📚 Check out this Advanced Lesson Planner Tool!');
     const url = encodeURIComponent(window.location.href);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
     incrementShare('twitter');
 }
 
 function shareOnWhatsApp() {
-    const text = encodeURIComponent('Check out this Advanced Lesson Planner Tool! ');
+    const text = encodeURIComponent('📚 Check out this Advanced Lesson Planner Tool! ');
     const url = encodeURIComponent(window.location.href);
     window.open(`https://wa.me/?text=${text}${url}`, '_blank');
     incrementShare('whatsapp');
@@ -1070,7 +1154,7 @@ function shareOnLinkedIn() {
 
 function copyPageURL() {
     navigator.clipboard.writeText(window.location.href);
-    showToast('Link copied to clipboard!', 'success');
+    showToast('✅ Link copied to clipboard!', 'success');
     incrementShare('copy');
 }
 
@@ -1078,18 +1162,6 @@ function copyPageURL() {
 // Analytics Functions
 // ========================================
 function loadAnalyticsCharts() {
-    // Weekly activity data
-    const weeklyData = [12, 19, 15, 17, 14, 22, 18];
-    const methodologyData = {
-        Lecture: 45,
-        Demonstration: 30,
-        Discussion: 50,
-        "Group Work": 35,
-        "Problem Solving": 25
-    };
-    
-    // You can integrate Chart.js or any charting library here
-    // For now, showing sample data
     const topLessonsList = document.getElementById('top-lessons-list');
     if (topLessonsList) {
         topLessonsList.innerHTML = `
@@ -1113,11 +1185,11 @@ function loadAnalyticsCharts() {
 
 function showStats() {
     switchTab('analytics-tab');
-    showToast('Analytics dashboard loaded', 'success');
+    showToast('📊 Analytics dashboard loaded', 'success');
 }
 
 function showPerformance() {
-    showToast('Performance metrics loading...', 'info');
+    showToast('📈 Performance metrics loading...', 'info');
 }
 
 function exportAnalytics() {
@@ -1133,18 +1205,18 @@ function exportAnalytics() {
     a.download = `analytics_${toolSlug}_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Analytics exported', 'success');
+    showToast('✅ Analytics exported', 'success');
 }
 
 function createNewPlan() {
     clearForm();
     switchTab('create-tab');
-    showToast('New plan created', 'success');
+    showToast('📝 New plan created', 'success');
 }
 
 function openTemplateGallery() {
     switchTab('templates-tab');
-    showToast('Template gallery opened', 'success');
+    showToast('📋 Template gallery opened', 'success');
 }
 
 function importPlan() {
@@ -1159,10 +1231,10 @@ function importPlan() {
                 const plan = JSON.parse(event.target.result);
                 if (plan.subject) {
                     restoreFormData(plan);
-                    showToast('Plan imported successfully', 'success');
+                    showToast('✅ Plan imported successfully', 'success');
                 }
             } catch (error) {
-                showToast('Invalid file format', 'error');
+                showToast('❌ Invalid file format', 'error');
             }
         };
         reader.readAsText(file);
@@ -1178,15 +1250,15 @@ function exportAllPlans() {
     a.download = `all_plans_${toolSlug}_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('All plans exported', 'success');
+    showToast('✅ All plans exported', 'success');
 }
 
 function openNotificationsSettings() {
-    showToast('Notifications settings coming soon', 'info');
+    showToast('🔔 Notifications settings coming soon', 'info');
 }
 
 function manageAPIKeys() {
-    showToast('API settings coming soon', 'info');
+    showToast('🔑 API settings coming soon', 'info');
 }
 
 function openPremiumModal() {
@@ -1197,6 +1269,17 @@ function openPremiumModal() {
 function closePremiumModal() {
     const modal = document.getElementById('premium-modal');
     if (modal) modal.style.display = 'none';
+}
+
+// ========================================
+// Home & Back Navigation
+// ========================================
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
 }
 
 // ========================================
@@ -1289,3 +1372,6 @@ window.importPlan = importPlan;
 window.exportAllPlans = exportAllPlans;
 window.openNotificationsSettings = openNotificationsSettings;
 window.manageAPIKeys = manageAPIKeys;
+window.goHome = goHome;
+window.goBack = goBack;
+window.toggleTheme = toggleTheme;
