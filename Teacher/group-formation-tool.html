@@ -3,192 +3,426 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Formation Tool - Smart Classroom Grouping</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Group Formation Tool - Smart AI-Powered Classroom Grouping | MagicRills</title>
+    <meta name="title" content="Group Formation Tool - Smart AI-Powered Classroom Grouping | MagicRills">
+    <meta name="description" content="Create balanced, targeted, and social groups for your classroom using AI-powered algorithms. Free online group formation tool for teachers.">
+    <meta name="keywords" content="group formation tool, classroom grouping, teacher tools, balanced groups, student grouping, AI grouping, magicrills">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="MagicRills">
+    <link rel="canonical" href="https://magicrills.com/tools/group-formation-tool.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills.com/tools/group-formation-tool.html">
+    <meta property="og:title" content="Group Formation Tool - Smart AI-Powered Classroom Grouping">
+    <meta property="og:description" content="Create balanced, targeted, and social groups for your classroom using AI-powered algorithms.">
+    <meta property="og:image" content="https://magicrills.com/assets/images/group-formation-og.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://magicrills.com/tools/group-formation-tool.html">
+    <meta property="twitter:title" content="Group Formation Tool - Smart AI-Powered Classroom Grouping">
+    <meta property="twitter:description" content="Create balanced, targeted, and social groups for your classroom using AI-powered algorithms.">
+    <meta property="twitter:image" content="https://magicrills.com/assets/images/group-formation-og.jpg">
+    
+    <!-- JSON-LD Schema Markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Group Formation Tool",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "description": "Smart AI-powered classroom group formation tool for teachers. Create balanced, targeted, and social groups.",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "MagicRills"
+        }
+    }
+    </script>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        :root {
-            --primary: #4e54c8; --secondary: #8f94fb; --accent1: #ff7e5f;
-            --accent2: #feb47b; --success: #28a745; --danger: #dc3545;
-            --dark: #343a40; --light: #f8f9fa;
-        }
-        body {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            min-height: 100vh; padding: 20px; transition: all 0.3s ease;
-        }
-        body.dark { background: linear-gradient(135deg, #1a1a2e, #16213e); }
-        body.dark .container { background: rgba(30,30,45,0.95); color: #eee; }
-        .container {
-            max-width: 1400px; margin: 0 auto; background: rgba(255,255,255,0.95);
-            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;
-        }
-        header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-area i { font-size: 2rem; }
-        .usage-area { background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 50px; display: flex; align-items: center; gap: 8px; }
-        #usageCounter { font-size: 1.5rem; font-weight: bold; }
-        .theme-toggle-container { padding: 12px 20px; text-align: right; border-bottom: 1px solid #ddd; }
-        .theme-btn { background: #e9ecef; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; }
-        .main-content { display: flex; flex-wrap: wrap; padding: 25px; gap: 25px; }
-        .input-section, .output-section { flex: 1; min-width: 350px; }
-        h2 { color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; }
-        textarea, input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; }
-        textarea { min-height: 180px; resize: vertical; }
-        .form-row { display: flex; gap: 15px; }
-        .form-row .form-group { flex: 1; }
-        .auto-save-info { font-size: 0.7rem; color: var(--success); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-        .button-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .primary-btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
-        .reset-btn { background: linear-gradient(135deg, var(--danger), #e83e8c); color: white; }
-        .secondary-btn { background: linear-gradient(135deg, #17a2b8, #20c997); color: white; }
-        .export-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-        .export-btn { flex: 1; justify-content: center; }
-        .export-btn.pdf { background: #dc3545; color: white; }
-        .export-btn.word { background: #2a579a; color: white; }
-        .export-btn.txt { background: #6c757d; color: white; }
-        .export-btn.excel { background: #1d6f42; color: white; }
-        .share-group { display: flex; align-items: center; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
-        .share-btn { background: #e9ecef; padding: 10px 14px; border-radius: 50%; cursor: pointer; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
-        .tab { padding: 10px 20px; cursor: pointer; background: #e9ecef; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 8px; }
-        .tab.active { background: var(--primary); color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .group { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
-        .group-header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 12px 15px; font-weight: 600; }
-        .group-members { padding: 12px; background: #f8f9fa; }
-        .member { padding: 8px 12px; margin-bottom: 6px; background: white; border-radius: 8px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; flex-wrap: wrap; }
-        .member-skill { font-weight: 600; color: var(--primary); }
-        .group-stats { padding: 10px; background: #e9ecef; font-size: 0.85rem; display: flex; justify-content: space-between; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { padding: 15px; border-radius: 8px; text-align: center; color: white; }
-        .stat-card.primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
-        .stat-card.success { background: linear-gradient(135deg, var(--success), #20c997); }
-        .stat-card.warning { background: linear-gradient(135deg, #ffc107, #fd7e14); }
-        .stat-value { font-size: 1.8rem; font-weight: bold; }
-        .bar-container { background: #e9ecef; border-radius: 10px; height: 20px; margin: 10px 0 20px; overflow: hidden; }
-        .bar { height: 100%; background: linear-gradient(135deg, var(--accent1), var(--accent2)); width: 0%; border-radius: 10px; transition: width 0.5s ease; }
-        .reactions-section { padding: 20px; border-top: 1px solid #ddd; text-align: center; background: #f8f9fa; }
-        .reactions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
-        .reaction-btn { background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
-        .reaction-count { font-size: 0.8rem; color: #666; }
-        footer { text-align: center; padding: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
-        .scroll-btn { position: fixed; right: 20px; background: var(--primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 999; }
-        #scrollUpBtn { bottom: 80px; }
-        #scrollDownBtn { bottom: 20px; }
-        .spinner-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .spinner { width: 50px; height: 50px; border: 4px solid white; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 1001; }
-        .toast { background: #333; color: white; padding: 12px 20px; border-radius: 8px; margin-top: 10px; animation: slideIn 0.3s ease; }
-        .toast.success { background: var(--success); }
-        .toast.error { background: var(--danger); }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
-        .placeholder { text-align: center; padding: 50px; color: #999; }
-        @media (max-width: 768px) { .main-content { flex-direction: column; } .form-row { flex-direction: column; } }
-    </style>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="group-formation-tool.css">
 </head>
 <body>
-
-<div class="container">
-    <header>
-        <div class="header-top">
-            <div class="logo-area"><i class="fas fa-users"></i><h1>Group Formation Tool</h1></div>
-            <div class="usage-area"><i class="fas fa-chart-line"></i><span id="usageCounter">0</span><span>times used</span></div>
-        </div>
-        <p class="subtitle">Smart AI-Powered Classroom Grouping | Balanced | Targeted | Social Dynamics</p>
-    </header>
-
-    <div class="theme-toggle-container"><button id="themeToggle" class="theme-btn"><i class="fas fa-moon"></i> Dark Mode</button></div>
-
-    <div class="main-content">
-        <div class="input-section">
-            <h2><i class="fas fa-edit"></i> Input Parameters</h2>
-            <div class="form-group">
-                <label><i class="fas fa-file-csv"></i> Import Students</label>
-                <input type="file" id="fileUpload" accept=".csv,.xlsx">
-                <button id="loadSampleBtn" class="secondary-btn" style="margin-top:8px"><i class="fas fa-database"></i> Load Sample</button>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-list"></i> Student List (Name, Skill 1-10, Social 1-10):</label>
-                <textarea id="students" placeholder="Name, Skill, Social&#10;John Doe, 7, 8&#10;Jane Smith, 5, 6"></textarea>
-                <div id="autoSaveIndicator" class="auto-save-info"><i class="fas fa-save"></i> Auto-saved</div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Group Type:</label><select id="groupType"><option value="balanced">Balanced Groups</option><option value="targeted">Targeted Groups</option><option value="social">Social Dynamics</option></select></div>
-                <div class="form-group"><label>Group Size:</label><input id="groupSize" type="number" min="2" max="10" value="4"></div>
-            </div>
-            <details style="margin:15px 0; background:#f8f9fa; padding:12px; border-radius:8px">
-                <summary style="cursor:pointer; font-weight:600">Advanced Options</summary>
-                <div class="form-group"><label>Conflict Pairs:</label><input id="conflictPairs" placeholder="John Doe,Jane Smith"></div>
-                <div class="form-group"><label>Assign Leaders:</label><label class="checkbox-label"><input type="checkbox" id="assignLeaders"> Auto-assign leaders</label></div>
-            </details>
-            <div class="button-group">
-                <button id="generateBtn" class="primary-btn"><i class="fas fa-magic"></i> Generate Groups</button>
-                <button id="resetBtn" class="reset-btn"><i class="fas fa-undo-alt"></i> Reset</button>
-                <button id="randomizeBtn" class="secondary-btn"><i class="fas fa-random"></i> Randomize</button>
-            </div>
-            <div class="export-group">
-                <button id="exportPdfBtn" class="export-btn pdf"><i class="fas fa-file-pdf"></i> PDF</button>
-                <button id="exportWordBtn" class="export-btn word"><i class="fas fa-file-word"></i> Word</button>
-                <button id="exportTxtBtn" class="export-btn txt"><i class="fas fa-file-alt"></i> TXT</button>
-                <button id="exportExcelBtn" class="export-btn excel"><i class="fas fa-file-excel"></i> Excel</button>
-            </div>
-            <div class="share-group">
-                <span>Share:</span>
-                <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
-                <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i></button>
-                <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
-                <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
-                <button class="share-btn" data-platform="copy"><i class="fas fa-link"></i></button>
-            </div>
-        </div>
-
-        <div class="output-section">
-            <h2><i class="fas fa-chalkboard"></i> Generated Groups</h2>
-            <div class="tabs"><div class="tab active" data-tab="groups"><i class="fas fa-users"></i> Groups</div><div class="tab" data-tab="stats"><i class="fas fa-chart-bar"></i> Stats</div></div>
-            <div class="tab-content active" id="groupsTab"><div id="groupsContainer"><div class="placeholder">Click Generate Groups</div></div></div>
-            <div class="tab-content" id="statsTab">
-                <div class="stats-grid">
-                    <div class="stat-card primary"><div class="stat-value" id="totalStudents">0</div><div>Total Students</div></div>
-                    <div class="stat-card primary"><div class="stat-value" id="totalGroups">0</div><div>Total Groups</div></div>
-                    <div class="stat-card success"><div class="stat-value" id="avgSkill">0</div><div>Avg Skill</div></div>
-                    <div class="stat-card success"><div class="stat-value" id="avgSocial">0</div><div>Avg Social</div></div>
-                    <div class="stat-card warning"><div class="stat-value" id="groupQuality">0%</div><div>Quality Score</div></div>
+    <!-- ============================================ -->
+    <!-- HERO SECTION - Smart Animated Image           -->
+    <!-- ============================================ -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-robot"></i> AI-Powered Tool
                 </div>
-                <div class="distribution"><h3>Skill Distribution</h3><div class="bar-container"><div class="bar" id="skillBar"></div></div></div>
+                <h1 class="hero-title">
+                    Group Formation Tool
+                    <span class="hero-title-glow">✨</span>
+                </h1>
+                <div class="hero-typewriter">
+                    <span id="typewriter-text" class="typewriter-text"></span>
+                    <span class="typewriter-cursor">|</span>
+                </div>
+                <p class="hero-description">
+                    Create balanced, targeted, and social groups for your classroom 
+                    using advanced AI algorithms. Perfect for teachers and educators.
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-value" id="heroUsage">0</span>
+                        <span class="hero-stat-label">Uses</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value" id="heroViews">0</span>
+                        <span class="hero-stat-label">Views</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value" id="heroShares">0</span>
+                        <span class="hero-stat-label">Shares</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value" id="heroFollowers">0</span>
+                        <span class="hero-stat-label">Followers</span>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <button class="hero-btn primary" onclick="document.getElementById('main-tool').scrollIntoView({behavior:'smooth'})">
+                        <i class="fas fa-magic"></i> Start Grouping
+                    </button>
+                    <button class="hero-btn secondary" onclick="window.open('https://magicrills.com','_blank')">
+                        <i class="fas fa-globe"></i> MagicRills
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-animated-image">
+                    <div class="floating-shapes">
+                        <div class="shape shape-1"></div>
+                        <div class="shape shape-2"></div>
+                        <div class="shape shape-3"></div>
+                        <div class="shape shape-4"></div>
+                        <div class="shape shape-5"></div>
+                    </div>
+                    <div class="hero-icon-container">
+                        <i class="fas fa-users"></i>
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-ring delay-1"></div>
+                        <div class="pulse-ring delay-2"></div>
+                    </div>
+                    <div class="floating-particles">
+                        <span>👨‍🎓</span>
+                        <span>👩‍🎓</span>
+                        <span>🧑‍🏫</span>
+                        <span>📚</span>
+                        <span>🎯</span>
+                        <span>🤖</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path fill="rgba(10, 10, 30, 0.8)" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,138.7C672,128,768,128,864,138.7C960,149,1056,171,1152,165.3C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- NAVIGATION - Home & Back Buttons             -->
+    <!-- ============================================ -->
+    <div class="nav-bar">
+        <div class="nav-container">
+            <button id="homeBtn" class="nav-btn" title="Home">
+                <i class="fas fa-home"></i> Home
+            </button>
+            <button id="backBtn" class="nav-btn" title="Back">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div class="nav-usage">
+                <i class="fas fa-chart-line"></i>
+                <span id="usageCounter">0</span>
+                <span class="usage-label">uses</span>
             </div>
         </div>
     </div>
 
-    <div class="reactions-section">
-        <span><i class="fas fa-heart"></i> How useful is this tool?</span>
-        <div class="reactions">
-            <button class="reaction-btn" data-emoji="👍"><span>👍</span> <span class="reaction-count" id="reaction-like">0</span></button>
-            <button class="reaction-btn" data-emoji="❤️"><span>❤️</span> <span class="reaction-count" id="reaction-love">0</span></button>
-            <button class="reaction-btn" data-emoji="😮"><span>😮</span> <span class="reaction-count" id="reaction-wow">0</span></button>
-            <button class="reaction-btn" data-emoji="😢"><span>😢</span> <span class="reaction-count" id="reaction-sad">0</span></button>
-            <button class="reaction-btn" data-emoji="😠"><span>😠</span> <span class="reaction-count" id="reaction-angry">0</span></button>
-            <button class="reaction-btn" data-emoji="😂"><span>😂</span> <span class="reaction-count" id="reaction-laugh">0</span></button>
-            <button class="reaction-btn" data-emoji="🎉"><span>🎉</span> <span class="reaction-count" id="reaction-celebrate">0</span></button>
+    <!-- ============================================ -->
+    <!-- MAIN TOOL CONTAINER                          -->
+    <!-- ============================================ -->
+    <div id="main-tool" class="container">
+        <header>
+            <div class="header-top">
+                <div class="logo-area">
+                    <i class="fas fa-users"></i>
+                    <h1>Group Formation Tool</h1>
+                </div>
+                <div class="theme-toggle-container">
+                    <button id="themeToggle" class="theme-btn">
+                        <i class="fas fa-moon"></i> Dark Mode
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============================================ -->
+        <!-- MAIN CONTENT                                 -->
+        <!-- ============================================ -->
+        <div class="main-content">
+            <!-- LEFT - INPUT SECTION -->
+            <div class="input-section">
+                <h2><i class="fas fa-edit"></i> Input Parameters</h2>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-file-csv"></i> Import Students</label>
+                    <input type="file" id="fileUpload" accept=".csv,.xlsx">
+                    <button id="loadSampleBtn" class="secondary-btn" style="margin-top:8px">
+                        <i class="fas fa-database"></i> Load Sample
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-list"></i> Student List (Name, Skill 1-10, Social 1-10):</label>
+                    <textarea id="students" placeholder="Name, Skill, Social&#10;John Doe, 7, 8&#10;Jane Smith, 5, 6"></textarea>
+                    <div id="autoSaveIndicator" class="auto-save-info">
+                        <i class="fas fa-save"></i> Auto-saved
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Group Type:</label>
+                        <select id="groupType">
+                            <option value="balanced">Balanced Groups</option>
+                            <option value="targeted">Targeted Groups</option>
+                            <option value="social">Social Dynamics</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Group Size:</label>
+                        <input id="groupSize" type="number" min="2" max="10" value="4">
+                    </div>
+                </div>
+                
+                <details class="advanced-section">
+                    <summary>Advanced Options</summary>
+                    <div class="form-group">
+                        <label>Conflict Pairs:</label>
+                        <input id="conflictPairs" placeholder="John Doe,Jane Smith">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="assignLeaders"> Auto-assign leaders
+                        </label>
+                    </div>
+                </details>
+                
+                <div class="button-group">
+                    <button id="generateBtn" class="primary-btn">
+                        <i class="fas fa-magic"></i> Generate Groups
+                    </button>
+                    <button id="resetBtn" class="reset-btn">
+                        <i class="fas fa-undo-alt"></i> Reset
+                    </button>
+                    <button id="randomizeBtn" class="secondary-btn">
+                        <i class="fas fa-random"></i> Randomize
+                    </button>
+                </div>
+                
+                <div class="export-group">
+                    <button id="exportPdfBtn" class="export-btn pdf">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                    <button id="exportWordBtn" class="export-btn word">
+                        <i class="fas fa-file-word"></i> Word
+                    </button>
+                    <button id="exportTxtBtn" class="export-btn txt">
+                        <i class="fas fa-file-alt"></i> TXT
+                    </button>
+                    <button id="exportExcelBtn" class="export-btn excel">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                </div>
+                
+                <div class="share-group">
+                    <span class="share-label"><i class="fas fa-share-alt"></i> Share:</span>
+                    <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
+                    <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i></button>
+                    <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                    <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
+                    <button class="share-btn" data-platform="copy"><i class="fas fa-link"></i></button>
+                </div>
+            </div>
+
+            <!-- RIGHT - OUTPUT SECTION -->
+            <div class="output-section">
+                <h2><i class="fas fa-chalkboard"></i> Generated Groups</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="groups">
+                        <i class="fas fa-users"></i> Groups
+                    </div>
+                    <div class="tab" data-tab="stats">
+                        <i class="fas fa-chart-bar"></i> Stats
+                    </div>
+                </div>
+                
+                <div class="tab-content active" id="groupsTab">
+                    <div id="groupsContainer">
+                        <div class="placeholder">
+                            <i class="fas fa-lightbulb"></i> Click "Generate Groups" to start
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="statsTab">
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-value" id="totalStudents">0</div>
+                            <div class="stat-label">Total Students</div>
+                        </div>
+                        <div class="stat-card accent">
+                            <div class="stat-value" id="totalGroups">0</div>
+                            <div class="stat-label">Total Groups</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-value" id="avgSkill">0</div>
+                            <div class="stat-label">Avg Skill</div>
+                        </div>
+                        <div class="stat-card info">
+                            <div class="stat-value" id="avgSocial">0</div>
+                            <div class="stat-label">Avg Social</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-value" id="groupQuality">0%</div>
+                            <div class="stat-label">Quality Score</div>
+                        </div>
+                    </div>
+                    
+                    <div class="distribution">
+                        <h3><i class="fas fa-chart-simple"></i> Skill Distribution</h3>
+                        <div class="bar-container">
+                            <div class="bar" id="skillBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- ============================================ -->
+        <!-- REACTIONS SECTION                           -->
+        <!-- ============================================ -->
+        <div class="reactions-section">
+            <span class="reactions-label">
+                <i class="fas fa-heart" style="color:#ff6b6b;"></i> 
+                How useful is this tool?
+            </span>
+            <div class="reactions">
+                <button class="reaction-btn" data-emoji="👍">
+                    <span>👍</span> 
+                    <span class="reaction-count" id="reaction-like">0</span>
+                </button>
+                <button class="reaction-btn" data-emoji="❤️">
+                    <span>❤️</span> 
+                    <span class="reaction-count" id="reaction-love">0</span>
+                </button>
+                <button class="reaction-btn" data-emoji="😮">
+                    <span>😮</span> 
+                    <span class="reaction-count" id="reaction-wow">0</span>
+                </button>
+                <button class="reaction-btn" data-emoji="😢">
+                    <span>😢</span> 
+                    <span class="reaction-count" id="reaction-sad">0</span>
+                </button>
+                <button class="reaction-btn" data-emoji="😠">
+                    <span>😠</span> 
+                    <span class="reaction-count" id="reaction-angry">0</span>
+                </button>
+                <button class="reaction-btn" data-emoji="😂">
+                    <span>😂</span> 
+                    <span class="reaction-count" id="reaction-laugh">0</span>
+                </button>
+                <button class="reaction-btn" data-emoji="🎉">
+                    <span>🎉</span> 
+                    <span class="reaction-count" id="reaction-celebrate">0</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- ============================================ -->
+        <!-- AI INTEGRATION SECTION                       -->
+        <!-- ============================================ -->
+        <div class="ai-section">
+            <div class="ai-container">
+                <div class="ai-icon">
+                    <i class="fas fa-robot"></i>
+                    <span class="ai-pulse"></span>
+                </div>
+                <div class="ai-content">
+                    <h3>🤖 AI-Powered Group Optimization</h3>
+                    <p>Our AI engine analyzes student skills and social dynamics to create the most balanced and effective groups for your classroom.</p>
+                    <div class="ai-features">
+                        <span><i class="fas fa-check-circle"></i> Smart Balancing</span>
+                        <span><i class="fas fa-check-circle"></i> Conflict Resolution</span>
+                        <span><i class="fas fa-check-circle"></i> Leader Identification</span>
+                        <span><i class="fas fa-check-circle"></i> Performance Prediction</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                <i class="fas fa-users"></i> Group Formation Tool © 2025 
+                | <i class="fas fa-cloud"></i> Powered by Cloudflare Workers
+                | <i class="fas fa-brain"></i> AI by Grok
+            </p>
+            <p style="font-size:0.8rem; opacity:0.8; margin-top:8px;">
+                <a href="https://magicrills.com" style="color:white; text-decoration:none;">MagicRills</a> 
+                | <a href="https://magicrills.com/category-pages/mixed-tools.html" style="color:white; text-decoration:none;">More Tools</a>
+            </p>
+        </footer>
     </div>
-    <footer><p>Group Formation Tool © 2025 | Integrated with TiDB + Vercel + Grok API</p></footer>
-</div>
 
-<button id="scrollUpBtn" class="scroll-btn"><i class="fas fa-arrow-up"></i></button>
-<button id="scrollDownBtn" class="scroll-btn"><i class="fas fa-arrow-down"></i></button>
-<div id="loadingSpinner" class="spinner-overlay"><div class="spinner"></div></div>
-<div id="toastContainer" class="toast-container"></div>
+    <!-- ============================================ -->
+    <!-- SCROLL BUTTONS                               -->
+    <!-- ============================================ -->
+    <button id="scrollUpBtn" class="scroll-btn" title="Scroll Up">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button id="scrollDownBtn" class="scroll-btn" title="Scroll Down">
+        <i class="fas fa-arrow-down"></i>
+    </button>
 
-<script src="group-formation-tool.js"></script>
+    <!-- ============================================ -->
+    <!-- LOADING SPINNER                              -->
+    <!-- ============================================ -->
+    <div id="loadingSpinner" class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TOAST CONTAINER                              -->
+    <!-- ============================================ -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT                                   -->
+    <!-- ============================================ -->
+    <script src="group-formation-tool.js"></script>
 </body>
 </html>
