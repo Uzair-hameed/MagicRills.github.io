@@ -1,11 +1,12 @@
 /* ============================================ */
 /* FILE 3: chapter-to-outline-generator.js      */
 /* Complete Academic Planner | Urdu/English Support | A4 Landscape */
-/* TiDB API | Grok AI | Real Data Extraction | Export PDF/DOC */
+/* Cloudflare Workers API | AI Integration | Real Data Extraction */
 /* ============================================ */
 
-// API Configuration
-const API_BASE = '/api';
+// API Configuration - Cloudflare Workers
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'chapter-to-outline-generator';
 
 // User ID
@@ -28,9 +29,253 @@ let analysisData = {
 let currentOutputs = { outline: '', syllabus: '', academic: '' };
 let activeTab = 'outline';
 let currentStep = 1;
+let statsData = { usage: 0, views: 0, shares: 0, followers: 0 };
 
 // DOM Elements
 let uploadPanel, infoPanel, outputSelectPanel, resultPanel, loadingSpinner, toastContainer;
+
+// ========================================
+// CLOUDFLARE API CALLS
+// ========================================
+
+async function callCloudflareAPI(endpoint, method = 'GET', body = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
+            }
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn('Cloudflare API error, using localStorage fallback:', error);
+        return null;
+    }
+}
+
+async function getToolStats() {
+    try {
+        const data = await callCloudflareAPI(`/api/stats?tool_slug=${TOOL_SLUG}`);
+        if (data) {
+            statsData = {
+                usage: data.usage || 0,
+                views: data.views || 0,
+                shares: data.shares || 0,
+                followers: data.followers || 0
+            };
+            updateStatsUI();
+        } else {
+            // Fallback to localStorage
+            statsData.usage = parseInt(localStorage.getItem('usageCount') || 0);
+            statsData.views = parseInt(localStorage.getItem('viewCount') || 0);
+            statsData.shares = parseInt(localStorage.getItem('shareCount') || 0);
+            statsData.followers = parseInt(localStorage.getItem('followerCount') || 0);
+            updateStatsUI();
+        }
+    } catch (error) {
+        console.warn('Stats fetch failed, using localStorage:', error);
+        statsData.usage = parseInt(localStorage.getItem('usageCount') || 0);
+        statsData.views = parseInt(localStorage.getItem('viewCount') || 0);
+        statsData.shares = parseInt(localStorage.getItem('shareCount') || 0);
+        statsData.followers = parseInt(localStorage.getItem('followerCount') || 0);
+        updateStatsUI();
+    }
+}
+
+function updateStatsUI() {
+    document.getElementById('usageCounter').innerText = statsData.usage || 0;
+    document.getElementById('shareCounter').innerText = statsData.shares || 0;
+    document.getElementById('heroUsageCount').innerText = statsData.usage || 0;
+    document.getElementById('heroPlansCount').innerText = Math.floor((statsData.usage || 0) * 1.5);
+    document.getElementById('heroReactionsCount').innerText = statsData.followers || 0;
+    
+    // Update dashboard stats
+    document.querySelectorAll('.dashboard-item').forEach(item => {
+        if (item.querySelector('.stat-usage')) {
+            item.querySelector('.stat-usage').innerText = statsData.usage || 0;
+        }
+        if (item.querySelector('.stat-shares')) {
+            item.querySelector('.stat-shares').innerText = statsData.shares || 0;
+        }
+        if (item.querySelector('.stat-followers')) {
+            item.querySelector('.stat-followers').innerText = statsData.followers || 0;
+        }
+    });
+}
+
+async function incrementUsage() {
+    try {
+        const data = await callCloudflareAPI('/api/usage', 'POST', { tool_slug: TOOL_SLUG, user_id: userId });
+        if (data) {
+            statsData.usage = data.count || (parseInt(statsData.usage) + 1);
+        } else {
+            // Fallback to localStorage
+            let count = parseInt(localStorage.getItem('usageCount') || 0);
+            count++;
+            localStorage.setItem('usageCount', count);
+            statsData.usage = count;
+        }
+        updateStatsUI();
+    } catch (error) {
+        console.warn('Usage increment failed, using localStorage:', error);
+        let count = parseInt(localStorage.getItem('usageCount') || 0);
+        count++;
+        localStorage.setItem('usageCount', count);
+        statsData.usage = count;
+        updateStatsUI();
+    }
+}
+
+async function incrementViews() {
+    try {
+        const data = await callCloudflareAPI('/api/views', 'POST', { tool_slug: TOOL_SLUG, user_id: userId });
+        if (data) {
+            statsData.views = data.count || (parseInt(statsData.views) + 1);
+        } else {
+            let count = parseInt(localStorage.getItem('viewCount') || 0);
+            count++;
+            localStorage.setItem('viewCount', count);
+            statsData.views = count;
+        }
+        updateStatsUI();
+    } catch (error) {
+        console.warn('Views increment failed, using localStorage:', error);
+        let count = parseInt(localStorage.getItem('viewCount') || 0);
+        count++;
+        localStorage.setItem('viewCount', count);
+        statsData.views = count;
+        updateStatsUI();
+    }
+}
+
+async function fetchReactions() {
+    try {
+        const data = await callCloudflareAPI('/api/reactions', 'GET');
+        if (data && data.reactions) {
+            const reactions = data.reactions;
+            const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
+            
+            document.querySelectorAll('.reaction-mini').forEach(btn => {
+                const emoji = btn.dataset.emoji;
+                const type = emojiMap[emoji];
+                const span = btn.querySelector('.reaction-count');
+                if (span && reactions[type] !== undefined) {
+                    span.innerText = reactions[type] || 0;
+                }
+            });
+            
+            const total = Object.values(reactions).reduce((a, b) => a + b, 0);
+            document.getElementById('reactionCounter').innerText = total;
+            document.getElementById('heroReactionsCount').innerText = total;
+            statsData.followers = total;
+        } else {
+            // Fallback to localStorage
+            const savedReactions = JSON.parse(localStorage.getItem('reactions') || '{}');
+            document.querySelectorAll('.reaction-mini').forEach(btn => {
+                const emoji = btn.dataset.emoji;
+                const span = btn.querySelector('.reaction-count');
+                if (span && savedReactions[emoji] !== undefined) {
+                    span.innerText = savedReactions[emoji] || 0;
+                }
+            });
+            const total = Object.values(savedReactions).reduce((a, b) => a + b, 0);
+            document.getElementById('reactionCounter').innerText = total;
+            document.getElementById('heroReactionsCount').innerText = total;
+            statsData.followers = total;
+        }
+        updateStatsUI();
+    } catch (error) {
+        console.warn('Reactions fetch failed:', error);
+    }
+}
+
+async function addReaction(emoji) {
+    try {
+        const data = await callCloudflareAPI('/api/reactions', 'POST', { 
+            tool_slug: TOOL_SLUG, 
+            emoji: emoji, 
+            user_id: userId 
+        });
+        if (data && data.already_reacted) {
+            showToast(getText('already_reacted'), 'warning');
+        } else if (data) {
+            showToast(getText('thanks_for_reaction'), 'success');
+            fetchReactions();
+        } else {
+            // Fallback to localStorage
+            const savedReactions = JSON.parse(localStorage.getItem('reactions') || '{}');
+            savedReactions[emoji] = (savedReactions[emoji] || 0) + 1;
+            localStorage.setItem('reactions', JSON.stringify(savedReactions));
+            showToast(getText('thanks_for_reaction'), 'success');
+            fetchReactions();
+        }
+    } catch (error) {
+        console.warn('Reaction add failed, using localStorage:', error);
+        const savedReactions = JSON.parse(localStorage.getItem('reactions') || '{}');
+        savedReactions[emoji] = (savedReactions[emoji] || 0) + 1;
+        localStorage.setItem('reactions', JSON.stringify(savedReactions));
+        showToast(getText('thanks_for_reaction'), 'success');
+        fetchReactions();
+    }
+}
+
+async function fetchShares() {
+    try {
+        const data = await callCloudflareAPI('/api/shares', 'GET');
+        if (data) {
+            statsData.shares = data.shares || 0;
+            document.getElementById('shareCounter').innerText = statsData.shares;
+            updateStatsUI();
+        } else {
+            statsData.shares = parseInt(localStorage.getItem('shareCount') || 0);
+            document.getElementById('shareCounter').innerText = statsData.shares;
+            updateStatsUI();
+        }
+    } catch (error) {
+        console.warn('Shares fetch failed, using localStorage:', error);
+        statsData.shares = parseInt(localStorage.getItem('shareCount') || 0);
+        document.getElementById('shareCounter').innerText = statsData.shares;
+        updateStatsUI();
+    }
+}
+
+async function addShare(platform) {
+    try {
+        const data = await callCloudflareAPI('/api/shares', 'POST', { 
+            tool_slug: TOOL_SLUG, 
+            platform: platform, 
+            user_id: userId 
+        });
+        if (data) {
+            statsData.shares = data.shares || (parseInt(statsData.shares) + 1);
+        } else {
+            let count = parseInt(localStorage.getItem('shareCount') || 0);
+            count++;
+            localStorage.setItem('shareCount', count);
+            statsData.shares = count;
+        }
+        document.getElementById('shareCounter').innerText = statsData.shares;
+        updateStatsUI();
+        showToast(getText('shared_on') + ' ' + platform + '! 🎉', 'success');
+    } catch (error) {
+        console.warn('Share add failed, using localStorage:', error);
+        let count = parseInt(localStorage.getItem('shareCount') || 0);
+        count++;
+        localStorage.setItem('shareCount', count);
+        statsData.shares = count;
+        document.getElementById('shareCounter').innerText = statsData.shares;
+        updateStatsUI();
+        showToast(getText('shared_on') + ' ' + platform + '! 🎉', 'success');
+    }
+}
 
 // ========================================
 // LANGUAGE DETECTION & TEXT GENERATION
@@ -54,7 +299,6 @@ function detectLanguageFromSubject() {
 function getText(key, lang = null) {
     const useLang = lang || currentLanguage;
     const texts = {
-        // English Texts
         en: {
             slo_prefix: "Students will be able to:",
             activity_prefix: "Activities:",
@@ -71,9 +315,12 @@ function getText(key, lang = null) {
             trueFalse: "True/False",
             match: "Match Columns",
             shortQ: "Short Questions",
-            longQ: "Long Questions"
+            longQ: "Long Questions",
+            already_reacted: "You already reacted with this emoji! 😊",
+            thanks_for_reaction: "Thanks for your feedback! ❤️",
+            shared_on: "Shared on",
+            welcome: "Welcome to Chapter to Outline Generator! 📚"
         },
-        // Urdu Texts
         ur: {
             slo_prefix: "طلبہ اس قابل ہوں گے:",
             activity_prefix: "سرگرمیاں:",
@@ -90,10 +337,14 @@ function getText(key, lang = null) {
             trueFalse: "سچ/غلط",
             match: "ملاپ کریں",
             shortQ: "مختصر سوالات",
-            longQ: "تفصیلی سوالات"
+            longQ: "تفصیلی سوالات",
+            already_reacted: "آپ پہلے ہی اس ایموجی پر ردعمل دے چکے ہیں! 😊",
+            thanks_for_reaction: "آپ کے تاثر کا شکریہ! ❤️",
+            shared_on: "پر شیئر کیا گیا",
+            welcome: "چیپٹر ٹو آؤٹ لائن جنریٹر میں خوش آمدید! 📚"
         }
     };
-    return texts[useLang][key] || texts.en[key];
+    return texts[useLang]?.[key] || texts.en[key] || key;
 }
 
 // ========================================
@@ -109,12 +360,15 @@ document.addEventListener('DOMContentLoaded', () => {
     toastContainer = document.getElementById('toastContainer');
     
     loadSavedDraft();
-    fetchUsageCount();
+    getToolStats();
     fetchReactions();
     fetchShares();
+    incrementViews(); // Track view
     setupEventListeners();
     applyTheme();
     updateNavigationButtons();
+    initTypewriter();
+    init3DChecklist();
     
     // Language detection on subject change
     document.getElementById('subjectSelect').addEventListener('change', () => {
@@ -122,8 +376,69 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(detectLanguageFromSubject() === 'urdu' ? 'اردو زبان منتخب کی گئی' : 'English language selected', 'info');
     });
     
-    showToast('Welcome to Chapter to Outline Generator! 📚', 'success');
+    showToast(getText('welcome'), 'success');
 });
+
+// ========================================
+// TYPEWRITER ANIMATION
+// ========================================
+
+function initTypewriter() {
+    const typewriterElement = document.getElementById('typewriter-text');
+    if (!typewriterElement) return;
+    
+    const phrases = [
+        'Upload any lesson or complete book 📚',
+        'Generate Outlines & Syllabus Breakup 📋',
+        'Academic Plans for Teachers 👨‍🏫',
+        'Supporting Urdu & English 🇵🇰🇬🇧',
+        'AI-Powered Lesson Planning 🤖'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typeSpeed = 100;
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            typeSpeed = 50;
+        } else {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            typeSpeed = 100;
+        }
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            isDeleting = true;
+            typeSpeed = 2000;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            typeSpeed = 500;
+        }
+        
+        setTimeout(typeEffect, typeSpeed);
+    }
+    
+    setTimeout(typeEffect, 1000);
+}
+
+// ========================================
+// 3D CHECKLIST
+// ========================================
+
+function init3DChecklist() {
+    const checklistItems = document.querySelectorAll('.checklist-item');
+    checklistItems.forEach((item, index) => {
+        item.style.setProperty('--delay', `${index * 0.1}s`);
+        item.classList.add('animate');
+    });
+}
 
 // ========================================
 // NAVIGATION FUNCTIONS
@@ -145,111 +460,15 @@ function goToStep(step) {
     outputSelectPanel.style.display = step === 3 ? 'block' : 'none';
     resultPanel.style.display = step === 4 ? 'block' : 'none';
     updateNavigationButtons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function goHome() {
-    currentStep = 1;
-    uploadPanel.style.display = 'block';
-    infoPanel.style.display = 'none';
-    outputSelectPanel.style.display = 'none';
-    resultPanel.style.display = 'none';
-    updateNavigationButtons();
-    showToast(detectLanguageFromSubject() === 'urdu' ? 'ہوم پیج پر واپس آگئے 🏠' : 'Returned to home page 🏠', 'info');
+    window.location.href = 'https://magicrills.com';
 }
 
-// ========================================
-// API CALLS - TiDB INTEGRATION
-// ========================================
-
-async function fetchUsageCount() {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`);
-        const data = await response.json();
-        const count = data.count || 0;
-        document.getElementById('usageCounter').innerText = count;
-        document.getElementById('heroUsageCount').innerText = count;
-        document.getElementById('heroPlansCount').innerText = Math.floor(count * 1.5);
-    } catch (error) {
-        const localCount = localStorage.getItem('usageCount') || 0;
-        document.getElementById('usageCounter').innerText = localCount;
-    }
-}
-
-async function incrementUsage() {
-    try {
-        await fetch(`${API_BASE}/${TOOL_SLUG}/usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId })
-        });
-        fetchUsageCount();
-    } catch (error) {
-        let count = parseInt(localStorage.getItem('usageCount') || 0);
-        count++;
-        localStorage.setItem('usageCount', count);
-        document.getElementById('usageCounter').innerText = count;
-    }
-}
-
-async function fetchReactions() {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`);
-        const data = await response.json();
-        const reactions = data.reactions || {};
-        const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😂': 'laugh', '🎉': 'celebrate' };
-        
-        document.querySelectorAll('.reaction-mini').forEach(btn => {
-            const emoji = btn.dataset.emoji;
-            const type = emojiMap[emoji];
-            const span = btn.querySelector('span');
-            if (span) span.innerText = reactions[type] || 0;
-        });
-        
-        const total = Object.values(reactions).reduce((a, b) => a + b, 0);
-        document.getElementById('reactionCounter').innerText = total;
-        document.getElementById('heroReactionsCount').innerText = total;
-    } catch (error) {
-        console.error('Error fetching reactions:', error);
-    }
-}
-
-async function addReaction(emoji) {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emoji, user_id: userId })
-        });
-        const data = await response.json();
-        if (data.already_reacted) {
-            showToast(detectLanguageFromSubject() === 'urdu' ? 'آپ پہلے ہی اس ایموجی پر ردعمل دے چکے ہیں! 😊' : 'You already reacted with this emoji! 😊', 'warning');
-        } else {
-            showToast(detectLanguageFromSubject() === 'urdu' ? 'آپ کے تاثر کا شکریہ! ❤️' : 'Thanks for your feedback! ❤️', 'success');
-            fetchReactions();
-        }
-    } catch (error) {
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'ردعمل محفوظ نہیں ہو سکا' : 'Could not save reaction', 'error');
-    }
-}
-
-async function fetchShares() {
-    try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`);
-        const data = await response.json();
-        document.getElementById('shareCounter').innerText = data.shares || 0;
-    } catch (error) {}
-}
-
-async function addShare(platform) {
-    try {
-        await fetch(`${API_BASE}/${TOOL_SLUG}/shares`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ platform, user_id: userId })
-        });
-        fetchShares();
-        showToast(detectLanguageFromSubject() === 'urdu' ? `${platform} پر شیئر کیا گیا! 🎉` : `Shared on ${platform}! 🎉`, 'success');
-    } catch (error) {}
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
 }
 
 // ========================================
@@ -259,9 +478,7 @@ async function addShare(platform) {
 function setupEventListeners() {
     // Navigation
     document.getElementById('homeBtn').addEventListener('click', goHome);
-    document.getElementById('backBtn').addEventListener('click', () => {
-        if (currentStep > 1) goToStep(currentStep - 1);
-    });
+    document.getElementById('backBtn').addEventListener('click', goBack);
     document.getElementById('backToUploadBtn').addEventListener('click', () => goToStep(1));
     document.getElementById('backToInfoBtn').addEventListener('click', () => goToStep(2));
     document.getElementById('backToOutputBtn').addEventListener('click', () => goToStep(3));
@@ -290,14 +507,14 @@ function setupEventListeners() {
     // Continue button
     document.getElementById('continueToInfoBtn').addEventListener('click', () => {
         goToStep(2);
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'مرحلہ 2: تعلیمی معلومات پُر کریں 📋' : 'Step 2: Please fill academic information 📋', 'info');
+        showToast(getText('step2_info'), 'info');
     });
     
     // Next to output
     document.getElementById('nextToOutputBtn').addEventListener('click', () => {
         if (validateInfoPanel()) {
             goToStep(3);
-            showToast(detectLanguageFromSubject() === 'urdu' ? 'مرحلہ 3: منتخب کریں کہ کیا بنانا چاہتے ہیں 📝' : 'Step 3: Select what you want to generate 📝', 'info');
+            showToast(getText('step3_select'), 'info');
         }
     });
     
@@ -351,7 +568,7 @@ function validateInfoPanel() {
     for (let id of required) {
         const val = document.getElementById(id).value;
         if (!val) {
-            showToast(detectLanguageFromSubject() === 'urdu' ? `براہ کرم ${id.replace('Select', '')} پُر کریں` : `Please fill ${id.replace('Select', '')} field`, 'warning');
+            showToast(getText('please_fill') + ' ' + id.replace('Select', ''), 'warning');
             return false;
         }
     }
@@ -361,16 +578,8 @@ function validateInfoPanel() {
     const workingDays = document.getElementById('workingDays').value;
     const lessonsPerWeek = document.getElementById('lessonsPerWeek').value;
     
-    if (!startDate) {
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'براہ کرم تاریخ منتخب کریں' : 'Please select start date', 'warning');
-        return false;
-    }
-    if (!endDate) {
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'براہ کرم آخری تاریخ منتخب کریں' : 'Please select end date', 'warning');
-        return false;
-    }
-    if (!workingDays || !lessonsPerWeek) {
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'براہ کرم کام کے دن اور اسباق پُر کریں' : 'Please fill Working Days and Lessons per Week', 'warning');
+    if (!startDate || !endDate || !workingDays || !lessonsPerWeek) {
+        showToast(getText('please_fill_all'), 'warning');
         return false;
     }
     
@@ -419,11 +628,11 @@ async function processFile(file) {
     }, 100);
     
     await sleep(2000);
-    progressText.innerText = detectLanguageFromSubject() === 'urdu' ? 'مواد نکالا جا رہا ہے اور تجزیہ کیا جا رہا ہے... 75%' : 'Extracting content and analyzing... 75%';
+    progressText.innerText = getText('extracting_content');
     progressFill.style.width = '75%';
     await sleep(1500);
     progressFill.style.width = '100%';
-    progressText.innerText = detectLanguageFromSubject() === 'urdu' ? 'تجزیہ مکمل! 100%' : 'Analysis complete! 100%';
+    progressText.innerText = getText('analysis_complete');
     await sleep(500);
     progressDiv.style.display = 'none';
     
@@ -559,7 +768,7 @@ function displayAnalysisGraph() {
     document.getElementById('longQCount').innerText = analysisData.longQCount;
     
     document.getElementById('analysisGraph').style.display = 'block';
-    showToast(detectLanguageFromSubject() === 'urdu' ? '✅ فائل کا تجزیہ کامیابی سے ہوگیا! آگے بڑھنے کے لیے کلک کریں۔' : '✅ File analyzed successfully! Click Continue to proceed.', 'success');
+    showToast(getText('analysis_success'), 'success');
 }
 
 function formatFileSize(bytes) {
@@ -584,7 +793,7 @@ async function generateSelectedOutputs() {
     const generateAcademic = document.getElementById('outputAcademic').checked;
     
     if (!generateOutline && !generateSyllabus && !generateAcademic) {
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'براہ کرم کم از کم ایک آپشن منتخب کریں' : 'Please select at least one output type', 'warning');
+        showToast(getText('select_one'), 'warning');
         return;
     }
     
@@ -595,19 +804,19 @@ async function generateSelectedOutputs() {
     let monthsCount = planDuration === '1month' ? 1 : planDuration === '3months' ? 3 : planDuration === '6months' ? 6 : 12;
     
     if (generateOutline) {
-        document.getElementById('loadingStatus').innerHTML = detectLanguageFromSubject() === 'urdu' ? '📝 باب وار خلاصہ تیار کیا جا رہا ہے...' : '📝 Generating Chapter-wise Outline...';
+        document.getElementById('loadingStatus').innerHTML = getText('generating_outline');
         await sleep(800);
         currentOutputs.outline = generateOutlineTable();
     }
     
     if (generateSyllabus) {
-        document.getElementById('loadingStatus').innerHTML = detectLanguageFromSubject() === 'urdu' ? '📅 نصابی تقسیم تیار کی جا رہی ہے...' : '📅 Generating Syllabus Breakup...';
+        document.getElementById('loadingStatus').innerHTML = getText('generating_syllabus');
         await sleep(800);
         currentOutputs.syllabus = generateSyllabusTable(monthsCount);
     }
     
     if (generateAcademic) {
-        document.getElementById('loadingStatus').innerHTML = detectLanguageFromSubject() === 'urdu' ? '🏫 مکمل تعلیمی منصوبہ تیار کیا جا رہا ہے...' : '🏫 Generating Complete Academic Plan...';
+        document.getElementById('loadingStatus').innerHTML = getText('generating_academic');
         await sleep(800);
         currentOutputs.academic = generateAcademicPlanTable(monthsCount);
     }
@@ -615,7 +824,7 @@ async function generateSelectedOutputs() {
     displayResults(generateOutline, generateSyllabus, generateAcademic);
     showLoading(false);
     goToStep(4);
-    showToast(detectLanguageFromSubject() === 'urdu' ? '✅ تمام منصوبے کامیابی سے تیار ہوگئے!' : '✅ All plans generated successfully!', 'success');
+    showToast(getText('all_plans_generated'), 'success');
 }
 
 function generateOutlineTable() {
@@ -636,7 +845,7 @@ function generateOutlineTable() {
                                 <th style="border:1px solid #ddd; padding:10px; background:linear-gradient(135deg,#6366f1,#10b981); color:white;">${isUrdu ? 'عنوانات / ذیلی عنوانات' : 'Topics / Sub-Topics'}</th>
                                 <th style="border:1px solid #ddd; padding:10px; background:linear-gradient(135deg,#6366f1,#10b981); color:white;">${isUrdu ? 'مشقیں' : 'Exercises'}</th>
                                 <th style="border:1px solid #ddd; padding:10px; background:linear-gradient(135deg,#6366f1,#10b981); color:white;">${isUrdu ? 'تصاویر/خاکے' : 'Images/Diagrams'}</th>
-                            </table>
+                            </tr>
                         </thead>
                         <tbody>`;
     
@@ -788,7 +997,7 @@ function generateAcademicPlanTable(monthsCount) {
     });
     
     html += `</tbody>
-                    <tr>
+                    </table>
                     <p style="margin-top:20px;"><strong>${isUrdu ? 'کل اسباق:' : 'Total Lessons:'}</strong> ${srNo - 1} | 
                     <strong>${isUrdu ? 'کل ابواب:' : 'Total Chapters:'}</strong> ${extractedChapters.length} | 
                     <strong>${isUrdu ? 'کل عنوانات:' : 'Total Topics:'}</strong> ${analysisData.totalTopics}</p>
@@ -846,7 +1055,7 @@ function copyToClipboard() {
     const content = document.getElementById('resultContent').innerHTML;
     const textContent = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ');
     navigator.clipboard.writeText(textContent);
-    showToast(detectLanguageFromSubject() === 'urdu' ? 'کاپی ہوگیا! 📋' : 'Copied to clipboard! 📋', 'success');
+    showToast(getText('copied'), 'success');
 }
 
 function downloadAs(format) {
@@ -878,7 +1087,7 @@ function downloadAs(format) {
             </head><body>${content}</body></html>`);
         printWindow.document.close();
         printWindow.print();
-        showToast(isUrdu ? 'PDF پرنٹ ڈائیلاگ کھل گیا! 📄' : 'PDF print dialog opened! 📄', 'success');
+        showToast(getText('pdf_ready'), 'success');
         return;
     }
     
@@ -888,7 +1097,7 @@ function downloadAs(format) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    showToast(isUrdu ? `${format.toUpperCase()} ڈاؤن لوڈ ہوگیا! 📥` : `Downloaded as ${format.toUpperCase()}! 📥`, 'success');
+    showToast(getText('downloaded') + ' ' + format.toUpperCase() + '! 📥', 'success');
 }
 
 function printResult() {
@@ -912,15 +1121,15 @@ function handleShare(platform) {
     
     if (platform === 'copy') {
         navigator.clipboard.writeText(url);
-        showToast(isUrdu ? 'لنک کاپی ہوگیا! 📎' : 'Link copied! 📎', 'success');
+        showToast(getText('link_copied'), 'success');
         addShare(platform);
         return;
     }
     
     const shareUrls = {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-        twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`,
-        whatsapp: `https://wa.me/?text=${encodeURIComponent(url)}`,
+        twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Check out this amazing Chapter to Outline Generator! 📚')}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent('Check out this amazing Chapter to Outline Generator! 📚 ' + url)}`,
         linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
     };
     
@@ -956,27 +1165,30 @@ function autoSaveDraft() {
 function loadSavedDraft() {
     const saved = localStorage.getItem('lessonPlannerDraft');
     if (saved) {
-        const data = JSON.parse(saved);
-        if (data.class) document.getElementById('classSelect').value = data.class;
-        if (data.subject) document.getElementById('subjectSelect').value = data.subject;
-        if (data.medium) document.getElementById('mediumSelect').value = data.medium;
-        if (data.duration) document.getElementById('durationSelect').value = data.duration;
-        if (data.teachers) document.getElementById('teachersSelect').value = data.teachers;
-        if (data.contentType) document.getElementById('contentTypeSelect').value = data.contentType;
-        if (data.planDuration) document.getElementById('planDurationSelect').value = data.planDuration;
-        if (data.startDate) document.getElementById('startDate').value = data.startDate;
-        if (data.endDate) document.getElementById('endDate').value = data.endDate;
-        if (data.workingDays) document.getElementById('workingDays').value = data.workingDays;
-        if (data.lessonsPerWeek) document.getElementById('lessonsPerWeek').value = data.lessonsPerWeek;
-        if (data.resources) document.getElementById('resourcesInput').value = data.resources;
-        
-        // Detect language from subject
-        if (data.subject === 'Urdu') {
-            currentLanguage = 'ur';
-            detectLanguageFromSubject();
+        try {
+            const data = JSON.parse(saved);
+            if (data.class) document.getElementById('classSelect').value = data.class;
+            if (data.subject) document.getElementById('subjectSelect').value = data.subject;
+            if (data.medium) document.getElementById('mediumSelect').value = data.medium;
+            if (data.duration) document.getElementById('durationSelect').value = data.duration;
+            if (data.teachers) document.getElementById('teachersSelect').value = data.teachers;
+            if (data.contentType) document.getElementById('contentTypeSelect').value = data.contentType;
+            if (data.planDuration) document.getElementById('planDurationSelect').value = data.planDuration;
+            if (data.startDate) document.getElementById('startDate').value = data.startDate;
+            if (data.endDate) document.getElementById('endDate').value = data.endDate;
+            if (data.workingDays) document.getElementById('workingDays').value = data.workingDays;
+            if (data.lessonsPerWeek) document.getElementById('lessonsPerWeek').value = data.lessonsPerWeek;
+            if (data.resources) document.getElementById('resourcesInput').value = data.resources;
+            
+            if (data.subject === 'Urdu') {
+                currentLanguage = 'ur';
+                detectLanguageFromSubject();
+            }
+            
+            showToast(getText('draft_loaded'), 'info');
+        } catch (e) {
+            console.warn('Failed to load draft:', e);
         }
-        
-        showToast(detectLanguageFromSubject() === 'urdu' ? 'پچھلے سیشن کا ڈرافٹ لوڈ ہوگیا 💾' : 'Draft loaded from last session 💾', 'info');
     }
 }
 
@@ -994,7 +1206,7 @@ function toggleTheme() {
     localStorage.setItem('theme', newTheme);
     const themeIcon = document.querySelector('#themeToggle i');
     if (themeIcon) themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    showToast(detectLanguageFromSubject() === 'urdu' ? `${newTheme === 'dark' ? '🌙 ڈارک' : '☀️ لائٹ'} موڈ فعال ہوگیا` : `${newTheme === 'dark' ? '🌙 Dark' : '☀️ Light'} mode activated`, 'success');
+    showToast(newTheme === 'dark' ? '🌙 Dark mode activated' : '☀️ Light mode activated', 'success');
 }
 
 // ========================================
