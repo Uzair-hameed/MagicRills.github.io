@@ -1,11 +1,11 @@
 // ============================================
-// ADVANCED MCQ MAKER PRO - CORRECTED JS
-// INTEGRATED WITH test-db.js ENDPOINTS
-// TiDB | Vercel | Grok API | NO MOCK DATA
+// MCQ MAKER PRO - CLOUDFLARE WORKERS API
+// Complete JavaScript with Neon Theme & AI
 // ============================================
 
 // ========== CONFIGURATION ==========
-const API_BASE = '/api';
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 const TOOL_SLUG = 'advanced-mcq-maker';
 const USER_ID = localStorage.getItem('mcq_user_id') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -21,6 +21,9 @@ let userReactions = JSON.parse(localStorage.getItem('mcq_reactions') || '{}');
 let paperConfig = JSON.parse(localStorage.getItem('mcq_paper_config') || '{}');
 let currentUserId = USER_ID;
 let autoSaveInterval = null;
+let isOffline = false;
+let usageCount = 0;
+let shareCount = 0;
 
 // ========== DOM ELEMENTS ==========
 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -28,14 +31,24 @@ const toastContainer = document.getElementById('toastContainer');
 
 // ========== HELPER FUNCTIONS ==========
 function showToast(message, type = 'info') {
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-triangle',
+        warning: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+        <i class="fas ${icons[type] || icons.info}"></i>
         <span>${message}</span>
     `;
     toastContainer.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
 }
 
 function showLoading() {
@@ -46,14 +59,23 @@ function hideLoading() {
     loadingOverlay.style.display = 'none';
 }
 
-// ========== REAL API CALLS (test-db.js endpoints) ==========
+function getApiHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY,
+        'X-Tool-Slug': TOOL_SLUG,
+        'X-User-ID': currentUserId
+    };
+}
 
-// USAGE: POST /api/increment-usage
+// ========== CLOUDFLARE WORKERS API CALLS ==========
+
+// 1. POST /api/usage - Usage Counter Increment
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/increment-usage`, {
+        const response = await fetch(`${API_BASE}/api/usage`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ 
                 tool_slug: TOOL_SLUG, 
                 user_id: currentUserId 
@@ -61,55 +83,52 @@ async function incrementUsage() {
         });
         const data = await response.json();
         if (data.success) {
-            updateUsageDisplay(data.total_usage || 0);
+            usageCount = data.total_usage || 0;
+            updateUsageDisplay(usageCount);
+            localStorage.setItem('mcq_usage_count', usageCount);
+        } else {
+            // Fallback to localStorage
+            usageCount = parseInt(localStorage.getItem('mcq_usage_count') || '0') + 1;
+            localStorage.setItem('mcq_usage_count', usageCount);
+            updateUsageDisplay(usageCount);
         }
         return data;
     } catch (error) {
-        console.error('Usage increment failed:', error);
-        let localCount = parseInt(localStorage.getItem('mcq_usage_count') || '0');
-        localCount++;
-        localStorage.setItem('mcq_usage_count', localCount);
-        updateUsageDisplay(localCount);
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        usageCount = parseInt(localStorage.getItem('mcq_usage_count') || '0') + 1;
+        localStorage.setItem('mcq_usage_count', usageCount);
+        updateUsageDisplay(usageCount);
     }
 }
 
-// USAGE: GET /api/usage?tool_slug=...
+// 2. GET /api/usage - Fetch Usage
 async function fetchUsage() {
     try {
-        const response = await fetch(`${API_BASE}/usage?tool_slug=${TOOL_SLUG}`);
+        const response = await fetch(`${API_BASE}/api/usage?tool_slug=${TOOL_SLUG}`);
         const data = await response.json();
         if (data.success) {
-            updateUsageDisplay(data.count || 0);
+            usageCount = data.count || 0;
+            updateUsageDisplay(usageCount);
+            localStorage.setItem('mcq_usage_count', usageCount);
         }
         return data;
     } catch (error) {
-        let localCount = parseInt(localStorage.getItem('mcq_usage_count') || '0');
-        updateUsageDisplay(localCount);
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        usageCount = parseInt(localStorage.getItem('mcq_usage_count') || '0');
+        updateUsageDisplay(usageCount);
     }
 }
 
 function updateUsageDisplay(count) {
     const statUsage = document.getElementById('statUsage');
     const headerUsage = document.getElementById('headerUsage');
-    if (statUsage) statUsage.textContent = count;
-    if (headerUsage) headerUsage.textContent = count;
+    if (statUsage) statUsage.textContent = count || 0;
+    if (headerUsage) headerUsage.textContent = count || 0;
 }
 
-// REACTIONS: GET /api/reactions?tool_slug=...
-async function fetchReactions() {
-    try {
-        const response = await fetch(`${API_BASE}/reactions?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.success) {
-            updateReactionsDisplay(data.reactions || {});
-        }
-        return data;
-    } catch (error) {
-        console.error('Failed to fetch reactions:', error);
-    }
-}
-
-// REACTIONS: POST /api/add-reaction
+// 3. POST /api/reactions - Add Reaction
 async function submitReaction(emoji) {
     if (userReactions[emoji]) {
         showToast(`You already reacted with ${emoji}`, 'warning');
@@ -117,9 +136,9 @@ async function submitReaction(emoji) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/add-reaction`, {
+        const response = await fetch(`${API_BASE}/api/reactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ 
                 tool_slug: TOOL_SLUG, 
                 emoji: emoji,
@@ -137,31 +156,57 @@ async function submitReaction(emoji) {
             userReactions[emoji] = true;
             localStorage.setItem('mcq_reactions', JSON.stringify(userReactions));
             updateReactionsDisplay(data.counts || {});
-            showToast(`Reacted with ${emoji}`, 'success');
+            showToast(`Reacted with ${emoji} 🎉`, 'success');
             incrementUsage();
         }
     } catch (error) {
-        console.error('Failed to submit reaction:', error);
-        showToast('Failed to save reaction', 'error');
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        userReactions[emoji] = true;
+        localStorage.setItem('mcq_reactions', JSON.stringify(userReactions));
+        
+        // Update local counts
+        const counts = JSON.parse(localStorage.getItem('mcq_reaction_counts') || '{}');
+        const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
+        const key = emojiMap[emoji] || emoji;
+        counts[key] = (counts[key] || 0) + 1;
+        localStorage.setItem('mcq_reaction_counts', JSON.stringify(counts));
+        updateReactionsDisplay(counts);
+        showToast(`Reacted with ${emoji} (offline)`, 'success');
+    }
+}
+
+// 4. GET /api/reactions - Fetch Reactions
+async function fetchReactions() {
+    try {
+        const response = await fetch(`${API_BASE}/api/reactions?tool_slug=${TOOL_SLUG}`);
+        const data = await response.json();
+        if (data.success) {
+            updateReactionsDisplay(data.reactions || {});
+            localStorage.setItem('mcq_reaction_counts', JSON.stringify(data.reactions || {}));
+        }
+        return data;
+    } catch (error) {
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        const counts = JSON.parse(localStorage.getItem('mcq_reaction_counts') || '{}');
+        updateReactionsDisplay(counts);
     }
 }
 
 function updateReactionsDisplay(reactions) {
-    // Map reaction types to emojis
     const emojiMap = {
         like: '👍', love: '❤️', wow: '😮', 
-        sad: '😢', angry: '😠', laugh: '😂', celebrate: '🎉'
+        sad: '😢', laugh: '😂', celebrate: '🎉'
     };
     
     document.querySelectorAll('.reaction').forEach(btn => {
         const emoji = btn.getAttribute('data-emoji');
         let reactionType = '';
-        
         if (emoji === '👍') reactionType = 'like';
         else if (emoji === '❤️') reactionType = 'love';
         else if (emoji === '😮') reactionType = 'wow';
         else if (emoji === '😢') reactionType = 'sad';
-        else if (emoji === '😠') reactionType = 'angry';
         else if (emoji === '😂') reactionType = 'laugh';
         else if (emoji === '🎉') reactionType = 'celebrate';
         
@@ -172,30 +217,15 @@ function updateReactionsDisplay(reactions) {
     
     const total = Object.values(reactions).reduce((a, b) => a + b, 0);
     const statReactions = document.getElementById('statReactions');
-    if (statReactions) statReactions.textContent = total;
+    if (statReactions) statReactions.textContent = total || 0;
 }
 
-// SHARES: GET /api/shares?tool_slug=...
-async function fetchShares() {
-    try {
-        const response = await fetch(`${API_BASE}/shares?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.success) {
-            updateSharesDisplay(data.shares || 0);
-        }
-        return data;
-    } catch (error) {
-        let localShares = parseInt(localStorage.getItem('mcq_shares') || '0');
-        updateSharesDisplay(localShares);
-    }
-}
-
-// SHARES: POST /api/add-share
+// 5. POST /api/shares - Record Share
 async function submitShare(platform) {
     try {
-        const response = await fetch(`${API_BASE}/add-share`, {
+        const response = await fetch(`${API_BASE}/api/shares`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ 
                 tool_slug: TOOL_SLUG, 
                 platform: platform,
@@ -203,187 +233,80 @@ async function submitShare(platform) {
             })
         });
         const data = await response.json();
-        updateSharesDisplayFromAPI();
-        showToast(`Shared on ${platform}`, 'success');
-        incrementUsage();
+        if (data.success) {
+            shareCount = data.total_shares || 0;
+            updateSharesDisplay(shareCount);
+            localStorage.setItem('mcq_shares', shareCount);
+            showToast(`Shared on ${platform} 🎉`, 'success');
+            incrementUsage();
+        }
+        return data;
     } catch (error) {
-        let localShares = parseInt(localStorage.getItem('mcq_shares') || '0');
-        localShares++;
-        localStorage.setItem('mcq_shares', localShares);
-        updateSharesDisplay(localShares);
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        shareCount = parseInt(localStorage.getItem('mcq_shares') || '0') + 1;
+        localStorage.setItem('mcq_shares', shareCount);
+        updateSharesDisplay(shareCount);
+        showToast(`Shared on ${platform} (offline)`, 'success');
     }
 }
 
-async function updateSharesDisplayFromAPI() {
+// 6. GET /api/shares - Fetch Shares
+async function fetchShares() {
     try {
-        const response = await fetch(`${API_BASE}/shares?tool_slug=${TOOL_SLUG}`);
+        const response = await fetch(`${API_BASE}/api/shares?tool_slug=${TOOL_SLUG}`);
         const data = await response.json();
-        if (data.success) updateSharesDisplay(data.shares || 0);
-    } catch(e) {}
+        if (data.success) {
+            shareCount = data.shares || 0;
+            updateSharesDisplay(shareCount);
+            localStorage.setItem('mcq_shares', shareCount);
+        }
+        return data;
+    } catch (error) {
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        shareCount = parseInt(localStorage.getItem('mcq_shares') || '0');
+        updateSharesDisplay(shareCount);
+    }
 }
 
 function updateSharesDisplay(count) {
     const statShares = document.getElementById('statShares');
-    if (statShares) statShares.textContent = count;
+    if (statShares) statShares.textContent = count || 0;
 }
 
-// STATS: GET /api/stats?tool_slug=...
+// 7. GET /api/stats - Get Tool Stats
 async function fetchStats() {
     try {
-        const response = await fetch(`${API_BASE}/stats?tool_slug=${TOOL_SLUG}`);
+        const response = await fetch(`${API_BASE}/api/stats?tool_slug=${TOOL_SLUG}`);
         const data = await response.json();
         if (data.success) {
-            document.getElementById('heroQuestions').textContent = data.totalUsage || questions.length;
-            document.getElementById('heroPapers').textContent = data.totalUsage || 0;
-            document.getElementById('heroExports').textContent = data.totalShares || 0;
-            document.getElementById('totalQuestions').textContent = data.totalUsage || questions.length;
-            document.getElementById('totalPapers').textContent = data.totalUsage || 0;
-            document.getElementById('totalExportsStat').textContent = data.totalShares || 0;
+            const stats = data.stats || {};
+            document.getElementById('heroQuestions').textContent = stats.total_questions || questions.length;
+            document.getElementById('heroPapers').textContent = stats.total_papers || 0;
+            document.getElementById('heroExports').textContent = stats.total_exports || 0;
+            document.getElementById('totalQuestions').textContent = stats.total_questions || questions.length;
+            document.getElementById('totalPapers').textContent = stats.total_papers || 0;
+            document.getElementById('totalExportsStat').textContent = stats.total_exports || 0;
+            document.getElementById('aiGenerations').textContent = stats.ai_generations || 0;
+            
+            // Store in localStorage
+            localStorage.setItem('mcq_stats', JSON.stringify(stats));
         }
+        return data;
     } catch (error) {
-        document.getElementById('heroQuestions').textContent = questions.length;
-        document.getElementById('totalQuestions').textContent = questions.length;
+        console.warn('API offline, using localStorage fallback:', error);
+        isOffline = true;
+        const stats = JSON.parse(localStorage.getItem('mcq_stats') || '{}');
+        document.getElementById('heroQuestions').textContent = stats.total_questions || questions.length;
+        document.getElementById('heroPapers').textContent = stats.total_papers || 0;
+        document.getElementById('heroExports').textContent = stats.total_exports || 0;
+        document.getElementById('totalQuestions').textContent = stats.total_questions || questions.length;
+        document.getElementById('totalPapers').textContent = stats.total_papers || 0;
+        document.getElementById('totalExportsStat').textContent = stats.total_exports || 0;
+        document.getElementById('aiGenerations').textContent = stats.ai_generations || 0;
     }
     updateBankSummary();
-}
-
-// ========== AI FUNCTIONS (Grok API via test-db.js) ==========
-
-// AI: POST /api/generate-mcqs
-async function generateAIQuestions() {
-    const topic = document.getElementById('aiTopic').value;
-    const grade = document.getElementById('aiGrade').value;
-    const count = parseInt(document.getElementById('aiCount').value);
-    const difficulty = document.getElementById('aiDifficulty').value;
-    
-    if (!topic) {
-        showToast('Please enter a topic', 'warning');
-        return;
-    }
-    
-    showLoading();
-    try {
-        const response = await fetch(`${API_BASE}/generate-mcqs`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                subject: topic,
-                topic: topic,
-                grade: grade,
-                count: count,
-                difficulty: difficulty,
-                tool_slug: TOOL_SLUG
-            })
-        });
-        const data = await response.json();
-        
-        if (data.success && data.mcqs) {
-            displayAIGeneratedQuestions(data.mcqs);
-            showToast(`${data.mcqs.length} questions generated!`, 'success');
-            incrementUsage();
-        } else {
-            showToast('AI generation failed', 'error');
-        }
-    } catch (error) {
-        console.error('AI generation failed:', error);
-        showToast('AI generation failed. Please try again.', 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-function displayAIGeneratedQuestions(questionsList) {
-    const container = document.getElementById('aiGeneratedList');
-    if (!container) return;
-    
-    if (!questionsList.length) {
-        container.innerHTML = '<div class="empty-state-sm">No questions generated. Try again.</div>';
-        return;
-    }
-    
-    container.innerHTML = questionsList.map((q, idx) => `
-        <div class="ai-question">
-            <strong>Q${idx + 1}:</strong> ${q.question || q.text}
-            <div style="margin-left:20px; margin-top:5px; font-size:0.8rem;">
-                ${(q.options || ['A. Option A', 'B. Option B', 'C. Option C', 'D. Option D']).map(opt => `<div>• ${opt}</div>`).join('')}
-            </div>
-            <div style="margin-top:5px; font-size:0.75rem; color:green;">
-                Correct: ${q.correctAnswer || q.correctAnswers?.join(', ') || 'A'}
-            </div>
-            ${q.explanation ? `<div style="margin-top:5px; font-size:0.7rem; color:gray;">${q.explanation}</div>` : ''}
-            <button class="btn btn-primary btn-sm add-ai-question" style="margin-top:8px;" data-question='${JSON.stringify(q)}'>
-                <i class="fas fa-plus"></i> Add to Paper
-            </button>
-        </div>
-    `).join('');
-    
-    document.querySelectorAll('.add-ai-question').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const q = JSON.parse(btn.getAttribute('data-question'));
-            const newQuestion = {
-                id: currentQuestionId++,
-                text: q.question || q.text,
-                options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
-                correctAnswers: [q.correctAnswer || 'A'],
-                type: 'single',
-                difficulty: 'medium',
-                marks: 1,
-                explanation: q.explanation || '',
-                createdAt: new Date().toISOString()
-            };
-            questions.push(newQuestion);
-            updateQuestionsList();
-            updatePreview();
-            showToast('Question added to paper!', 'success');
-            autoSaveDraft();
-        });
-    });
-}
-
-// AI: POST /api/generate-slos
-async function generateSLOS() {
-    const subject = document.getElementById('slosSubject').value;
-    const topic = document.getElementById('slosTopic').value;
-    const grade = document.getElementById('slosGrade').value;
-    
-    if (!subject || !topic) {
-        showToast('Please enter subject and topic', 'warning');
-        return;
-    }
-    
-    showLoading();
-    try {
-        const response = await fetch(`${API_BASE}/generate-slos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                subject: subject,
-                topic: topic,
-                grade: grade,
-                tool_slug: TOOL_SLUG
-            })
-        });
-        const data = await response.json();
-        
-        const slosDiv = document.getElementById('slosResult');
-        if (data.success && data.slos) {
-            slosDiv.innerHTML = `
-                <strong>Generated SLOs:</strong>
-                <ul style="margin-top:10px; margin-left:20px;">
-                    ${data.slos.map(s => `<li>${s}</li>`).join('')}
-                </ul>
-            `;
-            showToast('SLOs generated successfully!', 'success');
-        } else {
-            slosDiv.innerHTML = `<p>No SLOs generated. Please try again.</p>`;
-        }
-        incrementUsage();
-    } catch (error) {
-        console.error('SLO generation failed:', error);
-        showToast('SLO generation failed', 'error');
-    } finally {
-        hideLoading();
-    }
 }
 
 // ========== SOCIAL SHARING FUNCTIONS ==========
@@ -393,12 +316,12 @@ function shareOnFacebook() {
 }
 
 function shareOnTwitter() {
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out MCQ Maker Pro!')}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('📝 Check out MCQ Maker Pro - AI-powered question generator! Create professional MCQ papers for free!')}&url=${encodeURIComponent(window.location.href)}`, '_blank');
     submitShare('twitter');
 }
 
 function shareOnWhatsApp() {
-    window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent('📝 MCQ Maker Pro - Create professional MCQ papers with AI! ' + window.location.href)}`, '_blank');
     submitShare('whatsapp');
 }
 
@@ -411,10 +334,272 @@ async function copyLink() {
     try {
         await navigator.clipboard.writeText(window.location.href);
         submitShare('copy');
-        showToast('Link copied to clipboard!', 'success');
+        showToast('Link copied to clipboard! 📋', 'success');
     } catch (error) {
         showToast('Failed to copy link', 'error');
     }
+}
+
+// ========== AI FUNCTIONS ==========
+
+// AI: Generate MCQs via Cloudflare Worker
+async function generateAIQuestions() {
+    const topic = document.getElementById('aiTopic').value.trim();
+    const grade = document.getElementById('aiGrade').value;
+    const count = parseInt(document.getElementById('aiCount').value) || 5;
+    const difficulty = document.getElementById('aiDifficulty').value;
+    
+    if (!topic) {
+        showToast('Please enter a topic', 'warning');
+        document.getElementById('aiTopic').focus();
+        return;
+    }
+    
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE}/api/generate-mcqs`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify({ 
+                subject: topic,
+                topic: topic,
+                grade: grade,
+                count: count,
+                difficulty: difficulty,
+                tool_slug: TOOL_SLUG
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.mcqs && data.mcqs.length > 0) {
+            displayAIGeneratedQuestions(data.mcqs);
+            showToast(`${data.mcqs.length} questions generated! 🤖`, 'success');
+            
+            // Update AI generations count
+            const aiGen = parseInt(localStorage.getItem('mcq_ai_generations') || '0') + data.mcqs.length;
+            localStorage.setItem('mcq_ai_generations', aiGen);
+            document.getElementById('aiGenerations').textContent = aiGen;
+            
+            incrementUsage();
+        } else {
+            // Fallback: Generate mock questions if API fails
+            const fallbackQuestions = generateFallbackQuestions(topic, count);
+            displayAIGeneratedQuestions(fallbackQuestions);
+            showToast(`${fallbackQuestions.length} questions generated (offline mode)`, 'info');
+        }
+    } catch (error) {
+        console.error('AI generation failed:', error);
+        // Fallback: Generate mock questions
+        const fallbackQuestions = generateFallbackQuestions(topic, count);
+        displayAIGeneratedQuestions(fallbackQuestions);
+        showToast(`${fallbackQuestions.length} questions generated (offline mode)`, 'info');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Fallback: Generate mock questions
+function generateFallbackQuestions(topic, count) {
+    const questions = [];
+    const templates = [
+        { q: `What is the definition of ${topic}?`, options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: 'A' },
+        { q: `Which of the following is true about ${topic}?`, options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: 'B' },
+        { q: `Explain the concept of ${topic} in simple terms.`, options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: 'C' },
+        { q: `What are the key principles of ${topic}?`, options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: 'D' },
+        { q: `How does ${topic} apply in real life?`, options: ['Option A', 'Option B', 'Option C', 'Option D'], correct: 'A' }
+    ];
+    
+    for (let i = 0; i < Math.min(count, 10); i++) {
+        const tpl = templates[i % templates.length];
+        questions.push({
+            question: `${tpl.q} (Q${i + 1})`,
+            options: tpl.options.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`),
+            correctAnswer: tpl.correct,
+            explanation: `This is the correct answer for question ${i + 1}.`
+        });
+    }
+    return questions;
+}
+
+function displayAIGeneratedQuestions(questionsList) {
+    const container = document.getElementById('aiGeneratedList');
+    if (!container) return;
+    
+    if (!questionsList || !questionsList.length) {
+        container.innerHTML = '<div class="empty-state-sm">No questions generated. Try again.</div>';
+        return;
+    }
+    
+    container.innerHTML = questionsList.map((q, idx) => `
+        <div class="ai-question">
+            <strong>Q${idx + 1}:</strong> ${q.question || q.text || 'Question'}
+            <div style="margin-left:20px; margin-top:5px; font-size:0.8rem; color: var(--text-secondary);">
+                ${(q.options || ['A. Option A', 'B. Option B', 'C. Option C', 'D. Option D']).map(opt => `<div>• ${opt}</div>`).join('')}
+            </div>
+            <div style="margin-top:5px; font-size:0.75rem; color: var(--neon-green);">
+                ✅ Correct: ${q.correctAnswer || q.correctAnswers?.join(', ') || 'A'}
+            </div>
+            ${q.explanation ? `<div style="margin-top:5px; font-size:0.7rem; color: var(--text-secondary);">💡 ${q.explanation}</div>` : ''}
+            <button class="btn btn-primary btn-sm add-ai-question" style="margin-top:8px;" data-question='${JSON.stringify(q)}'>
+                <i class="fas fa-plus"></i> Add to Paper
+            </button>
+        </div>
+    `).join('');
+    
+    // Attach events for AI questions
+    document.querySelectorAll('.add-ai-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            try {
+                const q = JSON.parse(btn.getAttribute('data-question'));
+                const newQuestion = {
+                    id: currentQuestionId++,
+                    text: q.question || q.text || 'Question',
+                    options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+                    correctAnswers: [q.correctAnswer || 'A'],
+                    type: 'single',
+                    difficulty: 'medium',
+                    marks: 1,
+                    explanation: q.explanation || '',
+                    createdAt: new Date().toISOString(),
+                    source: 'AI'
+                };
+                questions.push(newQuestion);
+                updateQuestionsList();
+                updatePreview();
+                showToast('Question added to paper! 📝', 'success');
+                autoSaveDraft();
+            } catch (e) {
+                showToast('Failed to add question', 'error');
+            }
+        });
+    });
+}
+
+// AI: Generate SLOs
+async function generateSLOS() {
+    const subject = document.getElementById('slosSubject').value.trim();
+    const topic = document.getElementById('slosTopic').value.trim();
+    const grade = document.getElementById('slosGrade').value.trim();
+    
+    if (!subject || !topic) {
+        showToast('Please enter subject and topic', 'warning');
+        return;
+    }
+    
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE}/api/generate-slos`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify({ 
+                subject: subject,
+                topic: topic,
+                grade: grade,
+                tool_slug: TOOL_SLUG
+            })
+        });
+        
+        const data = await response.json();
+        const slosDiv = document.getElementById('slosResult');
+        
+        if (data.success && data.slos && data.slos.length > 0) {
+            slosDiv.innerHTML = `
+                <strong>📚 Generated SLOs:</strong>
+                <ul style="margin-top:10px; margin-left:20px; color: var(--text-secondary);">
+                    ${data.slos.map(s => `<li style="margin-bottom:6px;">${s}</li>`).join('')}
+                </ul>
+            `;
+            showToast('SLOs generated successfully! 🎓', 'success');
+        } else {
+            // Fallback: Generate mock SLOs
+            const fallbackSlos = [
+                `Understand the basic concepts of ${topic}`,
+                `Apply ${topic} principles to solve problems`,
+                `Analyze and evaluate ${topic} in real-world scenarios`,
+                `Create solutions using ${topic} knowledge`
+            ];
+            slosDiv.innerHTML = `
+                <strong>📚 Generated SLOs (offline):</strong>
+                <ul style="margin-top:10px; margin-left:20px; color: var(--text-secondary);">
+                    ${fallbackSlos.map(s => `<li style="margin-bottom:6px;">${s}</li>`).join('')}
+                </ul>
+            `;
+            showToast('SLOs generated (offline mode)', 'info');
+        }
+        incrementUsage();
+    } catch (error) {
+        console.error('SLO generation failed:', error);
+        const fallbackSlos = [
+            `Understand the basic concepts of ${topic}`,
+            `Apply ${topic} principles to solve problems`,
+            `Analyze and evaluate ${topic} in real-world scenarios`
+        ];
+        const slosDiv = document.getElementById('slosResult');
+        slosDiv.innerHTML = `
+            <strong>📚 Generated SLOs (offline):</strong>
+            <ul style="margin-top:10px; margin-left:20px; color: var(--text-secondary);">
+                ${fallbackSlos.map(s => `<li style="margin-bottom:6px;">${s}</li>`).join('')}
+            </ul>
+        `;
+        showToast('SLOs generated (offline mode)', 'info');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ========== AI INSIGHTS ==========
+function generateAIInsights() {
+    const container = document.getElementById('aiInsights');
+    if (!container) return;
+    
+    if (questions.length === 0) {
+        container.innerHTML = `
+            <div class="insight-item" style="border-left-color: var(--neon-orange);">
+                💡 Add some questions to get AI insights about your paper.
+            </div>
+        `;
+        return;
+    }
+    
+    const easy = questions.filter(q => q.difficulty === 'easy').length;
+    const medium = questions.filter(q => q.difficulty === 'medium').length;
+    const hard = questions.filter(q => q.difficulty === 'hard').length;
+    const total = questions.length;
+    
+    const insights = [];
+    
+    // Difficulty balance
+    if (easy > total * 0.6) {
+        insights.push('🟢 Your paper has many easy questions. Consider adding more medium and hard questions for balance.');
+    } else if (hard > total * 0.5) {
+        insights.push('🔴 Your paper is very challenging. Consider adding some easy questions for accessibility.');
+    } else if (easy > 0 && medium > 0 && hard > 0) {
+        insights.push('✅ Great balance! Your paper has a mix of easy, medium, and hard questions.');
+    }
+    
+    // Question count
+    if (total < 5) {
+        insights.push('📝 Add more questions for a comprehensive paper. Aim for at least 10 questions.');
+    } else if (total >= 10 && total <= 20) {
+        insights.push('📊 Good question count! This paper is well-sized for most assessments.');
+    } else if (total > 20) {
+        insights.push('📚 You have many questions. Consider splitting into multiple papers if needed.');
+    }
+    
+    // AI suggestion
+    if (total > 0) {
+        const avgDifficulty = easy > medium && easy > hard ? 'Easy' : medium > hard ? 'Medium' : 'Hard';
+        insights.push(`🤖 AI Suggestion: Your paper is predominantly ${avgDifficulty}. Consider adding questions from other difficulty levels.`);
+    }
+    
+    container.innerHTML = insights.map(insight => `
+        <div class="insight-item">${insight}</div>
+    `).join('');
 }
 
 // ========== QUESTION MANAGEMENT ==========
@@ -478,6 +663,7 @@ function addQuestion() {
     const questionText = document.getElementById('questionText').value.trim();
     if (!questionText) {
         showToast('Please enter question text', 'warning');
+        document.getElementById('questionText').focus();
         return;
     }
     
@@ -517,6 +703,7 @@ function addQuestion() {
         const answer = document.getElementById('fillblankAnswer').value.trim();
         if (!answer) {
             showToast('Please enter correct answer', 'warning');
+            document.getElementById('fillblankAnswer').focus();
             return;
         }
         correctAnswers = [answer];
@@ -538,11 +725,12 @@ function addQuestion() {
     questions.push(question);
     updateQuestionsList();
     clearQuestionForm();
-    showToast('Question added successfully!', 'success');
+    showToast('Question added successfully! ✅', 'success');
     incrementUsage();
     autoSaveDraft();
     updatePreview();
     updateAnalytics();
+    generateAIInsights();
 }
 
 function clearQuestionForm() {
@@ -587,6 +775,7 @@ function updateQuestionsList() {
                     <strong>Q${idx + 1}:</strong> ${q.text.substring(0, 80)}${q.text.length > 80 ? '...' : ''}
                     <span style="font-size:0.7rem; margin-left:8px;">
                         ${q.difficulty === 'easy' ? '🟢' : q.difficulty === 'medium' ? '🟡' : '🔴'} ${q.marks} mark${q.marks > 1 ? 's' : ''}
+                        ${q.source === 'AI' ? ' 🤖' : ''}
                     </span>
                 </div>
                 <div class="question-actions">
@@ -654,7 +843,7 @@ function editQuestion(id) {
     
     questions = questions.filter(q => q.id !== id);
     updateQuestionsList();
-    showToast('Edit the question and click Add Question', 'info');
+    showToast('Edit the question and click Add Question ✏️', 'info');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -662,10 +851,11 @@ function deleteQuestion(id) {
     if (confirm('Are you sure you want to delete this question?')) {
         questions = questions.filter(q => q.id !== id);
         updateQuestionsList();
-        showToast('Question deleted', 'success');
+        showToast('Question deleted 🗑️', 'success');
         autoSaveDraft();
         updatePreview();
         updateAnalytics();
+        generateAIInsights();
     }
 }
 
@@ -732,8 +922,9 @@ function loadDraft() {
                 questions = draft.questions;
                 currentQuestionId = Math.max(...questions.map(q => q.id), 0) + 1;
                 updateQuestionsList();
-                showToast('Draft loaded', 'success');
+                showToast('Draft loaded 📂', 'success');
                 updatePreview();
+                updateAnalytics();
             }
             if (draft.config) paperConfig = draft.config;
         } catch(e) { console.error('Failed to load draft'); }
@@ -758,16 +949,16 @@ function updatePreview() {
         return;
     }
     
-    let html = `<div style="text-align:center; margin-bottom:30px;"><h1>${title}</h1></div>`;
-    html += `<div style="margin-bottom:20px; font-style:italic;">${instructions}</div>`;
+    let html = `<div style="text-align:center; margin-bottom:30px;"><h1 style="color: var(--neon-primary);">${title}</h1></div>`;
+    html += `<div style="margin-bottom:20px; font-style:italic; color: var(--text-secondary);">${instructions}</div>`;
     html += `<div class="questions-section">`;
     
     questions.forEach((q, idx) => {
         html += `<div class="preview-question">
-            <strong>Q${idx + 1}:</strong> ${q.text}
-            <div style="margin-left:20px; margin-top:8px;">`;
+            <strong style="color: var(--neon-primary);">Q${idx + 1}:</strong> ${q.text}
+            <div style="margin-left:20px; margin-top:8px; color: var(--text-secondary);">`;
         
-        if (q.options.length) {
+        if (q.options && q.options.length) {
             q.options.forEach((opt, optIdx) => {
                 const letter = String.fromCharCode(65 + optIdx);
                 html += `<div>${letter}. ${opt}</div>`;
@@ -779,14 +970,15 @@ function updatePreview() {
     });
     
     if (includeAnswerKey && questions.length) {
-        html += `<div style="margin-top:40px; page-break-before:always;"><h3>Answer Key</h3>`;
+        html += `<div style="margin-top:40px; page-break-before:always; border-top: 2px solid var(--neon-primary); padding-top: 20px;">
+            <h3 style="color: var(--neon-primary);">📝 Answer Key</h3>`;
         questions.forEach((q, idx) => {
             let answerText = q.correctAnswers.join(', ');
-            if (q.options.length && q.correctAnswers[0]) {
+            if (q.options && q.options.length && q.correctAnswers[0]) {
                 const ansIdx = q.correctAnswers[0].charCodeAt(0) - 65;
                 if (q.options[ansIdx]) answerText = `${q.correctAnswers[0]}. ${q.options[ansIdx]}`;
             }
-            html += `<div><strong>Q${idx + 1}:</strong> ${answerText}</div>`;
+            html += `<div style="margin:4px 0;"><strong>Q${idx + 1}:</strong> ${answerText}</div>`;
         });
         html += `</div>`;
     }
@@ -805,17 +997,28 @@ async function exportToPDF() {
     
     showLoading();
     try {
+        // Ensure element has proper styles for PDF
+        element.style.padding = '2rem';
+        element.style.background = '#ffffff';
+        element.style.color = '#1a1a2e';
+        
         const opt = {
             margin: [0.5, 0.5, 0.5, 0.5],
             filename: `mcq_paper_${Date.now()}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
         await html2pdf().set(opt).from(element).save();
-        showToast('PDF exported successfully!', 'success');
+        showToast('PDF exported successfully! 📄', 'success');
         incrementUsage();
+        
+        // Reset styles
+        element.style.padding = '';
+        element.style.background = '';
+        element.style.color = '';
     } catch (error) {
+        console.error('PDF export failed:', error);
         showToast('PDF export failed', 'error');
     } finally {
         hideLoading();
@@ -831,21 +1034,44 @@ function exportToDOC() {
     const title = document.getElementById('paperTitle').value || 'MCQ Paper';
     let content = `
         <html>
-        <head><meta charset="UTF-8"><title>${title}</title></head>
+        <head><meta charset="UTF-8"><title>${title}</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 40px; }
+            h1 { text-align: center; color: #4a4a8a; }
+            .q { margin: 15px 0; padding: 10px; border-bottom: 1px solid #eee; }
+            .options { margin-left: 20px; }
+        </style>
+        </head>
         <body>
         <h1>${title}</h1>
+        <p><em>${document.getElementById('instructions').value || ''}</em></p>
     `;
     
     questions.forEach((q, idx) => {
-        content += `<p><strong>Q${idx + 1}:</strong> ${q.text}</p>`;
-        if (q.options.length) {
+        content += `<div class="q">
+            <strong>Q${idx + 1}:</strong> ${q.text}<br>
+            <div class="options">`;
+        if (q.options && q.options.length) {
             q.options.forEach((opt, optIdx) => {
                 const letter = String.fromCharCode(65 + optIdx);
-                content += `<p style="margin-left:20px;">${letter}. ${opt}</p>`;
+                content += `${letter}. ${opt}<br>`;
             });
         }
-        content += `<br>`;
+        content += `</div></div>`;
     });
+    
+    // Answer key
+    if (document.getElementById('includeAnswerKey')?.checked) {
+        content += `<hr><h3>Answer Key</h3>`;
+        questions.forEach((q, idx) => {
+            let answerText = q.correctAnswers.join(', ');
+            if (q.options && q.options.length && q.correctAnswers[0]) {
+                const ansIdx = q.correctAnswers[0].charCodeAt(0) - 65;
+                if (q.options[ansIdx]) answerText = `${q.correctAnswers[0]}. ${q.options[ansIdx]}`;
+            }
+            content += `<div><strong>Q${idx + 1}:</strong> ${answerText}</div>`;
+        });
+    }
     
     content += `</body></html>`;
     const blob = new Blob([content], { type: 'application/msword' });
@@ -854,7 +1080,7 @@ function exportToDOC() {
     link.download = `mcq_paper_${Date.now()}.doc`;
     link.click();
     URL.revokeObjectURL(link.href);
-    showToast('DOC exported successfully!', 'success');
+    showToast('DOC exported successfully! 📝', 'success');
     incrementUsage();
 }
 
@@ -864,10 +1090,13 @@ function exportToTXT() {
         return;
     }
     
-    let content = '';
+    const title = document.getElementById('paperTitle').value || 'MCQ Paper';
+    let content = `${title}\n${'='.repeat(title.length)}\n\n`;
+    content += `${document.getElementById('instructions').value || ''}\n\n`;
+    
     questions.forEach((q, idx) => {
         content += `${idx + 1}. ${q.text}\n`;
-        if (q.options.length) {
+        if (q.options && q.options.length) {
             q.options.forEach((opt, optIdx) => {
                 const letter = String.fromCharCode(65 + optIdx);
                 content += `   ${letter}. ${opt}\n`;
@@ -876,13 +1105,25 @@ function exportToTXT() {
         content += `\n`;
     });
     
+    if (document.getElementById('includeAnswerKey')?.checked) {
+        content += `\n${'='.repeat(30)}\nANSWER KEY\n${'='.repeat(30)}\n`;
+        questions.forEach((q, idx) => {
+            let answerText = q.correctAnswers.join(', ');
+            if (q.options && q.options.length && q.correctAnswers[0]) {
+                const ansIdx = q.correctAnswers[0].charCodeAt(0) - 65;
+                if (q.options[ansIdx]) answerText = `${q.correctAnswers[0]}. ${q.options[ansIdx]}`;
+            }
+            content += `Q${idx + 1}: ${answerText}\n`;
+        });
+    }
+    
     const blob = new Blob([content], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `mcq_paper_${Date.now()}.txt`;
     link.click();
     URL.revokeObjectURL(link.href);
-    showToast('TXT exported successfully!', 'success');
+    showToast('TXT exported successfully! 📄', 'success');
     incrementUsage();
 }
 
@@ -921,7 +1162,7 @@ function displayBankQuestions() {
     if (searchFilter) filtered = filtered.filter(q => q.text.toLowerCase().includes(searchFilter));
     
     if (!filtered.length) {
-        container.innerHTML = `<div class="empty-state-sm">No questions found in bank</div>`;
+        container.innerHTML = `<div class="empty-state-sm">📭 No questions found in bank</div>`;
         return;
     }
     
@@ -932,6 +1173,7 @@ function displayBankQuestions() {
                     <input type="checkbox" class="bank-select" data-id="${q.id || q.bankId}">
                     <strong>${q.text.substring(0, 100)}${q.text.length > 100 ? '...' : ''}</strong>
                     <span style="margin-left:8px; font-size:0.7rem;">${q.difficulty === 'easy' ? '🟢 Easy' : q.difficulty === 'medium' ? '🟡 Medium' : '🔴 Hard'}</span>
+                    ${q.source === 'AI' ? ' 🤖' : ''}
                 </div>
                 <div>
                     <button class="btn-icon add-bank-question" data-id="${q.id || q.bankId}" title="Add to paper"><i class="fas fa-plus"></i></button>
@@ -982,7 +1224,7 @@ function saveToBank() {
     localStorage.setItem('mcq_question_bank', JSON.stringify(questionBank));
     updateBankSummary();
     displayBankQuestions();
-    showToast('Question saved to bank!', 'success');
+    showToast('Question saved to bank! 📚', 'success');
 }
 
 function addFromBankToPaper(id) {
@@ -992,8 +1234,10 @@ function addFromBankToPaper(id) {
         questions.push(newQuestion);
         updateQuestionsList();
         updatePreview();
-        showToast('Question added to paper!', 'success');
+        showToast('Question added to paper! 📝', 'success');
         autoSaveDraft();
+        updateAnalytics();
+        generateAIInsights();
     }
 }
 
@@ -1030,19 +1274,33 @@ function updateAnalytics() {
 function updateCharts(easy, medium, hard) {
     const diffCtx = document.getElementById('difficultyChart')?.getContext('2d');
     const typeCtx = document.getElementById('typeChart')?.getContext('2d');
+    const trendCtx = document.getElementById('trendChart')?.getContext('2d');
     
+    // Difficulty Chart
     if (diffCtx) {
         if (window.difficultyChart) window.difficultyChart.destroy();
         window.difficultyChart = new Chart(diffCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Easy', 'Medium', 'Hard'],
-                datasets: [{ data: [easy, medium, hard], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+                datasets: [{ 
+                    data: [easy, medium, hard], 
+                    backgroundColor: ['#00ff88', '#ffd700', '#ff0044'],
+                    borderColor: ['#0a0e1a', '#0a0e1a', '#0a0e1a'],
+                    borderWidth: 2
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: true }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { labels: { color: '#e8f0ff' } }
+                }
+            }
         });
     }
     
+    // Type Chart
     if (typeCtx && questions.length) {
         const types = { single: 0, multiple: 0, truefalse: 0, fillblank: 0 };
         questions.forEach(q => types[q.type]++);
@@ -1051,9 +1309,65 @@ function updateCharts(easy, medium, hard) {
             type: 'bar',
             data: {
                 labels: ['Single', 'Multiple', 'True/False', 'Fill Blank'],
-                datasets: [{ data: [types.single, types.multiple, types.truefalse, types.fillblank], backgroundColor: '#6366f1' }]
+                datasets: [{ 
+                    data: [types.single, types.multiple, types.truefalse, types.fillblank], 
+                    backgroundColor: ['#00f5ff', '#ff6bff', '#ffd700', '#00ff88'],
+                    borderRadius: 8
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: true }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { ticks: { color: '#8899bb' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { ticks: { color: '#8899bb' }, grid: { display: false } }
+                }
+            }
+        });
+    }
+    
+    // Trend Chart
+    if (trendCtx) {
+        const usageData = JSON.parse(localStorage.getItem('mcq_usage_history') || '[]');
+        const labels = usageData.length > 0 ? usageData.map((_, i) => `Day ${i + 1}`) : ['Today'];
+        const data = usageData.length > 0 ? usageData : [questions.length || 1];
+        
+        if (window.trendChart) window.trendChart.destroy();
+        window.trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{ 
+                    data: data, 
+                    borderColor: '#00f5ff',
+                    backgroundColor: 'rgba(0, 245, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#00f5ff',
+                    pointBorderColor: '#0a0e1a'
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        ticks: { color: '#8899bb' }, 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        beginAtZero: true
+                    },
+                    x: { 
+                        ticks: { color: '#8899bb' }, 
+                        grid: { display: false }
+                    }
+                }
+            }
         });
     }
 }
@@ -1074,7 +1388,52 @@ function toggleDarkMode() {
     localStorage.setItem('mcq_dark_mode', isDark ? 'dark' : 'light');
     const toggleBtn = document.getElementById('themeToggle');
     if (toggleBtn) toggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i> Light Mode' : '<i class="fas fa-moon"></i> Dark Mode';
-    showToast(`${isDark ? 'Dark' : 'Light'} mode activated`, 'info');
+    showToast(`${isDark ? '🌙 Dark' : '☀️ Light'} mode activated`, 'info');
+}
+
+// ========== TYPEWRITER EFFECT ==========
+function initTypewriter() {
+    const phrases = [
+        'Create professional MCQ papers in minutes 🚀',
+        'AI-powered question generation 🤖',
+        'Export to PDF, DOC, or TXT 📄',
+        'Share with students and colleagues 👥',
+        'Track analytics and insights 📊'
+    ];
+    
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterElement = document.querySelector('.typewriter');
+    
+    if (!typewriterElement) return;
+    
+    function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        
+        if (isDeleting) {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            typewriterElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+        
+        let speed = isDeleting ? 30 : 60;
+        
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            speed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            speed = 500;
+        }
+        
+        setTimeout(typeEffect, speed);
+    }
+    
+    typeEffect();
 }
 
 // ========== SCROLL FUNCTIONS ==========
@@ -1098,15 +1457,40 @@ function switchTab(tabId) {
     if (activeNav) activeNav.classList.add('active');
     
     if (tabId === 'preview') updatePreview();
-    if (tabId === 'dashboard') fetchStats();
+    if (tabId === 'dashboard') { fetchStats(); generateAIInsights(); }
     if (tabId === 'bank') displayBankQuestions();
     if (tabId === 'analytics') updateAnalytics();
     
     if (window.innerWidth <= 768) document.getElementById('sidebar')?.classList.remove('open');
+    
+    // Update checklist
+    updateChecklist(tabId);
 }
 
 function toggleSidebar() {
     document.getElementById('sidebar')?.classList.toggle('open');
+}
+
+// ========== CHECKLIST ==========
+function updateChecklist(currentTab) {
+    const items = document.querySelectorAll('.check-item');
+    const tabMap = {
+        'setup': 1,
+        'questions': 2,
+        'ai': 3,
+        'preview': 4
+    };
+    
+    const step = tabMap[currentTab] || 0;
+    
+    items.forEach((item, index) => {
+        const itemStep = parseInt(item.getAttribute('data-step'));
+        if (itemStep <= step) {
+            item.classList.add('completed');
+        } else {
+            item.classList.remove('completed');
+        }
+    });
 }
 
 // ========== SAVE CONFIGURATION ==========
@@ -1127,43 +1511,54 @@ function saveConfiguration() {
         bilingualMode: document.getElementById('bilingualMode')?.checked || false
     };
     localStorage.setItem('mcq_paper_config', JSON.stringify(paperConfig));
-    showToast('Configuration saved!', 'success');
+    showToast('Configuration saved! 💾', 'success');
 }
 
 function loadConfiguration() {
     if (paperConfig) {
-        const classLevel = document.getElementById('classLevel');
-        const subject = document.getElementById('subject');
-        const paperTitle = document.getElementById('paperTitle');
-        const chapter = document.getElementById('chapter');
-        const totalQuestions = document.getElementById('totalQuestions');
-        const duration = document.getElementById('duration');
-        const easyCount = document.getElementById('easyCount');
-        const mediumCount = document.getElementById('mediumCount');
-        const hardCount = document.getElementById('hardCount');
-        const instructions = document.getElementById('instructions');
-        const randomizeOptions = document.getElementById('randomizeOptions');
-        const includeAnswerKey = document.getElementById('includeAnswerKey');
-        const bilingualMode = document.getElementById('bilingualMode');
+        const fields = {
+            classLevel: 'classLevel',
+            subject: 'subject',
+            paperTitle: 'paperTitle',
+            chapter: 'chapter',
+            totalQuestions: 'totalQuestions',
+            duration: 'duration',
+            easyCount: 'easyCount',
+            mediumCount: 'mediumCount',
+            hardCount: 'hardCount',
+            instructions: 'instructions'
+        };
         
-        if (classLevel && paperConfig.classLevel) classLevel.value = paperConfig.classLevel;
-        if (subject && paperConfig.subject) subject.value = paperConfig.subject;
-        if (paperTitle && paperConfig.paperTitle) paperTitle.value = paperConfig.paperTitle;
-        if (chapter && paperConfig.chapter) chapter.value = paperConfig.chapter;
-        if (totalQuestions && paperConfig.totalQuestions) totalQuestions.value = paperConfig.totalQuestions;
-        if (duration && paperConfig.duration) duration.value = paperConfig.duration;
-        if (easyCount && paperConfig.easyCount) easyCount.value = paperConfig.easyCount;
-        if (mediumCount && paperConfig.mediumCount) mediumCount.value = paperConfig.mediumCount;
-        if (hardCount && paperConfig.hardCount) hardCount.value = paperConfig.hardCount;
-        if (instructions && paperConfig.instructions) instructions.value = paperConfig.instructions;
-        if (randomizeOptions && paperConfig.randomizeOptions) randomizeOptions.checked = paperConfig.randomizeOptions;
-        if (includeAnswerKey && paperConfig.includeAnswerKey) includeAnswerKey.checked = paperConfig.includeAnswerKey;
-        if (bilingualMode && paperConfig.bilingualMode) bilingualMode.checked = paperConfig.bilingualMode;
+        Object.keys(fields).forEach(key => {
+            const el = document.getElementById(fields[key]);
+            if (el && paperConfig[key] !== undefined) el.value = paperConfig[key];
+        });
+        
+        const checkboxes = {
+            randomizeOptions: 'randomizeOptions',
+            includeAnswerKey: 'includeAnswerKey',
+            bilingualMode: 'bilingualMode'
+        };
+        
+        Object.keys(checkboxes).forEach(key => {
+            const el = document.getElementById(checkboxes[key]);
+            if (el && paperConfig[key] !== undefined) el.checked = paperConfig[key];
+        });
     }
+}
+
+// ========== NAVIGATION ==========
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
 }
 
 // ========== INITIALIZATION ==========
 function initEventListeners() {
+    // Tab Navigation
     document.querySelectorAll('.nav-link').forEach(nav => {
         nav.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1172,12 +1567,31 @@ function initEventListeners() {
         });
     });
     
+    // Tab links in cards
+    document.querySelectorAll('[data-tab-link]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tab = link.getAttribute('data-tab-link');
+            switchTab(tab);
+        });
+    });
+    
+    // Sidebar Toggle
     document.getElementById('openSidebar')?.addEventListener('click', toggleSidebar);
     document.getElementById('closeSidebar')?.addEventListener('click', toggleSidebar);
+    
+    // Theme Toggle
     document.getElementById('themeToggle')?.addEventListener('click', toggleDarkMode);
+    
+    // Scroll Controls
     document.getElementById('scrollTopBtn')?.addEventListener('click', scrollToTop);
     document.getElementById('scrollBottomBtn')?.addEventListener('click', scrollToBottom);
     
+    // Navigation Buttons
+    document.getElementById('goHomeBtn')?.addEventListener('click', goHome);
+    document.getElementById('goBackBtn')?.addEventListener('click', goBack);
+    
+    // Question Type Buttons
     document.querySelectorAll('.type-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -1188,50 +1602,136 @@ function initEventListeners() {
         });
     });
     
+    // Add Option
     document.getElementById('addOptionBtn')?.addEventListener('click', addOptionInput);
+    
+    // Add Question
     document.getElementById('addQuestionBtn')?.addEventListener('click', addQuestion);
+    
+    // Save to Bank
     document.getElementById('saveToBankBtn')?.addEventListener('click', saveToBank);
+    
+    // Save Configuration
     document.getElementById('saveSetupBtn')?.addEventListener('click', saveConfiguration);
     
+    // Reset Configuration
+    document.getElementById('resetSetupBtn')?.addEventListener('click', () => {
+        document.querySelectorAll('#setup .form-control').forEach(el => {
+            if (el.tagName === 'SELECT') el.value = '';
+            else if (el.type === 'text' || el.type === 'number' || el.tagName === 'TEXTAREA') el.value = '';
+        });
+        document.querySelectorAll('#setup .checkbox-label input').forEach(el => el.checked = false);
+        showToast('Configuration reset', 'info');
+    });
+    
+    // Export Buttons
     document.getElementById('exportPDF')?.addEventListener('click', exportToPDF);
     document.getElementById('exportDOC')?.addEventListener('click', exportToDOC);
     document.getElementById('exportTXT')?.addEventListener('click', exportToTXT);
     document.getElementById('printPaper')?.addEventListener('click', () => window.print());
+    
+    // Refresh Preview
     document.getElementById('refreshPreview')?.addEventListener('click', updatePreview);
+    
+    // Refresh Data
     document.getElementById('refreshData')?.addEventListener('click', () => {
         fetchStats();
-        showToast('Data refreshed', 'success');
+        fetchReactions();
+        fetchShares();
+        fetchUsage();
+        showToast('Data refreshed 🔄', 'success');
     });
     
+    // AI Generation
     document.getElementById('generateAIQuestions')?.addEventListener('click', generateAIQuestions);
     document.getElementById('generateSLOS')?.addEventListener('click', generateSLOS);
     
+    // AI Insights
+    document.getElementById('analyzeNow')?.addEventListener('click', generateAIInsights);
+    
+    // Clear All Questions
     document.getElementById('clearAllQuestions')?.addEventListener('click', () => {
         if (confirm('Delete all questions?')) {
             questions = [];
             updateQuestionsList();
             updatePreview();
             updateAnalytics();
-            showToast('All questions cleared', 'success');
+            generateAIInsights();
+            showToast('All questions cleared 🗑️', 'success');
             autoSaveDraft();
         }
     });
     
+    // Bank Filters
     document.getElementById('applyBankFilters')?.addEventListener('click', displayBankQuestions);
     document.getElementById('resetBankFilters')?.addEventListener('click', () => {
-        const bankClassFilter = document.getElementById('bankClassFilter');
-        const bankSubjectFilter = document.getElementById('bankSubjectFilter');
-        const bankDifficultyFilter = document.getElementById('bankDifficultyFilter');
-        const bankSearchFilter = document.getElementById('bankSearchFilter');
-        if (bankClassFilter) bankClassFilter.value = '';
-        if (bankSubjectFilter) bankSubjectFilter.value = '';
-        if (bankDifficultyFilter) bankDifficultyFilter.value = '';
-        if (bankSearchFilter) bankSearchFilter.value = '';
+        ['bankClassFilter', 'bankSubjectFilter', 'bankDifficultyFilter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const search = document.getElementById('bankSearchFilter');
+        if (search) search.value = '';
         displayBankQuestions();
     });
     
+    // Select All in Bank
+    document.getElementById('selectAllBank')?.addEventListener('change', (e) => {
+        document.querySelectorAll('.bank-select').forEach(cb => cb.checked = e.target.checked);
+    });
+    
+    // Add Selected to Paper
+    document.getElementById('addSelectedToPaper')?.addEventListener('click', () => {
+        const selected = document.querySelectorAll('.bank-select:checked');
+        if (!selected.length) {
+            showToast('Select at least one question', 'warning');
+            return;
+        }
+        selected.forEach(cb => {
+            const id = parseInt(cb.getAttribute('data-id'));
+            addFromBankToPaper(id);
+        });
+        showToast(`${selected.length} question(s) added to paper 📝`, 'success');
+    });
+    
+    // Delete Selected from Bank
+    document.getElementById('deleteSelectedFromBank')?.addEventListener('click', () => {
+        const ids = [...document.querySelectorAll('.bank-select:checked')].map(cb => parseInt(cb.getAttribute('data-id')));
+        if (ids.length && confirm(`Delete ${ids.length} question(s) from bank?`)) {
+            questionBank = questionBank.filter(q => !ids.includes(q.id) && !ids.includes(q.bankId));
+            localStorage.setItem('mcq_question_bank', JSON.stringify(questionBank));
+            updateBankSummary();
+            displayBankQuestions();
+            showToast(`${ids.length} question(s) deleted from bank 🗑️`, 'success');
+        }
+    });
+    
+    // Import/Export Bank
     document.getElementById('importBankBtn')?.addEventListener('click', () => {
-        showToast('Import feature - Upload JSON/CSV file', 'info');
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (Array.isArray(data)) {
+                            questionBank = data;
+                            localStorage.setItem('mcq_question_bank', JSON.stringify(questionBank));
+                            updateBankSummary();
+                            displayBankQuestions();
+                            showToast(`Imported ${data.length} questions 📥`, 'success');
+                        }
+                    } catch (err) {
+                        showToast('Invalid file format', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
     });
     
     document.getElementById('exportBankBtn')?.addEventListener('click', () => {
@@ -1241,32 +1741,16 @@ function initEventListeners() {
         link.href = URL.createObjectURL(blob);
         link.download = `question_bank_${Date.now()}.json`;
         link.click();
-        showToast('Bank exported!', 'success');
+        URL.revokeObjectURL(link.href);
+        showToast('Bank exported 📤', 'success');
     });
     
-    document.getElementById('addSelectedToPaper')?.addEventListener('click', () => {
-        document.querySelectorAll('.bank-select:checked').forEach(cb => {
-            const id = parseInt(cb.getAttribute('data-id'));
-            addFromBankToPaper(id);
-        });
-        showToast('Selected questions added to paper', 'success');
-    });
-    
-    document.getElementById('deleteSelectedFromBank')?.addEventListener('click', () => {
-        const ids = [...document.querySelectorAll('.bank-select:checked')].map(cb => parseInt(cb.getAttribute('data-id')));
-        if (ids.length && confirm(`Delete ${ids.length} question(s)?`)) {
-            questionBank = questionBank.filter(q => !ids.includes(q.id) && !ids.includes(q.bankId));
-            localStorage.setItem('mcq_question_bank', JSON.stringify(questionBank));
-            updateBankSummary();
-            displayBankQuestions();
-            showToast(`${ids.length} question(s) deleted`, 'success');
-        }
-    });
-    
+    // Reactions
     document.querySelectorAll('.reaction').forEach(btn => {
         btn.addEventListener('click', () => submitReaction(btn.getAttribute('data-emoji')));
     });
     
+    // Share Buttons
     document.querySelectorAll('.share-icon').forEach(btn => {
         btn.addEventListener('click', () => {
             const platform = btn.getAttribute('data-platform');
@@ -1278,42 +1762,132 @@ function initEventListeners() {
         });
     });
     
+    // Bilingual Mode Toggle
     document.getElementById('bilingualMode')?.addEventListener('change', (e) => {
         const urduGroup = document.getElementById('urduQuestionGroup');
         if (urduGroup) urduGroup.style.display = e.target.checked ? 'block' : 'none';
     });
     
+    // Quick Action Buttons
     document.querySelectorAll('[data-quick]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const action = btn.getAttribute('data-quick');
             if (action === 'new') {
-                if (confirm('Start a new paper? Unsaved changes will be lost.')) {
-                    questions = [];
-                    currentQuestionId = 1;
-                    updateQuestionsList();
-                    updatePreview();
-                    updateAnalytics();
-                    showToast('New paper started', 'success');
-                    autoSaveDraft();
-                }
+                if (questions.length && !confirm('Start a new paper? Unsaved changes will be lost.')) return;
+                questions = [];
+                currentQuestionId = 1;
+                updateQuestionsList();
+                updatePreview();
+                updateAnalytics();
+                generateAIInsights();
+                showToast('New paper started 📄', 'success');
+                autoSaveDraft();
             } else if (action === 'import') {
-                showToast('Import feature - Upload JSON/CSV file', 'info');
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json,.csv';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            try {
+                                const data = JSON.parse(ev.target.result);
+                                if (Array.isArray(data)) {
+                                    data.forEach(q => {
+                                        q.id = currentQuestionId++;
+                                        questions.push(q);
+                                    });
+                                    updateQuestionsList();
+                                    updatePreview();
+                                    updateAnalytics();
+                                    showToast(`Imported ${data.length} questions 📥`, 'success');
+                                    autoSaveDraft();
+                                }
+                            } catch (err) {
+                                showToast('Invalid file format', 'error');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
             }
         });
     });
+    
+    // View All Activity
+    document.getElementById('viewAllActivity')?.addEventListener('click', () => {
+        showToast('📊 All activity will be shown here', 'info');
+    });
+    
+    // Enter key for AI generate
+    document.getElementById('aiTopic')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') generateAIQuestions();
+    });
+}
+
+// ========== ACTIVITY LOG ==========
+function updateActivityLog() {
+    const container = document.getElementById('recentActivity');
+    if (!container) return;
+    
+    const activities = JSON.parse(localStorage.getItem('mcq_activity') || '[]');
+    
+    if (!activities.length) {
+        container.innerHTML = '<div class="empty-state-sm">No recent activity</div>';
+        return;
+    }
+    
+    const recent = activities.slice(-5).reverse();
+    container.innerHTML = recent.map(act => `
+        <div class="activity-item">
+            <div class="activity-icon"><i class="fas ${act.icon || 'fa-circle'}"></i></div>
+            <div class="activity-detail">
+                <div class="activity-title">${act.message}</div>
+                <div class="activity-time">${act.time || 'Just now'}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function logActivity(message, icon = 'fa-circle') {
+    const activities = JSON.parse(localStorage.getItem('mcq_activity') || '[]');
+    activities.push({
+        message: message,
+        icon: icon,
+        time: new Date().toLocaleString()
+    });
+    localStorage.setItem('mcq_activity', JSON.stringify(activities));
+    updateActivityLog();
+}
+
+// ========== AUTO SAVE USAGE HISTORY ==========
+function updateUsageHistory() {
+    const history = JSON.parse(localStorage.getItem('mcq_usage_history') || '[]');
+    history.push(questions.length || 1);
+    if (history.length > 30) history.shift();
+    localStorage.setItem('mcq_usage_history', JSON.stringify(history));
 }
 
 // ========== INIT ==========
 async function init() {
-    console.log('MCQ Maker Pro Initializing with test-db.js endpoints...');
+    console.log('🚀 MCQ Maker Pro Initializing...');
+    console.log('📡 API Base:', API_BASE);
+    console.log('🔑 API Key:', API_KEY);
+    console.log('📌 Tool Slug:', TOOL_SLUG);
+    console.log('👤 User ID:', currentUserId);
     
+    // Initialize
     initDarkMode();
     initEventListeners();
+    initTypewriter();
     initializeOptions();
     handleQuestionTypeChange('single');
     loadConfiguration();
     loadDraft();
     
+    // Load data from API
     await Promise.all([
         fetchUsage(),
         fetchReactions(),
@@ -1321,16 +1895,80 @@ async function init() {
         fetchStats()
     ]);
     
-    incrementUsage();
+    // Increment usage on load
+    await incrementUsage();
+    
+    // Update UI
     updateQuestionsList();
     updatePreview();
     updateAnalytics();
     updateBankSummary();
     displayBankQuestions();
+    updateActivityLog();
+    generateAIInsights();
+    updateChecklist('dashboard');
+    updateUsageHistory();
     
-    showToast('MCQ Maker Pro is ready! Connected to TiDB.', 'success');
+    // Log activity
+    logActivity('Tool loaded successfully', 'fa-rocket');
     
+    // Show welcome toast
+    const userGreeting = document.getElementById('userGreeting');
+    if (userGreeting) {
+        const hour = new Date().getHours();
+        let greeting = 'Educator';
+        if (hour < 12) greeting = '🌅 Good Morning';
+        else if (hour < 17) greeting = '☀️ Good Afternoon';
+        else greeting = '🌙 Good Evening';
+        userGreeting.textContent = greeting;
+    }
+    
+    showToast('🎯 MCQ Maker Pro is ready! Connected to Cloudflare Workers API.', 'success');
+    
+    // Auto-save every 30 seconds
     autoSaveInterval = setInterval(autoSaveDraft, 30000);
+    
+    // Auto-refresh stats every 60 seconds
+    setInterval(() => {
+        if (!isOffline) {
+            fetchStats();
+            fetchReactions();
+            fetchShares();
+        }
+    }, 60000);
+    
+    console.log('✅ MCQ Maker Pro initialized successfully!');
 }
 
+// Handle offline/online events
+window.addEventListener('online', () => {
+    isOffline = false;
+    showToast('🔄 Back online! Syncing data...', 'success');
+    fetchStats();
+    fetchReactions();
+    fetchShares();
+    fetchUsage();
+});
+
+window.addEventListener('offline', () => {
+    isOffline = true;
+    showToast('⚠️ You are offline. Using local storage.', 'warning');
+});
+
+// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', init);
+
+// Export for debugging
+window.__mcq = {
+    API_BASE,
+    API_KEY,
+    TOOL_SLUG,
+    USER_ID,
+    questions,
+    questionBank,
+    paperConfig,
+    incrementUsage,
+    fetchStats,
+    generateAIQuestions,
+    exportToPDF
+};
