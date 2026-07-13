@@ -1,23 +1,40 @@
 // ============================================
 // MATHEMATICS PAPER GENERATOR - COMPLETE JS
-// TiDB + Vercel + Grok API Integration
-// All 55+ Features Included - REACTIONS FIXED
+// Cloudflare Workers API Integration
+// All 55+ Features Included
 // ============================================
 
-// Configuration
-const API_BASE = '/api';
-const TOOL_SLUG = 'mathematics-paper-generator';
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    TOOL_SLUG: 'mathematics-paper-generator',
+    TOOL_NAME: 'Mathematics Paper Generator',
+    CATEGORY: 'Teacher'
+};
 
-// Global variables
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
 let objectiveQuestions = [];
 let subjectiveQuestions = [];
 let currentUserId = null;
 let userReactions = new Set();
+let toolStats = {
+    usage: 0,
+    views: 0,
+    shares: 0,
+    followers: 0
+};
 
 // DOM Elements
 const elements = {};
 
-// Initialize on load
+// ============================================
+// INITIALIZATION
+// ============================================
 document.addEventListener('DOMContentLoaded', async () => {
     initializeElements();
     generateUserId();
@@ -28,6 +45,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadDraftFromStorage();
     renderQuestionsList();
     updateTotalMarks();
+    incrementUsage(); // Tool load par usage +1
+    renderDashboardStats();
 });
 
 // Initialize DOM references
@@ -42,7 +61,9 @@ function initializeElements() {
         'ai-subject', 'ai-topic', 'ai-grade', 'activity-subject',
         'activity-methods', 'lesson-subject', 'lesson-topic',
         'lesson-class', 'lesson-duration', 'slos-result',
-        'activities-result', 'lesson-result', 'share-count'
+        'activities-result', 'lesson-result', 'share-count',
+        'stats-usage', 'stats-views', 'stats-shares', 'stats-followers',
+        'home-btn', 'back-btn'
     ];
     
     ids.forEach(id => {
@@ -60,75 +81,127 @@ function generateUserId() {
     currentUserId = userId;
 }
 
-// Load initial data from API
-async function loadInitialData() {
-    await Promise.all([
-        loadUsageCount(),
-        loadReactions(),
-        loadShareCount(),
-        loadTemplates()
-    ]);
+// ============================================
+// CLOUDFLARE WORKERS API CALLS
+// ============================================
+async function apiCall(endpoint, method = 'GET', body = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            }
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        
+        const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`API Error [${endpoint}]:`, error);
+        return { success: false, error: error.message };
+    }
 }
 
 // ============================================
-// USAGE COUNTER
+// TOOL STATS & USAGE
 // ============================================
-async function loadUsageCount() {
+async function loadInitialData() {
+    await Promise.all([
+        loadToolStats(),
+        loadReactions(),
+        loadShareCount()
+    ]);
+}
+
+async function loadToolStats() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`);
-        const data = await response.json();
-        if (data.success && elements['usage-count']) {
-            elements['usage-count'].textContent = data.count || 0;
+        const data = await apiCall(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (data.success) {
+            toolStats = data.stats || toolStats;
+            renderDashboardStats();
+        } else {
+            // Fallback to localStorage
+            loadStatsFromLocal();
         }
     } catch (error) {
-        console.error('Error loading usage:', error);
-        if (elements['usage-count']) elements['usage-count'].textContent = '0';
+        console.error('Error loading stats:', error);
+        loadStatsFromLocal();
     }
+}
+
+function loadStatsFromLocal() {
+    const saved = localStorage.getItem(`math_paper_stats_${CONFIG.TOOL_SLUG}`);
+    if (saved) {
+        try {
+            toolStats = JSON.parse(saved);
+            renderDashboardStats();
+        } catch(e) {}
+    }
+}
+
+function renderDashboardStats() {
+    if (elements['stats-usage']) elements['stats-usage'].textContent = toolStats.usage || 0;
+    if (elements['stats-views']) elements['stats-views'].textContent = toolStats.views || 0;
+    if (elements['stats-shares']) elements['stats-shares'].textContent = toolStats.shares || 0;
+    if (elements['stats-followers']) elements['stats-followers'].textContent = toolStats.followers || 0;
+    if (elements['usage-count']) elements['usage-count'].textContent = toolStats.usage || 0;
 }
 
 async function incrementUsage() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: currentUserId })
+        const data = await apiCall('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: currentUserId
         });
-        const data = await response.json();
-        if (data.success && elements['usage-count']) {
-            elements['usage-count'].textContent = data.total_usage || data.count || 0;
+        if (data.success) {
+            toolStats.usage = data.total_usage || toolStats.usage + 1;
+            renderDashboardStats();
+            saveStatsToLocal();
+        } else {
+            // Fallback: increment locally
+            toolStats.usage = (toolStats.usage || 0) + 1;
+            renderDashboardStats();
+            saveStatsToLocal();
         }
     } catch (error) {
         console.error('Error incrementing usage:', error);
+        // Fallback: increment locally
+        toolStats.usage = (toolStats.usage || 0) + 1;
+        renderDashboardStats();
+        saveStatsToLocal();
     }
 }
 
+function saveStatsToLocal() {
+    localStorage.setItem(`math_paper_stats_${CONFIG.TOOL_SLUG}`, JSON.stringify(toolStats));
+}
+
 // ============================================
-// REACTIONS SYSTEM - FIXED VERSION
+// REACTIONS SYSTEM - COLORFUL THEME
 // ============================================
 async function loadReactions() {
-    showLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`);
-        const data = await response.json();
+        const data = await apiCall(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
         if (data.success && data.reactions) {
             updateReactionCounts(data.reactions);
         } else {
-            // Fallback to localStorage if API fails
             loadReactionsFromLocal();
         }
     } catch (error) {
         console.error('Error loading reactions:', error);
         loadReactionsFromLocal();
-    } finally {
-        showLoading(false);
     }
 }
 
 function loadReactionsFromLocal() {
-    const savedReactions = localStorage.getItem(`math_paper_reactions_${TOOL_SLUG}`);
-    if (savedReactions) {
+    const saved = localStorage.getItem(`math_paper_reactions_${CONFIG.TOOL_SLUG}`);
+    if (saved) {
         try {
-            const reactions = JSON.parse(savedReactions);
+            const reactions = JSON.parse(saved);
             updateReactionCounts(reactions);
         } catch(e) {}
     }
@@ -136,13 +209,8 @@ function loadReactionsFromLocal() {
 
 function updateReactionCounts(reactions) {
     const reactionMap = {
-        'like': '👍',
-        'love': '❤️',
-        'wow': '😮',
-        'sad': '😢',
-        'angry': '😠',
-        'laugh': '😂',
-        'celebrate': '🎉'
+        'like': '👍', 'love': '❤️', 'wow': '😮',
+        'sad': '😢', 'angry': '😠', 'laugh': '😂', 'celebrate': '🎉'
     };
     
     for (const [type, count] of Object.entries(reactions)) {
@@ -158,88 +226,72 @@ function updateReactionCounts(reactions) {
         }
     }
     
-    // Save to localStorage as backup
-    localStorage.setItem(`math_paper_reactions_${TOOL_SLUG}`, JSON.stringify(reactions));
+    localStorage.setItem(`math_paper_reactions_${CONFIG.TOOL_SLUG}`, JSON.stringify(reactions));
 }
 
 async function addReaction(emoji) {
-    // Map emoji to reaction type
     const emojiToType = {
-        '👍': 'like',
-        '❤️': 'love',
-        '😮': 'wow',
-        '😢': 'sad',
-        '😠': 'angry',
-        '😂': 'laugh',
-        '🎉': 'celebrate'
+        '👍': 'like', '❤️': 'love', '😮': 'wow',
+        '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate'
     };
     
     const reactionType = emojiToType[emoji];
     if (!reactionType) return;
     
-    // Check if user already reacted with this emoji
     const reactionKey = `${currentUserId}_${reactionType}`;
     if (userReactions.has(reactionKey)) {
         showToast(`You already reacted with ${emoji}!`, 'info');
         return;
     }
     
-    showLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/reactions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emoji, user_id: currentUserId })
+        const data = await apiCall('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            emoji: emoji,
+            user_id: currentUserId
         });
-        const data = await response.json();
         
         if (data.already_reacted) {
             showToast(`You already reacted with ${emoji}!`, 'info');
         } else if (data.success !== false) {
             userReactions.add(reactionKey);
-            showToast(`Thanks for your reaction!`, 'success');
+            showToast(`Thanks for your reaction! ❤️`, 'success');
             if (data.counts) {
                 updateReactionCounts(data.counts);
             } else {
                 await loadReactions();
             }
         } else {
-            // Fallback: update locally
             updateReactionLocally(reactionType);
         }
     } catch (error) {
         console.error('Error adding reaction:', error);
-        // Fallback: update locally
         updateReactionLocally(reactionType);
         showToast(`Reacted with ${emoji} (saved locally)`, 'success');
-    } finally {
-        showLoading(false);
     }
 }
 
 function updateReactionLocally(reactionType) {
-    const reactions = JSON.parse(localStorage.getItem(`math_paper_reactions_${TOOL_SLUG}`) || '{}');
+    const reactions = JSON.parse(localStorage.getItem(`math_paper_reactions_${CONFIG.TOOL_SLUG}`) || '{}');
     reactions[reactionType] = (reactions[reactionType] || 0) + 1;
     updateReactionCounts(reactions);
-    
-    const reactionKey = `${currentUserId}_${reactionType}`;
-    userReactions.add(reactionKey);
+    userReactions.add(`${currentUserId}_${reactionType}`);
 }
 
 // ============================================
-// SHARE SYSTEM - FIXED
+// SHARE SYSTEM
 // ============================================
 async function loadShareCount() {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`);
-        const data = await response.json();
+        const data = await apiCall(`/api/shares?tool_slug=${CONFIG.TOOL_SLUG}`);
         if (data.success && elements['share-count']) {
+            toolStats.shares = data.shares || 0;
             elements['share-count'].innerHTML = `<i class="fas fa-chart-simple"></i> ${data.shares || 0} shares`;
+            renderDashboardStats();
         }
     } catch (error) {
         console.error('Error loading shares:', error);
-        // Fallback to localStorage
-        const localShares = localStorage.getItem(`math_paper_shares_${TOOL_SLUG}`) || 0;
+        const localShares = parseInt(localStorage.getItem(`math_paper_shares_${CONFIG.TOOL_SLUG}`) || '0');
         if (elements['share-count']) {
             elements['share-count'].innerHTML = `<i class="fas fa-chart-simple"></i> ${localShares} shares`;
         }
@@ -248,24 +300,28 @@ async function loadShareCount() {
 
 async function recordShare(platform) {
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/shares`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ platform, user_id: currentUserId })
+        const data = await apiCall('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            user_id: currentUserId
         });
-        const data = await response.json();
         if (data.success !== false) {
+            toolStats.shares = data.shares || toolStats.shares + 1;
+            renderDashboardStats();
+            saveStatsToLocal();
             await loadShareCount();
         }
     } catch (error) {
         console.error('Error recording share:', error);
-        // Fallback: update local
-        let localShares = parseInt(localStorage.getItem(`math_paper_shares_${TOOL_SLUG}`) || '0');
+        let localShares = parseInt(localStorage.getItem(`math_paper_shares_${CONFIG.TOOL_SLUG}`) || '0');
         localShares++;
-        localStorage.setItem(`math_paper_shares_${TOOL_SLUG}`, localShares);
+        localStorage.setItem(`math_paper_shares_${CONFIG.TOOL_SLUG}`, localShares);
         if (elements['share-count']) {
             elements['share-count'].innerHTML = `<i class="fas fa-chart-simple"></i> ${localShares} shares`;
         }
+        toolStats.shares = localShares;
+        renderDashboardStats();
+        saveStatsToLocal();
     }
 }
 
@@ -319,12 +375,10 @@ async function generateSLOs() {
     
     showLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/generate-slos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subject, topic, grade })
+        const data = await apiCall('/api/ai/generate-slos', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            subject, topic, grade
         });
-        const data = await response.json();
         
         if (data.success && data.slos) {
             const resultDiv = document.getElementById('slos-result');
@@ -333,7 +387,6 @@ async function generateSLOs() {
                     data.slos.map(slo => `<li>${escapeHtml(slo)}</li>`).join('') + '</ul>';
             }
             showToast('SLOs generated successfully!', 'success');
-            incrementUsage();
         } else {
             showToast('Failed to generate SLOs', 'error');
         }
@@ -356,15 +409,11 @@ async function generateActivities() {
     
     showLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/generate-activities`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                subject, 
-                methodologies: methods ? methods.split(',').map(m => m.trim()) : ['interactive'] 
-            })
+        const data = await apiCall('/api/ai/generate-activities', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            subject,
+            methodologies: methods ? methods.split(',').map(m => m.trim()) : ['interactive']
         });
-        const data = await response.json();
         
         if (data.success && data.activities) {
             const resultDiv = document.getElementById('activities-result');
@@ -373,7 +422,6 @@ async function generateActivities() {
                     data.activities.map(activity => `<li>${escapeHtml(activity)}</li>`).join('') + '</ul>';
             }
             showToast('Activities generated!', 'success');
-            incrementUsage();
         } else {
             showToast('Failed to generate activities', 'error');
         }
@@ -398,12 +446,10 @@ async function generateLessonPlan() {
     
     showLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/${TOOL_SLUG}/generate-full-lesson`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subject, topic, className, duration: duration || '45' })
+        const data = await apiCall('/api/ai/generate-full-lesson', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            subject, topic, className, duration: duration || '45'
         });
-        const data = await response.json();
         
         if (data.success) {
             const resultDiv = document.getElementById('lesson-result');
@@ -418,7 +464,6 @@ async function generateLessonPlan() {
                 `;
             }
             showToast('Lesson plan generated!', 'success');
-            incrementUsage();
         } else {
             showToast('Failed to generate lesson plan', 'error');
         }
@@ -508,7 +553,6 @@ function addQuestion() {
         saveDraftToStorage();
         generatePaperPreview();
         showToast('Question added successfully!', 'success');
-        incrementUsage();
     }
 }
 
@@ -569,7 +613,6 @@ function renderQuestionsList() {
     
     container.innerHTML = html;
     
-    // Add delete listeners
     container.querySelectorAll('.delete-question').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const type = btn.dataset.type;
@@ -655,7 +698,7 @@ function generatePaperPreview() {
     `;
     
     if (objectiveQuestions.length > 0) {
-        html += `<h2 style="color: var(--primary-pink); margin-top: 30px;">Section A: Objective Questions</h2>`;
+        html += `<h2 style="color: var(--neon-pink); margin-top: 30px;">Section A: Objective Questions</h2>`;
         objectiveQuestions.forEach((q, idx) => {
             html += `<div class="question-preview">`;
             html += `<p><strong>${idx + 1}.</strong> ${escapeHtml(q.text)}</p>`;
@@ -673,7 +716,7 @@ function generatePaperPreview() {
     }
     
     if (subjectiveQuestions.length > 0) {
-        html += `<h2 style="color: var(--primary-pink); margin-top: 30px;">Section B: Subjective Questions</h2>`;
+        html += `<h2 style="color: var(--neon-pink); margin-top: 30px;">Section B: Subjective Questions</h2>`;
         subjectiveQuestions.forEach((q, idx) => {
             html += `<div class="question-preview">`;
             html += `<p><strong>${objectiveQuestions.length + idx + 1}.</strong> ${renderMathPreview(q.text)}</p>`;
@@ -713,7 +756,6 @@ async function exportToPDF() {
         
         doc.save(`${document.getElementById('paper-name')?.value || 'mathematics_paper'}.pdf`);
         showToast('PDF exported successfully!', 'success');
-        incrementUsage();
     } catch (error) {
         console.error('PDF export error:', error);
         showToast('Failed to export PDF', 'error');
@@ -741,7 +783,6 @@ function exportToDOC() {
     a.click();
     URL.revokeObjectURL(url);
     showToast('DOC file downloaded!', 'success');
-    incrementUsage();
 }
 
 function exportToTXT() {
@@ -781,7 +822,6 @@ function exportToTXT() {
     a.click();
     URL.revokeObjectURL(url);
     showToast('TXT file downloaded!', 'success');
-    incrementUsage();
 }
 
 // ============================================
@@ -838,7 +878,6 @@ function loadTemplates() {
     }
     container.innerHTML = html;
     
-    // Add event listeners for template buttons
     container.querySelectorAll('.load-template-btn').forEach(btn => {
         btn.addEventListener('click', () => loadTemplate(btn.dataset.name));
     });
@@ -927,7 +966,6 @@ function setupAutoSave() {
         if (el) el.addEventListener('input', () => saveDraftToStorage());
     });
     
-    // Auto-save every 30 seconds
     setInterval(() => {
         saveDraftToStorage();
     }, 30000);
@@ -1020,6 +1058,17 @@ function scrollToBottom() {
 }
 
 // ============================================
+// NAVIGATION
+// ============================================
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+}
+
+// ============================================
 // EVENT LISTENERS
 // ============================================
 function setupEventListeners() {
@@ -1059,7 +1108,7 @@ function setupEventListeners() {
     if (elements['generate-activities']) elements['generate-activities'].addEventListener('click', generateActivities);
     if (elements['generate-lesson']) elements['generate-lesson'].addEventListener('click', generateLessonPlan);
     
-    // Reactions - FIXED
+    // Reactions
     const reactionBtns = document.querySelectorAll('.reaction-btn');
     reactionBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1088,6 +1137,10 @@ function setupEventListeners() {
     // Dark mode toggle
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     if (darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
+    
+    // Navigation buttons
+    if (elements['home-btn']) elements['home-btn'].addEventListener('click', goHome);
+    if (elements['back-btn']) elements['back-btn'].addEventListener('click', goBack);
     
     // Update preview on input
     const previewInputs = ['paper-name', 'grade-level', 'subject', 'school-name', 'time-duration', 'instructions'];
