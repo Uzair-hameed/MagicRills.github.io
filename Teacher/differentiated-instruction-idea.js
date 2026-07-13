@@ -1,98 +1,175 @@
 // ============================================
-// FULLY FUNCTIONAL JAVASCRIPT - NO API DEPENDENCIES
-// All data stored in localStorage
+// DIFFERENTIATED INSTRUCTION IDEA GENERATOR
+// Cloudflare Workers API Integration
+// Full Dark Space Theme | AI-Powered
 // ============================================
 
+// ============================================
+// CONFIGURATION
+// ============================================
 const TOOL_SLUG = 'differentiated-instruction-idea';
+const TOOL_NAME = 'Differentiated Instruction Idea Generator';
+const CATEGORY = 'Teacher';
 
-// User ID
+// Cloudflare Workers API Configuration
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
+
+// ============================================
+// USER IDENTIFICATION
+// ============================================
 let userId = localStorage.getItem('user_id');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('user_id', userId);
 }
 
-// State
+// ============================================
+// STATE MANAGEMENT
+// ============================================
 let currentLessonData = null;
 let userReactions = new Set();
-let currentReactionCounts = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
+let currentReactionCounts = { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 };
 let shareCount = 0;
+let usageCount = 0;
+let toolStats = null;
+let isApiAvailable = true;
 
-// Load saved data
-const savedReactions = localStorage.getItem(`user_reactions_${TOOL_SLUG}_${userId}`);
-if (savedReactions) userReactions = new Set(JSON.parse(savedReactions));
-
-const savedReactionCounts = localStorage.getItem(`${TOOL_SLUG}_reactions`);
-if (savedReactionCounts) currentReactionCounts = JSON.parse(savedReactionCounts);
-
-const savedShareCount = localStorage.getItem(`${TOOL_SLUG}_shares`);
-if (savedShareCount) shareCount = parseInt(savedShareCount);
-
-// DOM Elements
-const elements = {
-    loadingSpinner: document.getElementById('loading-spinner'),
-    toastContainer: document.getElementById('toast-container'),
-    themeToggle: document.getElementById('theme-toggle-btn'),
-    scrollUp: document.getElementById('scroll-up'),
-    scrollDown: document.getElementById('scroll-down'),
-    usageCount: document.getElementById('usage-count'),
-    generateBtn: document.getElementById('generate-btn'),
-    resetBtn: document.getElementById('reset-btn'),
-    newIdeasBtn: document.getElementById('new-ideas-btn'),
-    resultsSection: document.getElementById('results-section'),
-    topicResult: document.getElementById('topic-result'),
-    subject: document.getElementById('subject'),
-    grade: document.getElementById('grade'),
-    duration: document.getElementById('duration'),
-    beginnerLevel: document.getElementById('beginner-level'),
-    intermediateLevel: document.getElementById('intermediate-level'),
-    advancedLevel: document.getElementById('advanced-level'),
-    methodology: document.getElementById('methodology'),
-    classSize: document.getElementById('class-size'),
-    beginnerActivities: document.getElementById('beginner-activities'),
-    intermediateActivities: document.getElementById('intermediate-activities'),
-    advancedActivities: document.getElementById('advanced-activities'),
-    slosList: document.getElementById('slos-list'),
-    fullLessonPlan: document.getElementById('full-lesson-plan'),
-    exportPdf: document.getElementById('export-pdf'),
-    exportWord: document.getElementById('export-word'),
-    exportTxt: document.getElementById('export-txt'),
-    shareCountSpan: document.getElementById('share-count'),
-    autoSaveStatus: document.getElementById('auto-save-status')
-};
-
-// Toast
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${message}</span>`;
-    elements.toastContainer.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Loading
-function showLoading(show) {
-    elements.loadingSpinner.style.display = show ? 'flex' : 'none';
-}
-
-// Usage Counter
-function updateUsageCounter(increment = false) {
-    let count = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
-    if (increment) {
-        count++;
-        localStorage.setItem(`${TOOL_SLUG}_usage`, count);
+// ============================================
+// LOCALSTORAGE FALLBACK FUNCTIONS
+// ============================================
+function getLocalData(key, defaultValue) {
+    try {
+        const data = localStorage.getItem(`${TOOL_SLUG}_${key}`);
+        return data ? JSON.parse(data) : defaultValue;
+    } catch {
+        return defaultValue;
     }
-    elements.usageCount.textContent = count;
-    return count;
 }
 
-// Reactions
+function setLocalData(key, value) {
+    try {
+        localStorage.setItem(`${TOOL_SLUG}_${key}`, JSON.stringify(value));
+    } catch (e) {
+        console.warn('LocalStorage write failed:', e);
+    }
+}
+
+// ============================================
+// API CALLS WITH FALLBACK
+// ============================================
+async function apiCall(endpoint, method = 'GET', data = null) {
+    const url = `${API_BASE}${endpoint}`;
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY,
+        },
+    };
+    if (data) options.body = JSON.stringify(data);
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using fallback:', error);
+        isApiAvailable = false;
+        return null;
+    }
+}
+
+// ============================================
+// USAGE COUNTER
+// ============================================
+async function incrementUsage() {
+    try {
+        const result = await apiCall('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: userId,
+            action: 'use'
+        });
+        if (result && result.count !== undefined) {
+            usageCount = result.count;
+            setLocalData('usage', usageCount);
+            updateUsageDisplay();
+            return usageCount;
+        }
+    } catch (e) {
+        console.warn('Usage API failed, using fallback');
+    }
+    
+    // Fallback: LocalStorage
+    usageCount = getLocalData('usage', 0) + 1;
+    setLocalData('usage', usageCount);
+    updateUsageDisplay();
+    return usageCount;
+}
+
+function updateUsageDisplay() {
+    const el = document.getElementById('usage-count');
+    if (el) el.textContent = usageCount || getLocalData('usage', 0);
+}
+
+// ============================================
+// REACTIONS API
+// ============================================
+async function addReaction(emoji) {
+    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
+    const reactionType = emojiMap[emoji];
+    
+    if (userReactions.has(emoji)) {
+        showToast(`You already reacted with ${emoji}`, 'warning');
+        return false;
+    }
+    
+    try {
+        const result = await apiCall('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: userId,
+            emoji: emoji,
+            type: reactionType,
+            action: 'add'
+        });
+        
+        if (result && result.counts) {
+            currentReactionCounts = result.counts;
+            setLocalData('reactions', currentReactionCounts);
+        }
+    } catch (e) {
+        console.warn('Reaction API failed, using fallback');
+        // Fallback: LocalStorage
+        currentReactionCounts[reactionType] = (currentReactionCounts[reactionType] || 0) + 1;
+        setLocalData('reactions', currentReactionCounts);
+    }
+    
+    userReactions.add(emoji);
+    setLocalData('user_reactions', Array.from(userReactions));
+    loadReactions();
+    showToast(`Thanks for your feedback! ${emoji}`, 'success');
+    return true;
+}
+
+async function loadReactionsFromAPI() {
+    try {
+        const result = await apiCall(`/api/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result && result.counts) {
+            currentReactionCounts = result.counts;
+            setLocalData('reactions', currentReactionCounts);
+        }
+    } catch (e) {
+        console.warn('Load reactions API failed, using fallback');
+        currentReactionCounts = getLocalData('reactions', { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0 });
+    }
+    loadReactions();
+}
+
 function loadReactions() {
-    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
+    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😂': 'laugh', '🎉': 'celebrate' };
+    const savedReactions = getLocalData('user_reactions', []);
+    userReactions = new Set(savedReactions);
+    
     document.querySelectorAll('.reaction-btn').forEach(btn => {
         const emoji = btn.dataset.emoji;
         const reactionType = emojiMap[emoji];
@@ -102,46 +179,99 @@ function loadReactions() {
     });
 }
 
-function saveReactionCounts() {
-    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(currentReactionCounts));
-}
-
-function addReaction(emoji) {
-    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
-    const reactionType = emojiMap[emoji];
-    
-    if (userReactions.has(emoji)) {
-        showToast(`You already reacted with ${emoji}`, 'warning');
-        return false;
+// ============================================
+// SHARES API
+// ============================================
+async function recordShare(platform) {
+    try {
+        const result = await apiCall('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: userId,
+            platform: platform,
+            action: 'share'
+        });
+        if (result && result.count !== undefined) {
+            shareCount = result.count;
+            setLocalData('shares', shareCount);
+            updateShareDisplay();
+            return shareCount;
+        }
+    } catch (e) {
+        console.warn('Share API failed, using fallback');
     }
     
-    currentReactionCounts[reactionType] = (currentReactionCounts[reactionType] || 0) + 1;
-    userReactions.add(emoji);
-    localStorage.setItem(`user_reactions_${TOOL_SLUG}_${userId}`, JSON.stringify(Array.from(userReactions)));
-    saveReactionCounts();
-    loadReactions();
-    showToast(`Thanks for your feedback! ${emoji}`, 'success');
-    return true;
+    // Fallback
+    shareCount = getLocalData('shares', 0) + 1;
+    setLocalData('shares', shareCount);
+    updateShareDisplay();
+    return shareCount;
 }
 
-// Share System
-function updateShareCount() {
-    elements.shareCountSpan.textContent = shareCount;
+function updateShareDisplay() {
+    const el = document.getElementById('share-count');
+    if (el) el.textContent = shareCount || getLocalData('shares', 0);
 }
 
-function saveShareCount() {
-    localStorage.setItem(`${TOOL_SLUG}_shares`, shareCount);
+// ============================================
+// STATS API
+// ============================================
+async function loadStats() {
+    try {
+        const result = await apiCall(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result) {
+            toolStats = result;
+            updateStatsDisplay(result);
+            return result;
+        }
+    } catch (e) {
+        console.warn('Stats API failed, using fallback');
+        // Use local data for stats
+        toolStats = {
+            usage: getLocalData('usage', 0),
+            shares: getLocalData('shares', 0),
+            reactions: getLocalData('reactions', {})
+        };
+        updateStatsDisplay(toolStats);
+        return toolStats;
+    }
 }
 
-async function recordShare(platform) {
-    shareCount++;
-    saveShareCount();
-    updateShareCount();
+function updateStatsDisplay(stats) {
+    const statsContainer = document.getElementById('stats-container');
+    if (!statsContainer) return;
+    
+    const totalReactions = Object.values(stats.reactions || {}).reduce((a, b) => a + b, 0);
+    
+    statsContainer.innerHTML = `
+        <div class="stat-card">
+            <i class="fas fa-eye"></i>
+            <span class="stat-value">${stats.usage || 0}</span>
+            <span class="stat-label">Views</span>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-share-alt"></i>
+            <span class="stat-value">${stats.shares || 0}</span>
+            <span class="stat-label">Shares</span>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-heart"></i>
+            <span class="stat-value">${totalReactions}</span>
+            <span class="stat-label">Reactions</span>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <span class="stat-value">${stats.followers || 0}</span>
+            <span class="stat-label">Followers</span>
+        </div>
+    `;
 }
 
+// ============================================
+// SHARE FUNCTION (with API integration)
+// ============================================
 async function shareLesson(platform) {
     const url = window.location.href;
-    const subject = elements.subject.value || 'my lesson';
+    const subject = document.getElementById('subject')?.value || 'my lesson';
     const text = `Check out these differentiated activities for ${subject}!`;
     
     const shareUrls = {
@@ -152,83 +282,179 @@ async function shareLesson(platform) {
     };
     
     if (platform === 'copy') {
-        await navigator.clipboard.writeText(url);
-        showToast('Link copied to clipboard!', 'success');
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast('Link copied to clipboard!', 'success');
+        } catch {
+            // Fallback
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Link copied to clipboard!', 'success');
+        }
     } else if (shareUrls[platform]) {
         window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
+    
     await recordShare(platform);
 }
 
-// Theme
+// ============================================
+// TOAST SYSTEM
+// ============================================
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ============================================
+// LOADING SPINNER
+// ============================================
+function showLoading(show) {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = show ? 'flex' : 'none';
+}
+
+// ============================================
+// THEME MANAGEMENT
+// ============================================
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
-        document.querySelector('#theme-toggle-btn .fa-moon').style.display = 'none';
-        document.querySelector('#theme-toggle-btn .fa-sun').style.display = 'inline-block';
+        const moon = document.querySelector('#theme-toggle-btn .fa-moon');
+        const sun = document.querySelector('#theme-toggle-btn .fa-sun');
+        if (moon) moon.style.display = 'none';
+        if (sun) sun.style.display = 'inline-block';
     }
 }
 
 function toggleTheme() {
     const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const moon = document.querySelector('#theme-toggle-btn .fa-moon');
+    const sun = document.querySelector('#theme-toggle-btn .fa-sun');
+    
     if (isDark) {
         document.body.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
-        document.querySelector('#theme-toggle-btn .fa-moon').style.display = 'inline-block';
-        document.querySelector('#theme-toggle-btn .fa-sun').style.display = 'none';
+        if (moon) moon.style.display = 'inline-block';
+        if (sun) sun.style.display = 'none';
         showToast('Light mode activated', 'info');
     } else {
         document.body.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
-        document.querySelector('#theme-toggle-btn .fa-moon').style.display = 'none';
-        document.querySelector('#theme-toggle-btn .fa-sun').style.display = 'inline-block';
+        if (moon) moon.style.display = 'none';
+        if (sun) sun.style.display = 'inline-block';
         showToast('Dark mode activated', 'info');
     }
 }
 
-// Scroll
-function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-function scrollToBottom() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+// ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const elements = document.querySelectorAll('.typewriter-text');
+    if (!elements.length) return;
+    
+    elements.forEach((el, index) => {
+        const texts = el.dataset.texts ? JSON.parse(el.dataset.texts) : ['Differentiated Instruction', 'Lesson Planning', 'Student Success'];
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        
+        function type() {
+            const currentText = texts[textIndex];
+            if (isDeleting) {
+                el.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                el.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+            
+            if (!isDeleting && charIndex === currentText.length) {
+                isDeleting = true;
+                setTimeout(type, 2000);
+                return;
+            }
+            
+            if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+                setTimeout(type, 500);
+                return;
+            }
+            
+            setTimeout(type, isDeleting ? 50 : 100);
+        }
+        
+        setTimeout(type, index * 500);
+    });
+}
 
-// Auto-Save
-function autoSaveDraft() {
-    const draft = {
-        subject: elements.subject.value,
-        grade: elements.grade.value,
-        duration: elements.duration.value,
-        beginnerLevel: elements.beginnerLevel.value,
-        intermediateLevel: elements.intermediateLevel.value,
-        advancedLevel: elements.advancedLevel.value,
-        methodology: elements.methodology.value,
-        classSize: elements.classSize.value,
-        timestamp: Date.now()
-    };
-    localStorage.setItem(`${TOOL_SLUG}_draft`, JSON.stringify(draft));
-    if (elements.autoSaveStatus) {
-        elements.autoSaveStatus.textContent = 'Draft saved';
-        setTimeout(() => {
-            if (elements.autoSaveStatus) elements.autoSaveStatus.textContent = 'Draft auto-saved';
-        }, 2000);
+// ============================================
+// NAVIGATION
+// ============================================
+function setupNavigation() {
+    const homeBtn = document.getElementById('home-btn');
+    const backBtn = document.getElementById('back-btn');
+    
+    if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+            window.location.href = 'https://magicrills.com';
+        });
+    }
+    
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+        });
     }
 }
 
-function loadDraft() {
-    const draft = localStorage.getItem(`${TOOL_SLUG}_draft`);
-    if (draft) {
-        const data = JSON.parse(draft);
-        if (elements.subject) elements.subject.value = data.subject || '';
-        if (elements.grade) elements.grade.value = data.grade || '6-8';
-        if (elements.duration) elements.duration.value = data.duration || '45';
-        if (elements.beginnerLevel) elements.beginnerLevel.value = data.beginnerLevel || 'basic';
-        if (elements.intermediateLevel) elements.intermediateLevel.value = data.intermediateLevel || 'proficient';
-        if (elements.advancedLevel) elements.advancedLevel.value = data.advancedLevel || 'exemplary';
-        if (elements.methodology) elements.methodology.value = data.methodology || 'inquiry-based';
-        if (elements.classSize) elements.classSize.value = data.classSize || '25';
+// ============================================
+// SCROLL BUTTONS
+// ============================================
+function setupScrollButtons() {
+    const scrollUp = document.getElementById('scroll-up');
+    const scrollDown = document.getElementById('scroll-down');
+    
+    if (scrollUp) {
+        scrollUp.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+    
+    if (scrollDown) {
+        scrollDown.addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
     }
 }
 
-// Generate Content
+// ============================================
+// GENERATE LESSON CONTENT
+// ============================================
 function generateSLOs(subject) {
     return [
         `Demonstrate understanding of key ${subject} concepts and terminology`,
@@ -303,75 +529,167 @@ function generateLessonPlan(subject, grade, duration, methodology) {
 }
 
 function displaySLOs(slos) {
-    elements.slosList.innerHTML = slos.map(slo => `
+    const container = document.getElementById('slos-list');
+    if (!container) return;
+    container.innerHTML = slos.map(slo => `
         <div class="slo-item"><i class="fas fa-check-circle"></i><span>${slo}</span></div>
     `).join('');
 }
 
 function displayActivities(activities) {
-    elements.beginnerActivities.innerHTML = activities.beginner.map(a => `
-        <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
-    `).join('');
-    elements.intermediateActivities.innerHTML = activities.intermediate.map(a => `
-        <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
-    `).join('');
-    elements.advancedActivities.innerHTML = activities.advanced.map(a => `
-        <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
-    `).join('');
+    const beginner = document.getElementById('beginner-activities');
+    const intermediate = document.getElementById('intermediate-activities');
+    const advanced = document.getElementById('advanced-activities');
+    
+    if (beginner) {
+        beginner.innerHTML = activities.beginner.map(a => `
+            <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
+        `).join('');
+    }
+    if (intermediate) {
+        intermediate.innerHTML = activities.intermediate.map(a => `
+            <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
+        `).join('');
+    }
+    if (advanced) {
+        advanced.innerHTML = activities.advanced.map(a => `
+            <div class="activity-item"><strong>${a.title}</strong><em>${a.detail}</em></div>
+        `).join('');
+    }
 }
 
 function displayLessonPlan(plan) {
-    elements.fullLessonPlan.innerHTML = plan;
+    const container = document.getElementById('full-lesson-plan');
+    if (container) container.innerHTML = plan;
 }
 
+// ============================================
+// AUTO-SAVE DRAFT
+// ============================================
+function autoSaveDraft() {
+    const draft = {
+        subject: document.getElementById('subject')?.value || '',
+        grade: document.getElementById('grade')?.value || '6-8',
+        duration: document.getElementById('duration')?.value || '45',
+        beginnerLevel: document.getElementById('beginner-level')?.value || 'basic',
+        intermediateLevel: document.getElementById('intermediate-level')?.value || 'proficient',
+        advancedLevel: document.getElementById('advanced-level')?.value || 'exemplary',
+        methodology: document.getElementById('methodology')?.value || 'inquiry-based',
+        classSize: document.getElementById('class-size')?.value || '25',
+        timestamp: Date.now()
+    };
+    setLocalData('draft', draft);
+    
+    const status = document.getElementById('auto-save-status');
+    if (status) {
+        status.textContent = 'Draft saved';
+        setTimeout(() => {
+            if (status) status.textContent = 'Draft auto-saved';
+        }, 2000);
+    }
+}
+
+function loadDraft() {
+    const draft = getLocalData('draft', null);
+    if (draft) {
+        const fields = {
+            subject: draft.subject || '',
+            grade: draft.grade || '6-8',
+            duration: draft.duration || '45',
+            'beginner-level': draft.beginnerLevel || 'basic',
+            'intermediate-level': draft.intermediateLevel || 'proficient',
+            'advanced-level': draft.advancedLevel || 'exemplary',
+            methodology: draft.methodology || 'inquiry-based',
+            'class-size': draft.classSize || '25'
+        };
+        Object.entries(fields).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        });
+    }
+}
+
+// ============================================
+// GENERATE LESSON (MAIN FUNCTION)
+// ============================================
 async function generateLesson() {
-    const subject = elements.subject.value.trim();
+    const subject = document.getElementById('subject')?.value.trim();
     if (!subject) {
         showToast('Please enter a subject/topic', 'error');
-        elements.subject.focus();
+        document.getElementById('subject')?.focus();
         return false;
     }
     
     showLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
     
-    updateUsageCounter(true);
+    // Wait for animation
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Increment usage via API
+    await incrementUsage();
     
     const slos = generateSLOs(subject);
     const activities = generateActivities(subject);
-    const lessonPlan = generateLessonPlan(subject, elements.grade.value, elements.duration.value, elements.methodology.value);
+    const lessonPlan = generateLessonPlan(
+        subject,
+        document.getElementById('grade')?.value || '6-8',
+        document.getElementById('duration')?.value || '45',
+        document.getElementById('methodology')?.value || 'inquiry-based'
+    );
     
-    elements.topicResult.textContent = subject;
+    const topicResult = document.getElementById('topic-result');
+    if (topicResult) topicResult.textContent = subject;
+    
     displaySLOs(slos);
     displayActivities(activities);
     displayLessonPlan(lessonPlan);
     
-    elements.resultsSection.style.display = 'block';
-    elements.resultsSection.scrollIntoView({ behavior: 'smooth' });
+    const resultsSection = document.getElementById('results-section');
+    if (resultsSection) {
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
     
     currentLessonData = { subject, slos, activities, lessonPlan };
-    showToast('Lesson generated successfully!', 'success');
+    showToast('Lesson generated successfully! 🎉', 'success');
     showLoading(false);
     return true;
 }
 
-// Export Functions
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
 function exportToPDF() {
-    if (!currentLessonData && elements.resultsSection.style.display !== 'block') {
-        showToast('Generate a lesson first', 'error');
+    const subject = document.getElementById('subject')?.value || 'Lesson';
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showToast('Please allow popups for PDF export', 'error');
         return;
     }
-    const printWindow = window.open('', '_blank');
     printWindow.document.write(`
-        <html><head><title>Lesson Plan - ${elements.subject.value}</title>
-        <style>body{font-family:Arial;padding:20px}h1{color:#4361ee}</style></head>
-        <body><h1>Differentiated Lesson Plan: ${elements.subject.value}</h1>
-        <p>Grade: ${elements.grade.value} | Duration: ${elements.duration.value} min</p>
-        <hr>${elements.fullLessonPlan.innerHTML}<hr>
-        <h2>Differentiated Activities</h2>
-        <h3>Beginner Level</h3>${elements.beginnerActivities.innerHTML}
-        <h3>Intermediate Level</h3>${elements.intermediateActivities.innerHTML}
-        <h3>Advanced Level</h3>${elements.advancedActivities.innerHTML}
+        <html><head><title>Lesson Plan - ${subject}</title>
+        <style>
+            body{font-family:Arial;padding:30px;max-width:800px;margin:auto}
+            h1{color:#4361ee;border-bottom:2px solid #4361ee;padding-bottom:10px}
+            h2{color:#3a0ca3;margin-top:25px}
+            h3{color:#6c757d;margin-top:20px}
+            ul{line-height:1.8}
+            .card{margin:15px 0;padding:15px;border-left:4px solid #4361ee;background:#f8f9fa}
+        </style>
+        </head>
+        <body>
+            <h1>Differentiated Lesson Plan: ${subject}</h1>
+            <p>Grade: ${document.getElementById('grade')?.value || 'N/A'} | Duration: ${document.getElementById('duration')?.value || 'N/A'} min</p>
+            <hr>
+            ${document.getElementById('full-lesson-plan')?.innerHTML || ''}
+            <hr>
+            <h2>Differentiated Activities</h2>
+            <h3>Beginner Level</h3>
+            ${document.getElementById('beginner-activities')?.innerHTML || ''}
+            <h3>Intermediate Level</h3>
+            ${document.getElementById('intermediate-activities')?.innerHTML || ''}
+            <h3>Advanced Level</h3>
+            ${document.getElementById('advanced-activities')?.innerHTML || ''}
         </body></html>
     `);
     printWindow.document.close();
@@ -380,96 +698,147 @@ function exportToPDF() {
 }
 
 function exportToWord() {
-    if (!currentLessonData && elements.resultsSection.style.display !== 'block') {
-        showToast('Generate a lesson first', 'error');
-        return;
-    }
+    const subject = document.getElementById('subject')?.value || 'Lesson';
     const content = `<html><head><meta charset="UTF-8"><title>Lesson Plan</title></head>
-        <body><h1>Differentiated Lesson Plan: ${elements.subject.value}</h1>
-        ${elements.fullLessonPlan.innerHTML}
-        <h2>Differentiated Activities</h2>
-        <h3>Beginner</h3>${elements.beginnerActivities.innerHTML}
-        <h3>Intermediate</h3>${elements.intermediateActivities.innerHTML}
-        <h3>Advanced</h3>${elements.advancedActivities.innerHTML}
+        <body>
+            <h1>Differentiated Lesson Plan: ${subject}</h1>
+            <p>Grade: ${document.getElementById('grade')?.value || 'N/A'} | Duration: ${document.getElementById('duration')?.value || 'N/A'} min</p>
+            ${document.getElementById('full-lesson-plan')?.innerHTML || ''}
+            <h2>Differentiated Activities</h2>
+            <h3>Beginner</h3>${document.getElementById('beginner-activities')?.innerHTML || ''}
+            <h3>Intermediate</h3>${document.getElementById('intermediate-activities')?.innerHTML || ''}
+            <h3>Advanced</h3>${document.getElementById('advanced-activities')?.innerHTML || ''}
         </body></html>`;
     const blob = new Blob([content], { type: 'application/msword' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Lesson_Plan_${(elements.subject.value || 'lesson').replace(/\s/g, '_')}.doc`;
+    link.download = `Lesson_Plan_${(subject || 'lesson').replace(/\s/g, '_')}.doc`;
     link.click();
     URL.revokeObjectURL(link.href);
     showToast('Word document downloaded', 'success');
 }
 
 function exportToTXT() {
-    if (!currentLessonData && elements.resultsSection.style.display !== 'block') {
-        showToast('Generate a lesson first', 'error');
-        return;
-    }
-    const content = `DIFFERENTIATED LESSON PLAN\nSubject: ${elements.subject.value}\nGrade: ${elements.grade.value}\n\nLESSON CONTENT:\n${elements.fullLessonPlan.innerText}\n\nACTIVITIES:\n${elements.beginnerActivities.innerText}\n${elements.intermediateActivities.innerText}\n${elements.advancedActivities.innerText}`;
+    const subject = document.getElementById('subject')?.value || 'Lesson';
+    const content = `DIFFERENTIATED LESSON PLAN\nSubject: ${subject}\nGrade: ${document.getElementById('grade')?.value || 'N/A'}\n\nLESSON CONTENT:\n${document.getElementById('full-lesson-plan')?.innerText || ''}\n\nACTIVITIES:\n${document.getElementById('beginner-activities')?.innerText || ''}\n${document.getElementById('intermediate-activities')?.innerText || ''}\n${document.getElementById('advanced-activities')?.innerText || ''}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Lesson_Plan_${(elements.subject.value || 'lesson').replace(/\s/g, '_')}.txt`;
+    link.download = `Lesson_Plan_${(subject || 'lesson').replace(/\s/g, '_')}.txt`;
     link.click();
     URL.revokeObjectURL(link.href);
     showToast('Text file downloaded', 'success');
 }
 
+// ============================================
+// RESET FORM
+// ============================================
 function resetForm() {
-    elements.subject.value = '';
-    elements.grade.value = '6-8';
-    elements.duration.value = '45';
-    elements.beginnerLevel.value = 'basic';
-    elements.intermediateLevel.value = 'proficient';
-    elements.advancedLevel.value = 'exemplary';
-    elements.methodology.value = 'inquiry-based';
-    elements.classSize.value = '25';
-    elements.resultsSection.style.display = 'none';
+    const fields = ['subject', 'grade', 'duration', 'beginner-level', 'intermediate-level', 'advanced-level', 'methodology', 'class-size'];
+    const defaults = {
+        subject: '',
+        grade: '6-8',
+        duration: '45',
+        'beginner-level': 'basic',
+        'intermediate-level': 'proficient',
+        'advanced-level': 'exemplary',
+        methodology: 'inquiry-based',
+        'class-size': '25'
+    };
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = defaults[id] || '';
+    });
+    const resultsSection = document.getElementById('results-section');
+    if (resultsSection) resultsSection.style.display = 'none';
     localStorage.removeItem(`${TOOL_SLUG}_draft`);
-    elements.subject.focus();
+    document.getElementById('subject')?.focus();
     showToast('Form reset', 'info');
 }
 
-// Event Listeners
+// ============================================
+// EVENT LISTENERS
+// ============================================
 function initEventListeners() {
-    elements.themeToggle.addEventListener('click', toggleTheme);
-    elements.scrollUp.addEventListener('click', scrollToTop);
-    elements.scrollDown.addEventListener('click', scrollToBottom);
-    elements.generateBtn.addEventListener('click', generateLesson);
-    elements.resetBtn.addEventListener('click', resetForm);
-    if (elements.newIdeasBtn) elements.newIdeasBtn.addEventListener('click', generateLesson);
-    elements.exportPdf.addEventListener('click', exportToPDF);
-    elements.exportWord.addEventListener('click', exportToWord);
-    elements.exportTxt.addEventListener('click', exportToTXT);
+    // Theme toggle
+    document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
     
-    elements.subject.addEventListener('input', autoSaveDraft);
-    elements.grade.addEventListener('change', autoSaveDraft);
-    elements.duration.addEventListener('change', autoSaveDraft);
-    elements.methodology.addEventListener('change', autoSaveDraft);
-    elements.classSize.addEventListener('input', autoSaveDraft);
-    elements.beginnerLevel.addEventListener('change', autoSaveDraft);
-    elements.intermediateLevel.addEventListener('change', autoSaveDraft);
-    elements.advancedLevel.addEventListener('change', autoSaveDraft);
+    // Scroll buttons
+    setupScrollButtons();
     
+    // Navigation
+    setupNavigation();
+    
+    // Generate button
+    document.getElementById('generate-btn')?.addEventListener('click', generateLesson);
+    
+    // Reset button
+    document.getElementById('reset-btn')?.addEventListener('click', resetForm);
+    
+    // New ideas button
+    document.getElementById('new-ideas-btn')?.addEventListener('click', generateLesson);
+    
+    // Export buttons
+    document.getElementById('export-pdf')?.addEventListener('click', exportToPDF);
+    document.getElementById('export-word')?.addEventListener('click', exportToWord);
+    document.getElementById('export-txt')?.addEventListener('click', exportToTXT);
+    
+    // Auto-save on input
+    const autoSaveFields = ['subject', 'grade', 'duration', 'methodology', 'class-size', 'beginner-level', 'intermediate-level', 'advanced-level'];
+    autoSaveFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', autoSaveDraft);
+            el.addEventListener('change', autoSaveDraft);
+        }
+    });
+    
+    // Reactions
     document.querySelectorAll('.reaction-btn').forEach(btn => {
         btn.addEventListener('click', () => addReaction(btn.dataset.emoji));
     });
     
+    // Share buttons
     document.querySelectorAll('.share-btn').forEach(btn => {
         btn.addEventListener('click', () => shareLesson(btn.dataset.platform));
     });
 }
 
-// Initialize
-function init() {
+// ============================================
+// INITIALIZATION
+// ============================================
+async function init() {
+    // Theme
     initTheme();
+    
+    // Typewriter
+    initTypewriter();
+    
+    // Event listeners
     initEventListeners();
-    updateUsageCounter(false);
-    loadReactions();
-    updateShareCount();
+    
+    // Load data from API with fallback
+    await loadStats();
+    await loadReactionsFromAPI();
+    
+    // Load usage
+    usageCount = getLocalData('usage', 0);
+    updateUsageDisplay();
+    
+    // Load shares
+    shareCount = getLocalData('shares', 0);
+    updateShareDisplay();
+    
+    // Load draft
     loadDraft();
-    showToast('Welcome! Enter a subject to get started. Everything works offline!', 'info');
+    
+    // Check if API is available
+    if (!isApiAvailable) {
+        showToast('Working in offline mode - data saved locally', 'info');
+    } else {
+        showToast('Welcome! Enter a subject to get started. 🚀', 'info');
+    }
 }
 
-init();
+// Start the app
+document.addEventListener('DOMContentLoaded', init);
