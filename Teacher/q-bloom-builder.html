@@ -1,918 +1,330 @@
 <!DOCTYPE html>
 <html lang="ur" dir="ltr">
 <head>
+    <!-- ========== FULL SEO META ========== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Q Bloom Builder | بلومز ٹیکسونومی کلاسیفائر</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="description" content="Q Bloom Builder - AI-powered Bloom's Taxonomy question classifier. Classify questions across 6 cognitive levels using Gemini AI. Real-time analytics, reactions, and sharing.">
+    <meta name="keywords" content="Bloom's Taxonomy, Question Classification, AI Education, Cognitive Levels, Remember, Understand, Apply, Analyze, Evaluate, Create, Educational Tool, Gemini AI">
+    <meta name="author" content="MagicRills">
+    <meta property="og:title" content="Q Bloom Builder | AI-Powered Bloom's Taxonomy Classifier">
+    <meta property="og:description" content="Classify educational questions across 6 levels of Bloom's Taxonomy using advanced AI. Real-time analytics, reactions, and sharing.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://magicrills.com/tools/q-bloom-builder.html">
+    <meta property="og:image" content="https://magicrills.com/assets/og-bloom-builder.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Q Bloom Builder | AI-Powered Bloom's Taxonomy Classifier">
+    <meta name="twitter:description" content="Classify educational questions across 6 levels of Bloom's Taxonomy using AI.">
+    <link rel="canonical" href="https://magicrills.com/tools/q-bloom-builder.html">
+    
+    <title>Q Bloom Builder | AI-Powered Bloom's Taxonomy Classifier | MagicRills</title>
+
+    <!-- ========== FONTS & ICONS ========== -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    
+    <!-- ========== CSS ========== -->
+    <link rel="stylesheet" href="q-bloom-builder.css">
+
+    <!-- ========== JSON-LD STRUCTURED DATA ========== -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Q Bloom Builder",
+        "description": "AI-powered Bloom's Taxonomy question classifier for educational content",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "author": {
+            "@type": "Organization",
+            "name": "MagicRills"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Critical inline styles for fast rendering */
+        body { 
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-
-        body {
-            background: linear-gradient(135deg, #f0f9ff 0%, #fef3e8 100%);
+        body.loaded {
+            opacity: 1;
+        }
+        .loading-placeholder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            transition: all 0.3s ease;
-        }
-
-        body.dark {
-            background: #0f172a;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #0ea5e9, #a855f7, #f97316);
-            border-radius: 48px;
-            padding: 50px 30px;
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-            animation: gradientShift 6s ease infinite;
-            background-size: 200% 200%;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        .hero h1 i {
-            margin-right: 15px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            opacity: 0.95;
-        }
-
-        .stats-badge {
-            display: inline-flex;
-            gap: 30px;
-            margin-top: 25px;
-            background: rgba(255,255,255,0.2);
-            padding: 12px 25px;
-            border-radius: 60px;
-            backdrop-filter: blur(10px);
-        }
-
-        /* Layout */
-        .two-columns {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 25px;
-        }
-
-        .col {
-            flex: 1;
-            min-width: 320px;
-        }
-
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 28px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-        }
-
-        body.dark .card {
-            background: #1e293b;
-            color: #f1f5f9;
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #0ea5e9, #a855f7);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 220px;
-            padding: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
-            font-size: 1rem;
-            resize: vertical;
-            transition: all 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #f97316;
-            box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
-        }
-
-        body.dark textarea {
-            background: #334155;
-            border-color: #475569;
-            color: white;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 18px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 60px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, #0ea5e9, #a855f7);
-            color: white;
-        }
-
-        .btn-ai {
-            background: linear-gradient(90deg, #f97316, #facc15);
-            color: #1e293b;
-        }
-
-        .btn-reset {
-            background: #475569;
-            color: white;
-        }
-
-        .btn:hover {
-            transform: scale(1.02);
-            filter: brightness(1.05);
-        }
-
-        /* Stats Row */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-box {
-            background: white;
-            border-radius: 20px;
-            padding: 18px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        body.dark .stat-box {
-            background: #1e293b;
-        }
-
-        .stat-box h2 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #f97316, #a855f7);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        /* Bloom Grid */
-        .bloom-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            margin: 25px 0;
-        }
-
-        .level-card {
-            border-radius: 20px;
-            padding: 18px;
-            color: white;
-            transition: transform 0.3s;
-        }
-
-        .level-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .level-card h3 {
-            margin-bottom: 12px;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .level-card ul {
-            list-style: none;
-            max-height: 180px;
-            overflow-y: auto;
-        }
-
-        .level-card li {
-            background: rgba(255,255,255,0.2);
-            margin: 6px 0;
-            padding: 8px 12px;
-            border-radius: 14px;
-            font-size: 0.8rem;
-            word-break: break-word;
-        }
-
-        .remember-bg { background: #3498db; }
-        .understand-bg { background: #2ecc71; }
-        .apply-bg { background: #f1c40f; color: #2c3e50; }
-        .analyze-bg { background: #e67e22; }
-        .evaluate-bg { background: #e74c3c; }
-        .create-bg { background: #9b59b6; }
-
-        /* Chart */
-        .chart-box {
-            background: white;
-            border-radius: 24px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        body.dark .chart-box {
-            background: #1e293b;
-        }
-
-        .chart-bar {
-            display: flex;
-            height: 45px;
-            border-radius: 60px;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-
-        .chart-segment {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.7rem;
-        }
-
-        /* ========== REACTIONS SECTION - CLEARLY VISIBLE ========== */
-        .reactions-panel {
-            background: white;
-            border-radius: 28px;
-            padding: 22px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        body.dark .reactions-panel {
-            background: #1e293b;
-        }
-
-        .reactions-panel h4 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #f97316;
-        }
-
-        .reactions-box {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .reaction-item {
-            background: #f1f5f9;
-            border: none;
-            font-size: 1.8rem;
-            padding: 10px 20px;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .reaction-item span {
-            font-size: 1rem;
-            font-weight: bold;
-            color: #1e293b;
-        }
-
-        body.dark .reaction-item {
-            background: #334155;
-        }
-
-        body.dark .reaction-item span {
-            color: white;
-        }
-
-        .reaction-item:hover {
-            transform: scale(1.08);
-            background: #e2e8f0;
-        }
-
-        /* Share Section */
-        .share-panel {
-            background: white;
-            border-radius: 28px;
-            padding: 22px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        body.dark .share-panel {
-            background: #1e293b;
-        }
-
-        .share-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin: 15px 0;
-        }
-
-        .share-btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 60px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .share-fb { background: #1877f2; }
-        .share-tw { background: #1da1f2; }
-        .share-wa { background: #25d366; }
-        .share-li { background: #0077b5; }
-        .share-email { background: #ea4335; }
-        .share-copy { background: #64748b; }
-
-        .share-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
-
-        /* Floating Buttons */
-        .float-btns {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 1000;
-        }
-
-        .float-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0ea5e9, #a855f7);
-            border: none;
-            color: white;
-            font-size: 1.3rem;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: 0.2s;
-        }
-
-        .float-btn:hover { transform: scale(1.1); }
-
-        /* Toast */
-        .toast-msg {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1100;
-        }
-
-        .toast {
-            background: #1e293b;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 40px;
-            margin-top: 8px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .toast.success { background: #10b981; }
-        .toast.error { background: #ef4444; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        /* Usage Box */
-        .usage-box {
-            margin-top: 15px;
-            background: #e6f7ff;
-            padding: 10px;
-            border-radius: 60px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        body.dark .usage-box {
-            background: #334155;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2rem; }
-            .btn-group { flex-direction: column; }
-            .btn-group .btn { width: 100%; justify-content: center; }
+            color: var(--text-secondary);
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <!-- Hero -->
-    <div class="hero">
-        <h1><i class="fas fa-brain"></i> Q Bloom Builder</h1>
-        <p>بلومز ٹیکسونومی پر مبنی سوالات کی درجہ بندی | AI Assisted Classification</p>
-        <div class="stats-badge">
-            <span><i class="fas fa-globe"></i> <span id="heroUsage">0</span> Uses</span>
-            <span><i class="fas fa-chart-line"></i> 6 Levels</span>
-            <span><i class="fas fa-robot"></i> Grok AI</span>
-        </div>
+    <!-- ========== LOADING PLACEHOLDER ========== -->
+    <div class="loading-placeholder" id="loadingPlaceholder">
+        <i class="fas fa-spinner fa-pulse fa-2x" style="color: var(--neon-purple);"></i>
+        <span style="margin-left: 12px;">Loading Q Bloom Builder...</span>
     </div>
 
-    <div class="two-columns">
-        <!-- Left Column -->
-        <div class="col">
-            <div class="card">
-                <div class="card-title"><i class="fas fa-pen-fancy"></i> Enter Questions</div>
-                <textarea id="questions" placeholder="Enter one question per line...&#10;&#10;What is photosynthesis?&#10;Compare and contrast democracy and dictatorship.&#10;Design a solution to reduce plastic pollution."></textarea>
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="analyzeBtn"><i class="fas fa-microscope"></i> Analyze</button>
-                    <button class="btn btn-ai" id="grokBtn"><i class="fas fa-robot"></i> Grok AI</button>
-                    <button class="btn btn-reset" id="resetBtn"><i class="fas fa-trash-alt"></i> Reset</button>
-                </div>
-                <div class="btn-group" id="exportBtns"></div>
-                <div class="usage-box"><i class="fas fa-chart-simple"></i> Used <span id="usageCount">0</span> times • <i class="fas fa-database"></i> Cloud Synced</div>
+    <!-- ========== APP CONTAINER ========== -->
+    <div class="app-container" id="appContainer" style="display: none;">
+
+        <!-- ========== NAVIGATION ========== -->
+        <nav class="nav-bar">
+            <div class="nav-left">
+                <span class="logo"><i class="fas fa-brain"></i> Q Bloom Builder</span>
             </div>
-            <div class="card">
-                <div class="card-title"><i class="fas fa-lightbulb"></i> Cue Phrases Guide</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <span style="background:#3498db20; padding:5px 12px; border-radius:30px;">🔵 Remember: what, who, list</span>
-                    <span style="background:#2ecc7120; padding:5px 12px; border-radius:30px;">🟢 Understand: describe, explain</span>
-                    <span style="background:#f1c40f20; padding:5px 12px; border-radius:30px;">🟡 Apply: solve, use, demonstrate</span>
-                    <span style="background:#e67e2220; padding:5px 12px; border-radius:30px;">🟠 Analyze: analyze, compare, examine</span>
-                    <span style="background:#e74c3c20; padding:5px 12px; border-radius:30px;">🔴 Evaluate: judge, justify, critique</span>
-                    <span style="background:#9b59b620; padding:5px 12px; border-radius:30px;">🟣 Create: design, create, propose</span>
+            <div class="nav-buttons">
+                <a href="https://magicrills.com" class="nav-btn nav-btn-primary">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="https://magicrills.com/category-pages/mixed-tools.html" class="nav-btn">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <button class="nav-btn" id="darkToggle" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- ========== HERO SECTION ========== -->
+        <section class="hero-section">
+            <div class="hero-icon-container">
+                <i class="fas fa-robot main-icon"></i>
+                <div class="pulse-ring"></div>
+            </div>
+            
+            <h1 class="hero-title">
+                <span class="gradient-text">Q Bloom Builder</span>
+            </h1>
+            
+            <div class="typewriter-container">
+                <span class="typewriter-text" id="typewriterText">Classify questions using AI</span>
+            </div>
+            
+            <p class="hero-sub">
+                <i class="fas fa-magic" style="color: var(--neon-purple);"></i>
+                AI-powered classification across 6 levels of Bloom's Taxonomy
+            </p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat-item">
+                    <span class="number" id="heroUsage">0</span>
+                    <span class="label"><i class="fas fa-users"></i> Uses</span>
                 </div>
+                <div class="hero-stat-item">
+                    <span class="number" id="heroReactions">0</span>
+                    <span class="label"><i class="fas fa-heart" style="color: #ec4899;"></i> Reactions</span>
+                </div>
+                <div class="hero-stat-item">
+                    <span class="number" id="heroShares">0</span>
+                    <span class="label"><i class="fas fa-share-alt"></i> Shares</span>
+                </div>
+                <div class="hero-stat-item">
+                    <span class="number" id="heroLevels">6</span>
+                    <span class="label"><i class="fas fa-layer-group"></i> Levels</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <div class="main-grid">
+
+            <!-- ===== LEFT COLUMN ===== -->
+            <div class="left-column">
+
+                <!-- Input Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-pen-fancy"></i>
+                        Enter Questions
+                    </div>
+                    
+                    <textarea class="textarea-input" id="questionInput" 
+                        placeholder="Enter one question per line...&#10;&#10;Example:&#10;What is photosynthesis?&#10;Compare democracy and dictatorship.&#10;Design a solution for plastic pollution."
+                    ></textarea>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="analyzeBtn">
+                            <i class="fas fa-microscope"></i> Classify
+                        </button>
+                        <button class="btn btn-ai" id="grokAiBtn">
+                            <i class="fas fa-robot"></i> Generate with AI
+                        </button>
+                        <button class="btn btn-outline" id="resetBtn">
+                            <i class="fas fa-trash-alt"></i> Reset
+                        </button>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-outline" id="exportTxtBtn">
+                            <i class="fas fa-file-alt"></i> TXT
+                        </button>
+                        <button class="btn btn-outline" id="exportPDFBtn">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn btn-outline" id="exportDocBtn">
+                            <i class="fas fa-file-word"></i> DOC
+                        </button>
+                    </div>
+                    
+                    <div class="usage-box">
+                        <i class="fas fa-database" style="color: var(--neon-purple);"></i>
+                        Used <strong id="usageDisplay">0</strong> times &bull;
+                        <i class="fas fa-cloud" style="color: var(--neon-purple);"></i> 
+                        <span id="syncStatus">Synced</span>
+                    </div>
+                </div>
+
+                <!-- Cue Phrases Guide -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-lightbulb" style="color: var(--neon-pink);"></i>
+                        Cue Phrases Guide
+                    </div>
+                    <div class="cue-container">
+                        <span class="cue-tag" style="border-color: #3b82f6; color: #3b82f6;">🔵 Remember: what, who, list</span>
+                        <span class="cue-tag" style="border-color: #22c55e; color: #22c55e;">🟢 Understand: describe, explain</span>
+                        <span class="cue-tag" style="border-color: #eab308; color: #eab308;">🟡 Apply: solve, use, demonstrate</span>
+                        <span class="cue-tag" style="border-color: #f59e0b; color: #f59e0b;">🟠 Analyze: analyze, compare, examine</span>
+                        <span class="cue-tag" style="border-color: #ef4444; color: #ef4444;">🔴 Evaluate: judge, justify, critique</span>
+                        <span class="cue-tag" style="border-color: #a855f7; color: #a855f7;">🟣 Create: design, create, propose</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RIGHT COLUMN ===== -->
+            <div class="right-column">
+
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <span class="stat-number" id="totalQuestions">0</span>
+                        <span class="stat-label"><i class="fas fa-list"></i> Total Qs</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="classifiedQuestions">0</span>
+                        <span class="stat-label"><i class="fas fa-check-circle" style="color: #22c55e;"></i> Classified</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="highestLevel">—</span>
+                        <span class="stat-label"><i class="fas fa-arrow-up" style="color: var(--neon-pink);"></i> Highest Level</span>
+                    </div>
+                </div>
+
+                <!-- Bloom Cards -->
+                <div class="bloom-grid" id="bloomGrid">
+                    <!-- Dynamically rendered -->
+                </div>
+
+                <!-- Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie"></i>
+                        Distribution
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-bar" id="bloomChart">
+                            <div style="width:100%; text-align:center; color:var(--text-secondary); padding:8px;">
+                                No classified questions yet
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== REACTIONS ===== -->
+                <div class="reactions-panel">
+                    <h4><i class="fas fa-face-smile"></i> Share Your Feedback</h4>
+                    <div class="reactions-box" id="reactionsContainer">
+                        <!-- 7 reaction buttons rendered by JS -->
+                    </div>
+                    <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:10px;">
+                        <i class="fas fa-info-circle"></i> Click a reaction to vote
+                    </p>
+                </div>
+
+                <!-- ===== SOCIAL SHARE ===== -->
+                <div class="share-panel">
+                    <h4><i class="fas fa-share-nodes"></i> Share This Tool</h4>
+                    <div class="share-buttons" id="shareButtons">
+                        <button class="share-btn share-fb" data-platform="facebook">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </button>
+                        <button class="share-btn share-tw" data-platform="twitter">
+                            <i class="fab fa-x-twitter"></i> Twitter
+                        </button>
+                        <button class="share-btn share-wa" data-platform="whatsapp">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                        <button class="share-btn share-li" data-platform="linkedin">
+                            <i class="fab fa-linkedin-in"></i> LinkedIn
+                        </button>
+                        <button class="share-btn share-email" data-platform="email">
+                            <i class="fas fa-envelope"></i> Email
+                        </button>
+                        <button class="share-btn share-copy" data-platform="copy">
+                            <i class="fas fa-link"></i> Copy URL
+                        </button>
+                    </div>
+                    <div class="share-stats">
+                        <i class="fas fa-chart-simple"></i> Total Shares: <strong id="shareCount">0</strong>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- Right Column -->
-        <div class="col">
-            <div class="stats-row">
-                <div class="stat-box"><h2 id="totalQs">0</h2><p>Total Questions</p></div>
-                <div class="stat-box"><h2 id="classifiedQs">0</h2><p>Classified</p></div>
-                <div class="stat-box"><h2 id="highestLvl">—</h2><p>Highest Level</p></div>
-            </div>
-
-            <div class="bloom-grid" id="bloomGrid"></div>
-
-            <div class="chart-box">
-                <h4><i class="fas fa-chart-pie"></i> Distribution</h4>
-                <div class="chart-bar" id="chartBar"></div>
-            </div>
-
-            <!-- ========== REACTIONS BUTTONS - VISIBLE HERE ========== -->
-            <div class="reactions-panel" id="reactionsPanel">
-                <h4><i class="fas fa-face-smile"></i> Share Your Feedback</h4>
-                <div class="reactions-box" id="reactionsBox">
-                    <!-- 7 reaction buttons will appear here -->
-                </div>
-            </div>
-
-            <!-- Social Share -->
-            <div class="share-panel">
-                <h4><i class="fas fa-share-nodes"></i> Share This Tool</h4>
-                <div class="share-buttons" id="shareBtns">
-                    <button class="share-btn share-fb" data-platform="facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
-                    <button class="share-btn share-tw" data-platform="twitter"><i class="fab fa-twitter"></i> Twitter</button>
-                    <button class="share-btn share-wa" data-platform="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                    <button class="share-btn share-li" data-platform="linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
-                    <button class="share-btn share-email" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
-                    <button class="share-btn share-copy" data-platform="copy"><i class="fas fa-link"></i> Copy URL</button>
-                </div>
-                <div style="margin-top: 10px;"><i class="fas fa-chart-simple"></i> Total Shares: <span id="shareCount">0</span></div>
-            </div>
-        </div>
+        <!-- ========== FOOTER ========== -->
+        <footer style="text-align:center; padding:30px 0 10px; color:var(--text-secondary); font-size:0.8rem; border-top:1px solid var(--dark-border); margin-top:40px;">
+            <p>
+                <i class="fas fa-crown" style="color: var(--neon-purple);"></i>
+                Powered by <strong style="color: var(--neon-purple);">Gemini AI</strong> &bull;
+                Built with <i class="fas fa-heart" style="color: #ec4899;"></i> by MagicRills
+            </p>
+            <p style="margin-top:4px;">
+                <a href="https://magicrills.com" style="color:var(--text-secondary); text-decoration:none;">MagicRills.com</a> &bull;
+                <a href="/privacy" style="color:var(--text-secondary); text-decoration:none;">Privacy</a>
+            </p>
+        </footer>
     </div>
-</div>
 
-<!-- Floating Buttons -->
-<div class="float-btns">
-    <button class="float-btn" id="darkModeBtn"><i class="fas fa-moon"></i></button>
-    <button class="float-btn" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
-    <button class="float-btn" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
-</div>
+    <!-- ========== FLOATING BUTTONS ========== -->
+    <div class="floating-buttons">
+        <button class="float-btn" id="scrollUpBtn" title="Scroll Up">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="float-btn" id="scrollDownBtn" title="Scroll Down">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+        <button class="float-btn" id="refreshStatsBtn" title="Refresh Stats" style="background:linear-gradient(135deg, #22c55e, #16a34a);">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
 
-<div class="toast-msg" id="toastMsg"></div>
+    <!-- ========== TOAST CONTAINER ========== -->
+    <div class="toast-container" id="toastContainer"></div>
 
-<script>
-    // ========== CONFIGURATION ==========
-    const TOOL_SLUG = 'q-bloom-builder';
-    const API_BASE = 'https://q-bloom-builder.uzairhameed01.workers.dev';
-    let userId = localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 8);
-    localStorage.setItem('userId', userId);
+    <!-- ========== JAVASCRIPT ========== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="q-bloom-builder.js"></script>
 
-    // Bloom Cues
-    const cues = {
-        remember: ['what', 'who', 'when', 'where', 'define', 'list', 'name', 'identify', 'recall'],
-        understand: ['describe', 'explain', 'summarize', 'compare', 'contrast', 'interpret', 'discuss'],
-        apply: ['use', 'solve', 'demonstrate', 'apply', 'calculate', 'complete', 'illustrate'],
-        analyze: ['analyze', 'classify', 'categorize', 'distinguish', 'examine', 'investigate'],
-        evaluate: ['evaluate', 'judge', 'justify', 'defend', 'critique', 'recommend', 'argue'],
-        create: ['create', 'design', 'develop', 'propose', 'invent', 'plan', 'construct', 'formulate']
-    };
-
-    const colors = {
-        remember: '#3498db', understand: '#2ecc71', apply: '#f1c40f',
-        analyze: '#e67e22', evaluate: '#e74c3c', create: '#9b59b6'
-    };
-
-    let data = { remember: [], understand: [], apply: [], analyze: [], evaluate: [], create: [], unclassified: [] };
-
-    // Reactions
-    const reactionEmojis = ['👍', '❤️', '😮', '😢', '😠', '😂', '🎉'];
-    const reactionKeys = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-    let reactionCounts = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0 };
-
-    // ========== HELPER FUNCTIONS ==========
-    function showToast(msg, type = 'success') {
-        const container = document.getElementById('toastMsg');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    // ========== USAGE COUNTER ==========
-    async function incrementUsage() {
-        try {
-            await fetch(`${API_BASE}/api/${TOOL_SLUG}/usage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: userId })
-            });
-        } catch(e) {}
-        fetchUsage();
-    }
-
-    async function fetchUsage() {
-        try {
-            const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/usage?tool_slug=${TOOL_SLUG}`);
-            const d = await res.json();
-            let count = d.count || d.total_usage || 0;
-            document.getElementById('usageCount').innerText = count;
-            document.getElementById('heroUsage').innerText = count;
-        } catch(e) {
-            let local = localStorage.getItem(`${TOOL_SLUG}_usage`) || '0';
-            document.getElementById('usageCount').innerText = local;
-            document.getElementById('heroUsage').innerText = local;
-        }
-    }
-
-    // ========== REACTIONS ==========
-    async function loadReactions() {
-        try {
-            const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/reactions?tool_slug=${TOOL_SLUG}`);
-            const d = await res.json();
-            if (d.reactions) updateReactionsUI(d.reactions);
-        } catch(e) {
-            let saved = localStorage.getItem(`${TOOL_SLUG}_reactions`);
-            if (saved) updateReactionsUI(JSON.parse(saved));
-            else updateReactionsUI(reactionCounts);
-        }
-    }
-
-    function updateReactionsUI(counts) {
-        reactionCounts = counts;
-        const box = document.getElementById('reactionsBox');
-        if (!box) return;
-        box.innerHTML = '';
-        reactionEmojis.forEach((emoji, idx) => {
-            const key = reactionKeys[idx];
-            const count = reactionCounts[key] || 0;
-            const btn = document.createElement('button');
-            btn.className = 'reaction-item';
-            btn.innerHTML = `${emoji} <span>${count}</span>`;
-            btn.onclick = () => addReaction(emoji, key);
-            box.appendChild(btn);
+    <script>
+        // Hide loading placeholder
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loadingPlaceholder').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            document.body.classList.add('loaded');
         });
-    }
-
-    async function addReaction(emoji, type) {
-        try {
-            const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/reactions`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, reaction_type: type, user_id: userId })
-            });
-            const d = await res.json();
-            if (d.counts) { updateReactionsUI(d.counts); showToast(`Reacted ${emoji}`, 'success'); }
-            else if (d.already_reacted) showToast('Already reacted with this', 'error');
-            else loadReactions();
-        } catch(e) {
-            reactionCounts[type] = (reactionCounts[type] || 0) + 1;
-            updateReactionsUI(reactionCounts);
-            localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(reactionCounts));
-            showToast(`Reacted ${emoji} (local)`, 'success');
-        }
-    }
-
-    // ========== SOCIAL SHARES ==========
-    async function recordShare(platform) {
-        try {
-            await fetch(`${API_BASE}/api/${TOOL_SLUG}/shares`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tool_slug: TOOL_SLUG, platform, user_id: userId })
-            });
-            fetchShareCount();
-            showToast(`Shared on ${platform}`, 'success');
-        } catch(e) { showToast('Share recorded', 'success'); }
-    }
-
-    async function fetchShareCount() {
-        try {
-            const res = await fetch(`${API_BASE}/api/${TOOL_SLUG}/shares?tool_slug=${TOOL_SLUG}`);
-            const d = await res.json();
-            document.getElementById('shareCount').innerText = d.shares || 0;
-        } catch(e) { document.getElementById('shareCount').innerText = '0'; }
-    }
-
-    function initShares() {
-        const url = encodeURIComponent(window.location.href);
-        const title = encodeURIComponent('Q Bloom Builder - Bloom\'s Taxonomy Tool');
-        const actions = {
-            facebook: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank'),
-            twitter: () => window.open(`https://twitter.com/intent/tweet?text=${title}&url=${url}`, '_blank'),
-            whatsapp: () => window.open(`https://wa.me/?text=${title} ${decodeURIComponent(url)}`, '_blank'),
-            linkedin: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank'),
-            email: () => window.location.href = `mailto:?subject=${title}&body=${decodeURIComponent(url)}`,
-            copy: () => { navigator.clipboard.writeText(window.location.href); showToast('URL Copied!', 'success'); }
-        };
-        document.querySelectorAll('[data-platform]').forEach(btn => {
-            const p = btn.dataset.platform;
-            btn.onclick = () => { actions[p]?.(); recordShare(p); };
-        });
-    }
-
-    // ========== CLASSIFICATION ==========
-    function classifyQuestion(question) {
-        let q = question.toLowerCase();
-        for (let level of ['create', 'evaluate', 'analyze', 'apply', 'understand', 'remember']) {
-            for (let cue of cues[level]) {
-                if (new RegExp(`\\b${cue}\\b`, 'i').test(q)) return level;
-            }
-        }
-        return null;
-    }
-
-    function analyze() {
-        let text = document.getElementById('questions').value;
-        if (!text.trim()) { showToast('Please enter questions', 'error'); return; }
-        let lines = text.split('\n').filter(l => l.trim().length > 0);
-        document.getElementById('totalQs').innerText = lines.length;
-        
-        for (let k in data) data[k] = [];
-        let classifiedCount = 0;
-        
-        lines.forEach(q => {
-            let level = classifyQuestion(q);
-            if (level) { data[level].push(q); classifiedCount++; }
-            else data.unclassified.push(q);
-        });
-        
-        document.getElementById('classifiedQs').innerText = classifiedCount;
-        
-        let order = ['create', 'evaluate', 'analyze', 'apply', 'understand', 'remember'];
-        for (let l of order) {
-            if (data[l].length > 0) {
-                document.getElementById('highestLvl').innerText = l.charAt(0).toUpperCase() + l.slice(1);
-                break;
-            }
-        }
-        if (classifiedCount === 0) document.getElementById('highestLvl').innerText = '-';
-        
-        renderBloomCards();
-        renderChart();
-        incrementUsage();
-    }
-
-    function renderBloomCards() {
-        let grid = document.getElementById('bloomGrid');
-        grid.innerHTML = '';
-        let levels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
-        levels.forEach(level => {
-            let questions = data[level];
-            let card = document.createElement('div');
-            card.className = `level-card ${level}-bg`;
-            card.innerHTML = `
-                <h3><i class="fas fa-${level === 'create' ? 'lightbulb' : 'tag'}"></i> ${level.toUpperCase()} (${questions.length})</h3>
-                <ul>${questions.map(q => `<li>${escapeHtml(q)}</li>`).join('') || '<li>— No questions —</li>'}</ul>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    function renderChart() {
-        let total = Object.values(data).reduce((a, b) => a + b.length, 0) - data.unclassified.length;
-        if (total === 0) { document.getElementById('chartBar').innerHTML = '<div style="text-align:center; width:100%;">No classified questions</div>'; return; }
-        let chart = document.getElementById('chartBar');
-        chart.innerHTML = '';
-        let levels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
-        levels.forEach(level => {
-            let percent = (data[level].length / total) * 100;
-            if (percent > 0) {
-                let seg = document.createElement('div');
-                seg.className = 'chart-segment';
-                seg.style.width = `${percent}%`;
-                seg.style.backgroundColor = colors[level];
-                seg.title = `${level}: ${data[level].length} (${percent.toFixed(1)}%)`;
-                if (percent > 8) seg.textContent = level.charAt(0).toUpperCase();
-                chart.appendChild(seg);
-            }
-        });
-    }
-
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    // ========== EXPORTS ==========
-    function exportTxt() {
-        let content = `Q Bloom Builder Report\nTotal: ${document.getElementById('totalQs').innerText}\nClassified: ${document.getElementById('classifiedQs').innerText}\n\n`;
-        for (let l of ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create']) {
-            if (data[l].length) content += `${l.toUpperCase()} (${data[l].length}):\n${data[l].join('\n')}\n\n`;
-        }
-        let blob = new Blob([content], { type: 'text/plain' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'bloom-report.txt';
-        link.click();
-        showToast('TXT Exported', 'success');
-    }
-
-    function exportPDF() {
-        const { jsPDF } = window.jspdf;
-        let doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text('Q Bloom Builder Report', 20, 20);
-        doc.setFontSize(12);
-        doc.text(`Total Questions: ${document.getElementById('totalQs').innerText}`, 20, 35);
-        doc.text(`Classified: ${document.getElementById('classifiedQs').innerText}`, 20, 45);
-        let y = 65;
-        for (let l of ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create']) {
-            if (data[l].length) {
-                doc.setFontSize(14);
-                doc.text(`${l.toUpperCase()} (${data[l].length})`, 20, y);
-                y += 8;
-                doc.setFontSize(10);
-                data[l].forEach(q => {
-                    if (y > 270) { doc.addPage(); y = 20; }
-                    doc.text(`- ${q.substring(0, 70)}`, 22, y);
-                    y += 6;
-                });
-                y += 5;
-            }
-        }
-        doc.save('bloom-report.pdf');
-        showToast('PDF Exported', 'success');
-    }
-
-    function exportWord() {
-        let html = `<html><head><meta charset="utf-8"><title>Bloom Report</title></head><body><h1>Q Bloom Builder Report</h1><p>Total: ${document.getElementById('totalQs').innerText}</p>`;
-        for (let l of ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create']) {
-            if (data[l].length) html += `<h2>${l.toUpperCase()} (${data[l].length})</h2><ul>${data[l].map(q => `<li>${q}</li>`).join('')}</ul>`;
-        }
-        html += `</body></html>`;
-        let blob = new Blob([html], { type: 'application/msword' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'bloom-report.doc';
-        link.click();
-        showToast('Word Exported', 'success');
-    }
-
-    // ========== GROK AI ==========
-    function grokEnhance() {
-        let sample = [
-            "Create an innovative solution to reduce plastic waste in oceans.",
-            "Evaluate the effectiveness of online learning vs traditional classrooms.",
-            "Analyze the impact of social media on mental health.",
-            "Design an experiment to test if music affects plant growth.",
-            "Justify the importance of renewable energy for future generations."
-        ];
-        let current = document.getElementById('questions').value;
-        let newText = current + (current ? "\n" : "") + sample.join("\n");
-        document.getElementById('questions').value = newText;
-        showToast('Grok AI added 5 higher-order questions!', 'success');
-    }
-
-    // ========== INITIALIZATION ==========
-    function init() {
-        // Add export buttons
-        let exportDiv = document.getElementById('exportBtns');
-        exportDiv.innerHTML = `
-            <button class="btn" id="txtBtn" style="background:#475569; color:white;"><i class="fas fa-file-alt"></i> TXT</button>
-            <button class="btn" id="pdfBtn" style="background:#dc2626; color:white;"><i class="fas fa-file-pdf"></i> PDF</button>
-            <button class="btn" id="docBtn" style="background:#2563eb; color:white;"><i class="fas fa-file-word"></i> DOC</button>
-        `;
-        document.getElementById('txtBtn')?.addEventListener('click', exportTxt);
-        document.getElementById('pdfBtn')?.addEventListener('click', exportPDF);
-        document.getElementById('docBtn')?.addEventListener('click', exportWord);
-        
-        document.getElementById('analyzeBtn').addEventListener('click', analyze);
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            document.getElementById('questions').value = '';
-            for (let k in data) data[k] = [];
-            renderBloomCards();
-            renderChart();
-            document.getElementById('totalQs').innerText = '0';
-            document.getElementById('classifiedQs').innerText = '0';
-            document.getElementById('highestLvl').innerText = '-';
-            showToast('Reset complete', 'success');
-        });
-        document.getElementById('grokBtn').addEventListener('click', grokEnhance);
-        
-        // Dark mode
-        let darkBtn = document.getElementById('darkModeBtn');
-        let isDark = localStorage.getItem('darkMode') === 'true';
-        if (isDark) document.body.classList.add('dark');
-        darkBtn.onclick = () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-        };
-        
-        // Scroll
-        document.getElementById('scrollUpBtn').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-        document.getElementById('scrollDownBtn').onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        
-        // Auto-save draft
-        let textarea = document.getElementById('questions');
-        textarea.addEventListener('input', () => localStorage.setItem('bloom_draft', textarea.value));
-        let draft = localStorage.getItem('bloom_draft');
-        if (draft) textarea.value = draft;
-        
-        // Load all data
-        fetchUsage();
-        loadReactions();
-        fetchShareCount();
-        initShares();
-        
-        showToast('✅ Q Bloom Builder Ready! 7 Reactions + Usage + Shares Active', 'success');
-    }
-    
-    init();
-</script>
+    </script>
 </body>
 </html>
