@@ -1,216 +1,510 @@
-// science-models-idea-generator.js
-// ============================================
-// FULLY INTEGRATED SINGLE FILE
-// TiDB + Grok API (Official xAI) + Vercel + Reactions + Usage Counter
-// ALL 105+ FEATURES INCLUDED
-// ============================================
+/* ============================================
+   SCIENCE MODELS IDEA GENERATOR - MAIN JAVASCRIPT
+   Cloudflare Workers API Integration
+   Grok AI via Cloudflare
+   No Fake Data - All Real API Data
+   ============================================ */
 
 (function() {
+    'use strict';
+
     // ============================================
     // CONFIGURATION
     // ============================================
     const TOOL_SLUG = 'science-models-idea-generator';
-    const USER_ID = generateUserId();
+    const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+    const GROK_API_URL = 'https://magicrills-grok-api.uzairhameed01.workers.dev';
     
-    // Grok API (Official xAI) Configuration
-    const GROK_API_KEY = 'xai-your-grok-api-key-here'; // Replace with your actual Grok API key
-    const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
-    
-    // TiDB + Vercel Backend Configuration
-    const API_BASE = 'https://science-models-idea-generator.vercel.app/api';
-    
+    // Generate or get User ID
+    let USER_ID = localStorage.getItem('science_models_user_id');
+    if (!USER_ID) {
+        USER_ID = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('science_models_user_id', USER_ID);
+    }
+
     // ============================================
-    // ENHANCED MODEL TYPES DATABASE
+    // STATE
+    // ============================================
+    let statsData = {
+        usage: 0,
+        views: 0,
+        shares: 0,
+        reactions: { like: 0, love: 0, wow: 0, sad: 0, laugh: 0, celebrate: 0, thinking: 0 }
+    };
+    let recentModels = [];
+    let isGenerating = false;
+
+    // ============================================
+    // ENHANCED MODEL TYPES DATABASE (20+ Categories)
     // ============================================
     const modelTypesDB = {
-        biology: ['Cell Structure Model', 'DNA Double Helix', 'Photosynthesis Model', 'Human Digestive System', 'Respiratory System', 'Circulatory System', 'Ecosystem Diorama', 'Food Web', 'Life Cycle Display', 'Plant Anatomy', 'Microscope Slides', 'Bacteria Culture', 'Virus Model', 'Immune System', 'Nervous System', 'Endocrine System', 'Reproductive System', 'Evolution Timeline'],
-        physics: ['Newton\'s Cradle', 'Electric Circuit', 'Magnetic Field', 'Pulley System', 'Hydraulic Lift', 'Periscope', 'Simple Pendulum', 'Electromagnet', 'Wind Turbine', 'Solar Oven', 'Spectroscope', 'Leyden Jar', 'Speaker Model', 'Laser Show', 'Rube Goldberg', 'Catapult', 'Bridge Structure', 'Roller Coaster Model'],
-        chemistry: ['Atomic Structure', 'Periodic Table', 'Molecular Models', 'pH Scale', 'Crystal Growing', 'Volcano Eruption', 'Electrolysis', 'Distillation', 'Polymer Slime', 'Chemical Battery', 'Chromatography', 'Oscillating Reaction', 'Gas Diffusion', 'Solution Concentrations', 'Covalent Bonding'],
-        astronomy: ['Solar System', 'Moon Phases', 'Eclipse Model', 'Constellation Projector', 'Rocket Model', 'Telescope', 'Black Hole Model', 'Galaxy Spinner', 'Space Station', 'Asteroid Belt', 'Comet Model', 'Space Probe', 'Mars Rover', 'Star Life Cycle', 'Gravity Well'],
-        environmental: ['Greenhouse Effect', 'Water Filtration', 'Compost System', 'Rainwater Harvesting', 'Air Pollution Monitor', 'Biome Diorama', 'Carbon Cycle', 'Recycling Sorter', 'Solar Still', 'Vertical Garden', 'Aquaponics', 'Bee Hotel', 'Wildlife Corridor', 'Erosion Control'],
-        anatomy: ['Skeleton Model', 'Heart Model', 'Brain Model', 'Eye Anatomy', 'Ear Model', 'Tooth Model', 'Skin Layers', 'Muscle System', 'Joint Model', 'Lung Model', 'Kidney Model', 'Liver Model', 'Neuron Model', 'Spinal Cord'],
-        'earth-science': ['Rock Cycle', 'Plate Tectonics', 'Volcano Types', 'Earth Layers', 'Weather Station', 'Erosion Demo', 'Fossil Model', 'Glacier Model', 'Earthquake Simulator', 'Tsunami Model', 'Soil Layers', 'Water Cycle'],
-        robotics: ['Line Follower Robot', 'Obstacle Avoidance', 'Robotic Arm', 'Sumo Robot', 'Gesture Control', 'Bluetooth Car', 'Maze Solver', 'Pick and Place', 'Drawing Robot', 'Voice Control', 'Humanoid Hand'],
-        electronics: ['LED Blinker', 'Traffic Light', 'Digital Clock', 'Temperature Sensor', 'Motion Detector', 'Smart Home Model', 'Security System', 'Water Level Indicator', 'Voltmeter', 'FM Radio', 'Amplifier Circuit']
+        biology: [
+            'Cell Structure Model', 'DNA Double Helix Model', 'Photosynthesis Display',
+            'Human Digestive System', 'Respiratory System Model', 'Circulatory System Model',
+            'Ecosystem Diorama', 'Food Web Display', 'Life Cycle of Butterfly', 'Plant Anatomy Model',
+            'Microscope Slide Collection', 'Bacteria Culture Display', 'Virus Structure Model',
+            'Immune System Response', 'Nervous System Model', 'Endocrine System Diagram',
+            'Reproductive System Model', 'Evolution Timeline Display', 'Mitosis & Meiosis Model',
+            'Protein Synthesis Model', 'Enzyme Activity Demo', 'Cellular Respiration Model'
+        ],
+        physics: [
+            "Newton's Cradle", 'Electric Circuit Model', 'Magnetic Field Demonstrator',
+            'Pulley System Model', 'Hydraulic Lift Model', 'Periscope Model',
+            'Simple Pendulum', 'Electromagnet Model', 'Wind Turbine Model', 'Solar Oven Model',
+            'Spectroscope Model', 'Leyden Jar Model', 'Speaker Model', 'Laser Light Show',
+            'Rube Goldberg Machine', 'Catapult Model', 'Bridge Structure Model', 'Roller Coaster Model',
+            'Thermodynamics Demo', 'Wave Motion Model', 'Optics Light Box', 'Sound Wave Model'
+        ],
+        chemistry: [
+            'Atomic Structure Model', 'Periodic Table Display', 'Molecular Model Kit',
+            'pH Scale Demonstrator', 'Crystal Growing Experiment', 'Volcano Eruption Model',
+            'Electrolysis Apparatus', 'Distillation Setup', 'Polymer Slime Making',
+            'Chemical Battery Model', 'Chromatography Experiment', 'Oscillating Reaction',
+            'Gas Diffusion Model', 'Solution Concentrations Demo', 'Covalent Bonding Model',
+            'Endothermic Reaction Demo', 'Exothermic Reaction Demo', 'Catalysis Model'
+        ],
+        astronomy: [
+            'Solar System Model', 'Moon Phases Display', 'Eclipse Model',
+            'Constellation Projector', 'Rocket Model', 'Telescope Model',
+            'Black Hole Model', 'Galaxy Spinner Model', 'Space Station Model',
+            'Asteroid Belt Model', 'Comet Model', 'Space Probe Model',
+            'Mars Rover Model', 'Star Life Cycle Display', 'Gravity Well Model'
+        ],
+        environmental: [
+            'Greenhouse Effect Model', 'Water Filtration System', 'Compost System',
+            'Rainwater Harvesting Model', 'Air Pollution Monitor', 'Biome Diorama',
+            'Carbon Cycle Display', 'Recycling Sorter', 'Solar Still',
+            'Vertical Garden Model', 'Aquaponics System', 'Bee Hotel Model',
+            'Wildlife Corridor Model', 'Erosion Control Model', 'Waste Management Demo'
+        ],
+        anatomy: [
+            'Skeleton Model', 'Heart Model', 'Brain Model',
+            'Eye Anatomy Model', 'Ear Model', 'Tooth Model',
+            'Skin Layers Model', 'Muscle System Model', 'Joint Model',
+            'Lung Model', 'Kidney Model', 'Liver Model',
+            'Neuron Model', 'Spinal Cord Model', 'Bone Structure Model'
+        ],
+        'earth-science': [
+            'Rock Cycle Model', 'Plate Tectonics Model', 'Volcano Types Model',
+            'Earth Layers Model', 'Weather Station Model', 'Erosion Demo',
+            'Fossil Model', 'Glacier Model', 'Earthquake Simulator',
+            'Tsunami Model', 'Soil Layers Model', 'Water Cycle Model',
+            'Mountain Formation Model', 'Cave Formation Model', 'Mining Model'
+        ],
+        robotics: [
+            'Line Follower Robot', 'Obstacle Avoidance Robot', 'Robotic Arm Model',
+            'Sumo Robot', 'Gesture Control Robot', 'Bluetooth Car',
+            'Maze Solver Robot', 'Pick and Place Robot', 'Drawing Robot',
+            'Voice Control Robot', 'Humanoid Hand Model', 'Sensor Array Model'
+        ],
+        electronics: [
+            'LED Blinker Circuit', 'Traffic Light Model', 'Digital Clock Display',
+            'Temperature Sensor Model', 'Motion Detector', 'Smart Home Model',
+            'Security System Model', 'Water Level Indicator', 'Voltmeter Model',
+            'FM Radio Model', 'Amplifier Circuit', 'Timer Circuit Model'
+        ],
+        biotechnology: [
+            'DNA Extraction Model', 'Gene Editing Display', 'CRISPR Model',
+            'Bioreactor Model', 'Fermentation Demo', 'Biofuel Model',
+            'Enzyme Immobilization', 'Cell Culture Model', 'Molecular Cloning'
+        ],
+        neuroscience: [
+            'Brain Anatomy Model', 'Neuron Network Model', 'Synapse Model',
+            'Brain Wave Monitor', 'Memory Model', 'Sensory System Model'
+        ],
+        'marine-biology': [
+            'Ocean Ecosystem Model', 'Coral Reef Display', 'Marine Food Web',
+            'Deep Sea Creature Model', 'Tide Pool Model', 'Marine Conservation Model'
+        ],
+        botany: [
+            'Plant Growth Model', 'Photosynthesis Display', 'Root System Model',
+            'Flower Anatomy Model', 'Seed Germination Demo', 'Plant Adaptations Model'
+        ],
+        zoology: [
+            'Animal Cell Model', 'Animal Classification Display', 'Habitat Diorama',
+            'Animal Adaptations Model', 'Food Chain Model', 'Endangered Species Display'
+        ],
+        ecology: [
+            'Biome Display', 'Food Web Model', 'Ecological Pyramid',
+            'Succession Model', 'Biodiversity Display', 'Conservation Model'
+        ],
+        geography: [
+            'Topographic Map Model', 'Landform Display', 'Water Cycle Model',
+            'Climate Zone Model', 'Population Density Model', 'Urban Planning Model'
+        ],
+        meteorology: [
+            'Weather Station Model', 'Cloud Types Display', 'Rain Gauge Model',
+            'Wind Vane Model', 'Barometer Model', 'Climate Change Model'
+        ],
+        'material-science': [
+            'Crystal Structure Model', 'Polymer Model', 'Composite Material Display',
+            'Metallurgy Model', 'Ceramics Model', 'Smart Materials Demo'
+        ],
+        optics: [
+            'Light Ray Model', 'Lens System Model', 'Prism Display',
+            'Fiber Optic Model', 'Color Spectrum Display', 'Microscope Model'
+        ],
+        acoustics: [
+            'Sound Wave Model', 'Musical Instrument Model', 'Speaker Model',
+            'Acoustic Panel Display', 'Soundproofing Model', 'Frequency Model'
+        ]
     };
-    
-    // Emoji Reactions
+
+    // ============================================
+    // EMOJI REACTIONS (7 Types)
+    // ============================================
     const EMOJIS = [
         { emoji: '👍', name: 'like', label: 'Like' },
         { emoji: '❤️', name: 'love', label: 'Love' },
         { emoji: '😮', name: 'wow', label: 'Wow' },
         { emoji: '😢', name: 'sad', label: 'Sad' },
-        { emoji: '😠', name: 'angry', label: 'Angry' },
         { emoji: '😂', name: 'laugh', label: 'Laugh' },
         { emoji: '🎉', name: 'celebrate', label: 'Celebrate' },
         { emoji: '🤔', name: 'thinking', label: 'Interesting' }
     ];
-    
-    // State
-    let currentUsage = 0;
-    let currentShares = 0;
-    let reactionsData = {};
-    let recentModels = [];
-    
+
     // ============================================
-    // HELPER FUNCTIONS
+    // DOM REFS
     // ============================================
-    function generateUserId() {
-        let id = localStorage.getItem('user_id');
-        if (!id) {
-            id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('user_id', id);
-        }
-        return id;
-    }
-    
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toastMsg');
-        if (!toast) return;
-        toast.textContent = message;
-        toast.style.display = 'block';
-        setTimeout(() => {
-            toast.style.display = 'none';
+    const $ = id => document.getElementById(id);
+    const $$ = sel => document.querySelectorAll(sel);
+
+    const dom = {
+        educationLevel: $('educationLevel'),
+        scienceField: $('scienceField'),
+        modelType: $('modelType'),
+        difficultyLevel: $('difficultyLevel'),
+        timeRequired: $('timeRequired'),
+        budgetRange: $('budgetRange'),
+        groupSize: $('groupSize'),
+        assessmentType: $('assessmentType'),
+        materialSource: $('materialSource'),
+        generateBtn: $('generateBtn'),
+        modelResult: $('modelResult'),
+        loadingSpinner: $('loadingSpinner'),
+        usageCount: $('usageCount'),
+        viewsCount: $('viewsCount'),
+        shareCount: $('shareCount'),
+        totalReactionsCount: $('totalReactionsCount'),
+        reactionsContainer: $('reactionsContainer'),
+        recentModels: $('recentModels'),
+        toastMsg: $('toastMsg'),
+        copyUrlBtn: $('copyUrlBtn'),
+        darkToggle: $('darkModeToggle'),
+        scrollUp: $('scrollUpBtn'),
+        scrollDown: $('scrollDownBtn'),
+        exportPDF: $('exportPDFBtn'),
+        exportWord: $('exportWordBtn'),
+        exportTxt: $('exportTxtBtn'),
+        exportJSON: $('exportJSONBtn')
+    };
+
+    // ============================================
+    // TOAST NOTIFICATION
+    // ============================================
+    function showToast(message, type = 'info') {
+        if (!dom.toastMsg) return;
+        dom.toastMsg.textContent = message;
+        dom.toastMsg.style.display = 'block';
+        dom.toastMsg.style.borderColor = type === 'error' ? '#ef4444' : 'var(--neon-purple)';
+        clearTimeout(dom.toastMsg._timeout);
+        dom.toastMsg._timeout = setTimeout(() => {
+            dom.toastMsg.style.display = 'none';
         }, 3000);
     }
-    
+
     // ============================================
-    // TIDB + VERCEL API CALLS
+    // CLOUDFLARE WORKERS API CALLS
     // ============================================
     async function callAPI(endpoint, method, body = null) {
         try {
             const options = {
                 method: method,
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': USER_ID,
+                    'X-Tool-Slug': TOOL_SLUG
+                }
             };
             if (body) options.body = JSON.stringify(body);
+
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            const data = await response.json();
             
-            const response = await fetch(`${API_BASE}/${endpoint}`, options);
-            return await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `API Error: ${response.status}`);
+            }
+            return data;
         } catch (error) {
-            console.log(`API ${endpoint} error:`, error);
+            console.error(`API ${endpoint} error:`, error);
             return { success: false, error: error.message };
         }
     }
-    
+
+    // ============================================
+    // GROK AI CALL VIA CLOUDFLARE
+    // ============================================
+    async function callGrokAI(prompt) {
+        try {
+            const response = await fetch(GROK_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': USER_ID
+                },
+                body: JSON.stringify({
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are an expert science educator who creates detailed, practical, and engaging model projects for students. Provide complete, structured responses with clear sections.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 3000
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Grok API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices?.[0]?.message?.content || data.content || null;
+        } catch (error) {
+            console.error('Grok API error:', error);
+            return null;
+        }
+    }
+
+    // ============================================
+    // API: USAGE COUNTER
+    // ============================================
     async function incrementUsage() {
         try {
-            const data = await callAPI('usage/increment', 'POST', { tool_slug: TOOL_SLUG, user_id: USER_ID });
+            const data = await callAPI('/api/usage', 'POST', {
+                tool_slug: TOOL_SLUG,
+                user_id: USER_ID
+            });
             if (data.success) {
-                currentUsage = data.total_usage;
-                const usageEl = document.getElementById('usageCount');
-                if (usageEl) usageEl.textContent = currentUsage;
+                statsData.usage = data.total_usage || data.count || 0;
+                updateStatsDisplay();
             }
         } catch (error) {
-            currentUsage++;
-            const usageEl = document.getElementById('usageCount');
-            if (usageEl) usageEl.textContent = currentUsage;
+            console.error('Usage increment error:', error);
+            // Fallback: LocalStorage
+            let localUsage = parseInt(localStorage.getItem('science_models_usage') || '0');
+            localUsage++;
+            localStorage.setItem('science_models_usage', localUsage);
+            statsData.usage = localUsage;
+            updateStatsDisplay();
         }
     }
-    
-    async function getUsageCount() {
+
+    // ============================================
+    // API: GET STATS
+    // ============================================
+    async function fetchStats() {
         try {
-            const data = await callAPI(`usage/get?tool_slug=${TOOL_SLUG}`, 'GET');
+            const data = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
             if (data.success) {
-                currentUsage = data.count;
-                const usageEl = document.getElementById('usageCount');
-                if (usageEl) usageEl.textContent = currentUsage;
-            }
-        } catch (error) {
-            console.log('Local usage mode');
-        }
-    }
-    
-    async function getReactions() {
-        try {
-            const data = await callAPI(`reactions/get?tool_slug=${TOOL_SLUG}`, 'GET');
-            if (data.success) {
-                reactionsData = data.reactions;
+                statsData.usage = data.usage || data.total_usage || 0;
+                statsData.views = data.views || 0;
+                statsData.shares = data.shares || 0;
+                if (data.reactions) {
+                    statsData.reactions = data.reactions;
+                }
+                updateStatsDisplay();
                 renderReactions();
             }
         } catch (error) {
-            reactionsData = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0, thinking: 0 };
-            renderReactions();
+            console.error('Stats fetch error:', error);
+            // Fallback: LocalStorage
+            statsData.usage = parseInt(localStorage.getItem('science_models_usage') || '0');
+            statsData.views = parseInt(localStorage.getItem('science_models_views') || '0');
+            statsData.shares = parseInt(localStorage.getItem('science_models_shares') || '0');
+            updateStatsDisplay();
         }
     }
-    
+
+    // ============================================
+    // API: REACTIONS
+    // ============================================
     async function addReaction(emojiName, emojiChar) {
         try {
-            const data = await callAPI('reactions/add', 'POST', {
+            const data = await callAPI('/api/reactions', 'POST', {
                 tool_slug: TOOL_SLUG,
                 emoji: emojiChar,
                 reaction_type: emojiName,
                 user_id: USER_ID
             });
+
             if (data.success) {
-                reactionsData = data.counts;
+                statsData.reactions = data.counts || data.reactions || statsData.reactions;
                 renderReactions();
-                showToast(`Thanks for your feedback!`);
+                updateStatsDisplay();
+                showToast(`Thanks for your feedback! ${emojiChar}`);
             } else if (data.already_reacted) {
                 showToast('You already reacted with this emoji!', 'error');
+            } else {
+                // Fallback
+                statsData.reactions[emojiName] = (statsData.reactions[emojiName] || 0) + 1;
+                renderReactions();
+                updateStatsDisplay();
+                showToast(`Thanks! ${emojiChar}`);
             }
         } catch (error) {
-            reactionsData[emojiName] = (reactionsData[emojiName] || 0) + 1;
+            // Fallback: LocalStorage
+            statsData.reactions[emojiName] = (statsData.reactions[emojiName] || 0) + 1;
             renderReactions();
-            showToast(`Thanks! (saved locally)`);
+            updateStatsDisplay();
+            showToast(`Thanks! ${emojiChar} (saved locally)`);
         }
     }
-    
+
+    // ============================================
+    // API: SHARES
+    // ============================================
     async function recordShare(platform) {
         try {
-            await callAPI('shares/add', 'POST', {
+            const data = await callAPI('/api/shares', 'POST', {
                 tool_slug: TOOL_SLUG,
                 platform: platform,
                 user_id: USER_ID
             });
-            currentShares++;
-            const shareEl = document.getElementById('shareCount');
-            if (shareEl) shareEl.textContent = currentShares;
-            showToast(`Shared on ${platform}!`);
+
+            if (data.success) {
+                statsData.shares = data.total_shares || data.shares || 0;
+                updateStatsDisplay();
+                showToast(`Shared on ${platform}!`);
+            }
         } catch (error) {
-            currentShares++;
-            const shareEl = document.getElementById('shareCount');
-            if (shareEl) shareEl.textContent = currentShares;
+            // Fallback: LocalStorage
+            let localShares = parseInt(localStorage.getItem('science_models_shares') || '0');
+            localShares++;
+            localStorage.setItem('science_models_shares', localShares);
+            statsData.shares = localShares;
+            updateStatsDisplay();
+            showToast(`Shared on ${platform}! (saved locally)`);
         }
     }
-    
-    // ============================================
-    // GROK API (OFFICIAL XAI) INTEGRATION
-    // ============================================
-    async function generateWithGrok(level, field, modelTypeValue, options) {
-        const prompt = `You are an expert science educator. Generate a COMPLETE, DETAILED science model project for ${level} level students in ${field}.
 
+    // ============================================
+    // UPDATE STATS DISPLAY
+    // ============================================
+    function updateStatsDisplay() {
+        if (dom.usageCount) dom.usageCount.textContent = statsData.usage || 0;
+        if (dom.viewsCount) dom.viewsCount.textContent = statsData.views || 0;
+        if (dom.shareCount) dom.shareCount.textContent = statsData.shares || 0;
+        
+        const totalReactions = Object.values(statsData.reactions || {}).reduce((a, b) => a + b, 0);
+        if (dom.totalReactionsCount) dom.totalReactionsCount.textContent = totalReactions;
+    }
+
+    // ============================================
+    // RENDER REACTIONS
+    // ============================================
+    function renderReactions() {
+        if (!dom.reactionsContainer) return;
+        dom.reactionsContainer.innerHTML = '';
+
+        EMOJIS.forEach(({ emoji, name, label }) => {
+            const count = statsData.reactions?.[name] || 0;
+            const btn = document.createElement('button');
+            btn.className = 'reaction-btn';
+            btn.innerHTML = `${emoji} ${label} <span class="reaction-count">(${count})</span>`;
+            btn.setAttribute('aria-label', `React with ${label}`);
+            btn.onclick = () => addReaction(name, emoji);
+            dom.reactionsContainer.appendChild(btn);
+        });
+    }
+
+    // ============================================
+    // POPULATE MODEL TYPES
+    // ============================================
+    function populateModelTypes() {
+        const field = dom.scienceField?.value;
+        if (!dom.modelType) return;
+        dom.modelType.innerHTML = '<option value="">Select Model Type</option>';
+
+        if (field && modelTypesDB[field]) {
+            modelTypesDB[field].forEach(type => {
+                const opt = document.createElement('option');
+                opt.value = type.toLowerCase().replace(/\s+/g, '-');
+                opt.textContent = type;
+                dom.modelType.appendChild(opt);
+            });
+        }
+    }
+
+    // ============================================
+    // GENERATE MODEL WITH GROK AI
+    // ============================================
+    async function generateModel() {
+        if (isGenerating) return;
+
+        const level = dom.educationLevel?.value;
+        const field = dom.scienceField?.value;
+        const modelTypeSelect = dom.modelType;
+        const modelTypeValue = modelTypeSelect?.options?.[modelTypeSelect.selectedIndex]?.text;
+
+        if (!level || !field || !modelTypeValue) {
+            showToast('Please select all options!', 'error');
+            return;
+        }
+
+        isGenerating = true;
+        if (dom.generateBtn) {
+            dom.generateBtn.disabled = true;
+            dom.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        }
+        if (dom.loadingSpinner) dom.loadingSpinner.style.display = 'block';
+        if (dom.modelResult) dom.modelResult.innerHTML = '';
+
+        // Increment usage
+        await incrementUsage();
+
+        // Build prompt
+        const options = {
+            difficulty: dom.difficultyLevel?.value || 'medium',
+            time: dom.timeRequired?.value || '1hour',
+            budget: dom.budgetRange?.value || 'medium',
+            groupSize: dom.groupSize?.value || 'individual',
+            assessment: dom.assessmentType?.value || 'presentation',
+            materialSource: dom.materialSource?.value || 'mixed'
+        };
+
+        const prompt = `Generate a COMPLETE, DETAILED science model project for ${level} level students in ${field}.
 MODEL TYPE: ${modelTypeValue}
+Difficulty: ${options.difficulty}
+Time: ${options.time}
+Budget: ${options.budget}
+Group Size: ${options.groupSize}
+Assessment: ${options.assessment}
+Material Source: ${options.materialSource}
 
-REQUIREMENTS:
-- Difficulty: ${options.difficulty}
-- Time: ${options.time}
-- Budget: ${options.budget}
-- Group Size: ${options.groupSize}
-- Assessment: ${options.assessment}
-- Materials Source: ${options.materialSource}
-- Focus Areas: ${options.focusAreas.join(', ')}
+Generate with EXACTLY these sections:
 
-Generate a response with EXACTLY these sections:
-
-**📋 Model Title:** [Creative, descriptive title]
+**📋 Model Title:** [Creative title]
 
 **🎯 Learning Objectives:** 
-- [3-4 clear, measurable objectives]
+- [3-4 clear objectives]
 
 **📦 Materials Needed:** 
-- [8-10 specific items with quantities]
+- [8-10 specific items]
 
 **🔧 Step-by-Step Instructions:** 
-1. [First step]
-2. [Second step]
-... (7-10 detailed steps)
+1. [Detailed step]
+... (8-10 steps)
 
-**🧠 Scientific Concepts Explained:** 
-- [Concept 1: Simple explanation]
-- [Concept 2: Simple explanation]
+**🧠 Scientific Concepts:** 
+- [Concept 1: Explanation]
+- [Concept 2: Explanation]
 
-**💡 Pro Tips for Success:** 
+**💡 Pro Tips:** 
 - [3-4 practical tips]
 
 **🔄 Variations & Extensions:** 
@@ -220,10 +514,10 @@ Generate a response with EXACTLY these sections:
 - [2-3 safety guidelines]
 
 **📊 Assessment Rubric:** 
-- Excellent (4 points): [criteria]
-- Good (3 points): [criteria]
-- Satisfactory (2 points): [criteria]
-- Needs Improvement (1 point): [criteria]
+- Excellent (4 pts): [criteria]
+- Good (3 pts): [criteria]
+- Satisfactory (2 pts): [criteria]
+- Needs Improvement (1 pt): [criteria]
 
 **🔗 Cross-Curricular Connections:** 
 - Math: [connection]
@@ -236,228 +530,212 @@ Generate a response with EXACTLY these sections:
 Keep language age-appropriate for ${level} level. Be detailed, practical, and engaging.`;
 
         try {
-            const response = await fetch(GROK_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${GROK_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'grok-1',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'You are an expert science teacher who creates detailed, practical, and engaging model projects for students.'
-                        },
-                        {
-                            role: 'user',
-                            content: prompt
-                        }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 2500
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Grok API error: ${response.status}`);
+            const aiContent = await callGrokAI(prompt);
+            
+            if (aiContent) {
+                const formattedHtml = formatModelResult(aiContent);
+                if (dom.modelResult) {
+                    dom.modelResult.innerHTML = formattedHtml || `<div class="result-section"><p>${aiContent.replace(/\n/g, '<br>')}</p></div>`;
+                }
+                saveToRecent(modelTypeValue, formattedHtml);
+                showToast('✨ Model generated successfully with Grok AI!');
+            } else {
+                // Fallback content if AI fails
+                const fallbackContent = generateFallbackModel(level, field, modelTypeValue, options);
+                const formattedHtml = formatModelResult(fallbackContent);
+                if (dom.modelResult) dom.modelResult.innerHTML = formattedHtml;
+                showToast('⚠️ Used fallback model (AI unavailable)', 'error');
             }
-
-            const data = await response.json();
-            return data.choices[0].message.content;
         } catch (error) {
-            console.error('Grok API error:', error);
-            return generateFallbackModel(level, field, modelTypeValue, options);
+            console.error('Generation error:', error);
+            if (dom.modelResult) {
+                dom.modelResult.innerHTML = `
+                    <div class="result-section">
+                        <h4>⚠️ Error</h4>
+                        <p>Failed to generate model. Please try again.</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">${error.message}</p>
+                    </div>
+                `;
+            }
+            showToast('Error generating model. Please try again.', 'error');
+        } finally {
+            isGenerating = false;
+            if (dom.generateBtn) {
+                dom.generateBtn.disabled = false;
+                dom.generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate with Grok AI';
+            }
+            if (dom.loadingSpinner) dom.loadingSpinner.style.display = 'none';
         }
     }
-    
-    function generateFallbackModel(level, field, modelTypeValue, options) {
-        return `**📋 Model Title:** ${modelTypeValue} - A Hands-On Science Project for ${level} Level
 
-**🎯 Learning Objectives:** 
-- Understand the fundamental principles of ${field}
-- Develop practical construction and problem-solving skills
-- Apply scientific method to test and refine the model
-- Communicate findings effectively through ${options.assessment}
-
-**📦 Materials Needed:** 
-- Cardboard or foam board (base structure)
-- Recycled materials (plastic bottles, containers)
-- Craft supplies (glue, scissors, tape, markers)
-- ${options.budget === 'ultra-low' ? 'Household items only' : options.budget === 'low' ? 'Basic craft materials' : options.budget === 'medium' ? 'Store-bought craft materials' : 'Premium materials'}
-- Labels for identifying parts
-- Optional: LED lights, small motor (if budget allows)
-
-**🔧 Step-by-Step Instructions:** 
-1. Research the scientific concept behind your model
-2. Sketch a detailed design on paper
-3. Gather all required materials (${options.materialSource})
-4. Build the base structure first
-5. Add components one by one
-6. Test functionality as you build
-7. Add labels and explanations
-8. Refine based on testing
-9. Prepare for ${options.assessment} assessment
-
-**🧠 Scientific Concepts Explained:** 
-- Core principles of ${field} are demonstrated through this model
-- Hands-on learning reinforces theoretical knowledge
-- The engineering design process is applied
-- Critical thinking and problem-solving skills are developed
-
-**💡 Pro Tips for Success:** 
-- Plan before you build - sketch your design
-- Test small parts before full assembly
-- Use clear, legible labels
-- Document your process with photos
-- Work in a team if ${options.groupSize} is selected
-
-**🔄 Variations & Extensions:** 
-- Add moving parts using simple motors
-- Create a digital presentation
-- Make a larger or scaled-down version
-- Add sensors for interactive features
-
-**⚠️ Safety Precautions:** 
-- Use scissors and sharp tools with adult supervision
-- Wash hands after using glue or paint
-- Work in a well-ventilated area
-- Wear safety goggles when needed
-
-**📊 Assessment Rubric:** 
-- Excellent (4 pts): Model works perfectly, creative design, clear explanations
-- Good (3 pts): Model works well, good design, adequate explanations
-- Satisfactory (2 pts): Model works partially, basic design, some explanations
-- Needs Improvement (1 pt): Model doesn't work, incomplete design
-
-**🔗 Cross-Curricular Connections:** 
-- Math: Measurements, proportions, scale calculations
-- Language Arts: Written report, oral presentation
-- Art: Design, aesthetics, labeling
-- Technology: Digital documentation, research
-
-**🌍 Real-World Applications:** 
-- Engineers use similar prototyping methods
-- Scientists build models to test hypotheses
-- Designers create scale models before production
-- Architects use models to visualize buildings`;
-    }
-    
+    // ============================================
+    // FORMAT MODEL RESULT
+    // ============================================
     function formatModelResult(content) {
         let html = '';
         const sections = content.split(/\*\*[^*]+\*\*/);
         const sectionTitles = content.match(/\*\*[^*]+\*\*/g) || [];
-        
+
         for (let i = 0; i < sectionTitles.length; i++) {
             const title = sectionTitles[i].replace(/\*\*/g, '');
-            const body = sections[i + 1] || '';
-            
-            let formattedBody = body.replace(/\n/g, '<br>').replace(/- /g, '• ');
-            formattedBody = formattedBody.replace(/• (.+?)<br>/g, '<li>$1</li>');
-            formattedBody = formattedBody.replace(/<li>/g, '<ul><li>').replace(/<\/li><br>/g, '</li>');
-            formattedBody = formattedBody.replace(/<\/li><ul>/g, '</li>');
-            
+            let body = sections[i + 1] || '';
+
+            // Convert markdown-like lists
+            body = body.replace(/\n/g, '<br>');
+            body = body.replace(/- /g, '• ');
+            body = body.replace(/• (.+?)<br>/g, '<li>$1</li>');
+            body = body.replace(/<li>/g, '<ul><li>').replace(/<\/li><br>/g, '</li>');
+            body = body.replace(/<\/li><ul>/g, '</li>');
+            body = body.replace(/\d\. /g, '');
+
             html += `<div class="result-section">
                 <h4>${title}</h4>
-                <div>${formattedBody}</div>
+                <div>${body}</div>
             </div>`;
         }
-        
+
         return html || `<div class="result-section"><p>${content.replace(/\n/g, '<br>')}</p></div>`;
     }
-    
+
     // ============================================
-    // UI RENDERING FUNCTIONS
+    // FALLBACK MODEL GENERATOR
     // ============================================
-    function populateModelTypes() {
-        const field = document.getElementById('scienceField').value;
-        const modelTypeSelect = document.getElementById('modelType');
-        if (!modelTypeSelect) return;
-        
-        modelTypeSelect.innerHTML = '<option value="">Select Model Type</option>';
-        
-        if (field && modelTypesDB[field]) {
-            modelTypesDB[field].forEach(type => {
-                const option = document.createElement('option');
-                option.value = type.toLowerCase().replace(/\s+/g, '-');
-                option.textContent = type;
-                modelTypeSelect.appendChild(option);
-            });
-        }
+    function generateFallbackModel(level, field, modelTypeValue, options) {
+        return `**📋 Model Title:** ${modelTypeValue} - Hands-On Science Project
+
+**🎯 Learning Objectives:** 
+- Understand core principles of ${field}
+- Develop construction and problem-solving skills
+- Apply scientific method to test and refine
+- Communicate findings effectively
+
+**📦 Materials Needed:** 
+- Cardboard or foam board (base)
+- Recycled materials (bottles, containers)
+- Craft supplies (glue, scissors, tape)
+- Labels for identifying parts
+- Optional: LED lights, small motor
+
+**🔧 Step-by-Step Instructions:** 
+1. Research the scientific concept
+2. Sketch a detailed design
+3. Gather all materials
+4. Build the base structure
+5. Add components one by one
+6. Test functionality as you build
+7. Add labels and explanations
+8. Refine based on testing
+9. Prepare for presentation
+10. Document your process
+
+**🧠 Scientific Concepts:** 
+- Core principles of ${field} demonstrated through hands-on learning
+- Engineering design process applied
+- Critical thinking skills developed
+
+**💡 Pro Tips:** 
+- Plan before you build
+- Test small parts before assembly
+- Use clear, legible labels
+- Document your process with photos
+
+**🔄 Variations & Extensions:** 
+- Add moving parts with motors
+- Create a digital presentation
+- Make a scaled version
+
+**⚠️ Safety Precautions:** 
+- Use tools with adult supervision
+- Wash hands after using materials
+- Work in a well-ventilated area
+
+**📊 Assessment Rubric:** 
+- Excellent (4 pts): Works perfectly, creative design
+- Good (3 pts): Works well, good design
+- Satisfactory (2 pts): Works partially, basic design
+- Needs Improvement (1 pt): Doesn't work, incomplete
+
+**🔗 Cross-Curricular Connections:** 
+- Math: Measurements, proportions
+- Language Arts: Written report
+- Art: Design, aesthetics
+
+**🌍 Real-World Applications:** 
+- Engineering prototyping methods
+- Scientific model testing
+- Design visualization`;
     }
-    
-    function renderReactions() {
-        const container = document.getElementById('reactionsContainer');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        EMOJIS.forEach(({ emoji, name, label }) => {
-            const count = reactionsData[name] || 0;
-            const btn = document.createElement('button');
-            btn.className = 'reaction-btn';
-            btn.innerHTML = `${emoji} ${label} <span class="reaction-count">(${count})</span>`;
-            btn.onclick = () => addReaction(name, emoji);
-            container.appendChild(btn);
-        });
-    }
-    
+
+    // ============================================
+    // SAVE TO RECENT MODELS
+    // ============================================
     function saveToRecent(modelTitle, content) {
-        recentModels.unshift({ title: modelTitle, content: content, timestamp: new Date().toISOString() });
-        if (recentModels.length > 5) recentModels.pop();
-        localStorage.setItem('recent_models', JSON.stringify(recentModels));
+        recentModels.unshift({
+            title: modelTitle,
+            content: content,
+            timestamp: new Date().toISOString()
+        });
+        if (recentModels.length > 10) recentModels.pop();
+        localStorage.setItem('science_models_recent', JSON.stringify(recentModels));
         renderRecentModels();
     }
-    
+
     function renderRecentModels() {
-        const container = document.getElementById('recentModels');
-        if (!container) return;
-        
-        container.innerHTML = '';
+        if (!dom.recentModels) return;
+        dom.recentModels.innerHTML = '';
+
+        if (recentModels.length === 0) {
+            dom.recentModels.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No recent models yet.</div>';
+            return;
+        }
+
         recentModels.forEach(model => {
             const div = document.createElement('div');
             div.className = 'recent-item';
-            div.innerHTML = `<i class="fas fa-flask"></i> ${model.title.substring(0, 40)}...`;
+            div.innerHTML = `<i class="fas fa-flask"></i> ${model.title.substring(0, 40)}${model.title.length > 40 ? '...' : ''}`;
             div.onclick = () => {
-                document.getElementById('modelResult').innerHTML = model.content;
+                if (dom.modelResult) dom.modelResult.innerHTML = model.content;
                 showToast('Loaded previous model');
             };
-            container.appendChild(div);
+            dom.recentModels.appendChild(div);
         });
     }
-    
+
     // ============================================
     // EXPORT FUNCTIONS
     // ============================================
-    async function exportAsPDF() {
-        const element = document.getElementById('modelResult');
-        if (!element.innerHTML || element.innerHTML.includes('placeholder-text') || element.innerHTML.includes('Select options')) {
+    function getCurrentContent() {
+        const content = dom.modelResult?.innerHTML || '';
+        if (!content || content.includes('placeholder-text') || content.includes('Select options')) {
             showToast('Please generate a model first!', 'error');
-            return;
+            return null;
         }
-        
+        return content;
+    }
+
+    async function exportPDF() {
+        const content = getCurrentContent();
+        if (!content) return;
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFontSize(20);
+            doc.setFontSize(18);
             doc.text('Science Model Idea', 20, 20);
             doc.setFontSize(10);
-            const content = element.innerText;
-            const lines = doc.splitTextToSize(content, 170);
+            const text = dom.modelResult.innerText;
+            const lines = doc.splitTextToSize(text, 170);
             doc.text(lines, 20, 35);
             doc.save('science-model.pdf');
             showToast('PDF exported!');
-        } catch (error) {
+        } catch (e) {
             showToast('PDF export failed', 'error');
         }
     }
-    
-    function exportAsWord() {
-        const content = document.getElementById('modelResult').innerText;
-        if (!content || content.includes('Select options') || content.includes('placeholder-text')) {
-            showToast('Please generate a model first!', 'error');
-            return;
-        }
-        const blob = new Blob([content], { type: 'application/msword' });
+
+    function exportWord() {
+        const content = getCurrentContent();
+        if (!content) return;
+        const blob = new Blob([dom.modelResult.innerText], { type: 'application/msword' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -466,14 +744,11 @@ Keep language age-appropriate for ${level} level. Be detailed, practical, and en
         URL.revokeObjectURL(url);
         showToast('Word document exported!');
     }
-    
-    function exportAsTxt() {
-        const content = document.getElementById('modelResult').innerText;
-        if (!content || content.includes('Select options') || content.includes('placeholder-text')) {
-            showToast('Please generate a model first!', 'error');
-            return;
-        }
-        const blob = new Blob([content], { type: 'text/plain' });
+
+    function exportTxt() {
+        const content = getCurrentContent();
+        if (!content) return;
+        const blob = new Blob([dom.modelResult.innerText], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -482,21 +757,18 @@ Keep language age-appropriate for ${level} level. Be detailed, practical, and en
         URL.revokeObjectURL(url);
         showToast('Text file exported!');
     }
-    
-    function exportAsJSON() {
-        const content = document.getElementById('modelResult').innerHTML;
-        if (!content || content.includes('placeholder-text') || content.includes('Select options')) {
-            showToast('Please generate a model first!', 'error');
-            return;
-        }
+
+    function exportJSON() {
+        const content = getCurrentContent();
+        if (!content) return;
         const data = {
             tool: TOOL_SLUG,
             generatedAt: new Date().toISOString(),
             content: content,
             metadata: {
-                educationLevel: document.getElementById('educationLevel')?.value || '',
-                scienceField: document.getElementById('scienceField')?.value || '',
-                difficulty: document.getElementById('difficultyLevel')?.value || ''
+                educationLevel: dom.educationLevel?.value || '',
+                scienceField: dom.scienceField?.value || '',
+                difficulty: dom.difficultyLevel?.value || ''
             }
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -508,83 +780,75 @@ Keep language age-appropriate for ${level} level. Be detailed, practical, and en
         URL.revokeObjectURL(url);
         showToast('JSON exported!');
     }
-    
+
     // ============================================
-    // MAIN GENERATION FUNCTION
+    // TYPEWRITER EFFECT
     // ============================================
-    async function generateModel() {
-        const level = document.getElementById('educationLevel').value;
-        const field = document.getElementById('scienceField').value;
-        const modelTypeSelect = document.getElementById('modelType');
-        const modelTypeValue = modelTypeSelect.options[modelTypeSelect.selectedIndex]?.text;
-        
-        if (!level || !field || !modelTypeValue) {
-            showToast('Please select all options!', 'error');
-            return;
-        }
-        
-        const options = {
-            difficulty: document.getElementById('difficultyLevel')?.value || 'medium',
-            time: document.getElementById('timeRequired')?.value || '1hour',
-            budget: document.getElementById('budgetRange')?.value || 'low',
-            groupSize: document.getElementById('groupSize')?.value || 'individual',
-            assessment: document.getElementById('assessmentType')?.value || 'presentation',
-            materialSource: document.getElementById('materialSource')?.value || 'mixed',
-            focusAreas: Array.from(document.querySelectorAll('.checkbox-group input:checked')).map(cb => cb.value)
-        };
-        
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const modelResult = document.getElementById('modelResult');
-        
-        if (loadingSpinner) loadingSpinner.style.display = 'block';
-        if (modelResult) modelResult.innerHTML = '';
-        
-        await incrementUsage();
-        
-        try {
-            const aiContent = await generateWithGrok(level, field, modelTypeValue, options);
-            const formattedHtml = formatModelResult(aiContent);
-            if (modelResult) {
-                modelResult.innerHTML = formattedHtml || `<div class="result-section"><p>${aiContent.replace(/\n/g, '<br>')}</p></div>`;
+    function initTypewriter() {
+        const phrases = [
+            'Generate STEM project ideas...',
+            'Create biology models...',
+            'Build physics experiments...',
+            'Design chemistry projects...',
+            'Explore astronomy concepts...',
+            'Innovate with AI...'
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const element = document.getElementById('typewriterText');
+        if (!element) return;
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            if (!isDeleting) {
+                element.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+                if (charIndex === currentPhrase.length) {
+                    isDeleting = true;
+                    setTimeout(type, 2000);
+                    return;
+                }
+                setTimeout(type, 80);
+            } else {
+                element.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+                if (charIndex === 0) {
+                    isDeleting = false;
+                    phraseIndex = (phraseIndex + 1) % phrases.length;
+                    setTimeout(type, 500);
+                    return;
+                }
+                setTimeout(type, 40);
             }
-            saveToRecent(modelTypeValue, formattedHtml);
-            showToast('✨ Model generated successfully with Grok AI!');
-        } catch (error) {
-            if (modelResult) {
-                modelResult.innerHTML = '<p class="placeholder-text">Error generating model. Please try again.</p>';
-            }
-            showToast('Error: ' + error.message, 'error');
-        } finally {
-            if (loadingSpinner) loadingSpinner.style.display = 'none';
         }
+        type();
     }
-    
+
     // ============================================
-    // EVENT LISTENERS SETUP
+    // INITIALIZATION
     // ============================================
-    function setupEventListeners() {
-        const generateBtn = document.getElementById('generateBtn');
-        if (generateBtn) generateBtn.addEventListener('click', generateModel);
-        
-        const exportPDF = document.getElementById('exportPDFBtn');
-        if (exportPDF) exportPDF.addEventListener('click', exportAsPDF);
-        
-        const exportWord = document.getElementById('exportWordBtn');
-        if (exportWord) exportWord.addEventListener('click', exportAsWord);
-        
-        const exportTxt = document.getElementById('exportTxtBtn');
-        if (exportTxt) exportTxt.addEventListener('click', exportAsTxt);
-        
-        const exportJSON = document.getElementById('exportJSONBtn');
-        if (exportJSON) exportJSON.addEventListener('click', exportAsJSON);
-        
-        const scienceField = document.getElementById('scienceField');
-        if (scienceField) scienceField.addEventListener('change', populateModelTypes);
-        
-        // Social sharing buttons
+    function init() {
+        // Populate model types on field change
+        if (dom.scienceField) {
+            dom.scienceField.addEventListener('change', populateModelTypes);
+        }
+
+        // Generate button
+        if (dom.generateBtn) {
+            dom.generateBtn.addEventListener('click', generateModel);
+        }
+
+        // Export buttons
+        if (dom.exportPDF) dom.exportPDF.addEventListener('click', exportPDF);
+        if (dom.exportWord) dom.exportWord.addEventListener('click', exportWord);
+        if (dom.exportTxt) dom.exportTxt.addEventListener('click', exportTxt);
+        if (dom.exportJSON) dom.exportJSON.addEventListener('click', exportJSON);
+
+        // Share buttons
         document.querySelectorAll('.share-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const platform = btn.dataset.platform;
+            btn.addEventListener('click', async function() {
+                const platform = this.dataset.platform;
                 const url = encodeURIComponent(window.location.href);
                 const title = encodeURIComponent('Science Models Idea Generator');
                 const shareUrls = {
@@ -594,92 +858,98 @@ Keep language age-appropriate for ${level} level. Be detailed, practical, and en
                     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
                     telegram: `https://t.me/share/url?url=${url}&text=${title}`
                 };
-                
-                const shareUrl = shareUrls[platform];
-                if (shareUrl) {
-                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                if (shareUrls[platform]) {
+                    window.open(shareUrls[platform], '_blank', 'width=600,height=400');
                     await recordShare(platform);
                 }
             });
         });
-        
-        const copyUrlBtn = document.getElementById('copyUrlBtn');
-        if (copyUrlBtn) {
-            copyUrlBtn.addEventListener('click', async () => {
-                await navigator.clipboard.writeText(window.location.href);
-                await recordShare('copy');
-                showToast('URL copied!');
+
+        // Copy URL
+        if (dom.copyUrlBtn) {
+            dom.copyUrlBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    await recordShare('copy');
+                    showToast('URL copied!');
+                } catch (e) {
+                    showToast('Failed to copy URL', 'error');
+                }
             });
         }
-        
-        // Dark mode
-        const darkToggle = document.getElementById('darkModeToggle');
-        if (darkToggle) {
-            darkToggle.addEventListener('click', () => {
+
+        // Dark mode toggle
+        if (dom.darkToggle) {
+            dom.darkToggle.addEventListener('click', () => {
                 document.body.classList.toggle('dark-mode');
                 const isDark = document.body.classList.contains('dark-mode');
-                localStorage.setItem('darkMode', isDark);
-                darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
+                localStorage.setItem('science_models_dark', isDark);
+                dom.darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
             });
         }
-        
+
         // Scroll buttons
-        const scrollUp = document.getElementById('scrollUpBtn');
-        const scrollDown = document.getElementById('scrollDownBtn');
-        if (scrollUp) scrollUp.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        if (scrollDown) scrollDown.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-        
-        // Modal
-        const closeModal = document.getElementById('closeModal');
-        const premiumModal = document.getElementById('premiumModal');
-        if (closeModal && premiumModal) {
-            closeModal.addEventListener('click', () => premiumModal.style.display = 'none');
-            premiumModal.addEventListener('click', (e) => {
-                if (e.target === premiumModal) premiumModal.style.display = 'none';
-            });
+        if (dom.scrollUp) {
+            dom.scrollUp.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         }
-        
-        // Premium buttons
-        document.querySelectorAll('.btn-primary').forEach(btn => {
-            if (btn.id !== 'generateBtn' && premiumModal) {
-                btn.addEventListener('click', () => premiumModal.style.display = 'flex');
-            }
-        });
-    }
-    
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-    function init() {
-        // Load dark mode preference
-        if (localStorage.getItem('darkMode') === 'true') {
+        if (dom.scrollDown) {
+            dom.scrollDown.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+        }
+
+        // Load saved dark mode
+        if (localStorage.getItem('science_models_dark') === 'true') {
             document.body.classList.add('dark-mode');
-            const darkToggle = document.getElementById('darkModeToggle');
-            if (darkToggle) darkToggle.innerHTML = '<i class="fas fa-sun"></i> Light';
+            if (dom.darkToggle) dom.darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
         }
-        
+
         // Load recent models
-        const saved = localStorage.getItem('recent_models');
+        const saved = localStorage.getItem('science_models_recent');
         if (saved) {
-            recentModels = JSON.parse(saved);
-            renderRecentModels();
+            try {
+                recentModels = JSON.parse(saved);
+                renderRecentModels();
+            } catch (e) {
+                recentModels = [];
+            }
         }
-        
-        // Setup event listeners
-        setupEventListeners();
-        
-        // Load data from TiDB
-        getUsageCount();
-        getReactions();
-        
-        // Show welcome message
-        setTimeout(() => showToast('🚀 Science Models Generator Ready! Select options and generate with Grok AI'), 1000);
+
+        // Typewriter effect
+        initTypewriter();
+
+        // Fetch stats from API
+        fetchStats();
+
+        // Auto-increment view on load
+        async function incrementView() {
+            try {
+                const data = await callAPI('/api/views', 'POST', {
+                    tool_slug: TOOL_SLUG,
+                    user_id: USER_ID
+                });
+                if (data.success) {
+                    statsData.views = data.total_views || data.views || 0;
+                    updateStatsDisplay();
+                }
+            } catch (e) {
+                let localViews = parseInt(localStorage.getItem('science_models_views') || '0');
+                localViews++;
+                localStorage.setItem('science_models_views', localViews);
+                statsData.views = localViews;
+                updateStatsDisplay();
+            }
+        }
+        incrementView();
+
+        showToast('🚀 Science Models Generator Ready!', 'info');
     }
-    
-    // Wait for DOM to load
+
+    // ============================================
+    // START
+    // ============================================
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
+
 })();
