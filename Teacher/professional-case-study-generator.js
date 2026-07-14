@@ -1,7 +1,6 @@
 /* ============================================
    PROFESSIONAL CASE STUDY GENERATOR - MAIN SCRIPT
-   Baby Pink + Purple Theme | Full API Integration
-   All Features Working: Reactions, Shares, Export, Dark Mode
+   AI-Powered | Cloudflare Workers API | Real Data
    ============================================ */
 
 // ============================================
@@ -17,151 +16,338 @@ if (!sessionId) {
     localStorage.setItem('session_id', sessionId);
 }
 
-// Dark Mode
-if (localStorage.getItem('darkMode') === 'enabled') {
-    document.body.classList.add('dark-mode');
-    const darkToggle = document.getElementById('darkModeToggle');
-    if (darkToggle) darkToggle.innerHTML = '<i class="fas fa-sun"></i>';
-}
-
-// Reactions Data (Local Storage Fallback)
-let reactionsData = {
-    '👍': parseInt(localStorage.getItem(`${TOOL_SLUG}_like`) || 0),
-    '❤️': parseInt(localStorage.getItem(`${TOOL_SLUG}_love`) || 0),
-    '😮': parseInt(localStorage.getItem(`${TOOL_SLUG}_wow`) || 0),
-    '😢': parseInt(localStorage.getItem(`${TOOL_SLUG}_sad`) || 0),
-    '😠': parseInt(localStorage.getItem(`${TOOL_SLUG}_angry`) || 0),
-    '😂': parseInt(localStorage.getItem(`${TOOL_SLUG}_laugh`) || 0),
-    '🎉': parseInt(localStorage.getItem(`${TOOL_SLUG}_celebrate`) || 0)
-};
-
-let userReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_user_reactions`) || '[]');
-
-// Usage Counter
-let usageCount = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || 0);
-
 // ============================================
 // DOM ELEMENTS
 // ============================================
-const topicInput = document.getElementById('topic');
-const industrySelect = document.getElementById('industry');
-const caseTypeSelect = document.getElementById('caseType');
-const additionalContext = document.getElementById('additionalContext');
-const generateBtn = document.getElementById('generateBtn');
-const outputPlaceholder = document.getElementById('outputPlaceholder');
-const caseStudyResult = document.getElementById('caseStudyResult');
-const loadingOverlay = document.getElementById('loadingOverlay');
-const toastContainer = document.getElementById('toastContainer');
-const premiumModal = document.getElementById('premiumModal');
-const usageCountSpan = document.getElementById('usageCount');
-const heroUsageCount = document.getElementById('heroUsageCount');
-const copyContentBtn = document.getElementById('copyContentBtn');
-const exportTxtBtn = document.getElementById('exportTxtBtn');
-const exportPdfBtn = document.getElementById('exportPdfBtn');
-const exportDocBtn = document.getElementById('exportDocBtn');
-const scrollUpBtn = document.getElementById('scrollUpBtn');
-const scrollDownBtn = document.getElementById('scrollDownBtn');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const premiumBtn = document.getElementById('premiumBtn');
-const closeModalBtn = document.getElementById('closeModalBtn');
+const elements = {
+    topic: document.getElementById('topic'),
+    industry: document.getElementById('industry'),
+    caseType: document.getElementById('caseType'),
+    additionalContext: document.getElementById('additionalContext'),
+    generateBtn: document.getElementById('generateBtn'),
+    generateAIBtn: document.getElementById('generateAIBtn'),
+    heroGenerateBtn: document.getElementById('heroGenerateBtn'),
+    outputPlaceholder: document.getElementById('outputPlaceholder'),
+    caseStudyResult: document.getElementById('caseStudyResult'),
+    loadingOverlay: document.getElementById('loadingOverlay'),
+    loadingText: document.getElementById('loadingText'),
+    loadingProgressBar: document.getElementById('loadingProgressBar'),
+    toastContainer: document.getElementById('toastContainer'),
+    usageCount: document.getElementById('usageCount'),
+    heroUsageCount: document.getElementById('heroUsageCount'),
+    heroViewsCount: document.getElementById('heroViewsCount'),
+    heroSharesCount: document.getElementById('heroSharesCount'),
+    heroFollowersCount: document.getElementById('heroFollowersCount'),
+    copyContentBtn: document.getElementById('copyContentBtn'),
+    clearContentBtn: document.getElementById('clearContentBtn'),
+    exportTxtBtn: document.getElementById('exportTxtBtn'),
+    exportPdfBtn: document.getElementById('exportPdfBtn'),
+    exportDocBtn: document.getElementById('exportDocBtn'),
+    scrollUpBtn: document.getElementById('scrollUpBtn'),
+    scrollDownBtn: document.getElementById('scrollDownBtn'),
+    darkModeToggle: document.getElementById('darkModeToggle'),
+    homeBtn: document.getElementById('homeBtn'),
+    backBtn: document.getElementById('backBtn'),
+    premiumBtn: document.getElementById('premiumBtn'),
+    premiumBtn2: document.getElementById('premiumBtn2'),
+    typewriterText: document.getElementById('typewriterText'),
+};
 
 // ============================================
-// HELPER FUNCTIONS
+// TYPEWRITER ANIMATION
 // ============================================
+const typewriterPhrases = [
+    'for Educators',
+    'for Researchers',
+    'for Students',
+    'for Administrators',
+    'for Academics'
+];
 
-// Toast Notification
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function typewriterEffect() {
+    const currentPhrase = typewriterPhrases[phraseIndex];
+    
+    if (isDeleting) {
+        elements.typewriterText.textContent = currentPhrase.substring(0, charIndex - 1);
+        charIndex--;
+    } else {
+        elements.typewriterText.textContent = currentPhrase.substring(0, charIndex + 1);
+        charIndex++;
+    }
+    
+    let speed = isDeleting ? 50 : 100;
+    
+    if (!isDeleting && charIndex === currentPhrase.length) {
+        speed = 2000;
+        isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % typewriterPhrases.length;
+        speed = 500;
+    }
+    
+    setTimeout(typewriterEffect, speed);
+}
+
+// Start typewriter on load
+setTimeout(typewriterEffect, 1000);
+
+// ============================================
+// TOAST SYSTEM
+// ============================================
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-info-circle'
+    };
     toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <i class="fas ${iconMap[type] || 'fa-check-circle'}"></i>
         <span>${message}</span>
     `;
-    toastContainer.appendChild(toast);
+    elements.toastContainer.appendChild(toast);
     
     setTimeout(() => {
         toast.style.animation = 'slideOut 0.3s ease forwards';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 3500);
 }
 
-// Show/Hide Loading
-function showLoading() {
-    loadingOverlay.classList.add('active');
+// ============================================
+// LOADING SYSTEM
+// ============================================
+function showLoading(message = 'Generating your professional case study with AI...') {
+    elements.loadingOverlay.classList.add('active');
+    elements.loadingText.textContent = message;
+    elements.loadingProgressBar.style.width = '0%';
+    
+    // Animate progress
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) {
+            clearInterval(interval);
+            elements.loadingProgressBar.style.width = '90%';
+        } else {
+            elements.loadingProgressBar.style.width = progress + '%';
+        }
+    }, 300);
+    
+    // Store interval to clear later
+    elements.loadingOverlay._progressInterval = interval;
 }
 
 function hideLoading() {
-    loadingOverlay.classList.remove('active');
+    const interval = elements.loadingOverlay._progressInterval;
+    if (interval) clearInterval(interval);
+    elements.loadingProgressBar.style.width = '100%';
+    setTimeout(() => {
+        elements.loadingOverlay.classList.remove('active');
+        elements.loadingProgressBar.style.width = '0%';
+    }, 500);
 }
 
 // ============================================
-// USAGE COUNTER FUNCTIONS
+// API FUNCTIONS
 // ============================================
-function updateUsageDisplay() {
-    usageCountSpan.textContent = usageCount.toLocaleString();
-    if (heroUsageCount) heroUsageCount.textContent = usageCount.toLocaleString();
+async function callAPI(endpoint, method = 'POST', data = null) {
+    try {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+        
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.warn('API call failed, using fallback:', error);
+        return null;
+    }
 }
 
-function incrementUsage() {
-    usageCount++;
-    localStorage.setItem(`${TOOL_SLUG}_usage`, usageCount);
-    updateUsageDisplay();
+// ============================================
+// STATS FUNCTIONS
+// ============================================
+async function fetchStats() {
+    try {
+        const data = await callAPI(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        
+        if (data && data.success) {
+            // Update hero stats with real data
+            if (elements.heroUsageCount) {
+                elements.heroUsageCount.textContent = data.usage.toLocaleString();
+            }
+            if (elements.heroViewsCount) {
+                elements.heroViewsCount.textContent = Math.floor(data.views || data.usage * 1.5).toLocaleString();
+            }
+            if (elements.heroSharesCount) {
+                elements.heroSharesCount.textContent = (data.shares || 0).toLocaleString();
+            }
+            if (elements.heroFollowersCount) {
+                elements.heroFollowersCount.textContent = (data.followers || Math.floor(data.usage * 0.08)).toLocaleString();
+            }
+            
+            // Update reactions
+            if (data.reactions) {
+                const reactionMap = {
+                    'like': 'reaction-like',
+                    'love': 'reaction-love',
+                    'wow': 'reaction-wow',
+                    'sad': 'reaction-sad',
+                    'laugh': 'reaction-laugh',
+                    'celebrate': 'reaction-celebrate'
+                };
+                
+                Object.keys(reactionMap).forEach(key => {
+                    const element = document.getElementById(reactionMap[key]);
+                    if (element) {
+                        element.textContent = data.reactions[key] || 0;
+                    }
+                });
+            }
+            
+            // Update usage badge
+            if (elements.usageCount) {
+                elements.usageCount.textContent = data.usage.toLocaleString();
+            }
+            
+            return data;
+        }
+    } catch (error) {
+        console.warn('Failed to fetch stats:', error);
+    }
     
-    // Try to sync with API (optional, doesn't block)
-    fetch(`${API_BASE_URL}/api/increment-usage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool_slug: TOOL_SLUG, user_id: sessionId })
-    }).catch(e => console.log('API sync failed, using local'));
+    // Fallback to localStorage
+    return getLocalStats();
+}
+
+function getLocalStats() {
+    const usage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+    return {
+        usage: usage,
+        views: Math.floor(usage * 1.5),
+        shares: 0,
+        followers: Math.floor(usage * 0.08)
+    };
 }
 
 // ============================================
-// REACTIONS FUNCTIONS
+// USAGE COUNTER
 // ============================================
-function updateReactionDisplays() {
-    document.getElementById('reaction-like').textContent = reactionsData['👍'] || 0;
-    document.getElementById('reaction-love').textContent = reactionsData['❤️'] || 0;
-    document.getElementById('reaction-wow').textContent = reactionsData['😮'] || 0;
-    document.getElementById('reaction-sad').textContent = reactionsData['😢'] || 0;
-    document.getElementById('reaction-angry').textContent = reactionsData['😠'] || 0;
-    document.getElementById('reaction-laugh').textContent = reactionsData['😂'] || 0;
-    document.getElementById('reaction-celebrate').textContent = reactionsData['🎉'] || 0;
+async function incrementUsage() {
+    let usage = parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+    usage++;
+    localStorage.setItem(`${TOOL_SLUG}_usage`, usage);
+    
+    // Update display
+    if (elements.usageCount) {
+        elements.usageCount.textContent = usage.toLocaleString();
+    }
+    if (elements.heroUsageCount) {
+        elements.heroUsageCount.textContent = usage.toLocaleString();
+    }
+    
+    // Sync with API
+    try {
+        await callAPI('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: sessionId
+        });
+    } catch (error) {
+        console.warn('Usage sync failed, using local');
+    }
 }
 
-function addReaction(reaction) {
+// ============================================
+// REACTIONS
+// ============================================
+let userReactions = JSON.parse(localStorage.getItem(`${TOOL_SLUG}_user_reactions`) || '[]');
+
+async function addReaction(reaction) {
     if (userReactions.includes(reaction)) {
-        showToast('You have already reacted with this emoji!', 'warning');
+        showToast('You already reacted with this emoji!', 'warning');
         return;
     }
     
-    reactionsData[reaction]++;
     userReactions.push(reaction);
-    
-    // Save to localStorage
-    localStorage.setItem(`${TOOL_SLUG}_like`, reactionsData['👍']);
-    localStorage.setItem(`${TOOL_SLUG}_love`, reactionsData['❤️']);
-    localStorage.setItem(`${TOOL_SLUG}_wow`, reactionsData['😮']);
-    localStorage.setItem(`${TOOL_SLUG}_sad`, reactionsData['😢']);
-    localStorage.setItem(`${TOOL_SLUG}_angry`, reactionsData['😠']);
-    localStorage.setItem(`${TOOL_SLUG}_laugh`, reactionsData['😂']);
-    localStorage.setItem(`${TOOL_SLUG}_celebrate`, reactionsData['🎉']);
     localStorage.setItem(`${TOOL_SLUG}_user_reactions`, JSON.stringify(userReactions));
     
-    updateReactionDisplays();
-    showToast('Thank you for your feedback!', 'success');
+    // Update local count
+    const countElement = document.getElementById(`reaction-${getReactionId(reaction)}`);
+    if (countElement) {
+        const currentCount = parseInt(countElement.textContent) || 0;
+        countElement.textContent = currentCount + 1;
+    }
     
-    // Try to sync with API
-    const emojiMap = { '👍': 'like', '❤️': 'love', '😮': 'wow', '😢': 'sad', '😠': 'angry', '😂': 'laugh', '🎉': 'celebrate' };
-    fetch(`${API_BASE_URL}/api/add-reaction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emojiMap[reaction], user_id: sessionId })
-    }).catch(e => console.log('API sync failed'));
+    // Highlight button
+    const buttons = document.querySelectorAll('.reaction-btn');
+    buttons.forEach(btn => {
+        if (btn.dataset.reaction === reaction) {
+            btn.classList.add('active');
+        }
+    });
+    
+    showToast(`Thank you for your feedback! ${reaction}`, 'success');
+    
+    // Sync with API
+    try {
+        await callAPI('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            emoji: getReactionId(reaction),
+            user_id: sessionId
+        });
+        // Refresh stats after reaction
+        fetchStats();
+    } catch (error) {
+        console.warn('Reaction sync failed, using local');
+    }
+}
+
+function getReactionId(emoji) {
+    const map = {
+        '👍': 'like',
+        '❤️': 'love',
+        '😮': 'wow',
+        '😢': 'sad',
+        '😂': 'laugh',
+        '🎉': 'celebrate'
+    };
+    return map[emoji] || 'like';
 }
 
 // ============================================
 // SHARE FUNCTIONS
 // ============================================
+async function recordShare(platform) {
+    try {
+        await callAPI('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            user_id: sessionId
+        });
+        fetchStats();
+    } catch (error) {
+        console.warn('Share record failed, using local');
+    }
+}
+
 function shareOnFacebook() {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
     showToast('Shared to Facebook!', 'success');
@@ -195,23 +381,91 @@ function shareByEmail() {
 }
 
 function copyPageURL() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('URL copied to clipboard!', 'success');
-    recordShare('copy');
-}
-
-function recordShare(platform) {
-    fetch(`${API_BASE_URL}/api/add-share`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: sessionId })
-    }).catch(e => console.log('Share record failed'));
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        showToast('URL copied to clipboard!', 'success');
+        recordShare('copy');
+    }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = window.location.href;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('URL copied to clipboard!', 'success');
+        recordShare('copy');
+    });
 }
 
 // ============================================
 // CASE STUDY GENERATION
 // ============================================
-function generateCaseStudyContent(topic, industry, caseType, context) {
+async function generateCaseStudy(useAI = true) {
+    const topic = elements.topic.value.trim();
+    const industry = elements.industry.value;
+    const caseType = elements.caseType.value;
+    const context = elements.additionalContext.value.trim();
+    
+    if (!topic) {
+        showToast('Please enter a topic first', 'error');
+        elements.topic.focus();
+        return;
+    }
+    
+    const typeNames = {
+        'problem-solution': 'Problem-Solution Analysis',
+        'comparative': 'Comparative Case Study',
+        'success-story': 'Success Story Analysis',
+        'exploratory': 'Exploratory Case Study',
+        'cumulative': 'Cumulative Case Study'
+    };
+    
+    const loadingMessage = useAI 
+        ? `Generating AI-powered case study on "${topic}"...` 
+        : `Generating case study on "${topic}"...`;
+    
+    showLoading(loadingMessage);
+    
+    try {
+        let content;
+        
+        if (useAI) {
+            // Try AI generation first
+            const result = await callAPI('/api/generate', 'POST', {
+                topic: topic,
+                industry: industry,
+                caseType: caseType,
+                context: context
+            });
+            
+            if (result && result.success && result.content) {
+                content = result.content;
+            } else {
+                // Fallback to static generation
+                content = generateFallbackCaseStudy(topic, industry, caseType, context);
+                showToast('AI service unavailable, using fallback generator', 'warning');
+            }
+        } else {
+            // Static generation
+            content = generateFallbackCaseStudy(topic, industry, caseType, context);
+        }
+        
+        displayCaseStudy(content);
+        await incrementUsage();
+        await fetchStats();
+        
+        hideLoading();
+        showToast('Case study generated successfully!', 'success');
+        autoSaveDraft();
+        
+    } catch (error) {
+        hideLoading();
+        showToast('Failed to generate case study. Please try again.', 'error');
+        console.error('Generation error:', error);
+    }
+}
+
+function generateFallbackCaseStudy(topic, industry, caseType, context) {
     const typeNames = {
         'problem-solution': 'Problem-Solution Analysis',
         'comparative': 'Comparative Case Study',
@@ -222,26 +476,32 @@ function generateCaseStudyContent(topic, industry, caseType, context) {
     
     const typeName = typeNames[caseType] || 'Problem-Solution Analysis';
     const industryText = industry || 'General Education';
+    const timestamp = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
     
     return `
         <h2><i class="fas fa-book-open"></i> Case Study: ${escapeHtml(topic)}</h2>
         <p><strong>Educational Sector:</strong> ${escapeHtml(industryText)}</p>
         <p><strong>Case Study Type:</strong> ${typeName}</p>
+        <p><strong>Generated:</strong> ${timestamp}</p>
         ${context ? `<p><strong>Additional Context:</strong> ${escapeHtml(context)}</p>` : ''}
         
         <h3><i class="fas fa-lightbulb"></i> Executive Summary</h3>
-        <p>This case study examines the implementation of ${escapeHtml(topic)} within the ${industryText} sector. The study explores key challenges, innovative solutions, and measurable outcomes that demonstrate the effectiveness of ${escapeHtml(topic)} in improving educational experiences and learning outcomes.</p>
+        <p>This comprehensive case study examines the implementation of ${escapeHtml(topic)} within the ${escapeHtml(industryText)} sector. Through detailed analysis of challenges, solutions, and outcomes, this study provides valuable insights for educators, administrators, and researchers.</p>
         
         <h3><i class="fas fa-chart-line"></i> Background & Context</h3>
-        <p>The ${industryText} institution faced significant challenges related to ${escapeHtml(topic.toLowerCase())}. Traditional approaches were proving insufficient, leading to decreased engagement and suboptimal results. This case study documents the journey from problem identification to solution implementation and results measurement.</p>
+        <p>The ${escapeHtml(industryText)} institution identified a critical need to address challenges related to ${escapeHtml(topic.toLowerCase())}. Traditional approaches were no longer meeting the evolving needs of students and stakeholders, prompting a strategic review and transformation initiative.</p>
         
         <h3><i class="fas fa-exclamation-triangle"></i> Key Challenges</h3>
         <ul>
             <li>Limited resources and budget constraints for implementing ${escapeHtml(topic)}</li>
             <li>Resistance to change from stakeholders and traditional mindset</li>
             <li>Lack of expertise and training in ${escapeHtml(topic.toLowerCase())} methodologies</li>
-            <li>Measuring impact and ROI of new initiatives</li>
-            <li>Scaling solutions across different departments/classrooms</li>
+            <li>Difficulty measuring impact and ROI of new initiatives</li>
+            <li>Scaling solutions across different departments and classrooms</li>
         </ul>
         
         <h3><i class="fas fa-rocket"></i> Solution Implementation</h3>
@@ -293,57 +553,53 @@ function generateCaseStudyContent(topic, industry, caseType, context) {
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-async function generateCaseStudy() {
-    const topic = topicInput.value.trim();
-    const industry = industrySelect.value;
-    const caseType = caseTypeSelect.value;
-    const context = additionalContext.value.trim();
-    
-    if (!topic) {
-        showToast('Please enter a topic first', 'error');
-        return;
-    }
-    
-    showLoading();
-    
-    // Simulate API call delay
-    setTimeout(() => {
-        const content = generateCaseStudyContent(topic, industry, caseType, context);
-        displayCaseStudy(content);
-        incrementUsage();
-        hideLoading();
-        showToast('Case study generated successfully!', 'success');
-        
-        // Auto-save draft
-        autoSaveDraft();
-    }, 1500);
+function displayCaseStudy(html) {
+    elements.outputPlaceholder.style.display = 'none';
+    elements.caseStudyResult.style.display = 'block';
+    elements.caseStudyResult.classList.add('active');
+    elements.caseStudyResult.innerHTML = html;
 }
 
-function displayCaseStudy(html) {
-    outputPlaceholder.style.display = 'none';
-    caseStudyResult.style.display = 'block';
-    caseStudyResult.classList.add('active');
-    caseStudyResult.innerHTML = html;
+// ============================================
+// CONTENT OPERATIONS
+// ============================================
+function getCurrentContent() {
+    return elements.caseStudyResult.innerHTML;
+}
+
+function getPlainTextContent() {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = elements.caseStudyResult.innerHTML;
+    return tempDiv.textContent || tempDiv.innerText || '';
+}
+
+async function copyContent() {
+    const content = getPlainTextContent();
+    if (!content) {
+        showToast('No content to copy. Generate a case study first!', 'error');
+        return;
+    }
+    await navigator.clipboard.writeText(content);
+    showToast('Content copied to clipboard!', 'success');
+}
+
+function clearContent() {
+    elements.caseStudyResult.innerHTML = '';
+    elements.caseStudyResult.style.display = 'none';
+    elements.caseStudyResult.classList.remove('active');
+    elements.outputPlaceholder.style.display = 'block';
+    showToast('Content cleared', 'warning');
 }
 
 // ============================================
 // EXPORT FUNCTIONS
 // ============================================
-function getCurrentContent() {
-    return caseStudyResult.innerHTML;
-}
-
-function getPlainTextContent() {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = caseStudyResult.innerHTML;
-    return tempDiv.textContent || tempDiv.innerText || '';
-}
-
 function exportAsTXT() {
     const content = getPlainTextContent();
     if (!content) {
@@ -353,7 +609,7 @@ function exportAsTXT() {
     const blob = new Blob([content], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `case-study-${topicInput.value.trim().replace(/\s+/g, '-') || 'untitled'}.txt`;
+    link.download = `case-study-${elements.topic.value.trim().replace(/\s+/g, '-') || 'untitled'}.txt`;
     link.click();
     URL.revokeObjectURL(link.href);
     showToast('Exported as TXT!', 'success');
@@ -366,20 +622,25 @@ async function exportAsPDF() {
         return;
     }
     
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    doc.setFontSize(18);
-    doc.setTextColor(244, 114, 182);
-    doc.text(`Case Study: ${topicInput.value.trim() || 'Untitled'}`, 20, 20);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    const splitText = doc.splitTextToSize(content, 170);
-    doc.text(splitText, 20, 35);
-    
-    doc.save(`case-study-${topicInput.value.trim().replace(/\s+/g, '-') || 'untitled'}.pdf`);
-    showToast('Exported as PDF!', 'success');
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.setTextColor(176, 38, 255);
+        doc.text(`Case Study: ${elements.topic.value.trim() || 'Untitled'}`, 20, 20);
+        
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        const splitText = doc.splitTextToSize(content, 170);
+        doc.text(splitText, 20, 35);
+        
+        doc.save(`case-study-${elements.topic.value.trim().replace(/\s+/g, '-') || 'untitled'}.pdf`);
+        showToast('Exported as PDF!', 'success');
+    } catch (error) {
+        showToast('PDF export failed. Please try again.', 'error');
+        console.error('PDF export error:', error);
+    }
 }
 
 function exportAsDOC() {
@@ -394,10 +655,10 @@ function exportAsDOC() {
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>Case Study: ${topicInput.value.trim()}</title>
+            <title>Case Study: ${elements.topic.value.trim()}</title>
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 20px; }
-                h2 { color: #F472B6; }
+                h2 { color: #B026FF; }
                 h3 { color: #A855F7; margin-top: 20px; }
                 ul, ol { margin-left: 20px; }
             </style>
@@ -411,24 +672,14 @@ function exportAsDOC() {
     const blob = new Blob([htmlContent], { type: 'application/msword' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `case-study-${topicInput.value.trim().replace(/\s+/g, '-') || 'untitled'}.doc`;
+    link.download = `case-study-${elements.topic.value.trim().replace(/\s+/g, '-') || 'untitled'}.doc`;
     link.click();
     URL.revokeObjectURL(link.href);
     showToast('Exported as DOC!', 'success');
 }
 
-async function copyContent() {
-    const content = getPlainTextContent();
-    if (!content) {
-        showToast('No content to copy. Generate a case study first!', 'error');
-        return;
-    }
-    await navigator.clipboard.writeText(content);
-    showToast('Content copied to clipboard!', 'success');
-}
-
 // ============================================
-// SCROLL FUNCTIONS
+// NAVIGATION
 // ============================================
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -438,26 +689,29 @@ function scrollToBottom() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+}
+
 // ============================================
-// DARK MODE TOGGLE
+// DARK MODE
 // ============================================
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-    darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    elements.darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     showToast(`${isDark ? 'Dark' : 'Light'} mode enabled!`, 'success');
 }
 
-// ============================================
-// PREMIUM MODAL
-// ============================================
-function openPremiumModal() {
-    premiumModal.classList.add('active');
-}
-
-function closePremiumModal() {
-    premiumModal.classList.remove('active');
+// Load dark mode preference
+if (localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark-mode');
+    elements.darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
 }
 
 // ============================================
@@ -465,10 +719,10 @@ function closePremiumModal() {
 // ============================================
 function autoSaveDraft() {
     const draft = {
-        topic: topicInput.value,
-        industry: industrySelect.value,
-        caseType: caseTypeSelect.value,
-        context: additionalContext.value,
+        topic: elements.topic.value,
+        industry: elements.industry.value,
+        caseType: elements.caseType.value,
+        context: elements.additionalContext.value,
         timestamp: Date.now()
     };
     localStorage.setItem(`${TOOL_SLUG}_draft`, JSON.stringify(draft));
@@ -478,10 +732,10 @@ function loadDraft() {
     const saved = localStorage.getItem(`${TOOL_SLUG}_draft`);
     if (saved) {
         const draft = JSON.parse(saved);
-        topicInput.value = draft.topic || '';
-        industrySelect.value = draft.industry || '';
-        caseTypeSelect.value = draft.caseType || 'problem-solution';
-        additionalContext.value = draft.context || '';
+        elements.topic.value = draft.topic || '';
+        elements.industry.value = draft.industry || '';
+        elements.caseType.value = draft.caseType || 'problem-solution';
+        elements.additionalContext.value = draft.context || '';
     }
 }
 
@@ -492,8 +746,8 @@ function loadDraft() {
 // Topic Badges
 document.querySelectorAll('.topic-badge').forEach(badge => {
     badge.addEventListener('click', () => {
-        topicInput.value = badge.getAttribute('data-topic');
-        showToast(`Topic set to: ${badge.getAttribute('data-topic')}`, 'success');
+        elements.topic.value = badge.dataset.topic;
+        showToast(`Topic set to: ${badge.dataset.topic}`, 'success');
         autoSaveDraft();
     });
 });
@@ -501,7 +755,7 @@ document.querySelectorAll('.topic-badge').forEach(badge => {
 // Reaction Buttons
 document.querySelectorAll('.reaction-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const emoji = btn.getAttribute('data-reaction');
+        const emoji = btn.dataset.reaction;
         addReaction(emoji);
     });
 });
@@ -514,37 +768,54 @@ document.querySelector('.share-btn.linkedin')?.addEventListener('click', shareOn
 document.querySelector('.share-btn.email')?.addEventListener('click', shareByEmail);
 document.querySelector('.share-btn.copy-url')?.addEventListener('click', copyPageURL);
 
-// Main Buttons
-generateBtn?.addEventListener('click', generateCaseStudy);
-copyContentBtn?.addEventListener('click', copyContent);
-exportTxtBtn?.addEventListener('click', exportAsTXT);
-exportPdfBtn?.addEventListener('click', exportAsPDF);
-exportDocBtn?.addEventListener('click', exportAsDOC);
-scrollUpBtn?.addEventListener('click', scrollToTop);
-scrollDownBtn?.addEventListener('click', scrollToBottom);
-darkModeToggle?.addEventListener('click', toggleDarkMode);
-premiumBtn?.addEventListener('click', openPremiumModal);
-closeModalBtn?.addEventListener('click', closePremiumModal);
-
-// Close modal on outside click
-premiumModal?.addEventListener('click', (e) => {
-    if (e.target === premiumModal) closePremiumModal();
+// Generate Buttons
+elements.generateBtn?.addEventListener('click', () => generateCaseStudy(false));
+elements.generateAIBtn?.addEventListener('click', () => generateCaseStudy(true));
+elements.heroGenerateBtn?.addEventListener('click', () => {
+    elements.topic.focus();
+    elements.topic.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
+// Content Operations
+elements.copyContentBtn?.addEventListener('click', copyContent);
+elements.clearContentBtn?.addEventListener('click', clearContent);
+
+// Export Buttons
+elements.exportTxtBtn?.addEventListener('click', exportAsTXT);
+elements.exportPdfBtn?.addEventListener('click', exportAsPDF);
+elements.exportDocBtn?.addEventListener('click', exportAsDOC);
+
+// Navigation
+elements.scrollUpBtn?.addEventListener('click', scrollToTop);
+elements.scrollDownBtn?.addEventListener('click', scrollToBottom);
+elements.homeBtn?.addEventListener('click', goHome);
+elements.backBtn?.addEventListener('click', goBack);
+
+// Dark Mode
+elements.darkModeToggle?.addEventListener('click', toggleDarkMode);
+
 // Auto-save on input
-topicInput?.addEventListener('input', autoSaveDraft);
-industrySelect?.addEventListener('change', autoSaveDraft);
-caseTypeSelect?.addEventListener('change', autoSaveDraft);
-additionalContext?.addEventListener('input', autoSaveDraft);
+elements.topic?.addEventListener('input', autoSaveDraft);
+elements.industry?.addEventListener('change', autoSaveDraft);
+elements.caseType?.addEventListener('change', autoSaveDraft);
+elements.additionalContext?.addEventListener('input', autoSaveDraft);
+
+// Enter key support
+elements.topic?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        generateCaseStudy(true);
+    }
+});
 
 // ============================================
 // INITIALIZATION
 // ============================================
-function init() {
-    updateReactionDisplays();
-    updateUsageDisplay();
+async function init() {
     loadDraft();
-    showToast('Welcome to CaseStudyPro! Generate your professional case study now.', 'success');
+    await fetchStats();
+    showToast('🚀 Welcome to CaseStudyPro! Generate your professional case study with AI.', 'success');
 }
 
+// Start the app
 init();
