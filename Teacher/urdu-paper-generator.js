@@ -1,12 +1,14 @@
 // ============================================
 // URDU PAPER GENERATOR - PROFESSIONAL V11
+// CLOUDFLARE WORKERS API - VERCEL + TiDB REMOVED
 // PDF/DOC/Print Issues FIXED
 // MCQ Grid preserved in print | No duplicate signature
 // ============================================
 
 const CONFIG = {
     TOOL_SLUG: 'urdu-paper-generator',
-    API_BASE: 'https://urdu-paper-generator.uzairhameed01.workers.dev'
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev'
 };
 
 let objectiveQuestions = [];
@@ -85,10 +87,16 @@ function showToast(msg, type = 'success') {
 function showLoading() { document.getElementById('loadingModal').style.display = 'flex'; }
 function hideLoading() { document.getElementById('loadingModal').style.display = 'none'; }
 
-// ========== API Calls to Cloudflare Worker ==========
+// ========== CLOUDFLARE API CALLS (Vercel + TiDB REMOVED) ==========
 async function apiCall(endpoint, method = 'GET', data = null) {
     try {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const options = { 
+            method, 
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            } 
+        };
         if (data) options.body = JSON.stringify(data);
         const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
         return await response.json();
@@ -100,38 +108,92 @@ async function apiCall(endpoint, method = 'GET', data = null) {
 
 // ========== Usage Counter ==========
 async function incrementUsage() {
-    const result = await apiCall('/api/increment-usage', 'POST', { tool_slug: CONFIG.TOOL_SLUG, user_id: userId });
-    if (result.success) document.getElementById('usageCount').textContent = result.total_usage || 0;
+    try {
+        const result = await apiCall('/api/increment-usage', 'POST', { 
+            tool_slug: CONFIG.TOOL_SLUG, 
+            user_id: userId 
+        });
+        if (result.success) {
+            document.getElementById('usageCount').textContent = result.total_usage || 0;
+            localStorage.setItem('usageCount', result.total_usage || 0);
+        }
+    } catch (error) {
+        console.error('Usage increment error:', error);
+        // Local fallback
+        let localCount = parseInt(localStorage.getItem('usageCount') || '0') + 1;
+        localStorage.setItem('usageCount', localCount);
+        document.getElementById('usageCount').textContent = localCount;
+    }
 }
 
 async function getUsage() {
-    const result = await apiCall(`/api/usage/get?tool_slug=${CONFIG.TOOL_SLUG}`);
-    if (result.success) document.getElementById('usageCount').textContent = result.total_usage || 0;
+    try {
+        const result = await apiCall(`/api/usage?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result.success) {
+            document.getElementById('usageCount').textContent = result.count || 0;
+            localStorage.setItem('usageCount', result.count || 0);
+        }
+    } catch (error) {
+        console.error('Get usage error:', error);
+        const localCount = localStorage.getItem('usageCount') || '0';
+        document.getElementById('usageCount').textContent = localCount;
+    }
 }
 
-// ========== Reactions ==========
+// ========== Reactions (7 Reactions) ==========
 async function addReaction(reaction) {
-    if (userReactions[reaction]) { showToast('پہلے ہی ری ایکٹ کر چکے ہیں', 'error'); return; }
-    const emojiMap = { like:'👍', love:'❤️', wow:'😮', sad:'😢', angry:'😠', laugh:'😂', celebrate:'🎉' };
-    const result = await apiCall('/api/reactions/add', 'POST', { tool_slug: CONFIG.TOOL_SLUG, emoji: emojiMap[reaction], reaction_type: reaction, user_id: userId });
-    if (result.success) {
+    if (userReactions[reaction]) { 
+        showToast('پہلے ہی ری ایکٹ کر چکے ہیں', 'error'); 
+        return; 
+    }
+    const emojiMap = { like:'👍', love:'❤️', wow:'😮', sad:'😢', laugh:'😂', celebrate:'🎉' };
+    try {
+        const result = await apiCall('/api/add-reaction', 'POST', { 
+            tool_slug: CONFIG.TOOL_SLUG, 
+            emoji: emojiMap[reaction] || '👍', 
+            reaction_type: reaction, 
+            user_id: userId 
+        });
+        if (result.success) {
+            userReactions[reaction] = true;
+            localStorage.setItem('userReactions', JSON.stringify(userReactions));
+            await getReactions();
+            showToast('ری ایکشن شامل کر دیا گیا');
+        } else if (result.already_reacted) {
+            showToast('پہلے ہی ری ایکٹ کر چکے ہیں', 'error');
+        }
+    } catch (error) {
+        console.error('Reaction error:', error);
+        // Local fallback
         userReactions[reaction] = true;
         localStorage.setItem('userReactions', JSON.stringify(userReactions));
-        await getReactions();
-        showToast('ری ایکشن شامل کر دیا گیا');
+        let localCount = parseInt(localStorage.getItem(`${reaction}Count`) || '0') + 1;
+        localStorage.setItem(`${reaction}Count`, localCount);
+        document.getElementById(`${reaction}Count`).textContent = localCount;
+        showToast('ری ایکشن شامل کر دیا گیا (مقامی)');
     }
 }
 
 async function getReactions() {
-    const result = await apiCall(`/api/reactions/get?tool_slug=${CONFIG.TOOL_SLUG}`);
-    if (result.success && result.reactions) {
-        document.getElementById('likeCount').textContent = result.reactions.like || 0;
-        document.getElementById('loveCount').textContent = result.reactions.love || 0;
-        document.getElementById('wowCount').textContent = result.reactions.wow || 0;
-        document.getElementById('sadCount').textContent = result.reactions.sad || 0;
-        document.getElementById('angryCount').textContent = result.reactions.angry || 0;
-        document.getElementById('laughCount').textContent = result.reactions.laugh || 0;
-        document.getElementById('celebrateCount').textContent = result.reactions.celebrate || 0;
+    try {
+        const result = await apiCall(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result.success && result.reactions) {
+            document.getElementById('likeCount').textContent = result.reactions.like || 0;
+            document.getElementById('loveCount').textContent = result.reactions.love || 0;
+            document.getElementById('wowCount').textContent = result.reactions.wow || 0;
+            document.getElementById('sadCount').textContent = result.reactions.sad || 0;
+            document.getElementById('laughCount').textContent = result.reactions.laugh || 0;
+            document.getElementById('celebrateCount').textContent = result.reactions.celebrate || 0;
+        }
+    } catch (error) {
+        console.error('Get reactions error:', error);
+        // Local fallback
+        document.getElementById('likeCount').textContent = localStorage.getItem('likeCount') || '0';
+        document.getElementById('loveCount').textContent = localStorage.getItem('loveCount') || '0';
+        document.getElementById('wowCount').textContent = localStorage.getItem('wowCount') || '0';
+        document.getElementById('sadCount').textContent = localStorage.getItem('sadCount') || '0';
+        document.getElementById('laughCount').textContent = localStorage.getItem('laughCount') || '0';
+        document.getElementById('celebrateCount').textContent = localStorage.getItem('celebrateCount') || '0';
     }
 }
 
@@ -140,13 +202,46 @@ document.querySelectorAll('.reaction').forEach(btn => {
 });
 
 // ========== Share Functions ==========
+async function addShare(platform) {
+    try {
+        await apiCall('/api/add-share', 'POST', { 
+            tool_slug: CONFIG.TOOL_SLUG, 
+            platform: platform, 
+            user_id: userId 
+        });
+        let shareCount = parseInt(localStorage.getItem('shareCount') || '0') + 1;
+        localStorage.setItem('shareCount', shareCount);
+    } catch (error) {
+        console.error('Share error:', error);
+        let shareCount = parseInt(localStorage.getItem('shareCount') || '0') + 1;
+        localStorage.setItem('shareCount', shareCount);
+    }
+}
+
 function shareOnFacebook() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('facebook'); }
 function shareOnTwitter() { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('اردو پیپر جنریٹر')}&url=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('twitter'); }
 function shareOnWhatsApp() { window.open(`https://wa.me/?text=${encodeURIComponent('اردو پیپر جنریٹر: ' + window.location.href)}`, '_blank'); addShare('whatsapp'); }
 function shareOnLinkedIn() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); addShare('linkedin'); }
 function shareOnEmail() { window.location.href = `mailto:?subject=اردو پیپر جنریٹر&body=${encodeURIComponent(window.location.href)}`; addShare('email'); }
 function copyPageURL() { navigator.clipboard.writeText(window.location.href); showToast('لنک کاپی ہو گیا'); addShare('copy'); }
-async function addShare(platform) { await apiCall('/api/shares/add', 'POST', { tool_slug: CONFIG.TOOL_SLUG, platform, user_id: userId }); }
+
+// ========== Dashboard Stats ==========
+async function getStats() {
+    try {
+        const result = await apiCall(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`, 'GET');
+        if (result.success) {
+            document.getElementById('statUsage').textContent = result.usage || 0;
+            document.getElementById('statViews').textContent = result.views || 0;
+            document.getElementById('statShares').textContent = result.shares || 0;
+            document.getElementById('statFollowers').textContent = result.followers || 0;
+        }
+    } catch (error) {
+        console.error('Get stats error:', error);
+        // Local fallback
+        document.getElementById('statUsage').textContent = localStorage.getItem('usageCount') || '0';
+        document.getElementById('statShares').textContent = localStorage.getItem('shareCount') || '0';
+    }
+}
 
 // ========== Update Question Types Based on Bloom Level ==========
 function updateObjectiveQuestionTypes() {
@@ -542,7 +637,7 @@ function generateMarkingKey() {
     const allQuestions = [...objData, ...subjData];
     const totalMarks = allQuestions.reduce((a,b)=>a+b.marks,0);
     
-    let html = `<div class="marking-key"><h3>🔑 مارکنگ کلید</h3><td><thead><th>سوال نمبر</th><th>قسم</th><th>بلومز لیول</th><th>مشکل سطح</th><th>نمبر</th><th>تصحیح ہدایات</th></thead><tbody>`;
+    let html = `<div class="marking-key"><h3>🔑 مارکنگ کلید</h3><table><thead><th>سوال نمبر</th><th>قسم</th><th>بلومز لیول</th><th>مشکل سطح</th><th>نمبر</th><th>تصحیح ہدایات</th></thead><tbody>`;
     let qNum = 1;
     objData.forEach(q => {
         let instr = q.type === 'mcq' || q.type === 'scenario-mcq' ? `صحیح جواب پر ${q.marks} نمبر` : (q.type === 'fillblank' ? `درست جواب پر ${q.marks} نمبر` : `صحیح جواب پر ${q.marks} نمبر`);
@@ -961,57 +1056,102 @@ function exportAnalysisReport() {
     showToast('رپورٹ ڈاؤن لوڈ ہو گئی');
 }
 
-// ========== Save & Load ==========
-async function savePaper() {
-    const designData = { tool_slug: CONFIG.TOOL_SLUG, user_id: userId, design_name: document.getElementById('paperTitle').value || 'Unnamed', design_json: JSON.stringify({ objective: collectObjectiveData(), subjective: collectSubjectiveData(), metadata: { school: document.getElementById('schoolName').value, subject: document.getElementById('subject').value, term: document.getElementById('term').value, totalMarks: document.getElementById('totalMarks').value, time: document.getElementById('time').value, instructions: document.getElementById('instructions').value, teacherSignature: document.getElementById('teacherSignature').value, logo: currentLogo } }) };
-    showLoading();
-    const result = await apiCall('/api/save-design', 'POST', designData);
-    hideLoading();
-    if (result.success) { showToast('پرچہ محفوظ ہو گیا'); loadSavedPapers(); } else { showToast('محفوظ کرنے میں خرابی', 'error'); }
-}
-
-async function loadSavedPapers() {
-    const result = await apiCall(`/api/get-designs?tool_slug=${CONFIG.TOOL_SLUG}&user_id=${userId}`);
-    const container = document.getElementById('savedList');
-    if (result.success && result.designs?.length) { container.innerHTML = result.designs.map(d => `<div class="saved-item"><span>📄 ${escapeHtml(d.design_name)} - ${new Date(d.created_at).toLocaleDateString()}</span><div><button class="btn-primary" onclick="loadPaper(${d.id})">لوڈ</button><button class="btn-danger" onclick="deletePaper(${d.id})">حذف</button></div></div>`).join(''); } 
-    else { container.innerHTML = '<p style="text-align:center">کوئی محفوظ پرچہ نہیں</p>'; }
-}
-
-async function loadPaper(id) {
-    const result = await apiCall(`/api/get-design?id=${id}&tool_slug=${CONFIG.TOOL_SLUG}`);
-    if (result.success && result.design) {
-        const data = JSON.parse(result.design.design_json);
-        document.getElementById('objectiveList').innerHTML = '';
-        document.getElementById('subjectiveList').innerHTML = '';
-        objectiveQuestions = []; subjectiveQuestions = [];
-        if (data.objective) data.objective.forEach(q => addObjectiveWithData(q));
-        if (data.subjective) data.subjective.forEach(q => addSubjectiveWithData(q));
-        if (data.metadata) {
-            document.getElementById('schoolName').value = data.metadata.school || '';
-            document.getElementById('subject').value = data.metadata.subject || '';
-            document.getElementById('term').value = data.metadata.term || 'پہلا ٹرم';
-            document.getElementById('totalMarks').value = data.metadata.totalMarks || '';
-            document.getElementById('time').value = data.metadata.time || '';
-            document.getElementById('instructions').value = data.metadata.instructions || '';
-            document.getElementById('teacherSignature').value = data.metadata.teacherSignature || '';
-            if (data.metadata.logo) {
-                currentLogo = data.metadata.logo;
-                document.getElementById('schoolLogo').src = currentLogo;
-                localStorage.setItem('schoolLogo', currentLogo);
+// ========== Save & Load (LocalStorage only - API removed) ==========
+function savePaper() {
+    const designData = {
+        tool_slug: CONFIG.TOOL_SLUG,
+        user_id: userId,
+        design_name: document.getElementById('paperTitle').value || 'Unnamed',
+        design_json: JSON.stringify({
+            objective: collectObjectiveData(),
+            subjective: collectSubjectiveData(),
+            metadata: {
+                school: document.getElementById('schoolName').value,
+                subject: document.getElementById('subject').value,
+                term: document.getElementById('term').value,
+                totalMarks: document.getElementById('totalMarks').value,
+                time: document.getElementById('time').value,
+                instructions: document.getElementById('instructions').value,
+                teacherSignature: document.getElementById('teacherSignature').value,
+                logo: currentLogo
             }
-        }
-        showToast('پرچہ لوڈ ہو گیا');
-        document.querySelector('.tab[data-tab="setup"]').click();
-        updateAnalysis();
-        generatePreview();
-        generateMarkingKey();
+        })
+    };
+    
+    // Save to localStorage
+    let savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
+    savedPapers.push({
+        id: Date.now(),
+        design_name: designData.design_name,
+        design_json: designData.design_json,
+        created_at: new Date().toISOString()
+    });
+    localStorage.setItem('savedPapers', JSON.stringify(savedPapers));
+    showToast('پرچہ محفوظ ہو گیا');
+    loadSavedPapers();
+}
+
+function loadSavedPapers() {
+    const container = document.getElementById('savedList');
+    const savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
+    
+    if (savedPapers.length) {
+        container.innerHTML = savedPapers.map((d, index) => `
+            <div class="saved-item">
+                <span>📄 ${escapeHtml(d.design_name)} - ${new Date(d.created_at).toLocaleDateString()}</span>
+                <div>
+                    <button class="btn-primary" onclick="loadPaper(${index})">لوڈ</button>
+                    <button class="btn-danger" onclick="deletePaper(${index})">حذف</button>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        container.innerHTML = '<p style="text-align:center">کوئی محفوظ پرچہ نہیں</p>';
     }
 }
 
-async function deletePaper(id) {
+function loadPaper(index) {
+    const savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
+    const design = savedPapers[index];
+    if (!design) return;
+    
+    const data = JSON.parse(design.design_json);
+    document.getElementById('objectiveList').innerHTML = '';
+    document.getElementById('subjectiveList').innerHTML = '';
+    objectiveQuestions = [];
+    subjectiveQuestions = [];
+    
+    if (data.objective) data.objective.forEach(q => addObjectiveWithData(q));
+    if (data.subjective) data.subjective.forEach(q => addSubjectiveWithData(q));
+    
+    if (data.metadata) {
+        document.getElementById('schoolName').value = data.metadata.school || '';
+        document.getElementById('subject').value = data.metadata.subject || '';
+        document.getElementById('term').value = data.metadata.term || 'پہلا ٹرم';
+        document.getElementById('totalMarks').value = data.metadata.totalMarks || '';
+        document.getElementById('time').value = data.metadata.time || '';
+        document.getElementById('instructions').value = data.metadata.instructions || '';
+        document.getElementById('teacherSignature').value = data.metadata.teacherSignature || '';
+        if (data.metadata.logo) {
+            currentLogo = data.metadata.logo;
+            document.getElementById('schoolLogo').src = currentLogo;
+            localStorage.setItem('schoolLogo', currentLogo);
+        }
+    }
+    showToast('پرچہ لوڈ ہو گیا');
+    document.querySelector('.tab[data-tab="setup"]').click();
+    updateAnalysis();
+    generatePreview();
+    generateMarkingKey();
+}
+
+function deletePaper(index) {
     if (confirm('کیا آپ یقیناً حذف کرنا چاہتے ہیں؟')) {
-        const result = await apiCall('/api/delete-design', 'DELETE', { id: id, tool_slug: CONFIG.TOOL_SLUG, user_id: userId });
-        if (result.success) { showToast('پرچہ حذف ہو گیا'); loadSavedPapers(); }
+        let savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
+        savedPapers.splice(index, 1);
+        localStorage.setItem('savedPapers', JSON.stringify(savedPapers));
+        showToast('پرچہ حذف ہو گیا');
+        loadSavedPapers();
     }
 }
 
@@ -1079,11 +1219,16 @@ async function init() {
     updateSubjectiveQuestionTypes();
     document.getElementById('schoolLogo').src = currentLogo;
     if (currentLogo !== 'https://cdn-icons-png.flaticon.com/128/15120/15120883.png') document.getElementById('removeLogoBtn').style.display = 'inline-block';
+    
+    // Load data from Cloudflare API
     await getReactions();
     await getUsage();
+    await getStats();
     incrementUsage();
     loadDraft();
     autoSaveDraft();
+    loadSavedPapers();
+    
     setInterval(() => { 
         const active = document.querySelector('.tab.active')?.dataset.tab; 
         if (active === 'preview') { generatePreview(); generateMarkingKey(); }
