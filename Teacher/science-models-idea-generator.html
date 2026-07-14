@@ -1,470 +1,353 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Science Models Idea Generator | Grok AI + TiDB + Reactions</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        :root {
-            --orange: #f97316;
-            --purple: #8b5cf6;
-            --sky: #0ea5e9;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --gradient: linear-gradient(135deg, var(--orange), var(--purple), var(--sky));
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
-            --border-radius: 1.5rem;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Science Models Idea Generator - AI-Powered STEM Project Ideas for Students</title>
+    <meta name="description" content="Generate innovative science model ideas with Grok AI. Perfect for students, teachers, and STEM education. Get detailed project guides for biology, physics, chemistry, astronomy & more." />
+    <meta name="keywords" content="science model ideas, STEM projects, science fair projects, AI science generator, Grok AI, educational tools, science experiments, project ideas, biology models, physics models, chemistry models" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://magicrills.com/tools/science-models-idea-generator.html" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Science Models Idea Generator - AI-Powered STEM Project Ideas" />
+    <meta property="og:description" content="Generate innovative science model ideas with Grok AI. Perfect for students, teachers, and STEM education." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://magicrills.com/tools/science-models-idea-generator.html" />
+    <meta property="og:image" content="https://magicrills.com/assets/images/science-models-og.jpg" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Science Models Idea Generator - AI-Powered STEM Project Ideas" />
+    <meta name="twitter:description" content="Generate innovative science model ideas with Grok AI. Perfect for students, teachers, and STEM education." />
+    
+    <!-- Schema Markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Science Models Idea Generator",
+        "description": "Generate innovative science model ideas with Grok AI. Perfect for students, teachers, and STEM education.",
+        "applicationCategory": "Educational Application",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: linear-gradient(145deg, #fff5f0 0%, #f0f9ff 100%); min-height: 100vh; transition: background 0.3s; }
-        body.dark-mode { background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%); color: #e2e8f0; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .glass-card { background: var(--card-bg); backdrop-filter: blur(10px); border-radius: var(--border-radius); box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .glass-card:hover { transform: translateY(-5px); box-shadow: 0 25px 40px -12px rgba(0,0,0,0.2); }
-        body.dark-mode .glass-card { background: rgba(30,41,59,0.95); border-color: rgba(255,255,255,0.1); }
-        .hero-section { padding: 50px; margin-bottom: 40px; text-align: center; position: relative; background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(139,92,246,0.1), rgba(14,165,233,0.1)); }
-        .dark-toggle { position: absolute; top: 25px; right: 25px; background: rgba(255,255,255,0.2); border: none; border-radius: 60px; padding: 10px 18px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        .dark-toggle:hover { background: var(--gradient); color: white; }
-        .hero-badge { background: linear-gradient(135deg, var(--orange), var(--purple)); display: inline-block; padding: 6px 20px; border-radius: 40px; font-weight: 600; margin-bottom: 20px; color: white; }
-        .hero-title { font-size: 3rem; font-weight: 800; margin-bottom: 20px; }
-        .gradient-text { background: linear-gradient(135deg, var(--orange), var(--purple), var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .hero-subtitle { font-size: 1.2rem; max-width: 700px; margin: 0 auto; opacity: 0.8; }
-        .stats-row { display: flex; gap: 20px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
-        .stat-card { padding: 12px 24px; display: flex; align-items: center; gap: 12px; font-weight: 500; }
-        .stat-card i { font-size: 1.5rem; color: var(--orange); }
-        .dashboard { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; }
-        @media (max-width: 968px) { .dashboard { grid-template-columns: 1fr; } .hero-title { font-size: 2rem; } }
-        .control-panel, .result-panel { padding: 30px; }
-        .control-panel h2, .result-panel h2 { margin-bottom: 25px; font-size: 1.5rem; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 10px; }
-        .form-group select, .form-group input { width: 100%; padding: 12px 16px; border-radius: 16px; border: 1px solid #e2e8f0; background: white; font-size: 1rem; transition: all 0.3s; }
-        body.dark-mode .form-group select, body.dark-mode .form-group input { background: #1e293b; border-color: #475569; color: white; }
-        .enhanced-options { background: rgba(249,115,22,0.05); padding: 20px; border-radius: 20px; margin: 20px 0; }
-        .enhanced-options h3 { margin-bottom: 15px; font-size: 1.1rem; color: var(--orange); }
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .form-row .half { flex: 1; }
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
-        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; }
-        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--purple)); border: none; padding: 14px 28px; border-radius: 60px; font-weight: 700; font-size: 1rem; color: white; cursor: pointer; transition: all 0.3s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 8px 20px rgba(139,92,246,0.4); }
-        .export-buttons { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
-        .export-buttons button { flex: 1; padding: 10px; border-radius: 60px; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-pdf { background: #ef4444; color: white; }
-        .btn-word { background: #3b82f6; color: white; }
-        .btn-txt { background: #10b981; color: white; }
-        .btn-json { background: #6b7280; color: white; }
-        .reactions-section, .share-section, .history-section { margin-top: 25px; padding-top: 20px; border-top: 2px dashed #e2e8f0; }
-        .reactions-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
-        .reaction-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 40px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
-        .reaction-btn:hover { background: linear-gradient(135deg, var(--orange), var(--purple)); color: white; transform: scale(1.05); }
-        .reaction-count { font-size: 0.9rem; font-weight: 600; }
-        .share-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .share-btn { background: #f1f5f9; border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; transition: all 0.3s; font-size: 1.2rem; }
-        .share-btn:hover { transform: scale(1.1); background: var(--gradient); color: white; }
-        .copy-url-btn { background: #f1f5f9; border: none; border-radius: 40px; padding: 10px 20px; cursor: pointer; font-weight: 500; }
-        .loading-spinner { display: none; text-align: center; padding: 50px; }
-        .spinner { border: 3px solid rgba(249,115,22,0.2); border-top: 3px solid var(--orange); border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .model-result { max-height: 600px; overflow-y: auto; padding-right: 10px; }
-        .result-section { margin-bottom: 25px; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .result-section h4 { color: var(--orange); margin-bottom: 12px; border-left: 4px solid var(--purple); padding-left: 12px; }
-        .placeholder-text { color: #94a3b8; text-align: center; padding: 50px; }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--orange), var(--purple)); color: white; padding: 12px 24px; border-radius: 60px; font-weight: 500; z-index: 2000; display: none; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-        .scroll-btn { position: fixed; right: 24px; background: linear-gradient(135deg, var(--orange), var(--purple)); color: white; border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; z-index: 1000; transition: all 0.3s; }
-        .scroll-up { bottom: 90px; }
-        .scroll-down { bottom: 30px; }
-        .scroll-btn:hover { transform: scale(1.1); }
-        .recent-list { margin-top: 15px; max-height: 150px; overflow-y: auto; }
-        .recent-item { padding: 8px 12px; background: rgba(249,115,22,0.1); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; }
-        .recent-item:hover { background: rgba(249,115,22,0.2); transform: translateX(5px); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; align-items: center; justify-content: center; }
-        .modal-content { max-width: 400px; padding: 40px; text-align: center; }
-        @media (max-width: 768px) { .container { padding: 16px; } .hero-section { padding: 30px 20px; } .form-row { flex-direction: column; } .export-buttons { flex-direction: column; } }
-    </style>
+    }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="science-models-idea-generator.css" />
 </head>
 <body>
 
-<div id="toastMsg" class="toast"></div>
-<button class="scroll-btn scroll-up" id="scrollUpBtn"><i class="fas fa-arrow-up"></i></button>
-<button class="scroll-btn scroll-down" id="scrollDownBtn"><i class="fas fa-arrow-down"></i></button>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="https://magicrills.com" class="nav-home" title="Home">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="https://magicrills.com/category-pages/mixed-tools.html" class="nav-back" title="Back to Tools">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+            <div class="nav-center">
+                <span class="nav-brand"><i class="fas fa-flask"></i> Science Models AI</span>
+            </div>
+            <div class="nav-right">
+                <button id="darkModeToggle" class="dark-toggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-<div class="container">
-    <div class="hero-section glass-card">
-        <button id="darkModeToggle" class="dark-toggle"><i class="fas fa-moon"></i> <span>Dark</span></button>
-        <div class="hero-badge">🚀 Grok AI + TiDB + Real-time Reactions</div>
-        <h1 class="hero-title">Science Models <span class="gradient-text">Idea Generator</span></h1>
-        <p class="hero-subtitle">Generate innovative science models with Grok AI. Fully integrated with TiDB Database, Real-time Reactions, Usage Analytics</p>
-        
-        <div class="stats-row">
-            <div class="stat-card glass-card"><i class="fas fa-chart-line"></i><span>Used <strong id="usageCount">0</strong> times</span></div>
-            <div class="stat-card glass-card"><i class="fas fa-share-alt"></i><span>Shared <strong id="shareCount">0</strong> times</span></div>
-            <div class="stat-card glass-card"><i class="fas fa-heart"></i><span>Reactions <strong id="totalReactionsCount">0</strong></span></div>
-            <div class="stat-card glass-card"><i class="fas fa-database"></i><span>Status <strong id="dbStatus">TiDB Ready</strong></span></div>
+    <!-- Toast Message -->
+    <div id="toastMsg" class="toast"></div>
+
+    <!-- Scroll Buttons -->
+    <button class="scroll-btn scroll-up" id="scrollUpBtn" aria-label="Scroll up"><i class="fas fa-chevron-up"></i></button>
+    <button class="scroll-btn scroll-down" id="scrollDownBtn" aria-label="Scroll down"><i class="fas fa-chevron-down"></i></button>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section glass-card">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-robot"></i> Powered by Grok AI
+                </div>
+                <h1 class="hero-title">
+                    Science Models <br /><span class="gradient-text">Idea Generator</span>
+                </h1>
+                <div class="hero-typewriter">
+                    <span id="typewriterText"></span>
+                    <span class="cursor">|</span>
+                </div>
+                <p class="hero-subtitle">
+                    Generate innovative, detailed science models with AI. Perfect for STEM education, 
+                    science fairs, and classroom projects.
+                </p>
+                
+                <!-- Stats Row -->
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-card glass-card">
+                        <i class="fas fa-users"></i>
+                        <div>
+                            <span class="stat-label">Total Users</span>
+                            <strong id="usageCount">0</strong>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <i class="fas fa-eye"></i>
+                        <div>
+                            <span class="stat-label">Total Views</span>
+                            <strong id="viewsCount">0</strong>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <i class="fas fa-share-alt"></i>
+                        <div>
+                            <span class="stat-label">Total Shares</span>
+                            <strong id="shareCount">0</strong>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <i class="fas fa-heart"></i>
+                        <div>
+                            <span class="stat-label">Total Reactions</span>
+                            <strong id="totalReactionsCount">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hero Animation -->
+            <div class="hero-animation">
+                <div class="floating-icons">
+                    <i class="fas fa-atom"></i>
+                    <i class="fas fa-dna"></i>
+                    <i class="fas fa-microscope"></i>
+                    <i class="fas fa-rocket"></i>
+                    <i class="fas fa-flask"></i>
+                    <i class="fas fa-brain"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard -->
+        <div class="dashboard">
+            <!-- Control Panel -->
+            <div class="control-panel glass-card">
+                <h2><i class="fas fa-sliders-h"></i> Customize Your Model</h2>
+                
+                <!-- Education Level -->
+                <div class="form-group">
+                    <label><i class="fas fa-graduation-cap"></i> Education Level</label>
+                    <select id="educationLevel">
+                        <option value="">Select Level</option>
+                        <option value="primary">Primary Level (Ages 6-10)</option>
+                        <option value="middle">Middle Level (Ages 11-13)</option>
+                        <option value="secondary">Secondary Level (Ages 14-16)</option>
+                        <option value="higher-secondary">Higher Secondary (Ages 17-18)</option>
+                        <option value="college">College Level (Ages 18+)</option>
+                    </select>
+                </div>
+                
+                <!-- Science Field -->
+                <div class="form-group">
+                    <label><i class="fas fa-flask"></i> Science Field</label>
+                    <select id="scienceField">
+                        <option value="">Select Field</option>
+                        <option value="biology">🧬 Biology & Life Sciences</option>
+                        <option value="physics">⚡ Physics & Mechanics</option>
+                        <option value="chemistry">🧪 Chemistry & Materials</option>
+                        <option value="astronomy">🌌 Astronomy & Space</option>
+                        <option value="environmental">🌍 Environmental Science</option>
+                        <option value="anatomy">🫀 Anatomy & Physiology</option>
+                        <option value="earth-science">🌋 Earth Science & Geology</option>
+                        <option value="robotics">🤖 Robotics & Automation</option>
+                        <option value="electronics">💡 Electronics & Circuits</option>
+                        <option value="biotechnology">🧬 Biotechnology & Genetics</option>
+                        <option value="neuroscience">🧠 Neuroscience & Brain</option>
+                        <option value="marine-biology">🐠 Marine Biology</option>
+                        <option value="botany">🌿 Botany & Plant Science</option>
+                        <option value="zoology">🐾 Zoology & Animal Science</option>
+                        <option value="ecology">🌱 Ecology & Ecosystems</option>
+                        <option value="geography">🗺️ Physical Geography</option>
+                        <option value="meteorology">🌈 Meteorology & Weather</option>
+                        <option value="material-science">🔬 Material Science</option>
+                        <option value="optics">🔦 Optics & Light</option>
+                        <option value="acoustics">🎵 Acoustics & Sound</option>
+                    </select>
+                </div>
+                
+                <!-- Model Type -->
+                <div class="form-group">
+                    <label><i class="fas fa-cubes"></i> Model Type</label>
+                    <select id="modelType">
+                        <option value="">Select Model Type</option>
+                    </select>
+                </div>
+                
+                <!-- Advanced Options -->
+                <div class="enhanced-options">
+                    <h3><i class="fas fa-star"></i> Advanced Settings</h3>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>⭐ Difficulty</label>
+                            <select id="difficultyLevel">
+                                <option value="beginner">Beginner</option>
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                                <option value="expert">Expert</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label>⏱️ Time Required</label>
+                            <select id="timeRequired">
+                                <option value="15min">15 Minutes</option>
+                                <option value="30min">30 Minutes</option>
+                                <option value="1hour" selected>1 Hour</option>
+                                <option value="2hours">2 Hours</option>
+                                <option value="full-day">Full Day</option>
+                                <option value="multi-day">Multiple Days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>💰 Budget</label>
+                            <select id="budgetRange">
+                                <option value="ultra-low">Ultra Low ($0-2)</option>
+                                <option value="low">Low ($2-5)</option>
+                                <option value="medium" selected>Medium ($5-15)</option>
+                                <option value="high">High ($15-30)</option>
+                                <option value="premium">Premium ($30+)</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label>👥 Group Size</label>
+                            <select id="groupSize">
+                                <option value="individual">Individual</option>
+                                <option value="pair">Pair (2 Students)</option>
+                                <option value="small-group">Small Group (3-4)</option>
+                                <option value="large-group">Large Group (5+)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>📋 Assessment Type</label>
+                            <select id="assessmentType">
+                                <option value="presentation">Presentation</option>
+                                <option value="report">Written Report</option>
+                                <option value="demonstration">Live Demonstration</option>
+                                <option value="portfolio">Portfolio</option>
+                                <option value="peer-review">Peer Review</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label>📦 Material Source</label>
+                            <select id="materialSource">
+                                <option value="household">Household Items</option>
+                                <option value="school">School Supplies</option>
+                                <option value="mixed" selected>Mixed Sources</option>
+                                <option value="specialty">Specialty Materials</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generate Button -->
+                <button id="generateBtn" class="btn-primary">
+                    <i class="fas fa-magic"></i> Generate with Grok AI
+                </button>
+                
+                <!-- Export Buttons -->
+                <div class="export-buttons">
+                    <button id="exportPDFBtn" class="btn-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button id="exportWordBtn" class="btn-word"><i class="fas fa-file-word"></i> DOC</button>
+                    <button id="exportTxtBtn" class="btn-txt"><i class="fas fa-file-alt"></i> TXT</button>
+                    <button id="exportJSONBtn" class="btn-json"><i class="fas fa-code"></i> JSON</button>
+                </div>
+                
+                <!-- Reactions Section -->
+                <div class="reactions-section">
+                    <h4><i class="fas fa-heart" style="color: #ff6b6b;"></i> Rate This Tool</h4>
+                    <div id="reactionsContainer" class="reactions-grid">
+                        <!-- Reactions populated by JS -->
+                    </div>
+                </div>
+                
+                <!-- Share Section -->
+                <div class="share-section">
+                    <h4><i class="fas fa-share-alt"></i> Share This Tool</h4>
+                    <div class="share-buttons">
+                        <button class="share-btn" data-platform="facebook" aria-label="Share on Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </button>
+                        <button class="share-btn" data-platform="twitter" aria-label="Share on Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </button>
+                        <button class="share-btn" data-platform="whatsapp" aria-label="Share on WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="share-btn" data-platform="linkedin" aria-label="Share on LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </button>
+                        <button class="share-btn" data-platform="telegram" aria-label="Share on Telegram">
+                            <i class="fab fa-telegram"></i>
+                        </button>
+                        <button id="copyUrlBtn" class="copy-url-btn">
+                            <i class="fas fa-link"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- History Section -->
+                <div class="history-section">
+                    <h4><i class="fas fa-history"></i> Recent Models</h4>
+                    <div id="recentModels" class="recent-list"></div>
+                </div>
+            </div>
+            
+            <!-- Result Panel -->
+            <div class="result-panel glass-card">
+                <h2><i class="fas fa-lightbulb"></i> Generated Model</h2>
+                <div id="loadingSpinner" class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>🤖 Grok AI is thinking...</p>
+                </div>
+                <div id="modelResult" class="model-result">
+                    <div class="placeholder-text">
+                        <i class="fas fa-flask" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+                        ✨ Select options and click generate to create an amazing science model idea with Grok AI.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="dashboard">
-        <div class="control-panel glass-card">
-            <h2><i class="fas fa-sliders-h"></i> Customize Your Model</h2>
-            
-            <div class="form-group">
-                <label>🎓 Education Level</label>
-                <select id="educationLevel">
-                    <option value="">Select Level</option>
-                    <option value="primary">Primary Level (Ages 6-10)</option>
-                    <option value="middle">Middle Level (Ages 11-13)</option>
-                    <option value="secondary">Secondary Level (Ages 14-16)</option>
-                    <option value="higher-secondary">Higher Secondary (Ages 17-18)</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>🔬 Science Field</label>
-                <select id="scienceField">
-                    <option value="">Select Field</option>
-                    <option value="biology">🧬 Biology</option>
-                    <option value="physics">⚡ Physics</option>
-                    <option value="chemistry">🧪 Chemistry</option>
-                    <option value="astronomy">🌌 Astronomy</option>
-                    <option value="environmental">🌍 Environmental Science</option>
-                    <option value="anatomy">🫀 Anatomy</option>
-                    <option value="earth-science">🌋 Earth Science</option>
-                    <option value="robotics">🤖 Robotics</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>🧩 Model Type</label>
-                <select id="modelType"><option value="">Select Model Type</option></select>
-            </div>
-            
-            <div class="enhanced-options">
-                <h3><i class="fas fa-star"></i> Advanced Options</h3>
-                <div class="form-row">
-                    <div class="form-group half"><label>⭐ Difficulty</label><select id="difficultyLevel"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="expert">Expert</option></select></div>
-                    <div class="form-group half"><label>⏱️ Time</label><select id="timeRequired"><option value="30min">30 Minutes</option><option value="1hour" selected>1 Hour</option><option value="2hours">2 Hours</option><option value="full-day">Full Day</option></select></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group half"><label>💰 Budget</label><select id="budgetRange"><option value="low">Low ($0-5)</option><option value="medium" selected>Medium ($5-15)</option><option value="high">High ($15-30)</option></select></div>
-                    <div class="form-group half"><label>👥 Group Size</label><select id="groupSize"><option value="individual">Individual</option><option value="pair">Pair</option><option value="small-group">Small Group</option></select></div>
-                </div>
-            </div>
-            
-            <button id="generateBtn" class="btn-primary"><i class="fas fa-magic"></i> Generate with Grok AI</button>
-            
-            <div class="export-buttons">
-                <button id="exportPDFBtn" class="btn-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
-                <button id="exportWordBtn" class="btn-word"><i class="fas fa-file-word"></i> DOC</button>
-                <button id="exportTxtBtn" class="btn-txt"><i class="fas fa-file-alt"></i> TXT</button>
-                <button id="exportJSONBtn" class="btn-json"><i class="fas fa-code"></i> JSON</button>
-            </div>
-            
-            <!-- REACTIONS SECTION - VISIBLE HERE -->
-            <div class="reactions-section">
-                <h4><i class="fas fa-heart" style="color: #f97316;"></i> Rate this Tool</h4>
-                <div id="reactionsContainer" class="reactions-grid">
-                    <!-- Reactions will be populated here -->
-                </div>
-            </div>
-            
-            <!-- SOCIAL SHARE SECTION -->
-            <div class="share-section">
-                <h4><i class="fas fa-share-alt"></i> Share This Tool</h4>
-                <div class="share-buttons">
-                    <button class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i></button>
-                    <button class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i></button>
-                    <button class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></button>
-                    <button class="share-btn" data-platform="linkedin"><i class="fab fa-linkedin-in"></i></button>
-                    <button class="share-btn" data-platform="telegram"><i class="fab fa-telegram"></i></button>
-                    <button id="copyUrlBtn" class="copy-url-btn"><i class="fas fa-link"></i> Copy URL</button>
-                </div>
-            </div>
-            
-            <!-- HISTORY SECTION -->
-            <div class="history-section">
-                <h4><i class="fas fa-history"></i> Recent Models</h4>
-                <div id="recentModels" class="recent-list"></div>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 <a href="https://magicrills.com">MagicRills.com</a> - AI-Powered Educational Tools</p>
+            <div class="footer-links">
+                <a href="https://magicrills.com">Home</a>
+                <a href="https://magicrills.com/category-pages/mixed-tools.html">All Tools</a>
+                <a href="https://magicrills.com/privacy-policy">Privacy</a>
             </div>
         </div>
-        
-        <div class="result-panel glass-card">
-            <h2><i class="fas fa-lightbulb"></i> Generated Model</h2>
-            <div id="loadingSpinner" class="loading-spinner"><div class="spinner"></div><p>🤖 Grok AI is thinking...</p></div>
-            <div id="modelResult" class="model-result"><p class="placeholder-text">✨ Select options and click generate to create an amazing science model idea with Grok AI.</p></div>
-        </div>
-    </div>
-    
-    <div id="premiumModal" class="modal">
-        <div class="modal-content glass-card"><i class="fas fa-crown" style="font-size:3rem;color:#f97316"></i><h3>🌟 Premium Features</h3><p>AI Image Generation, Video Tutorials, Analytics Dashboard</p><button id="closeModal" class="btn-primary">Close</button></div>
-    </div>
-</div>
+    </footer>
 
-<script>
-(function() {
-    const TOOL_SLUG = 'science-models-idea-generator';
-    const USER_ID = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    if (!localStorage.getItem('user_id')) localStorage.setItem('user_id', USER_ID);
-    const FINAL_USER_ID = localStorage.getItem('user_id');
-    
-    // Grok API
-    const GROK_API_KEY = 'xai-your-grok-api-key-here';
-    const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
-    const API_BASE = 'https://science-models-idea-generator.vercel.app/api';
-    
-    const modelTypesDB = {
-        biology: ['Cell Structure', 'DNA Model', 'Photosynthesis', 'Digestive System', 'Respiratory System', 'Circulatory System', 'Ecosystem', 'Food Web'],
-        physics: ["Newton's Cradle", 'Electric Circuit', 'Magnetic Field', 'Pulley System', 'Hydraulic Lift', 'Periscope', 'Wind Turbine', 'Solar Oven'],
-        chemistry: ['Atomic Structure', 'Periodic Table', 'Molecular Models', 'pH Scale', 'Crystal Growing', 'Volcano', 'Electrolysis', 'Polymer Slime'],
-        astronomy: ['Solar System', 'Moon Phases', 'Eclipse Model', 'Rocket Model', 'Telescope', 'Black Hole', 'Galaxy', 'Space Station'],
-        environmental: ['Greenhouse Effect', 'Water Filtration', 'Compost System', 'Air Pollution Monitor', 'Biome', 'Carbon Cycle', 'Recycling'],
-        anatomy: ['Skeleton', 'Heart Model', 'Brain Model', 'Eye Anatomy', 'Ear Model', 'Lung Model', 'Kidney Model', 'Joint Model'],
-        'earth-science': ['Rock Cycle', 'Plate Tectonics', 'Volcano Types', 'Earth Layers', 'Weather Station', 'Fossil Model', 'Glacier Model'],
-        robotics: ['Line Follower', 'Robotic Arm', 'Obstacle Avoidance', 'Bluetooth Car', 'Sumo Robot', 'Maze Solver', 'Gesture Control']
-    };
-    
-    const EMOJIS = [
-        { emoji: '👍', name: 'like', label: 'Like' },
-        { emoji: '❤️', name: 'love', label: 'Love' },
-        { emoji: '😮', name: 'wow', label: 'Wow' },
-        { emoji: '😢', name: 'sad', label: 'Sad' },
-        { emoji: '😠', name: 'angry', label: 'Angry' },
-        { emoji: '😂', name: 'laugh', label: 'Laugh' },
-        { emoji: '🎉', name: 'celebrate', label: 'Celebrate' },
-        { emoji: '🤔', name: 'thinking', label: 'Interesting' }
-    ];
-    
-    let reactionsData = { like: 0, love: 0, wow: 0, sad: 0, angry: 0, laugh: 0, celebrate: 0, thinking: 0 };
-    let currentUsage = 0, currentShares = 0, recentModels = [];
-    
-    function showToast(msg) { const t = document.getElementById('toastMsg'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-    
-    async function callAPI(endpoint, method, body) {
-        try {
-            const res = await fetch(`${API_BASE}/${endpoint}`, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
-            return await res.json();
-        } catch(e) { return { success: false }; }
-    }
-    
-    async function incrementUsage() {
-        const data = await callAPI('usage/increment', 'POST', { tool_slug: TOOL_SLUG, user_id: FINAL_USER_ID });
-        if (data.success) currentUsage = data.total_usage;
-        else currentUsage++;
-        document.getElementById('usageCount').innerText = currentUsage;
-    }
-    
-    async function getUsageCount() {
-        const data = await callAPI(`usage/get?tool_slug=${TOOL_SLUG}`, 'GET');
-        if (data.success) { currentUsage = data.count; document.getElementById('usageCount').innerText = currentUsage; }
-    }
-    
-    async function getReactions() {
-        const data = await callAPI(`reactions/get?tool_slug=${TOOL_SLUG}`, 'GET');
-        if (data.success && data.reactions) reactionsData = data.reactions;
-        renderReactions();
-    }
-    
-    async function addReaction(emojiName, emojiChar) {
-        const data = await callAPI('reactions/add', 'POST', { tool_slug: TOOL_SLUG, emoji: emojiChar, reaction_type: emojiName, user_id: FINAL_USER_ID });
-        if (data.success) { reactionsData = data.counts; renderReactions(); showToast(`Thanks for your ${emojiName} reaction!`); }
-        else if (data.already_reacted) showToast('You already reacted with this emoji!');
-        else { reactionsData[emojiName] = (reactionsData[emojiName] || 0) + 1; renderReactions(); showToast(`Thanks! (local)`); }
-        updateTotalReactions();
-    }
-    
-    function renderReactions() {
-        const container = document.getElementById('reactionsContainer');
-        if (!container) return;
-        container.innerHTML = '';
-        EMOJIS.forEach(({ emoji, name, label }) => {
-            const count = reactionsData[name] || 0;
-            const btn = document.createElement('button');
-            btn.className = 'reaction-btn';
-            btn.innerHTML = `${emoji} ${label} <span class="reaction-count">(${count})</span>`;
-            btn.onclick = () => addReaction(name, emoji);
-            container.appendChild(btn);
-        });
-    }
-    
-    function updateTotalReactions() {
-        const total = Object.values(reactionsData).reduce((a,b) => a + b, 0);
-        const el = document.getElementById('totalReactionsCount');
-        if (el) el.innerText = total;
-    }
-    
-    async function recordShare(platform) {
-        await callAPI('shares/add', 'POST', { tool_slug: TOOL_SLUG, platform: platform, user_id: FINAL_USER_ID });
-        currentShares++;
-        document.getElementById('shareCount').innerText = currentShares;
-        showToast(`Shared on ${platform}!`);
-    }
-    
-    async function generateWithGrok(level, field, modelType, options) {
-        const prompt = `Generate a detailed science model for ${level} level students in ${field}. Model: ${modelType}. Difficulty: ${options.difficulty}, Time: ${options.time}, Budget: ${options.budget}, Group: ${options.groupSize}. Include: Title, Learning Objectives, Materials, Step-by-Step Instructions, Scientific Concepts, Pro Tips, Variations, Safety, Rubric, Cross-Curricular, Real-World Applications.`;
-        try {
-            const res = await fetch(GROK_API_URL, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${GROK_API_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: 'grok-1', messages: [{ role: 'user', content: prompt }], temperature: 0.7, max_tokens: 2000 })
-            });
-            if (!res.ok) throw new Error('Grok API failed');
-            const data = await res.json();
-            return data.choices[0].message.content;
-        } catch(e) {
-            return `**📋 Model Title:** ${modelType}\n\n**🎯 Learning Objectives:** Understand ${field} concepts, Build practical skills\n\n**📦 Materials:** Cardboard, glue, scissors, markers, recycled items\n\n**🔧 Instructions:** 1. Research, 2. Sketch, 3. Gather materials, 4. Build base, 5. Add details, 6. Test, 7. Present\n\n**🧠 Concepts:** Core ${field} principles\n\n**💡 Tips:** Plan ahead, test as you go\n\n**🔄 Variations:** Add motors, create digital version\n\n**⚠️ Safety:** Use tools carefully\n\n**📊 Rubric:** Excellent/Good/Satisfactory/Needs Improvement\n\n**🔗 Cross-Curricular:** Math, Language Arts, Art\n\n**🌍 Real-World:** Engineering, Science research`;
-        }
-    }
-    
-    function formatResult(content) {
-        let html = '';
-        const sections = content.split(/\*\*[^*]+\*\*/);
-        const titles = content.match(/\*\*[^*]+\*\*/g) || [];
-        for (let i = 0; i < titles.length; i++) {
-            html += `<div class="result-section"><h4>${titles[i].replace(/\*\*/g, '')}</h4><div>${(sections[i+1] || '').replace(/\n/g, '<br>').replace(/- /g, '• ')}</div></div>`;
-        }
-        return html || `<div class="result-section"><p>${content.replace(/\n/g, '<br>')}</p></div>`;
-    }
-    
-    function saveToRecent(title, content) {
-        recentModels.unshift({ title, content, time: Date.now() });
-        if (recentModels.length > 5) recentModels.pop();
-        localStorage.setItem('recent_models', JSON.stringify(recentModels));
-        const container = document.getElementById('recentModels');
-        if (container) {
-            container.innerHTML = '';
-            recentModels.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'recent-item';
-                div.innerHTML = `<i class="fas fa-flask"></i> ${m.title.substring(0, 40)}`;
-                div.onclick = () => { document.getElementById('modelResult').innerHTML = m.content; showToast('Loaded previous model'); };
-                container.appendChild(div);
-            });
-        }
-    }
-    
-    function populateModelTypes() {
-        const field = document.getElementById('scienceField').value;
-        const modelSelect = document.getElementById('modelType');
-        modelSelect.innerHTML = '<option value="">Select Model Type</option>';
-        if (field && modelTypesDB[field]) {
-            modelTypesDB[field].forEach(type => {
-                const opt = document.createElement('option');
-                opt.value = type.toLowerCase().replace(/\s+/g, '-');
-                opt.textContent = type;
-                modelSelect.appendChild(opt);
-            });
-        }
-    }
-    
-    document.getElementById('scienceField').addEventListener('change', populateModelTypes);
-    
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-        const level = document.getElementById('educationLevel').value;
-        const field = document.getElementById('scienceField').value;
-        const modelSelect = document.getElementById('modelType');
-        const modelType = modelSelect.options[modelSelect.selectedIndex]?.text;
-        if (!level || !field || !modelType) { showToast('Please select all options!'); return; }
-        
-        const options = {
-            difficulty: document.getElementById('difficultyLevel').value,
-            time: document.getElementById('timeRequired').value,
-            budget: document.getElementById('budgetRange').value,
-            groupSize: document.getElementById('groupSize').value
-        };
-        
-        document.getElementById('loadingSpinner').style.display = 'block';
-        document.getElementById('modelResult').innerHTML = '';
-        await incrementUsage();
-        
-        try {
-            const aiContent = await generateWithGrok(level, field, modelType, options);
-            const formatted = formatResult(aiContent);
-            document.getElementById('modelResult').innerHTML = formatted;
-            saveToRecent(modelType, formatted);
-            showToast('✅ Model generated with Grok AI!');
-        } catch(e) { document.getElementById('modelResult').innerHTML = '<p class="placeholder-text">Error generating model</p>'; }
-        finally { document.getElementById('loadingSpinner').style.display = 'none'; }
-    });
-    
-    // Export functions
-    document.getElementById('exportPDFBtn')?.addEventListener('click', async () => {
-        const content = document.getElementById('modelResult').innerText;
-        if (content.includes('Select options')) { showToast('Generate a model first'); return; }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text('Science Model Idea', 20, 20);
-        doc.text(doc.splitTextToSize(content, 170), 20, 35);
-        doc.save('science-model.pdf');
-        showToast('PDF exported');
-    });
-    document.getElementById('exportWordBtn')?.addEventListener('click', () => {
-        const content = document.getElementById('modelResult').innerText;
-        if (content.includes('Select options')) { showToast('Generate a model first'); return; }
-        const blob = new Blob([content], { type: 'application/msword' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'science-model.doc'; a.click(); URL.revokeObjectURL(blob);
-        showToast('Word exported');
-    });
-    document.getElementById('exportTxtBtn')?.addEventListener('click', () => {
-        const content = document.getElementById('modelResult').innerText;
-        if (content.includes('Select options')) { showToast('Generate a model first'); return; }
-        const blob = new Blob([content], { type: 'text/plain' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'science-model.txt'; a.click(); URL.revokeObjectURL(blob);
-        showToast('Text exported');
-    });
-    document.getElementById('exportJSONBtn')?.addEventListener('click', () => {
-        const content = document.getElementById('modelResult').innerHTML;
-        if (content.includes('Select options')) { showToast('Generate a model first'); return; }
-        const data = { tool: TOOL_SLUG, generatedAt: new Date().toISOString(), content };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'science-model.json'; a.click(); URL.revokeObjectURL(blob);
-        showToast('JSON exported');
-    });
-    
-    // Social sharing
-    document.querySelectorAll('.share-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const platform = btn.dataset.platform;
-            const url = encodeURIComponent(window.location.href);
-            const title = encodeURIComponent('Science Models Idea Generator');
-            const shareUrls = { facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`, twitter: `https://twitter.com/intent/tweet?text=${title}&url=${url}`, whatsapp: `https://wa.me/?text=${title}%20${url}`, linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`, telegram: `https://t.me/share/url?url=${url}&text=${title}` };
-            if (shareUrls[platform]) { window.open(shareUrls[platform], '_blank', 'width=600,height=400'); await recordShare(platform); }
-        });
-    });
-    document.getElementById('copyUrlBtn')?.addEventListener('click', async () => { await navigator.clipboard.writeText(window.location.href); await recordShare('copy'); showToast('URL copied!'); });
-    
-    // Dark mode
-    document.getElementById('darkModeToggle')?.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDark);
-        document.getElementById('darkModeToggle').innerHTML = isDark ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
-    });
-    if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('darkModeToggle').innerHTML = '<i class="fas fa-sun"></i> Light'; }
-    
-    // Scroll buttons
-    document.getElementById('scrollUpBtn')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    document.getElementById('scrollDownBtn')?.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-    
-    // Modal
-    document.getElementById('closeModal')?.addEventListener('click', () => document.getElementById('premiumModal').style.display = 'none');
-    document.getElementById('premiumModal')?.addEventListener('click', (e) => { if (e.target === document.getElementById('premiumModal')) document.getElementById('premiumModal').style.display = 'none'; });
-    
-    // Load saved recent models
-    const saved = localStorage.getItem('recent_models');
-    if (saved) { recentModels = JSON.parse(saved); saveToRecent('', ''); }
-    
-    // Initialize
-    getUsageCount();
-    getReactions();
-    showToast('🚀 Science Models Generator Ready!');
-})();
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="science-models-idea-generator.js"></script>
 </body>
 </html>
