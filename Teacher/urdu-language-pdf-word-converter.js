@@ -1,14 +1,19 @@
 // ============================================
-// URDU PDF WORD CONVERTER 4.0 - API FIXED
-// TiDB + Cloudflare Worker Integrated
+// URDU PDF WORD CONVERTER 4.0 - CLOUDFLARE WORKERS API
+// VERCEL + TiDB REMOVED | CLOUDFLARE APIs KEPT
 // ============================================
 
 // ============================================
-// CONFIGURATION - UPDATED API ENDPOINTS
+// CONFIGURATION - CLOUDFLARE WORKERS APIs
 // ============================================
 const CONFIG = {
     TOOL_SLUG: 'urdu-pdf-converter',
-    API_BASE: 'https://urdu-language-pdf-word-converter.uzairhameed01.workers.dev/api',
+    // Primary API (Cloudflare Worker 1)
+    API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
+    // Legacy API (Cloudflare Worker 2 - Kept for compatibility)
+    LEGACY_API_BASE: 'https://urdu-pdf-converter.uzairhameed01.workers.dev/api',
+    LEGACY_API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev',
     VERSION: '4.0',
     MAX_FILE_SIZE: 50 * 1024 * 1024
 };
@@ -47,7 +52,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Urdu Converter v4.0 - API Fixed Version');
+    console.log('Urdu Converter v4.0 - Cloudflare APIs Only');
     
     await loadAllData();
     setupEventListeners();
@@ -56,38 +61,86 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateUserStatsDisplay();
     updatePasteStats();
     
+    // Tool load par usage increment
+    await incrementUsageInDB();
+    
     showFloatingMessage('خوش آمدید! اردو کنورٹر 4.0 تیار ہے');
-    showToast('API Fixed | Cloudflare Worker Connected', 'success');
+    showToast('Cloudflare APIs Connected', 'success');
 });
 
 // ============================================
-// DATABASE API CALLS (FIXED ENDPOINTS)
+// API CALL FUNCTION WITH FALLBACK
+// ============================================
+async function callAPI(endpoint, data = null, method = 'GET') {
+    // Try Primary API first
+    try {
+        const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.API_KEY
+            },
+            body: data ? JSON.stringify(data) : null
+        });
+        if (response.ok) {
+            return await response.json();
+        }
+    } catch (error) {
+        console.warn('Primary API unavailable, trying legacy API...');
+    }
+
+    // Try Legacy API if Primary fails
+    try {
+        const response = await fetch(`${CONFIG.LEGACY_API_BASE}${endpoint}`, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': CONFIG.LEGACY_API_KEY
+            },
+            body: data ? JSON.stringify(data) : null
+        });
+        if (response.ok) {
+            return await response.json();
+        }
+    } catch (error) {
+        console.warn('Legacy API unavailable, using local data...');
+    }
+
+    // If both fail, return null
+    return null;
+}
+
+// ============================================
+// CLOUDFLARE API CALLS
 // ============================================
 
 async function loadAllData() {
     try {
         // Get usage count
-        const usageResponse = await fetch(`${CONFIG.API_BASE}/usage?tool_slug=${CONFIG.TOOL_SLUG}`);
-        const usageData = await usageResponse.json();
-        if (usageData.success) {
+        const usageData = await callAPI(`/api/usage?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (usageData && usageData.success) {
             stats.totalUsage = usageData.count || 0;
             updateHeroStats();
         }
         
         // Get reactions
-        const reactionsResponse = await fetch(`${CONFIG.API_BASE}/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
-        const reactionsData = await reactionsResponse.json();
-        if (reactionsData.success && reactionsData.reactions) {
+        const reactionsData = await callAPI(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (reactionsData && reactionsData.success && reactionsData.reactions) {
             stats.totalReactions = reactionsData.reactions;
             updateReactionsDisplay();
         }
         
         // Get shares
-        const sharesResponse = await fetch(`${CONFIG.API_BASE}/shares?tool_slug=${CONFIG.TOOL_SLUG}`);
-        const sharesData = await sharesResponse.json();
-        if (sharesData.success) {
+        const sharesData = await callAPI(`/api/shares?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (sharesData && sharesData.success) {
             stats.totalShares = sharesData.count || 0;
             updateHeroStats();
+        }
+        
+        // Get stats (Usage, Views, Shares, Followers)
+        const statsData = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (statsData && statsData.success) {
+            updateDashboardStats(statsData);
         }
         
         // Today's usage from localStorage
@@ -98,24 +151,40 @@ async function loadAllData() {
         console.error('Error loading data:', error);
         loadLocalStats();
         document.getElementById('todayUsage').innerText = localStorage.getItem('todayUsage') || '24';
+        showToast('API unavailable, using local data', 'warning');
     }
 }
 
 async function incrementUsageInDB() {
     try {
-        const response = await fetch(`${CONFIG.API_BASE}/increment-usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: CONFIG.TOOL_SLUG, user_id: userId })
-        });
-        const data = await response.json();
-        if (data.success) {
+        const data = await callAPI('/api/increment-usage', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            user_id: userId
+        }, 'POST');
+        
+        if (data && data.success) {
             stats.totalUsage = data.total_usage || stats.totalUsage + 1;
             updateHeroStats();
+            // Update today usage
+            let today = localStorage.getItem('todayUsage') || '0';
+            today = parseInt(today) + 1;
+            localStorage.setItem('todayUsage', today);
+            document.getElementById('todayUsage').innerText = today;
+        } else {
+            // Local fallback
+            stats.totalUsage++;
+            let today = parseInt(localStorage.getItem('todayUsage') || '0') + 1;
+            localStorage.setItem('todayUsage', today);
+            document.getElementById('todayUsage').innerText = today;
+            updateHeroStats();
+            saveLocalStats();
         }
     } catch (error) {
         console.error('API error, using local fallback:', error);
         stats.totalUsage++;
+        let today = parseInt(localStorage.getItem('todayUsage') || '0') + 1;
+        localStorage.setItem('todayUsage', today);
+        document.getElementById('todayUsage').innerText = today;
         updateHeroStats();
         saveLocalStats();
     }
@@ -123,28 +192,31 @@ async function incrementUsageInDB() {
 
 async function addReactionToDB(emoji, reactionType) {
     try {
-        const response = await fetch(`${CONFIG.API_BASE}/add-reaction`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tool_slug: CONFIG.TOOL_SLUG,
-                emoji: emoji,
-                reaction_type: reactionType,
-                user_id: userId
-            })
-        });
-        const data = await response.json();
+        const data = await callAPI('/api/add-reaction', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            emoji: emoji,
+            reaction_type: reactionType,
+            user_id: userId
+        }, 'POST');
         
-        if (data.success) {
+        if (data && data.success) {
             showToast(`شکریہ! ${emoji}`, 'success');
             await loadAllData();
             userReactions[reactionType] = true;
             localStorage.setItem('userReactions', JSON.stringify(userReactions));
             updateUserStatsDisplay();
-        } else if (data.already_reacted) {
+        } else if (data && data.already_reacted) {
             showToast('آپ پہلے ہی اس ایموجی پر ردعمل دے چکے ہیں', 'warning');
+        } else {
+            // Local fallback
+            if (stats.totalReactions[reactionType] !== undefined) {
+                stats.totalReactions[reactionType]++;
+                updateReactionsDisplay();
+                saveLocalStats();
+            }
+            showToast(`شکریہ! ${emoji} (مقامی)`, 'success');
         }
-        return data.success;
+        return data ? data.success : true;
     } catch (error) {
         console.error('Reaction API error, using local:', error);
         if (stats.totalReactions[reactionType] !== undefined) {
@@ -159,17 +231,13 @@ async function addReactionToDB(emoji, reactionType) {
 
 async function addShareToDB(platform) {
     try {
-        const response = await fetch(`${CONFIG.API_BASE}/add-share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tool_slug: CONFIG.TOOL_SLUG,
-                platform: platform,
-                user_id: userId
-            })
-        });
-        const data = await response.json();
-        if (data.success) {
+        const data = await callAPI('/api/add-share', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform,
+            user_id: userId
+        }, 'POST');
+        
+        if (data && data.success) {
             stats.totalShares++;
             userShares.count = (userShares.count || 0) + 1;
             localStorage.setItem('userShares', JSON.stringify(userShares));
@@ -196,17 +264,12 @@ async function repairTextWithGrokAPI(corruptedText) {
     showFloatingMessage('AI متن کو بہتر کر رہا ہے...');
     
     try {
-        const response = await fetch(`${CONFIG.API_BASE}/repair-urdu-text`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                text: corruptedText.substring(0, 8000),
-                tool_slug: CONFIG.TOOL_SLUG
-            })
-        });
+        const data = await callAPI('/api/repair-urdu-text', {
+            text: corruptedText.substring(0, 8000),
+            tool_slug: CONFIG.TOOL_SLUG
+        }, 'POST');
         
-        const data = await response.json();
-        if (data.success && data.repaired_text) {
+        if (data && data.success && data.repaired_text) {
             showToast('AI نے متن کو بہتر کر دیا ہے', 'success');
             return data.repaired_text;
         }
@@ -239,20 +302,13 @@ async function callAIFeature(feature) {
     showFloatingMessage(`AI ${getFeatureName(feature)} کر رہا ہے...`);
     
     try {
-        // Try to call Cloudflare Worker AI endpoint
-        const response = await fetch(`${CONFIG.API_BASE}/ai-feature`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                feature: feature,
-                text: text.substring(0, 4000),
-                tool_slug: CONFIG.TOOL_SLUG
-            })
-        });
+        const data = await callAPI('/api/ai-feature', {
+            feature: feature,
+            text: text.substring(0, 4000),
+            tool_slug: CONFIG.TOOL_SLUG
+        }, 'POST');
         
-        const data = await response.json();
-        
-        if (data.success && data.result) {
+        if (data && data.success && data.result) {
             if (aiContent) {
                 aiContent.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.7;">${data.result.replace(/\n/g, '<br>')}</div>`;
             }
@@ -375,10 +431,32 @@ function updateHeroStats() {
     if (heroShares) heroShares.innerText = stats.totalShares.toLocaleString();
 }
 
+function updateDashboardStats(data) {
+    // Usage, Views, Shares, Followers
+    const statCards = document.querySelectorAll('.stat-card');
+    if (statCards.length >= 4) {
+        // Usage already showing
+        // Views
+        const viewsEl = document.getElementById('statViews');
+        if (viewsEl) viewsEl.innerText = data.views || 0;
+        // Shares
+        const sharesEl = document.getElementById('statShares');
+        if (sharesEl) sharesEl.innerText = data.shares || 0;
+        // Followers
+        const followersEl = document.getElementById('statFollowers');
+        if (followersEl) followersEl.innerText = data.followers || 0;
+    }
+}
+
 function updateReactionsDisplay() {
     const mapping = {
-        likeCount: 'like', loveCount: 'love', wowCount: 'wow',
-        sadCount: 'sad', angryCount: 'angry', laughCount: 'laugh', celebrateCount: 'celebrate'
+        likeCount: 'like',
+        loveCount: 'love',
+        wowCount: 'wow',
+        sadCount: 'sad',
+        angryCount: 'angry',
+        laughCount: 'laugh',
+        celebrateCount: 'celebrate'
     };
     
     for (const [elementId, reactionKey] of Object.entries(mapping)) {
@@ -415,54 +493,32 @@ async function extractPDFText(file, progressCallback) {
             try {
                 const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
                 let fullText = '';
-                
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    
-                    // ✅ صحیح طریقہ - spaces کو محفوظ رکھتا ہے
-                    let lastY = null;
-                    let currentLine = [];
-                    
+                    let pageText = '';
                     for (let item of content.items) {
-                        const y = item.transform[5];
-                        
-                        // Agar nayi line hai toh previous line save karein
-                        if (lastY !== null && Math.abs(y - lastY) > 5) {
-                            if (currentLine.length > 0) {
-                                fullText += currentLine.join(' ') + '\n';
-                                currentLine = [];
-                            }
-                        }
-                        currentLine.push(item.str);
-                        lastY = y;
+                        pageText += item.str + ' ';
                     }
-                    
-                    // Last line save karein
-                    if (currentLine.length > 0) {
-                        fullText += currentLine.join(' ');
-                    }
-                    
-                    fullText += '\n\n';
-                    
+                    fullText += pageText + '\n\n';
                     if (progressCallback) progressCallback(i, pdf.numPages);
                 }
-                
-                // ✅ اردو سپیسنگ درست کریں
-                fullText = fullText.replace(/([۔؟!])([^\s\u0600-\u06FF])/g, '$1 $2');
-                fullText = fullText.replace(/([\u0600-\u06FF])([A-Za-z0-9])/g, '$1 $2');
-                fullText = fullText.replace(/([A-Za-z0-9])([\u0600-\u06FF])/g, '$1 $2');
-                fullText = fullText.replace(/\s+/g, ' ');
-                fullText = fullText.replace(/ ([۔؟!])/g, '$1');
-                
                 resolve(fullText);
-            } catch (error) { 
-                reject(error); 
-            }
+            } catch (error) { reject(error); }
         };
         reader.onerror = reject;
         reader.readAsArrayBuffer(file);
     });
+}
+
+function enhanceUrduText(text) {
+    if (!text) return '';
+    let fixed = text;
+    fixed = fixed.replace(/([۔؟!])([^\s])/g, '$1 $2');
+    fixed = fixed.replace(/([کگھدذرزژسشصضطظعغفقلمنویہھی])([آابپتٹثجچحخ])/g, '$1 $2');
+    fixed = fixed.replace(/\s+/g, ' ');
+    fixed = fixed.replace(/([۔؟!])\s+/g, '$1\n');
+    return fixed;
 }
 
 // ============================================
@@ -1268,7 +1324,7 @@ function setupEventListeners() {
         });
     });
     
-    console.log('All event listeners registered - Ready to use!');
+    console.log('All event listeners registered - Cloudflare APIs Version');
 }
 
 // ============================================
