@@ -8,6 +8,7 @@
 const CONFIG = {
     TOOL_SLUG: 'urdu-paper-generator',
     API_BASE: 'https://magicrills-api.uzairhameed01.workers.dev',
+    API_KEY:  'urdu-paper-generator.uzairhameed01.workers.dev',
     API_KEY: 'magicrills-grok-api.uzairhameed01.workers.dev'
 };
 
