@@ -1,15 +1,62 @@
 // ============================================
-// RESEARCH PROPOSAL GENERATOR - COMPLETE JAVASCRIPT
-// 7 Reactions | Usage Counter | Export Functions | Dark Mode
-// 100% WORKING - NO EXTERNAL DEPENDENCIES REQUIRED
+// RESEARCH PROPOSAL GENERATOR - CLOUDFLARE API VERSION
+// Professional Academic Tool | MagicRills API Integration
 // ============================================
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Research Proposal Generator Loaded');
+// ============================================
+// CONFIGURATION - ✅ UPDATED WITH YOUR WORKER URL
+// ============================================
+const CONFIG = {
+    TOOL_NAME: 'Research Proposal Generator',
+    TOOL_SLUG: 'research-proposal-generator',
+    CATEGORY: 'Mixed-Tools',
+    API_BASE: 'https://research-proposal-generator.uzairhameed01.workers.dev', // ← Your Worker URL
+    API_KEY: '', // Not required for now
+    VERSION: '2.0.0'
+};
+
+console.log('🚀 ' + CONFIG.TOOL_NAME + ' v' + CONFIG.VERSION);
+console.log('🌐 API: ' + CONFIG.API_BASE);
+
+// ============================================
+// STATE MANAGEMENT
+// ============================================
+let state = {
+    usageCount: 0,
+    globalUsage: 0,
+    sharesCount: 0,
+    followersCount: 0,
+    reactions: {
+        like: 0,
+        love: 0,
+        wow: 0,
+        sad: 0,
+        angry: 0,
+        laugh: 0,
+        celebrate: 0
+    },
+    isGenerating: false,
+    hasGenerated: false,
+    currentProposal: null,
+    apiAvailable: true
+};
+
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('📚 ' + CONFIG.TOOL_NAME + ' v' + CONFIG.VERSION + ' loaded');
+    console.log('🔧 Tool Slug: ' + CONFIG.TOOL_SLUG);
+    console.log('📊 Category: ' + CONFIG.CATEGORY);
     
-    // Load all saved data
-    loadAllData();
+    // Create space background
+    createSpaceBackground();
+    
+    // Check API health first
+    await checkAPIHealth();
+    
+    // Load all data from API
+    await loadAllData();
     
     // Setup event listeners
     setupEventListeners();
@@ -24,76 +71,304 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
     
     // Show welcome message
-    showToast('Research Proposal Generator is ready! ✨', 'success');
+    showToast('✨ ' + CONFIG.TOOL_NAME + ' is ready!', 'success');
+    console.log('💡 Tip: Press Ctrl+Enter to generate proposal');
 });
 
 // ============================================
-// DATA MANAGEMENT (Local Storage)
+// CHECK API HEALTH
 // ============================================
-const TOOL_NAME = 'research_proposal_generator';
-
-function loadAllData() {
-    // Load usage counter
-    let toolUsage = localStorage.getItem(`${TOOL_NAME}_usage`);
-    toolUsage = toolUsage ? parseInt(toolUsage) : 0;
-    document.getElementById('toolUsage').innerText = formatNumber(toolUsage);
-    
-    // Load global usage (simulated)
-    let globalUsage = localStorage.getItem(`${TOOL_NAME}_global_usage`);
-    globalUsage = globalUsage ? parseInt(globalUsage) : 1247;
-    document.getElementById('globalUsage').innerText = formatNumber(globalUsage);
-    
-    // Load shares
-    let totalShares = localStorage.getItem(`${TOOL_NAME}_shares`);
-    totalShares = totalShares ? parseInt(totalShares) : 89;
-    document.getElementById('totalShares').innerText = formatNumber(totalShares);
-    
-    // Load reactions
-    const reactions = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
-    reactions.forEach(react => {
-        let count = localStorage.getItem(`${TOOL_NAME}_reaction_${react}`);
-        count = count ? parseInt(count) : 0;
-        const elementId = `reaction${react.charAt(0).toUpperCase() + react.slice(1)}`;
-        if (document.getElementById(elementId)) {
-            document.getElementById(elementId).innerText = count;
+async function checkAPIHealth() {
+    try {
+        const response = await fetch(CONFIG.API_BASE + '/api/health');
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ API Health: ' + data.status + ' | v' + data.version);
+            state.apiAvailable = true;
+        } else {
+            console.warn('⚠️ API Health check failed, using localStorage fallback');
+            state.apiAvailable = false;
         }
-    });
-    
-    // Load last generated proposal
-    let lastProposal = localStorage.getItem(`${TOOL_NAME}_last_proposal`);
-    if (lastProposal) {
-        try {
-            lastProposal = JSON.parse(lastProposal);
-            if (lastProposal.content && lastProposal.timestamp > Date.now() - 86400000) {
-                document.getElementById('proposalViewer').innerHTML = lastProposal.content;
-                document.getElementById('exportGroup').style.display = 'flex';
-            }
-        } catch(e) {}
+    } catch (error) {
+        console.warn('⚠️ API not available, using localStorage fallback');
+        state.apiAvailable = false;
     }
 }
 
-function incrementUsage() {
-    let toolUsage = localStorage.getItem(`${TOOL_NAME}_usage`);
-    toolUsage = toolUsage ? parseInt(toolUsage) + 1 : 1;
-    localStorage.setItem(`${TOOL_NAME}_usage`, toolUsage);
-    document.getElementById('toolUsage').innerText = formatNumber(toolUsage);
+// ============================================
+// SPACE BACKGROUND
+// ============================================
+function createSpaceBackground() {
+    const container = document.getElementById('spaceBg');
+    if (!container) return;
     
-    let globalUsage = localStorage.getItem(`${TOOL_NAME}_global_usage`);
-    globalUsage = globalUsage ? parseInt(globalUsage) + 1 : 1248;
-    localStorage.setItem(`${TOOL_NAME}_global_usage`, globalUsage);
-    document.getElementById('globalUsage').innerText = formatNumber(globalUsage);
+    const starCount = 150;
+    
+    for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.width = (Math.random() * 2 + 1) + 'px';
+        star.style.height = star.style.width;
+        star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+        star.style.animationDelay = (Math.random() * 5) + 's';
+        container.appendChild(star);
+    }
 }
 
-function incrementShare() {
-    let totalShares = localStorage.getItem(`${TOOL_NAME}_shares`);
-    totalShares = totalShares ? parseInt(totalShares) + 1 : 90;
-    localStorage.setItem(`${TOOL_NAME}_shares`, totalShares);
-    document.getElementById('totalShares').innerText = formatNumber(totalShares);
+// ============================================
+// API FUNCTIONS
+// ============================================
+async function callAPI(endpoint, method = 'GET', body = null) {
+    if (!state.apiAvailable) {
+        console.warn('⚠️ API not available, using fallback');
+        return null;
+    }
+    
+    const url = CONFIG.API_BASE + endpoint;
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    
+    const options = {
+        method: method,
+        headers: headers
+    };
+    
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
+        state.apiAvailable = false;
+        return null;
+    }
 }
 
-function formatNumber(num) {
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
+// ============================================
+// LOAD ALL DATA FROM API
+// ============================================
+async function loadAllData() {
+    try {
+        // 1. Get tool stats
+        const stats = await callAPI(`/api/stats?tool_slug=${CONFIG.TOOL_SLUG}`);
+        
+        if (stats) {
+            state.globalUsage = stats.usage_count || 0;
+            state.sharesCount = stats.shares_count || 0;
+            state.followersCount = stats.followers_count || 0;
+            
+            // Update UI
+            document.getElementById('globalUsage').innerText = formatNumber(state.globalUsage);
+            document.getElementById('totalShares').innerText = formatNumber(state.sharesCount);
+            document.getElementById('totalFollowers').innerText = formatNumber(state.followersCount);
+            
+            console.log('📊 Stats loaded:', stats);
+        } else {
+            // Fallback to localStorage
+            loadFromLocalStorage();
+        }
+        
+        // 2. Get reactions
+        const reactionsData = await callAPI(`/api/reactions?tool_slug=${CONFIG.TOOL_SLUG}`);
+        if (reactionsData && reactionsData.reactions) {
+            state.reactions = reactionsData.reactions;
+            updateReactionUI();
+            console.log('❤️ Reactions loaded:', state.reactions);
+        } else {
+            // Fallback: load reactions from localStorage
+            loadReactionsFromLocalStorage();
+        }
+        
+        // 3. Increment usage for this tool
+        await incrementUsage();
+        
+        // 4. Load local draft
+        loadDraft();
+        
+        // 5. Load saved proposal
+        loadSavedProposal();
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        // Fallback to localStorage
+        loadFromLocalStorage();
+    }
+}
+
+// ============================================
+// INCREMENT USAGE
+// ============================================
+async function incrementUsage() {
+    try {
+        const result = await callAPI('/api/usage', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG
+        });
+        
+        if (result) {
+            state.usageCount = result.usage_count || 1;
+            document.getElementById('toolUsage').innerText = formatNumber(state.usageCount);
+            
+            if (result.global_usage) {
+                state.globalUsage = result.global_usage;
+                document.getElementById('globalUsage').innerText = formatNumber(state.globalUsage);
+            }
+            console.log('📈 Usage incremented:', state.usageCount);
+        }
+    } catch (error) {
+        console.error('Error incrementing usage:', error);
+        // Fallback: increment local
+        let localUsage = localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`);
+        localUsage = localUsage ? parseInt(localUsage) + 1 : 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_usage`, localUsage);
+        document.getElementById('toolUsage').innerText = formatNumber(localUsage);
+    }
+}
+
+// ============================================
+// REACTIONS
+// ============================================
+function setupReactions() {
+    const buttons = document.querySelectorAll('.reaction-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reactionType = this.getAttribute('data-reaction');
+            const emoji = this.getAttribute('data-emoji');
+            handleReaction(reactionType, emoji);
+        });
+    });
+}
+
+async function handleReaction(reactionType, emoji) {
+    try {
+        const result = await callAPI('/api/reactions', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            reaction_type: reactionType
+        });
+        
+        if (result && result.reactions) {
+            state.reactions = result.reactions;
+            updateReactionUI();
+            showToast(`Thanks for your ${reactionType} reaction! ${emoji}`, 'success');
+            console.log('❤️ Reaction added:', reactionType, state.reactions);
+        } else {
+            // Fallback: increment local
+            addReactionLocal(reactionType);
+        }
+    } catch (error) {
+        console.error('Error adding reaction:', error);
+        // Fallback: increment local
+        addReactionLocal(reactionType);
+    }
+}
+
+function addReactionLocal(reactionType) {
+    const count = localStorage.getItem(`${CONFIG.TOOL_SLUG}_reaction_${reactionType}`);
+    const newCount = count ? parseInt(count) + 1 : 1;
+    localStorage.setItem(`${CONFIG.TOOL_SLUG}_reaction_${reactionType}`, newCount);
+    state.reactions[reactionType] = newCount;
+    updateReactionUI();
+    showToast(`Thanks for your ${reactionType} reaction!`, 'success');
+}
+
+function updateReactionUI() {
+    const reactionMap = {
+        like: 'reactionLike',
+        love: 'reactionLove',
+        wow: 'reactionWow',
+        sad: 'reactionSad',
+        angry: 'reactionAngry',
+        laugh: 'reactionLaugh',
+        celebrate: 'reactionCelebrate'
+    };
+    
+    for (const [key, elementId] of Object.entries(reactionMap)) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.innerText = state.reactions[key] || 0;
+        }
+    }
+}
+
+function loadReactionsFromLocalStorage() {
+    const reactionKeys = ['like', 'love', 'wow', 'sad', 'angry', 'laugh', 'celebrate'];
+    reactionKeys.forEach(key => {
+        const count = localStorage.getItem(`${CONFIG.TOOL_SLUG}_reaction_${key}`);
+        state.reactions[key] = count ? parseInt(count) : 0;
+    });
+    updateReactionUI();
+}
+
+// ============================================
+// SHARE FUNCTIONS
+// ============================================
+async function recordShare(platform) {
+    try {
+        const result = await callAPI('/api/shares', 'POST', {
+            tool_slug: CONFIG.TOOL_SLUG,
+            platform: platform
+        });
+        
+        if (result) {
+            state.sharesCount++;
+            document.getElementById('totalShares').innerText = formatNumber(state.sharesCount);
+        }
+    } catch (error) {
+        console.error('Error recording share:', error);
+        // Fallback: increment local
+        let shares = localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`);
+        shares = shares ? parseInt(shares) + 1 : 1;
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_shares`, shares);
+        document.getElementById('totalShares').innerText = formatNumber(shares);
+    }
+}
+
+function shareOnFacebook() {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
+    recordShare('facebook');
+    showToast('Shared on Facebook!', 'success');
+}
+
+function shareOnTwitter() {
+    window.open(`https://twitter.com/intent/tweet?text=Check%20out%20this%20Research%20Proposal%20Generator!%20📚&url=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
+    recordShare('twitter');
+    showToast('Shared on Twitter!', 'success');
+}
+
+function shareOnWhatsApp() {
+    window.open(`https://wa.me/?text=${encodeURIComponent('Check out this Research Proposal Generator: ' + window.location.href)}`, '_blank');
+    recordShare('whatsapp');
+    showToast('Shared on WhatsApp!', 'success');
+}
+
+function shareOnLinkedIn() {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
+    recordShare('linkedin');
+    showToast('Shared on LinkedIn!', 'success');
+}
+
+function shareOnEmail() {
+    window.location.href = `mailto:?subject=Research Proposal Generator&body=Check out this amazing tool: ${window.location.href}`;
+    recordShare('email');
+    showToast('Email client opened!', 'success');
+}
+
+async function copyPageURL() {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        recordShare('copy');
+        showToast('URL copied to clipboard! 📋', 'success');
+    } catch (error) {
+        showToast('Failed to copy URL', 'error');
+    }
 }
 
 // ============================================
@@ -122,19 +397,12 @@ function setupEventListeners() {
     document.getElementById('closeModalBtn').addEventListener('click', closeModal);
     document.getElementById('closeModalBtn2').addEventListener('click', closeModal);
     
-    // Premium button
-    const premiumBtn = document.getElementById('premiumBtn');
-    if (premiumBtn) premiumBtn.addEventListener('click', openModal);
-    
     // Auto-save on input
     const inputs = ['researchTopic', 'researchArea', 'industry', 'keyTerms', 'methodology', 'sampleSize'];
     inputs.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', saveDraft);
     });
-    
-    // Load draft
-    loadDraft();
 }
 
 function generateProposal() {
@@ -146,11 +414,11 @@ function generateProposal() {
         return;
     }
     
+    if (state.isGenerating) return;
+    state.isGenerating = true;
     showLoading(true);
     
-    setTimeout(() => {
-        incrementUsage();
-        
+    try {
         const industry = document.getElementById('industry').value.trim();
         const keyTerms = document.getElementById('keyTerms').value.trim();
         const methodology = document.getElementById('methodology').value;
@@ -160,18 +428,103 @@ function generateProposal() {
         
         document.getElementById('proposalViewer').innerHTML = proposalHTML;
         document.getElementById('exportGroup').style.display = 'flex';
+        state.hasGenerated = true;
         
         // Save to localStorage
-        localStorage.setItem(`${TOOL_NAME}_last_proposal`, JSON.stringify({
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_last_proposal`, JSON.stringify({
             content: proposalHTML,
             timestamp: Date.now()
         }));
         
-        showToast('Research proposal generated successfully! ✨', 'success');
+        showToast('✅ Research proposal generated successfully!', 'success');
+    } catch (error) {
+        console.error('Error generating proposal:', error);
+        showToast('Error generating proposal. Please try again.', 'error');
+    } finally {
+        state.isGenerating = false;
         showLoading(false);
-    }, 500);
+    }
 }
 
+async function generateWithAI() {
+    const topic = document.getElementById('researchTopic').value.trim();
+    const area = document.getElementById('researchArea').value.trim();
+    
+    if (!topic || !area) {
+        showToast('Please fill in Research Topic and Research Area', 'error');
+        return;
+    }
+    
+    if (state.isGenerating) return;
+    state.isGenerating = true;
+    showLoading(true);
+    showToast('🤖 AI is generating your proposal...', 'info');
+    
+    try {
+        const industry = document.getElementById('industry').value.trim();
+        const keyTerms = document.getElementById('keyTerms').value.trim();
+        const methodology = document.getElementById('methodology').value;
+        const sampleSize = document.getElementById('sampleSize').value.trim();
+        
+        // Call AI API
+        const result = await callAPI('/api/generate-proposal', 'POST', {
+            topic: topic,
+            area: area,
+            industry: industry,
+            keyTerms: keyTerms,
+            methodology: methodology,
+            sampleSize: sampleSize
+        });
+        
+        if (result && result.success) {
+            document.getElementById('proposalViewer').innerHTML = result.content;
+            document.getElementById('exportGroup').style.display = 'flex';
+            state.hasGenerated = true;
+            
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_last_proposal`, JSON.stringify({
+                content: result.content,
+                timestamp: Date.now(),
+                ai_generated: true
+            }));
+            
+            showToast('🎉 AI-generated proposal ready!', 'success');
+        } else {
+            // Fallback to template
+            const fallbackHTML = buildProposalHTML(topic, area, industry, keyTerms, methodology, sampleSize);
+            document.getElementById('proposalViewer').innerHTML = fallbackHTML;
+            document.getElementById('exportGroup').style.display = 'flex';
+            state.hasGenerated = true;
+            
+            localStorage.setItem(`${CONFIG.TOOL_SLUG}_last_proposal`, JSON.stringify({
+                content: fallbackHTML,
+                timestamp: Date.now()
+            }));
+            
+            showToast('✅ Proposal generated (AI service unavailable, used template)', 'info');
+        }
+    } catch (error) {
+        console.error('AI generation error:', error);
+        // Fallback to template
+        const fallbackHTML = buildProposalHTML(topic, area, industry, keyTerms, methodology, sampleSize);
+        document.getElementById('proposalViewer').innerHTML = fallbackHTML;
+        document.getElementById('exportGroup').style.display = 'flex';
+        state.hasGenerated = true;
+        
+        localStorage.setItem(`${CONFIG.TOOL_SLUG}_last_proposal`, JSON.stringify({
+            content: fallbackHTML,
+            timestamp: Date.now()
+        }));
+        
+        showToast('✅ Proposal generated (AI service unavailable, used template)', 'info');
+    } finally {
+        state.isGenerating = false;
+        showLoading(false);
+    }
+}
+
+// ============================================
+// BUILD PROPOSAL HTML (APA 7th Edition)
+// ============================================
 function buildProposalHTML(topic, area, industry, keyTerms, methodology, sampleSize) {
     const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const termsList = keyTerms ? keyTerms.split('\n').filter(t => t.trim()) : [];
@@ -179,13 +532,13 @@ function buildProposalHTML(topic, area, industry, keyTerms, methodology, sampleS
     return `
         <div class="proposal-content">
             <h1>${escapeHTML(topic)}</h1>
-            <p style="text-align: center; margin-bottom: 30px;">
+            <p style="text-align: center; margin-bottom: 30px; color: var(--text-secondary);">
                 A Research Proposal Submitted to the Department of ${escapeHTML(area)}<br>
                 Date: ${date}
             </p>
             
             <h2>ABSTRACT</h2>
-            <p>This research proposal investigates ${escapeHTML(topic)} within the field of ${escapeHTML(area)}. ${industry ? `Focusing on the ${escapeHTML(industry)} industry,` : ''} this study aims to address critical gaps in current knowledge and practice. The research employs ${escapeHTML(methodology)} methodology with ${escapeHTML(sampleSize || 'an appropriate')} sample size to ensure validity and reliability of findings.</p>
+            <p>This research proposal investigates ${escapeHTML(topic)} within the field of ${escapeHTML(area)}. ${industry ? `Focusing on the ${escapeHTML(industry)} industry,` : ''} this study aims to address critical gaps in current knowledge and practice. The research employs ${escapeHTML(methodology || 'Mixed Methods')} methodology with ${escapeHTML(sampleSize || 'an appropriate')} sample size to ensure validity and reliability of findings.</p>
             
             <h2>BACKGROUND OF THE STUDY</h2>
             <p>The area of ${escapeHTML(area)} has witnessed significant developments in recent years. ${industry ? `Particularly in the ${escapeHTML(industry)} sector,` : ''} there is an urgent need to understand ${escapeHTML(topic.toLowerCase())}. Current literature suggests that this topic has far-reaching implications for both theory and practice.</p>
@@ -216,7 +569,7 @@ function buildProposalHTML(topic, area, industry, keyTerms, methodology, sampleS
             <p>The literature review will examine existing research on ${escapeHTML(topic.toLowerCase())}, focusing on theoretical frameworks, empirical studies, and identified gaps. Key areas include conceptual definitions, measurement approaches, and documented outcomes across different contexts.</p>
             
             <h2>RESEARCH METHODOLOGY</h2>
-            <p><strong>Research Approach:</strong> ${escapeHTML(methodology)} research design</p>
+            <p><strong>Research Approach:</strong> ${escapeHTML(methodology || 'Mixed Methods')} research design</p>
             <p><strong>Sampling Technique:</strong> Stratified random sampling to ensure representation</p>
             <p><strong>Sample Size:</strong> ${escapeHTML(sampleSize || '200 participants (calculated using power analysis)')}</p>
             <p><strong>Data Collection:</strong> Mixed methods including surveys, semi-structured interviews, and document analysis</p>
@@ -256,109 +609,11 @@ function buildProposalHTML(topic, area, industry, keyTerms, methodology, sampleS
             <p>A complete reference list will be provided in APA 7th Edition format upon completion of the research.</p>
             
             <hr>
-            <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500); margin-top: 30px;">
-                Generated by Research Proposal Generator | Professional Academic Tool
+            <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 30px;">
+                Generated by Research Proposal Generator | ${CONFIG.TOOL_NAME} v${CONFIG.VERSION}
             </p>
         </div>
     `;
-}
-
-function generateWithAI() {
-    const topic = document.getElementById('researchTopic').value.trim();
-    const area = document.getElementById('researchArea').value.trim();
-    
-    if (!topic || !area) {
-        showToast('Please fill in Research Topic and Research Area', 'error');
-        return;
-    }
-    
-    showLoading(true);
-    showToast('🤖 AI is generating your proposal...', 'info');
-    
-    setTimeout(() => {
-        incrementUsage();
-        
-        const industry = document.getElementById('industry').value.trim();
-        const methodology = document.getElementById('methodology').value;
-        
-        const aiHTML = `
-            <div class="proposal-content">
-                <h1>${escapeHTML(topic)}</h1>
-                <p style="text-align: center"><em>🤖 AI-Generated Research Proposal (Advanced Mode)</em><br>
-                ${new Date().toLocaleDateString()}</p>
-                
-                <h2>AI-ENHANCED INTRODUCTION</h2>
-                <p>The field of ${escapeHTML(area)} is rapidly evolving, and ${escapeHTML(topic)} represents a critical area of investigation. Based on advanced analysis, this research addresses significant gaps in current understanding.</p>
-                
-                <h2>PROBLEM IDENTIFICATION (AI Analysis)</h2>
-                <p>Through comprehensive analysis of existing literature, three major gaps have been identified: (1) limited empirical evidence, (2) inconsistent methodological approaches, and (3) lack of contextualized frameworks for ${escapeHTML(topic)}.</p>
-                
-                <h2>AI-ASSISTED RESEARCH FRAMEWORK</h2>
-                <p>The study will employ ${escapeHTML(methodology)} approach, combining quantitative and qualitative methods for comprehensive understanding. Advanced analytics will assist in data analysis and pattern recognition.</p>
-                
-                <h2>RESEARCH METHODOLOGY</h2>
-                <p><strong>Data Collection:</strong> Mixed methods including surveys, interviews, and automated data extraction</p>
-                <p><strong>Analysis Approach:</strong> Statistical analysis, thematic analysis, and pattern recognition</p>
-                <p><strong>Expected Sample:</strong> ${escapeHTML(document.getElementById('sampleSize').value || '250 participants')}</p>
-                
-                <h2>EXPECTED CONTRIBUTIONS</h2>
-                <ul>
-                    <li>Novel theoretical framework for ${escapeHTML(topic)}</li>
-                    <li>Empirical evidence from ${escapeHTML(industry || area)} context</li>
-                    <li>Practical recommendations for stakeholders</li>
-                    <li>Methodological innovations using advanced tools</li>
-                </ul>
-                
-                <h2>PROPOSED TIMELINE</h2>
-                <ul>
-                    <li>Phase 1 (Month 1-2): Literature Review & Gap Analysis</li>
-                    <li>Phase 2 (Month 3): Methodology & Instrument Design</li>
-                    <li>Phase 3 (Month 4-5): Data Collection & Analysis</li>
-                    <li>Phase 4 (Month 6-7): Writing & Submission</li>
-                </ul>
-                
-                <div style="background: linear-gradient(135deg, var(--primary-light), var(--primary)); padding: 20px; border-radius: 12px; margin-top: 30px; text-align: center; color: white;">
-                    <p><strong>🤖 AI Note:</strong> This proposal was AI-generated using advanced algorithms. For a standard version, click "Generate Proposal".</p>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('proposalViewer').innerHTML = aiHTML;
-        document.getElementById('exportGroup').style.display = 'flex';
-        
-        localStorage.setItem(`${TOOL_NAME}_last_proposal`, JSON.stringify({
-            content: aiHTML,
-            timestamp: Date.now()
-        }));
-        
-        showToast('🎉 AI-generated proposal ready!', 'success');
-        showLoading(false);
-    }, 1000);
-}
-
-// ============================================
-// 7 REACTIONS SYSTEM
-// ============================================
-function setupReactions() {
-    const reactions = document.querySelectorAll('.reaction-btn');
-    reactions.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const emoji = this.getAttribute('data-emoji');
-            const reactionType = this.getAttribute('data-reaction');
-            addReaction(reactionType, emoji);
-        });
-    });
-}
-
-function addReaction(reactionType, emoji) {
-    let count = localStorage.getItem(`${TOOL_NAME}_reaction_${reactionType}`);
-    count = count ? parseInt(count) + 1 : 1;
-    localStorage.setItem(`${TOOL_NAME}_reaction_${reactionType}`, count);
-    
-    const elementId = `reaction${reactionType.charAt(0).toUpperCase() + reactionType.slice(1)}`;
-    document.getElementById(elementId).innerText = count;
-    
-    showToast(`Thanks for your ${reactionType} reaction! ${emoji}`, 'success');
 }
 
 // ============================================
@@ -384,6 +639,7 @@ async function exportAsPDF() {
         await html2pdf().set(opt).from(element).save();
         showToast('PDF exported successfully! ✅', 'success');
     } catch (error) {
+        console.error('PDF export error:', error);
         showToast('Error generating PDF', 'error');
     }
 }
@@ -436,54 +692,14 @@ function exportAsTXT() {
 }
 
 // ============================================
-// SHARE FUNCTIONS
-// ============================================
-function shareOnFacebook() {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
-    incrementShare();
-    showToast('Shared on Facebook!', 'success');
-}
-
-function shareOnTwitter() {
-    window.open(`https://twitter.com/intent/tweet?text=Check%20out%20this%20Research%20Proposal%20Generator!%20📚&url=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
-    incrementShare();
-    showToast('Shared on Twitter!', 'success');
-}
-
-function shareOnWhatsApp() {
-    window.open(`https://wa.me/?text=${encodeURIComponent('Check out this Research Proposal Generator: ' + window.location.href)}`, '_blank');
-    incrementShare();
-    showToast('Shared on WhatsApp!', 'success');
-}
-
-function shareOnLinkedIn() {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400');
-    incrementShare();
-    showToast('Shared on LinkedIn!', 'success');
-}
-
-function shareOnEmail() {
-    window.location.href = `mailto:?subject=Research Proposal Generator&body=Check out this amazing tool: ${window.location.href}`;
-    incrementShare();
-    showToast('Email client opened!', 'success');
-}
-
-async function copyPageURL() {
-    try {
-        await navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard! 📋', 'success');
-        incrementShare();
-    } catch (error) {
-        showToast('Failed to copy URL', 'error');
-    }
-}
-
-// ============================================
 // DARK MODE THEME
 // ============================================
 function loadTheme() {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    if (savedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.getElementById('themeToggle').innerHTML = '🌙 Dark Mode';
+    } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.getElementById('themeToggle').innerHTML = '☀️ Light Mode';
     }
@@ -492,7 +708,7 @@ function loadTheme() {
 function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme');
     if (current === 'dark') {
-        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light');
         document.getElementById('themeToggle').innerHTML = '🌙 Dark Mode';
         showToast('Light mode activated', 'info');
@@ -505,8 +721,35 @@ function toggleTheme() {
 }
 
 // ============================================
-// AUTO-SAVE DRAFT
+// LOCAL STORAGE FALLBACK
 // ============================================
+function loadFromLocalStorage() {
+    console.log('📦 Loading data from localStorage fallback');
+    
+    // Load usage
+    let toolUsage = localStorage.getItem(`${CONFIG.TOOL_SLUG}_usage`);
+    toolUsage = toolUsage ? parseInt(toolUsage) : 0;
+    document.getElementById('toolUsage').innerText = formatNumber(toolUsage);
+    
+    // Load shares
+    let totalShares = localStorage.getItem(`${CONFIG.TOOL_SLUG}_shares`);
+    totalShares = totalShares ? parseInt(totalShares) : 0;
+    document.getElementById('totalShares').innerText = formatNumber(totalShares);
+    
+    // Load followers (simulated)
+    let followers = localStorage.getItem(`${CONFIG.TOOL_SLUG}_followers`);
+    followers = followers ? parseInt(followers) : 42;
+    document.getElementById('totalFollowers').innerText = formatNumber(followers);
+    
+    // Load global usage (simulated)
+    let globalUsage = localStorage.getItem(`${CONFIG.TOOL_SLUG}_global_usage`);
+    globalUsage = globalUsage ? parseInt(globalUsage) : 1247;
+    document.getElementById('globalUsage').innerText = formatNumber(globalUsage);
+    
+    // Load reactions
+    loadReactionsFromLocalStorage();
+}
+
 function saveDraft() {
     const draft = {
         topic: document.getElementById('researchTopic').value,
@@ -517,21 +760,32 @@ function saveDraft() {
         sampleSize: document.getElementById('sampleSize').value,
         timestamp: Date.now()
     };
-    localStorage.setItem(`${TOOL_NAME}_draft`, JSON.stringify(draft));
+    localStorage.setItem(`${CONFIG.TOOL_SLUG}_draft`, JSON.stringify(draft));
 }
 
 function loadDraft() {
-    const saved = localStorage.getItem(`${TOOL_NAME}_draft`);
+    const saved = localStorage.getItem(`${CONFIG.TOOL_SLUG}_draft`);
     if (saved) {
         const draft = JSON.parse(saved);
-        if (draft.topic && draft.topic !== '') {
-            document.getElementById('researchTopic').value = draft.topic;
+        if (draft.topic) {
+            document.getElementById('researchTopic').value = draft.topic || '';
             document.getElementById('researchArea').value = draft.area || '';
             document.getElementById('industry').value = draft.industry || '';
             document.getElementById('keyTerms').value = draft.keyTerms || '';
             document.getElementById('methodology').value = draft.methodology || 'Mixed Methods';
             document.getElementById('sampleSize').value = draft.sampleSize || '';
-            showToast('Draft restored from auto-save 💾', 'info');
+        }
+    }
+}
+
+function loadSavedProposal() {
+    const saved = localStorage.getItem(`${CONFIG.TOOL_SLUG}_last_proposal`);
+    if (saved) {
+        const data = JSON.parse(saved);
+        if (data.content && data.timestamp > Date.now() - 86400000) {
+            document.getElementById('proposalViewer').innerHTML = data.content;
+            document.getElementById('exportGroup').style.display = 'flex';
+            state.hasGenerated = true;
         }
     }
 }
@@ -539,6 +793,12 @@ function loadDraft() {
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
 function showLoading(show) {
     const spinner = document.getElementById('loadingSpinner');
     const generateBtn = document.getElementById('generateBtn');
@@ -557,6 +817,8 @@ function showLoading(show) {
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
@@ -564,6 +826,8 @@ function showToast(message, type = 'info') {
     
     setTimeout(() => {
         toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100px)';
+        toast.style.transition = 'all 0.3s ease';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
@@ -581,18 +845,50 @@ function escapeHTML(str) {
 function setupScrollButton() {
     window.addEventListener('scroll', function() {
         const scrollBtn = document.getElementById('scrollToTop');
-        if (window.scrollY > 300) {
-            scrollBtn.style.display = 'flex';
-        } else {
-            scrollBtn.style.display = 'none';
+        if (scrollBtn) {
+            if (window.scrollY > 300) {
+                scrollBtn.style.display = 'flex';
+            } else {
+                scrollBtn.style.display = 'none';
+            }
         }
     });
 }
 
 function openModal() {
-    document.getElementById('premiumModal').classList.remove('hidden');
+    const modal = document.getElementById('premiumModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeModal() {
-    document.getElementById('premiumModal').classList.add('hidden');
+    const modal = document.getElementById('premiumModal');
+    if (modal) modal.classList.add('hidden');
 }
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', function(e) {
+    // Ctrl+Enter to generate
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        const btn = document.getElementById('generateBtn');
+        if (btn && !btn.disabled) {
+            generateProposal();
+        }
+    }
+    // Escape to close modal
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+
+// ============================================
+// CONSOLE WELCOME
+// ============================================
+console.log('📚 %c' + CONFIG.TOOL_NAME + ' v' + CONFIG.VERSION, 'font-size:20px; font-weight:bold; color:#00d4ff;');
+console.log('🔧 Tool: ' + CONFIG.TOOL_NAME);
+console.log('📊 Category: ' + CONFIG.CATEGORY);
+console.log('🌐 API: ' + CONFIG.API_BASE);
+console.log('💡 Tip: Press Ctrl+Enter to generate proposal');
+console.log('✨ ' + CONFIG.TOOL_NAME + ' is ready!');
