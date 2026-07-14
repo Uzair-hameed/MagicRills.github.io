@@ -2,10 +2,12 @@
 // SCIENCE PAPER GENERATOR - COMPLETE
 // 8 Objective Types + 7 Subjective Types (Including CRQ)
 // MCQ Two Column Layout | Fixed Reactions | Fixed Image Upload
+// UPDATED: Cloudflare Workers API Integration
 // ============================================
 
 const TOOL_SLUG = 'science-paper-generator';
-const API_BASE_URL = 'https://your-worker.uzairhameed01.workers.dev';
+const API_BASE_URL = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 let objectiveQuestions = [];
 let subjectiveQuestions = [];
@@ -26,7 +28,8 @@ function showToast(message, type = 'success') {
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span><span>${message}</span>`;
+    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -41,78 +44,162 @@ function closePremiumModal() {
 }
 
 // ============================================
-// API CALLS
+// LOCAL STORAGE FALLBACK FUNCTIONS
+// ============================================
+function getLocalUsage() {
+    return parseInt(localStorage.getItem(`${TOOL_SLUG}_usage`) || '0');
+}
+
+function setLocalUsage(count) {
+    localStorage.setItem(`${TOOL_SLUG}_usage`, count);
+}
+
+function getLocalReactions() {
+    try {
+        return JSON.parse(localStorage.getItem(`${TOOL_SLUG}_reactions`)) || reactions;
+    } catch { return reactions; }
+}
+
+function setLocalReactions(data) {
+    localStorage.setItem(`${TOOL_SLUG}_reactions`, JSON.stringify(data));
+}
+
+function getLocalShares() {
+    return parseInt(localStorage.getItem(`${TOOL_SLUG}_shares`) || '0');
+}
+
+function setLocalShares(count) {
+    localStorage.setItem(`${TOOL_SLUG}_shares`, count);
+}
+
+// ============================================
+// CLOUDFLARE API CALLS
+// ============================================
+async function apiCall(endpoint, method = 'GET', body = null) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+        }
+    };
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Call Error:', error);
+        return null;
+    }
+}
+
+// ============================================
+// USAGE COUNTER
 // ============================================
 async function incrementUsageCount() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/${TOOL_SLUG}/usage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, tool_slug: TOOL_SLUG })
+        const data = await apiCall('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: userId
         });
-        const data = await response.json();
-        if (data.success) document.getElementById('globalUsageCounter').innerText = data.total_usage || data.count;
-    } catch(e) { console.error(e); }
+        if (data && data.success) {
+            const count = data.total_usage || data.count || 0;
+            document.getElementById('globalUsageCounter').innerText = count;
+            setLocalUsage(count);
+        } else {
+            // Fallback: LocalStorage
+            const localCount = getLocalUsage() + 1;
+            setLocalUsage(localCount);
+            document.getElementById('globalUsageCounter').innerText = localCount;
+        }
+    } catch (error) {
+        // Fallback: LocalStorage
+        const localCount = getLocalUsage() + 1;
+        setLocalUsage(localCount);
+        document.getElementById('globalUsageCounter').innerText = localCount;
+    }
 }
 
 async function fetchUsageCount() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/${TOOL_SLUG}/usage?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.success) document.getElementById('globalUsageCounter').innerText = data.count || 0;
-    } catch(e) { console.error(e); }
+        const data = await apiCall(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (data && data.success) {
+            const count = data.usage || data.total_usage || 0;
+            document.getElementById('globalUsageCounter').innerText = count;
+            setLocalUsage(count);
+        } else {
+            // Fallback: LocalStorage
+            document.getElementById('globalUsageCounter').innerText = getLocalUsage();
+        }
+    } catch (error) {
+        document.getElementById('globalUsageCounter').innerText = getLocalUsage();
+    }
 }
 
+// ============================================
+// REACTIONS
+// ============================================
 async function fetchReactions() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/${TOOL_SLUG}/reactions?tool_slug=${TOOL_SLUG}`);
-        const data = await response.json();
-        if (data.success && data.reactions) {
+        const data = await apiCall(`/api/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (data && data.success && data.reactions) {
             reactions = data.reactions;
+            setLocalReactions(reactions);
+            updateReactionDisplays();
+        } else {
+            // Fallback: LocalStorage
+            const localReactions = getLocalReactions();
+            reactions = localReactions;
             updateReactionDisplays();
         }
-    } catch(e) { console.error(e); }
+    } catch (error) {
+        const localReactions = getLocalReactions();
+        reactions = localReactions;
+        updateReactionDisplays();
+    }
 }
 
 async function addReaction(reactionType, emoji) {
     showLoading(true);
     try {
-        const response = await fetch(`${API_BASE_URL}/api/${TOOL_SLUG}/reactions`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, emoji: emoji, reaction_type: reactionType, user_id: userId })
+        const data = await apiCall('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            emoji: emoji,
+            reaction_type: reactionType,
+            user_id: userId
         });
-        const data = await response.json();
-        if (data.success || data.counts) {
-            if (data.counts) reactions = data.counts;
-            else await fetchReactions();
-            updateReactionDisplays();
+        if (data && (data.success || data.counts)) {
+            if (data.counts) {
+                reactions = data.counts;
+                setLocalReactions(reactions);
+                updateReactionDisplays();
+            } else {
+                await fetchReactions();
+            }
             showToast(`Thanks for ${reactionType}!`, 'success');
-        } else if (data.already_reacted) {
+        } else if (data && data.already_reacted) {
             showToast('Already reacted!', 'info');
+        } else {
+            // Fallback: LocalStorage
+            reactions[reactionType] = (reactions[reactionType] || 0) + 1;
+            setLocalReactions(reactions);
+            updateReactionDisplays();
+            showToast(`Thanks for ${reactionType}! (Offline)`, 'success');
         }
-    } catch(e) { showToast('Error', 'error'); }
+    } catch (error) {
+        // Fallback: LocalStorage
+        reactions[reactionType] = (reactions[reactionType] || 0) + 1;
+        setLocalReactions(reactions);
+        updateReactionDisplays();
+        showToast(`Thanks for ${reactionType}! (Offline)`, 'success');
+    }
     finally { showLoading(false); }
-}
-
-async function recordShare(platform) {
-    try {
-        await fetch(`${API_BASE_URL}/api/${TOOL_SLUG}/shares`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tool_slug: TOOL_SLUG, platform: platform, user_id: userId })
-        });
-        showToast(`Shared on ${platform}!`, 'success');
-    } catch(e) { console.error(e); }
-}
-
-async function fetchGlobalStats() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/global-stats`);
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('globalUsageCounter').innerText = data.totalUsage || 0;
-            document.getElementById('globalReactionCounter').innerText = data.totalReactions || 0;
-            document.getElementById('globalShareCounter').innerText = data.totalShares || 0;
-        }
-    } catch(e) { console.error(e); }
 }
 
 function updateReactionDisplays() {
@@ -126,14 +213,85 @@ function updateReactionDisplays() {
 }
 
 // ============================================
+// SHARES
+// ============================================
+async function recordShare(platform) {
+    try {
+        const data = await apiCall('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            user_id: userId
+        });
+        if (data && data.success) {
+            showToast(`Shared on ${platform}!`, 'success');
+            // Update share counter
+            const shareCount = getLocalShares() + 1;
+            setLocalShares(shareCount);
+        } else {
+            // Fallback: LocalStorage
+            const shareCount = getLocalShares() + 1;
+            setLocalShares(shareCount);
+            showToast(`Shared on ${platform}! (Offline)`, 'success');
+        }
+    } catch (error) {
+        // Fallback: LocalStorage
+        const shareCount = getLocalShares() + 1;
+        setLocalShares(shareCount);
+        showToast(`Shared on ${platform}! (Offline)`, 'success');
+    }
+}
+
+// ============================================
+// GLOBAL STATS
+// ============================================
+async function fetchGlobalStats() {
+    try {
+        const data = await apiCall('/api/stats?tool_slug=global', 'GET');
+        if (data && data.success) {
+            document.getElementById('globalUsageCounter').innerText = data.totalUsage || getLocalUsage();
+            document.getElementById('globalReactionCounter').innerText = data.totalReactions || 0;
+            document.getElementById('globalShareCounter').innerText = data.totalShares || getLocalShares();
+        } else {
+            // Fallback: LocalStorage
+            document.getElementById('globalUsageCounter').innerText = getLocalUsage();
+            document.getElementById('globalReactionCounter').innerText = 0;
+            document.getElementById('globalShareCounter').innerText = getLocalShares();
+        }
+    } catch (error) {
+        document.getElementById('globalUsageCounter').innerText = getLocalUsage();
+        document.getElementById('globalReactionCounter').innerText = 0;
+        document.getElementById('globalShareCounter').innerText = getLocalShares();
+    }
+}
+
+// ============================================
 // SHARING FUNCTIONS
 // ============================================
-function shareOnFacebook() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); recordShare('facebook'); }
-function shareOnTwitter() { window.open(`https://twitter.com/intent/tweet?text=Science%20Paper%20Generator&url=${encodeURIComponent(window.location.href)}`, '_blank'); recordShare('twitter'); }
-function shareOnWhatsApp() { window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank'); recordShare('whatsapp'); }
-function shareOnLinkedIn() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); recordShare('linkedin'); }
-function shareByEmail() { window.location.href = `mailto:?subject=Science%20Paper&body=${encodeURIComponent(window.location.href)}`; recordShare('email'); }
-function copyPageURL() { navigator.clipboard.writeText(window.location.href); showToast('URL copied!', 'success'); recordShare('copy'); }
+function shareOnFacebook() { 
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); 
+    recordShare('facebook'); 
+}
+function shareOnTwitter() { 
+    window.open(`https://twitter.com/intent/tweet?text=Science%20Paper%20Generator&url=${encodeURIComponent(window.location.href)}`, '_blank'); 
+    recordShare('twitter'); 
+}
+function shareOnWhatsApp() { 
+    window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank'); 
+    recordShare('whatsapp'); 
+}
+function shareOnLinkedIn() { 
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); 
+    recordShare('linkedin'); 
+}
+function shareByEmail() { 
+    window.location.href = `mailto:?subject=Science%20Paper&body=${encodeURIComponent(window.location.href)}`; 
+    recordShare('email'); 
+}
+function copyPageURL() { 
+    navigator.clipboard.writeText(window.location.href); 
+    showToast('URL copied!', 'success'); 
+    recordShare('copy'); 
+}
 
 // ============================================
 // QUESTION TYPE VISIBILITY
@@ -577,6 +735,39 @@ function setupReactionButtons() {
 }
 
 // ============================================
+// HOME AND BACK BUTTONS
+// ============================================
+function addHomeBackButtons() {
+    // Home Button
+    const homeBtn = document.createElement('button');
+    homeBtn.className = 'fab-btn';
+    homeBtn.id = 'homeBtn';
+    homeBtn.innerHTML = '<i class="fas fa-home"></i>';
+    homeBtn.title = 'Home';
+    homeBtn.addEventListener('click', () => {
+        window.location.href = 'https://magicrills.com';
+    });
+    
+    // Back Button
+    const backBtn = document.createElement('button');
+    backBtn.className = 'fab-btn';
+    backBtn.id = 'backBtn';
+    backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
+    backBtn.title = 'Back to Tools';
+    backBtn.addEventListener('click', () => {
+        window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+    });
+    
+    const fabContainer = document.querySelector('.fab-container');
+    if (fabContainer) {
+        // Add Home button at top of FAB
+        fabContainer.insertBefore(homeBtn, fabContainer.firstChild);
+        // Add Back button after Home
+        fabContainer.insertBefore(backBtn, fabContainer.firstChild);
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 function init() {
@@ -600,6 +791,9 @@ function init() {
     
     // Setup reactions
     setupReactionButtons();
+    
+    // Add Home and Back buttons
+    addHomeBackButtons();
     
     // Event Listeners
     document.getElementById('generateBtn')?.addEventListener('click', generatePaper);
