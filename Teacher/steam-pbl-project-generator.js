@@ -1,14 +1,15 @@
 // ============================================
-// STEAM PBL PROJECT GENERATOR - FULLY INTEGRATED
-// TiDB + Vercel + Grok API + Reactions + Usage Counter
-// Version 4.0 - Production Ready with Real APIs
+// STEAM PBL PROJECT GENERATOR - CLOUDFLARE WORKER API
+// Fully Integrated with Cloudflare Workers API
+// Version 5.0 - Production Ready
 // ============================================
 
 // ============================================
 // CONFIGURATION
 // ============================================
 const TOOL_SLUG = 'steam-pbl-project-generator';
-const API_BASE = '/api'; // This will work with Vercel deployment
+const API_BASE = 'https://magicrills-api.uzairhameed01.workers.dev';
+const API_KEY = 'magicrills-grok-api.uzairhameed01.workers.dev';
 
 // Generate unique session ID
 let sessionId = localStorage.getItem('session_id');
@@ -78,7 +79,12 @@ const elements = {
     analysisContainer: document.getElementById('analysis-container'),
     exportReportPdf: document.getElementById('export-report-pdf'),
     printReport: document.getElementById('print-report'),
-    dbStatusText: document.getElementById('db-status-text')
+    dbStatusText: document.getElementById('db-status-text'),
+    topicSuggestions: document.getElementById('topic-suggestions'),
+    suggestionChips: document.getElementById('suggestion-chips'),
+    getSuggestionsBtn: document.getElementById('get-suggestions-btn'),
+    backBtn: document.getElementById('back-btn'),
+    homeBtn: document.getElementById('home-btn')
 };
 
 // Reaction mapping
@@ -93,200 +99,334 @@ const reactionMap = {
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
-    elements.toastContainer.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-function showLoading() { elements.loadingOverlay.style.display = 'flex'; }
-function hideLoading() { elements.loadingOverlay.style.display = 'none'; }
-
-// ============================================
-// API CALLS (Real TiDB + Vercel Integration)
-// ============================================
-
-// Generic API caller for tool-specific endpoints
-async function apiCall(endpoint, method = 'GET', body = null) {
-    const url = `${API_BASE}/${TOOL_SLUG}/${endpoint}`;
-    const options = {
-        method,
-        headers: { 'Content-Type': 'application/json' }
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-triangle-exclamation'
     };
-    if (body) options.body = JSON.stringify(body);
-    
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        return { success: false, error: error.message };
-    }
+    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+    elements.toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-// Direct API calls for global endpoints
-async function directApiCall(endpoint, method = 'GET', body = null) {
+function showLoading(message = 'Generating your project with AI...') {
+    elements.loadingOverlay.style.display = 'flex';
+    const p = elements.loadingOverlay.querySelector('p');
+    if (p) p.textContent = message;
+}
+
+function hideLoading() {
+    elements.loadingOverlay.style.display = 'none';
+}
+
+// ============================================
+// CLOUDFLARE WORKER API CALLS
+// ============================================
+
+// Generic API caller for Cloudflare Worker
+async function cfApiCall(endpoint, method = 'GET', body = null) {
     const url = `${API_BASE}${endpoint}`;
     const options = {
         method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+        }
     };
     if (body) options.body = JSON.stringify(body);
     
     try {
-        const response = await fetch(url);
-        return await response.json();
+        const response = await fetch(url, options);
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('Cloudflare API Error:', error);
         return { success: false, error: error.message };
     }
 }
 
-// Check database health
-async function checkDatabaseHealth() {
-    try {
-        const result = await directApiCall('/health', 'GET');
-        if (result.success && result.database === 'connected') {
-            elements.dbStatusText.innerHTML = '✅ Live Database Connected';
-            elements.dbStatusText.style.color = '#10b981';
-            return true;
-        } else {
-            elements.dbStatusText.innerHTML = '⚠️ Using Local Fallback';
-            elements.dbStatusText.style.color = '#fbbf24';
-            return false;
-        }
-    } catch (error) {
-        elements.dbStatusText.innerHTML = '🔌 Offline Mode';
-        elements.dbStatusText.style.color = '#ef4444';
-        return false;
-    }
-}
-
-// Usage Counter APIs
+// ============================================
+// USAGE COUNTER API (Cloudflare)
+// ============================================
 async function incrementUsage() {
-    const result = await apiCall('usage', 'POST', { user_id: sessionId });
-    if (result.success && result.total_usage) {
-        elements.toolUsageCount.textContent = result.total_usage;
-    } else {
-        // Fallback to localStorage if API fails
+    try {
+        const result = await cfApiCall('/api/usage', 'POST', {
+            tool_slug: TOOL_SLUG,
+            user_id: sessionId
+        });
+        
+        if (result.success) {
+            elements.toolUsageCount.textContent = result.usage_count || 0;
+            localStorage.setItem('tool_usage_count', result.usage_count);
+        } else {
+            // Fallback to localStorage
+            let count = parseInt(localStorage.getItem('tool_usage_count') || 0) + 1;
+            localStorage.setItem('tool_usage_count', count);
+            elements.toolUsageCount.textContent = count;
+        }
+        await fetchGlobalStats();
+    } catch (error) {
+        console.error('Usage increment error:', error);
         let count = parseInt(localStorage.getItem('tool_usage_count') || 0) + 1;
         localStorage.setItem('tool_usage_count', count);
         elements.toolUsageCount.textContent = count;
     }
-    await fetchGlobalStats();
 }
 
 async function fetchUsage() {
-    const result = await apiCall('usage', 'GET');
-    if (result.success) {
-        elements.toolUsageCount.textContent = result.count || 0;
-    } else {
+    try {
+        const result = await cfApiCall(`/api/usage?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result.success) {
+            elements.toolUsageCount.textContent = result.usage_count || 0;
+            localStorage.setItem('tool_usage_count', result.usage_count);
+        } else {
+            let count = parseInt(localStorage.getItem('tool_usage_count') || 0);
+            elements.toolUsageCount.textContent = count;
+        }
+    } catch (error) {
         let count = parseInt(localStorage.getItem('tool_usage_count') || 0);
         elements.toolUsageCount.textContent = count;
     }
 }
 
-// Reactions APIs
+// ============================================
+// REACTIONS API (Cloudflare)
+// ============================================
 async function addReaction(emoji, reactionType) {
     // Check if user already reacted (local check)
-    const reacted = localStorage.getItem(`reacted_${reactionType}`);
+    const reacted = localStorage.getItem(`reacted_${reactionType}_${TOOL_SLUG}`);
     if (reacted) {
         showToast(`${emoji} You already reacted with this emoji!`, 'info');
         return;
     }
     
-    const result = await apiCall('reactions', 'POST', {
-        emoji: emoji,
-        reaction_type: reactionType,
-        user_id: sessionId
-    });
-    
-    if (result.success) {
-        localStorage.setItem(`reacted_${reactionType}`, 'true');
-        await fetchReactions();
-        showToast(`${emoji} Added! Thanks for your feedback!`, 'success');
-    } else if (result.already_reacted) {
-        localStorage.setItem(`reacted_${reactionType}`, 'true');
-        showToast(`${emoji} You already reacted!`, 'info');
-    } else {
-        showToast('Failed to add reaction', 'error');
+    try {
+        const result = await cfApiCall('/api/reactions', 'POST', {
+            tool_slug: TOOL_SLUG,
+            emoji: emoji,
+            reaction_type: reactionType,
+            user_id: sessionId
+        });
+        
+        if (result.success) {
+            localStorage.setItem(`reacted_${reactionType}_${TOOL_SLUG}`, 'true');
+            await fetchReactions();
+            showToast(`${emoji} Added! Thanks for your feedback!`, 'success');
+        } else if (result.already_reacted) {
+            localStorage.setItem(`reacted_${reactionType}_${TOOL_SLUG}`, 'true');
+            showToast(`${emoji} You already reacted!`, 'info');
+        } else {
+            showToast('Failed to add reaction', 'error');
+        }
+    } catch (error) {
+        showToast('Network error, please try again', 'error');
     }
 }
 
 async function fetchReactions() {
-    const result = await apiCall('reactions', 'GET');
-    if (result.success && result.reactions) {
-        elements.reactionLike.textContent = result.reactions.like || 0;
-        elements.reactionLove.textContent = result.reactions.love || 0;
-        elements.reactionWow.textContent = result.reactions.wow || 0;
-        elements.reactionSad.textContent = result.reactions.sad || 0;
-        elements.reactionAngry.textContent = result.reactions.angry || 0;
-        elements.reactionLaugh.textContent = result.reactions.laugh || 0;
-        elements.reactionCelebrate.textContent = result.reactions.celebrate || 0;
-        
-        const total = Object.values(result.reactions).reduce((a, b) => a + b, 0);
-        elements.toolReactionCount.textContent = total;
+    try {
+        const result = await cfApiCall(`/api/reactions?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result.success && result.reactions) {
+            elements.reactionLike.textContent = result.reactions.like || 0;
+            elements.reactionLove.textContent = result.reactions.love || 0;
+            elements.reactionWow.textContent = result.reactions.wow || 0;
+            elements.reactionSad.textContent = result.reactions.sad || 0;
+            elements.reactionAngry.textContent = result.reactions.angry || 0;
+            elements.reactionLaugh.textContent = result.reactions.laugh || 0;
+            elements.reactionCelebrate.textContent = result.reactions.celebrate || 0;
+            
+            const total = Object.values(result.reactions).reduce((a, b) => a + b, 0);
+            elements.toolReactionCount.textContent = total;
+            localStorage.setItem('reactions_data', JSON.stringify(result.reactions));
+        } else {
+            // Fallback to localStorage
+            const saved = localStorage.getItem('reactions_data');
+            if (saved) {
+                const reactions = JSON.parse(saved);
+                elements.reactionLike.textContent = reactions.like || 0;
+                elements.reactionLove.textContent = reactions.love || 0;
+                elements.reactionWow.textContent = reactions.wow || 0;
+                elements.reactionSad.textContent = reactions.sad || 0;
+                elements.reactionAngry.textContent = reactions.angry || 0;
+                elements.reactionLaugh.textContent = reactions.laugh || 0;
+                elements.reactionCelebrate.textContent = reactions.celebrate || 0;
+            }
+        }
+    } catch (error) {
+        console.error('Fetch reactions error:', error);
     }
 }
 
-// Shares APIs
+// ============================================
+// SHARES API (Cloudflare)
+// ============================================
 async function addShare(platform) {
-    const result = await apiCall('shares', 'POST', {
-        platform: platform,
-        user_id: sessionId
-    });
-    if (result.success) {
-        await fetchShares();
-        showToast(`Shared on ${platform}!`, 'success');
+    try {
+        const result = await cfApiCall('/api/shares', 'POST', {
+            tool_slug: TOOL_SLUG,
+            platform: platform,
+            user_id: sessionId
+        });
+        if (result.success) {
+            await fetchShares();
+            showToast(`Shared on ${platform}! 🎉`, 'success');
+        }
+    } catch (error) {
+        showToast('Share failed, but thanks for trying!', 'warning');
     }
 }
 
 async function fetchShares() {
-    const result = await apiCall('shares', 'GET');
-    if (result.success) {
-        elements.shareCount.textContent = result.shares || 0;
+    try {
+        const result = await cfApiCall(`/api/shares?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result.success) {
+            elements.shareCount.textContent = result.shares || 0;
+            localStorage.setItem('share_count', result.shares || 0);
+        } else {
+            elements.shareCount.textContent = localStorage.getItem('share_count') || 0;
+        }
+    } catch (error) {
+        elements.shareCount.textContent = localStorage.getItem('share_count') || 0;
     }
 }
 
-// Global Stats API
+// ============================================
+// GLOBAL STATS API (Cloudflare)
+// ============================================
 async function fetchGlobalStats() {
-    const result = await directApiCall('/global-stats', 'GET');
-    if (result.success) {
-        elements.globalUsageCount.textContent = result.totalUsage || 0;
-        elements.globalSharesCount.textContent = result.totalShares || 0;
+    try {
+        const result = await cfApiCall(`/api/stats?tool_slug=${TOOL_SLUG}`, 'GET');
+        if (result.success) {
+            elements.globalUsageCount.textContent = result.usage || 0;
+            elements.globalSharesCount.textContent = result.shares || 0;
+            // Followers count from reactions
+            const totalReactions = result.reactions ? Object.values(result.reactions).reduce((a, b) => a + b, 0) : 0;
+            document.getElementById('global-followers').textContent = totalReactions || 0;
+        }
+    } catch (error) {
+        console.error('Global stats error:', error);
     }
 }
 
 // ============================================
-// AI PROJECT GENERATION (via Grok API through backend)
+// AI TOPIC SUGGESTIONS (via Cloudflare Worker)
 // ============================================
-async function generateProjectWithAI(grade, subject, complexity, keywords) {
-    showLoading();
+async function getAITopicSuggestions(grade, subject, keywords) {
+    showLoading('Getting AI topic suggestions...');
     
     try {
-        // Call the backend API that will use Grok API
-        const response = await fetch(`${API_BASE}/generate-pbl-project`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                grade,
-                subject,
-                complexity,
-                keywords: keywords || '',
-                tool_slug: TOOL_SLUG
-            })
+        const result = await cfApiCall('/api/generate', 'POST', {
+            tool_slug: TOOL_SLUG,
+            grade: grade,
+            subject: subject,
+            keywords: keywords || '',
+            action: 'suggest_topics'
         });
         
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.project) {
-                hideLoading();
-                return data.project;
-            }
+        hideLoading();
+        
+        if (result.success && result.suggestions) {
+            return result.suggestions;
+        } else if (result.success && result.topics) {
+            return result.topics;
+        } else {
+            // Fallback to local suggestions
+            return generateFallbackSuggestions(grade, subject, keywords);
         }
-        throw new Error('AI generation failed');
+    } catch (error) {
+        hideLoading();
+        console.error('AI Suggestions error:', error);
+        return generateFallbackSuggestions(grade, subject, keywords);
+    }
+}
+
+function generateFallbackSuggestions(grade, subject, keywords) {
+    const topicPools = {
+        science: ['Renewable Energy', 'Space Exploration', 'Climate Change', 'Ecosystems', 'Genetics', 'Quantum Physics', 'Marine Biology', 'Volcanology', 'Astronomy', 'Neuroscience'],
+        technology: ['Artificial Intelligence', 'Robotics', 'Cybersecurity', 'Blockchain', 'IoT', 'Machine Learning', 'Augmented Reality', 'Quantum Computing', '5G Networks', 'Biotechnology'],
+        engineering: ['Sustainable Architecture', 'Bridge Design', 'Aerospace Engineering', 'Civil Engineering', 'Mechanical Systems', 'Electrical Circuits', 'Environmental Engineering', 'Materials Science', 'Robotics Engineering', 'Structural Design'],
+        arts: ['Digital Art', 'Animation', 'Graphic Design', 'Music Production', 'Photography', 'Sculpture', 'Interactive Media', 'Visual Storytelling', 'Game Design', 'Fashion Design'],
+        math: ['Cryptography', 'Game Theory', 'Data Science', 'Financial Mathematics', 'Geometry in Nature', 'Statistical Analysis', 'Number Theory', 'Mathematical Modeling', 'Algorithm Design', 'Topology'],
+        integrated: ['Smart Cities', 'Sustainable Development', 'Biomimicry', 'Space Colonization', 'Climate Solutions', 'Digital Transformation', 'Renewable Energy Systems', 'Water Conservation', 'Food Security', 'Health Technology']
+    };
+    
+    let pool = topicPools[subject] || topicPools.integrated;
+    
+    // Filter by keywords if provided
+    if (keywords) {
+        const kwList = keywords.split(',').map(k => k.trim().toLowerCase());
+        const filtered = pool.filter(t => 
+            kwList.some(kw => t.toLowerCase().includes(kw))
+        );
+        if (filtered.length > 0) pool = filtered;
+    }
+    
+    // Shuffle and pick 6
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 6);
+}
+
+async function displayTopicSuggestions() {
+    const grade = elements.gradeLevel.value;
+    const subject = elements.subjectFocus.value;
+    const keywords = elements.keywords.value;
+    
+    if (!grade || !subject) {
+        showToast('Please select Grade Level and STEAM Focus first', 'error');
+        return;
+    }
+    
+    const suggestions = await getAITopicSuggestions(grade, subject, keywords);
+    
+    if (suggestions && suggestions.length > 0) {
+        const chipsContainer = elements.suggestionChips;
+        chipsContainer.innerHTML = '';
+        suggestions.forEach(topic => {
+            const chip = document.createElement('span');
+            chip.className = 'suggestion-chip';
+            chip.textContent = topic;
+            chip.addEventListener('click', () => {
+                elements.keywords.value = topic;
+                elements.keywords.focus();
+                showToast(`Selected: ${topic}`, 'success');
+            });
+            chipsContainer.appendChild(chip);
+        });
+        elements.topicSuggestions.style.display = 'block';
+        showToast(`${suggestions.length} topic suggestions generated!`, 'success');
+    } else {
+        showToast('No suggestions available. Try different selections.', 'warning');
+    }
+}
+
+// ============================================
+// AI PROJECT GENERATION (via Cloudflare Worker)
+// ============================================
+async function generateProjectWithAI(grade, subject, complexity, keywords) {
+    showLoading('Generating your project with AI...');
+    
+    try {
+        // Call the Cloudflare Worker API
+        const result = await cfApiCall('/api/generate', 'POST', {
+            tool_slug: TOOL_SLUG,
+            grade: grade,
+            subject: subject,
+            complexity: complexity,
+            keywords: keywords || '',
+            action: 'generate_project'
+        });
+        
+        if (result.success && result.project) {
+            hideLoading();
+            return result.project;
+        } else {
+            throw new Error('AI generation failed: ' + (result.error || 'Unknown error'));
+        }
     } catch (error) {
         console.log('AI API error, using fallback generation:', error);
         hideLoading();
@@ -294,7 +434,9 @@ async function generateProjectWithAI(grade, subject, complexity, keywords) {
     }
 }
 
-// Fallback Project Generator (when API is unavailable)
+// ============================================
+// FALLBACK PROJECT GENERATOR
+// ============================================
 function generateFallbackProject(grade, subject, complexity, keywords) {
     const topics = keywords ? keywords.split(',').map(t => t.trim()) : 
         ['Renewable Energy', 'Space Exploration', 'Robotics', 'Ecosystem', 'Artificial Intelligence', 'Climate Change'];
@@ -692,7 +834,7 @@ function exportCSV() {
 }
 
 async function exportPDF() {
-    showLoading();
+    showLoading('Generating PDF...');
     try {
         const element = elements.resultContainer;
         const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
@@ -711,7 +853,7 @@ async function exportPDF() {
 }
 
 async function exportReportPDF() {
-    showLoading();
+    showLoading('Generating report...');
     try {
         const element = elements.analysisContainer;
         const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
@@ -744,6 +886,17 @@ function shareToEmail() { window.location.href = `mailto:?subject=STEAM PBL Gene
 async function copyURL() { await navigator.clipboard.writeText(window.location.href); showToast('Link copied!', 'success'); addShare('copy'); }
 
 // ============================================
+// NAVIGATION FUNCTIONS
+// ============================================
+function goHome() {
+    window.location.href = 'https://magicrills.com';
+}
+
+function goBack() {
+    window.location.href = 'https://magicrills.com/category-pages/mixed-tools.html';
+}
+
+// ============================================
 // EVENT HANDLERS
 // ============================================
 async function handleGenerate() {
@@ -754,11 +907,9 @@ async function handleGenerate() {
         return;
     }
     
-    showLoading();
     await incrementUsage();
     const project = await generateProjectWithAI(grade, subject, elements.complexity.value, elements.keywords.value);
     displayProject(project);
-    hideLoading();
     showToast('Project generated successfully! 🎉', 'success');
 }
 
@@ -776,6 +927,8 @@ function resetForm() {
     elements.subjectFocus.value = '';
     elements.complexity.value = 'intermediate';
     elements.keywords.value = '';
+    elements.topicSuggestions.style.display = 'none';
+    elements.suggestionChips.innerHTML = '';
     showToast('Form reset', 'info');
 }
 
@@ -838,11 +991,142 @@ function initScrollButtons() {
 }
 
 // ============================================
+// TYPEWRITER ANIMATION
+// ============================================
+function initTypewriter() {
+    const text = "Create engaging Problem-Based Learning projects with AI";
+    const element = document.getElementById('typewriter-text');
+    if (!element) return;
+    
+    let index = 0;
+    let isDeleting = false;
+    
+    function typeEffect() {
+        if (isDeleting) {
+            element.textContent = text.substring(0, index - 1);
+            index--;
+            if (index === 0) {
+                isDeleting = false;
+                setTimeout(typeEffect, 1000);
+                return;
+            }
+            setTimeout(typeEffect, 30);
+        } else {
+            element.textContent = text.substring(0, index + 1);
+            index++;
+            if (index === text.length) {
+                isDeleting = true;
+                setTimeout(typeEffect, 3000);
+                return;
+            }
+            setTimeout(typeEffect, 50);
+        }
+    }
+    
+    typeEffect();
+}
+
+// ============================================
+// PARTICLES BACKGROUND
+// ============================================
+function initParticles() {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+    const particles = [];
+    const particleCount = 80;
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.size = Math.random() * 2 + 0.5;
+            this.speedX = (Math.random() - 0.5) * 0.5;
+            this.speedY = (Math.random() - 0.5) * 0.5;
+            this.opacity = Math.random() * 0.5 + 0.2;
+        }
+        
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x > width) this.x = 0;
+            if (this.x < 0) this.x = width;
+            if (this.y > height) this.y = 0;
+            if (this.y < 0) this.y = height;
+        }
+        
+        draw() {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+        // Draw connections
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 150) {
+                    ctx.strokeStyle = `rgba(139, 92, 246, ${0.1 * (1 - distance / 150)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 async function init() {
+    // Initialize particles
+    initParticles();
+    
+    // Initialize typewriter
+    initTypewriter();
+    
     // Check database connection
-    await checkDatabaseHealth();
+    try {
+        const result = await cfApiCall('/api/health', 'GET');
+        if (result.success) {
+            elements.dbStatusText.innerHTML = '✅ Cloudflare API Connected';
+            elements.dbStatusText.style.color = '#10b981';
+        } else {
+            elements.dbStatusText.innerHTML = '⚠️ Using Local Fallback';
+            elements.dbStatusText.style.color = '#fbbf24';
+        }
+    } catch (error) {
+        elements.dbStatusText.innerHTML = '🔌 Offline Mode';
+        elements.dbStatusText.style.color = '#ef4444';
+    }
     
     // Fetch all data from APIs
     await fetchUsage();
@@ -866,6 +1150,9 @@ async function init() {
     elements.checklistFileInput?.addEventListener('change', handleFileUpload);
     elements.exportReportPdf?.addEventListener('click', exportReportPDF);
     elements.printReport?.addEventListener('click', printReport);
+    elements.getSuggestionsBtn?.addEventListener('click', displayTopicSuggestions);
+    elements.homeBtn?.addEventListener('click', goHome);
+    elements.backBtn?.addEventListener('click', goBack);
     
     // Share buttons
     document.getElementById('share-facebook')?.addEventListener('click', shareToFacebook);
@@ -887,9 +1174,9 @@ async function init() {
         try { displayProject(JSON.parse(lastProject)); } catch(e) {}
     }
     
-    console.log('✅ STEAM PBL Project Generator v4.0 - Fully Integrated with TiDB + Grok API');
-    showToast('Welcome! Database connected. Generate your first project! 🚀', 'success');
+    console.log('✅ STEAM PBL Project Generator v5.0 - Fully Integrated with Cloudflare Workers API');
+    showToast('🚀 Welcome! Generate your first project with AI!', 'success');
 }
 
 // Start the app
-init();
+document.addEventListener('DOMContentLoaded', init);
